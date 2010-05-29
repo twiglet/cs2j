@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.Enum</Name>
+ <Java>Enum</Java>
+ <Methods>
+    <Method>
+      <Return>System.Boolean</Return>
+      <Name>IsDefined</Name>
+      <Params>
+         <Param>
+            <Type>System.Object</Type>
+            <Name>enumType</Name>
+         </Param>
+         <Param>
+            <Type>System.Object</Type>
+            <Name>value</Name>
+         </Param>
+      </Params>
+      <Java>EnumSupport.isDefined(${enumType}, ${value})</Java>
+      <Imports>
+        <Import>RusticiSoftware.System.EnumSupport</Import>
+      </Imports>
+    </Method>
+    <Method>
+      <Return>System.String</Return>
+      <Name>ToString</Name>
+      <Params>
+         <Param>
+            <Type>System.String</Type>
+            <Name>modifier</Name>
+         </Param>
+      </Params>
+      <Java>EnumSupport.toString(${this}, ${modifier})</Java>
+      <Imports>
+        <Import>RusticiSoftware.System.EnumSupport</Import>
+      </Imports>
+    </Method>
+    <Method>
+      <Return>System.Object</Return>
+      <Name>Parse</Name>
+      <Params>
+         <Param>
+            <Type>System.Type</Type>
+            <Name>enumType</Name>
+         </Param>
+         <Param>
+            <Type>System.String</Type>
+            <Name>value</Name>
+         </Param>
+      </Params>
+      <Java>Enum.valueOf(${enumType}, ${value})</Java>
+	  <Imports />
+    </Method>
+ </Methods>
+  <Casts>
+    <Cast>
+      <Imports />
+      <From>System.Byte</From>
+      <Java>${to_type}.values()[${expr}]</Java>
+    </Cast>
+    <Cast>
+      <Imports />
+      <From>System.Enum</From>
+      <To>System.Byte</To>
+      <Java>(byte)(((Enum)${expr}).ordinal())</Java>
+    </Cast>
+    <Cast>
+      <Imports />
+      <From>System.Int32</From>
+      <Java>${to_type}.values()[${expr}]</Java>
+    </Cast>
+    <Cast>
+      <Imports />
+      <From>System.Enum</From>
+      <To>System.Int32</To>
+      <Java>((Enum)${expr}).ordinal()</Java>
+    </Cast>
+  </Casts>
+</Class>

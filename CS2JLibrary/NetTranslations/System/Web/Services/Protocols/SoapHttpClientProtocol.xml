@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.Web.Services.Protocols.SoapHttpClientProtocol</Name>
+ <Java>SoapHttpClientProtocol</Java>
+ <Inherits>
+    <Type>System.Object</Type>
+ </Inherits>
+ <Imports>
+   <Import>RusticiSoftware.System.Web.Services.Protocols.SoapHttpClientProtocol</Import>
+ </Imports>
+ <Properties>
+   <Property>
+      <Type>System.String</Type>
+      <Name>Url</Name>
+      <Get>${this}.getUrl()</Get>
+      <Set>${this}.setUrl(${value})</Set>
+   </Property>
+   <Property>
+      <Type>System.String</Type>
+      <Name>CookieContainer</Name>
+      <Get>${this}.getCookieContainer()</Get>
+      <Set>${this}.setCookieContainer(${value})</Set>
+   </Property>
+ </Properties>
+ <Methods>
+   <Method>
+     <Return>System.Object[]</Return>
+     <Name>Invoke</Name>
+     <Params>
+       <Param>
+         <Type>System.String</Type>
+         <Name>methodName</Name>
+       </Param>
+       <Param>
+         <Type>System.Object[]</Type>
+         <Name>parameters</Name>
+       </Param>
+     </Params>
+     <Java>${this}.invoke(${methodName}, ${parameters})</Java>
+   </Method>
+ </Methods>
+</Class>

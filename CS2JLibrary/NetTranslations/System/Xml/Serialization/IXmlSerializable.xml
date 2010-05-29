@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.Xml.Serialization.IXmlSerializable</Name>
+ <Java>IXmlSerializable</Java>
+ <Imports>
+   <Import>RusticiSoftware.System.Xml.Serialization.IXmlSerializable</Import>
+ </Imports>
+ <Properties>
+   <Property>
+     <Type>System.String</Type>
+     <Name>Value</Name>
+     <Get>${this}.getValue()</Get>
+   </Property>
+ </Properties>
+ <Methods>
+ </Methods>
+</Interface>

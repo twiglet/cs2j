@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="../Translation.xsd"
+>
+    <!-- <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+> -->
+  <Name>System.Reflection.Assembly</Name>
+  <Imports>
+    <Import>RusticiSoftware.System.Reflection.Assembly</Import>
+  </Imports>
+  <Java>Assembly</Java>
+  <Methods>
+    <Method>
+      <Return>System.Reflection.Assembly</Return>
+      <Name>Load</Name>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>assemblyString</Name>
+        </Param>
+      </Params>
+  	  <Imports>
+    	<Import>RusticiSoftware.System.Reflection.Assembly</Import>
+  	  </Imports>
+      <Java>new Assembly(${assemblyString})</Java>
+    </Method>
+    <Method>
+      <Return>System.Type</Return>
+      <Name>GetType</Name>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>throwOnError</Name>
+        </Param>
+      </Params>
+      <Java>${this}.getClass(${name}, ${throwOnError})</Java>
+    </Method>
+    <Method>
+      <Return>System.Assembly</Return>
+      <Name>GetExecutingAssembly</Name>
+      <Java>null /* getExecutingAssembly() */</Java>
+    </Method>
+  </Methods>
+</Class>

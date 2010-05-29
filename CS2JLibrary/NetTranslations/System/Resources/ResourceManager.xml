@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="../Translation.xsd"
+>
+    <!-- <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+> -->
+  <Name>System.Resources.ResourceManager</Name>
+  <Imports>
+    <Import>RusticiSoftware.System.Resources.ResourceManager</Import>
+  </Imports>
+  <Java>ResourceManager</Java>
+  <Properties>
+  </Properties>
+  <Constructors>
+    <Constructor>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>baseName</Name>
+        </Param>
+        <Param>
+          <Type>System.Reflection.Assembly</Type>
+          <Name>assembly</Name>
+        </Param>
+      </Params>
+      <Imports>
+        <Import>RusticiSoftware.System.Resources.ResourceManager</Import>
+      </Imports>      
+      <Java>new ResourceManager(${baseName}, ${assembly)) /* ignored parameters */ </Java>
+    </Constructor>
+  </Constructors>
+  <Methods>
+    <Method>
+      <Return>System.String</Return>
+      <Name>GetString</Name>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Java>${this}.getString(${name})</Java>
+    </Method>
+  </Methods>
+</Class>

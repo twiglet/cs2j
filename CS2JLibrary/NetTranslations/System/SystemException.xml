@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.SystemException</Name>
+ <Java>Throwable</Java>
+ <Inherits>
+    <Type>System.Exception</Type>
+ </Inherits>
+ <Constructors>
+   <Constructor>
+   <Java>new Throwable()</Java>
+   </Constructor>
+   <Constructor>
+     <Params>
+       <Param>
+         <Type>System.String</Type>
+         <Name>message</Name>
+       </Param>
+     </Params>
+     <Java>new Throwable(${message})</Java>
+   </Constructor>
+   <Constructor>
+     <Params>
+       <Param>
+         <Type>System.SerializationInfo</Type>
+         <Name>info</Name>
+       </Param>
+       <Param>
+         <Type>System.StreamingContext</Type>
+         <Name>ctxt</Name>
+       </Param>
+     </Params>
+   </Constructor>
+   <Constructor>
+     <Params>
+       <Param>
+         <Type>System.String</Type>
+         <Name>message</Name>
+       </Param>
+       <Param>
+         <Type>System.Exception</Type>
+         <Name>inner</Name>
+       </Param>
+     </Params>
+     <Java>new Throwable(${message}, ${inner})</Java>
+   </Constructor>
+ </Constructors>
+</Class>

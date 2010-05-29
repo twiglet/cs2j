@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:SchemaLocation="http://www.w3.org/2001/XMLSchema file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+>
+ <Name>System.ICloneable</Name>
+ <Java>ICloneable</Java>
+ <Imports>
+      <Import>RusticiSoftware.ScormContentPlayer.Util.ICloneable</Import>
+ </Imports>
+ <Methods>
+    <Method>
+      <Return>System.Object</Return>
+      <Name>Clone</Name>
+      <Java>${this}.Clone()</Java>
+    </Method>
+  </Methods>
+</Interface>

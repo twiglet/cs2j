@@ -1,0 +1,108 @@
+<project name="cs2jsupport" default="package" basedir=".">
+
+	<description>
+                This build file builds and packages the CS2J Support
+                library into a jar file.
+	</description>
+
+	<property file="${user.home}/${ant.project.name}.build.properties" />
+	<property file="${user.home}/build.properties" />
+	<property file="build.properties" />
+
+	<tstamp>
+		<format property="timestamp.isoformat" pattern="yyyy-MM-dd'T'HH:mm:ss" />
+	</tstamp>
+
+	<target name="revision" unless="svn.revision">
+		<exec executable="svnversion" outputproperty="svn.revision">
+			<arg value="." />
+		</exec>
+		<echo message="_REVISION_=${svn.revision}" />
+	</target>
+
+	<target name="package" depends="compile,revision">
+		<mkdir dir="${jar.dir}" />
+		<jar destfile="${jar.dir}/${ant.project.name}.jar" index="true">
+			<fileset dir="${classes.dir}/${ant.project.name}" id="jar.files">
+				<include name="**/*.class" />
+			</fileset>
+			<fileset dir="${src.dir}">
+				<include name="**/*.xsl" />
+			</fileset>
+			<metainf dir="${basedir}">
+				<include name="LICENSE" />
+				<include name="NOTICE" />
+			</metainf>
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Built-On" value="${timestamp.isoformat}" />
+				<attribute name="Subversion-Branch" value="$HeadURL: https://svn.rusticisoftware.com/svn/projects/Products/CS2JLibrary/trunk/build.xml $" />
+				<attribute name="Subversion-Revision" value="${svn.revision}" />
+			</manifest>
+		</jar>
+		<!-- And copy any 3rd party jars needed by cs2j. -->
+		<copy todir="${jar.dir}">
+			<fileset dir="${basedir}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="src" description="Make a source distribution">
+		<mkdir dir="${zip.dir}" />
+		<zip destfile="${src.zip}">
+			<fileset dir="${basedir}">
+				<include name="src/**/*" />
+				<include name="LICENSE" />
+				<include name="NOTICE" />
+				<include name="build.*" />
+				<include name=".project" />
+				<include name=".classpath" />
+				<include name="lib/*" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="clean-package" depends="clean,package">
+	</target>
+
+	<target name="compile" depends="init">
+		<echo message="Compiling Source files from ${basedir}/${src.dir}" />
+		<javac 
+			srcdir="${src.dir}/" 
+			includes="**/*.java" 
+			excludes="" 
+			destdir="${classes.dir}/${ant.project.name}" 
+			fork="true" 
+			deprecation="false" 
+			debug="true" 
+			memoryMaximumSize="512m" 
+			nowarn="true" 
+			target="${java.target.vm}">
+			<classpath>
+				<fileset dir="${lib.dir}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="init" depends="">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${classes.dir}/${ant.project.name}" />
+	</target>
+
+	<target name="clean" depends="">
+		<delete failonerror="false" dir="${build.dir}" />
+	</target>
+
+	<target name="deploy" depends="package">
+		<copy file="${jar.dir}/${ant.project.name}.jar" todir="${export.dir}" />
+	</target>
+
+	<target name="dumpProperties" description="output all set properties, a useful sanity check">
+	  <echoproperties/>
+	</target>
+
+
+</project>

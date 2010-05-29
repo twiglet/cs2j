@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.Net.WebRequest</Name>
+ <Java>** NONE System.Net.WebRequest **</Java>
+ <Inherits>
+    <Type>System.Object</Type>
+ </Inherits>
+ <Imports>
+   <Import>java.net.*</Import>
+ </Imports>
+ <Properties>
+ </Properties>
+ <Methods>
+   <Method>
+     <Return>System.Net.WebRequest</Return>
+     <Name>Create</Name>
+     <Params>
+       <Param>
+         <Type>System.Uri</Type>
+         <Name>requestUri</Name>
+       </Param>
+     </Params>
+     <Java>${requestUri}.toURL().openConnection()</Java>
+   </Method>
+ </Methods>
+</Class>

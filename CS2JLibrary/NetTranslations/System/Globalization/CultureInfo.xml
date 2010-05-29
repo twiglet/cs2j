@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.Globalization.CultureInfo</Name>
+ <Java>TODO</Java>
+ <Inherits>
+    <Type>System.ICloneable</Type>
+    <Type>System.IFormatProvider</Type>
+ </Inherits>
+ <Properties>
+    <Property>
+       <Name>InvariantCulture</Name>
+       <Type>System.Globalization.CultureInfo</Type>
+       <Imports>
+         <Import>RusticiSoftware.JavaSupport.util.LocaleSupport</Import>
+       </Imports>
+       <Get>LocaleSupport.INVARIANT</Get>
+    </Property>
+ </Properties>
+ <Methods>
+ </Methods>
+</Class>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>System.Net.Mail.MailAddress</Name>
+  <Java>InternetAddress</Java>
+  <Constructors>
+    <Constructor>
+       <Params>
+          <Param>
+             <Type>System.String</Type>
+             <Name>address</Name>
+          </Param>
+       </Params>
+       <Imports>
+          <Import>java.io.*</Import>
+       </Imports>
+       <Java>new InternetAddress(${address})</Java>
+    </Constructor>
+  </Constructors>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Imports>
+    <Import>javax.mail.internet.InternetAddress</Import>
+  </Imports>
+</Class>

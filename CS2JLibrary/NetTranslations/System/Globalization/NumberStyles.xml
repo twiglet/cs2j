@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="file://C:/Documents%20and%20Settings/kevin.glynn/My%20Documents/CS2JLibrary/Translation.xsd"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ <Name>System.Globalization.NumberStyles</Name>
+ <Properties>
+    <Property>
+       <Name>Integer</Name>
+       <Type>System.Globalization.NumberStyles</Type>
+       <Imports>
+         <Import>RusticiSoftware.System.Globalization.NumberStyles</Import>
+       </Imports>
+       <Get>NumberStyles.getInteger()</Get>
+    </Property>
+    <Property>
+       <Name>HexNumber</Name>
+       <Type>System.Globalization.NumberStyles</Type>
+       <Imports>
+         <Import>RusticiSoftware.System.Globalization.NumberStyles</Import>
+       </Imports>
+       <Get>NumberStyles.getHexNumber()</Get>
+    </Property>
+    <Property>
+       <Name>Any</Name>
+       <Type>System.Globalization.NumberStyles</Type>
+       <Imports>
+         <Import>RusticiSoftware.System.Globalization.NumberStyles</Import>
+       </Imports>
+       <Get>NumberStyles.getAny()</Get>
+    </Property>
+ </Properties>
+ <Methods>
+ </Methods>
+</Class>
