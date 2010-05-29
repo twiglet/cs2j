@@ -1,16 +1,55 @@
 <?xml-stylesheet type="text/xsl" href="file://C:\ant\etc\antex\antprettybuild\antprettybuild-3.1.1.xsl"?>
-<project name="cs2jTranslator" default="" basedir="." xmlns:dn="antlib:org.apache.ant.dotnet">
+<project name="cs2jTranslator" default="launch" basedir="." xmlns:dn="antlib:org.apache.ant.dotnet">
 
 	<description>
         This script builds the cs2j translator and translates C# code
     </description>
 
+	<property file="${basedir}/launch.properties" />
 	<property file="${user.home}/${ant.project.name}.build.properties" />
 	<property file="${user.home}/build.properties" />
 	<property file="build.properties" />
 
 	<!-- load the ant-dotnet task, see http://ant.apache.org/antlibs/dotnet/index.html -->
 	<taskdef uri="antlib:org.apache.ant.dotnet" resource="org/apache/ant/dotnet/antlib.xml" classpath="${builder.ant.lib}/ant-dotnet-1.0.jar" />
+
+	<!-- Load AntForm tasks -->
+	<taskdef name="antform" classname="com.sardak.antform.AntForm" classpath="${builder.ant.lib}/antform.jar"/>
+	<taskdef name="antmenu" classname="com.sardak.antform.AntMenu" classpath="${builder.ant.lib}/antform.jar"/>
+
+	<target name="launch">
+		<antform title="C# to Java Translation" save="${basedir}/launch.properties">
+			<label>Enter a scratch directory to use for building</label>
+			<fileSelectionProperty label="Java output directory : " property="java.output.dir" directoryChooser="true" />
+			<fileSelectionProperty label="C# Application Root : " property="cs.app.dir" directoryChooser="true" />
+			<fileSelectionProperty label="C# Translation Root : " property="cs.tx.dir" directoryChooser="true" />
+			<fileSelectionProperty label="CS2J Translation Files : " property="cs2j.dir" directoryChooser="true" />
+			<separator />
+			<!-- <label>Enter the locations of the branches you want to translate from / to</label>
+			<textProperty label="ScormEngineNet branch : " property="csharp.project.full" />
+			<textProperty label="ScormEngineJava branch : " property="java.project.full" />
+			<separator />
+			<booleanProperty label="Commit Java code after translation " property="is.commit.javacode" />
+			<booleanProperty label="Refresh and Rebuild cs2j executable " property="is.rebuild.cs2j" />
+			-->
+			<controlbar>
+				<button label="Cancel" type="cancel" target="cancel" newproject="false"/>
+				<button label="Reset" type="reset" />
+				<button label="OK" type="ok"/>
+			</controlbar>
+		</antform>
+		<antcall target="ok" />
+	</target>
+
+	<target name="cancel">
+		<echo message="Translation cancelled by user" />
+		<property name="is.run.cancelled" value="true" />
+	</target>
+
+	<target name="ok" unless="is.run.cancelled">
+		<!--antcall target="dumpProperties" inheritall="false" / -->
+		<antcall target="translateCS2J" inheritall="false" />
+	</target>
 
 
 	<!-- We could have left this in the msbuild script fed to buildTranslator, but it is clearer in Ant :) -->

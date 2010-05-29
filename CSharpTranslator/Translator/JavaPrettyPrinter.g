@@ -36,6 +36,8 @@ options {
     private XmlTextWriter enumXmlWriter;
     private ArrayList enumMembers = new ArrayList();
     
+    private bool inClassModifiers = false; // Filter out static, this isn't the right place but pending rewrite this is quickest.
+    
 	/** walk list of hidden tokens in order, printing them out */
 	public void dumpHidden(TextWriter w, antlr.IHiddenStreamToken t) {
 	  for ( ; t!=null ; t=filter.getHiddenAfter(t) ) {
@@ -277,8 +279,8 @@ importDefinition [TextWriter w]
 	;
 
 typeDefinition [TextWriter w]
-	:	#(cl:CLASS			
-			modifiers[w] 
+	:	#(cl:CLASS	{inClassModifiers = true; }		
+			modifiers[w] {inClassModifiers = false; }
 			id:IDENTIFIER				{ Print(w, "class "); Print(w, #id, " "); }
 			extendsClause[w] 
 			implementsClause[w]     { PrintNL(w); Print(w, "{"); PrintNL(w); indentLevel++; }
@@ -366,7 +368,7 @@ modifier [TextWriter w]
     :   mpr:"private"				{ Print(w, #mpr); }
     |   mpu:"public"				{ Print(w, #mpu); }
     |   mpt:"protected"				{ Print(w, #mpt); }
-    |   mst:"static"				{ Print(w, #mst); }
+    |   mst:"static"				{ if (!inClassModifiers) {Print(w, #mst);} }
     |   mtr:"transient"				{ Print(w, #mtr); }
     |   mfi:FINAL					{ Print(w, #mfi); }   
     |   mab:ABSTRACT				{ Print(w, #mab); }
@@ -749,7 +751,7 @@ constant [TextWriter w]
     |   st:STRING_LITERAL			{ Print(w, #st); }
     |   fl:NUM_FLOAT				{ Print(w, #fl); }
     |   db:DOUBLE_LITERAL			{ Print(w, #db); }
-    |   flr:FLOAT_LITERAL			{ Print(w, #flr); }
+    |   flt:FLOAT_LITERAL			{ Print(w, #flt); }
     |   lo:LONG_LITERAL				{ Print(w, #lo); Print(w, "L"); }
     |   ul:ULONG_LITERAL			{ Print(w, #ul); Print(w, "L"); }
     |   de:DECIMAL_LITERAL			{ Print(w, #de, "/* Unsupported Decimal Literal */"); }
