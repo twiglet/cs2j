@@ -1,0 +1,175 @@
+<?xml-stylesheet type="text/xsl" href="file://C:\ant\etc\antex\antprettybuild\antprettybuild-3.1.1.xsl"?>
+<project name="cs2jTranslator" default="" basedir="." xmlns:dn="antlib:org.apache.ant.dotnet">
+
+	<description>
+        This script builds the cs2j translator and translates C# code
+    </description>
+
+	<property file="${user.home}/${ant.project.name}.build.properties" />
+	<property file="${user.home}/build.properties" />
+	<property file="build.properties" />
+
+	<!-- load the ant-dotnet task, see http://ant.apache.org/antlibs/dotnet/index.html -->
+	<taskdef uri="antlib:org.apache.ant.dotnet" resource="org/apache/ant/dotnet/antlib.xml" classpath="${builder.ant.lib}/ant-dotnet-1.0.jar" />
+
+
+	<!-- We could have left this in the msbuild script fed to buildTranslator, but it is clearer in Ant :) -->
+	<target name="antlrTranslator" depends="init">
+		<antlr target="${cs2jtx.src.dir}/UnicodeLexerBase.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpLexerBase.g" glib="${cs2jtx.src.dir}/UnicodeLexerBase.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpLexer.g" glib="${cs2jtx.src.dir}/UnicodeLexerBase.g;${cs2jtx.src.dir}/CSharpLexerBase.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpPreprocessorLexer.g" glib="${cs2jtx.src.dir}/UnicodeLexerBase.g;${cs2jtx.src.dir}/CSharpLexerBase.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpPreprocessorHooverLexer.g" glib="${cs2jtx.src.dir}/UnicodeLexerBase.g;${cs2jtx.src.dir}/CSharpLexerBase.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpParser.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpEnvBuilder.g">
+			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/CSharpTranslator.g">
+			<classpath id="antlrjar"> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/NetTranslator.g">
+			<classpath id="antlrjar"> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+		<antlr target="${cs2jtx.src.dir}/JavaPrettyPrinter.g">
+			<classpath id="antlrjar"> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
+		</antlr>
+	</target>
+
+<!--    C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\Csc.exe /noconfig /nowarn:1701,1702 /errorreport:prompt /warn:4 /defin
+e:DEBUG;TRACE /reference:C:\cygwin\antlr\build\lib\antlr.astframe.dll /reference:C:\cygwin\antlr\build\lib\antlr.runtime
+.dll /reference:C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\System.Data.dll /reference:C:\WINDOWS\Microsoft.NET\Framew
+ork\v2.0.50727\System.dll /reference:C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\System.Windows.Forms.dll /reference:C
+:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\System.Xml.dll /debug+ /debug:full /optimize- /out:obj\Debug\Translator.exe
+ /target:exe 
+	-->
+	
+  <target name="buildTranslator" depends="antlrTranslator" description="Builds CSharp to Java Translator">
+    <mkdir dir="${cs2jtx.bin.dir}/"/>
+    <dn:msbuild>
+      <dn:build>
+        <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+          <Target Name="Build">
+            <!-- I am just mimicing the standard build options used by VS2005 here -->
+            <Csc Sources="@(Compile)" References="@(Reference)" TargetType="exe"
+							OutputAssembly="${cs2jtx.bin.dir}/Translator.exe"
+							Optimize="false"
+						    DebugType="full"
+							DisabledWarnings="1701,1702"
+					        EmitDebugInformation="true"
+		                    ErrorReport="prompt"
+							NoConfig="true"
+							Warninglevel="4" />
+          </Target>
+          <ItemGroup>
+            <Reference Include="${antlr.dll.dir}/antlr.astframe.dll" />
+            <Reference Include="${antlr.dll.dir}/antlr.runtime.dll" />
+            <Reference Include="${windows.dotnet.dir}/System.dll" />
+            <Reference Include="${windows.dotnet.dir}/System.Data.dll" />
+            <Reference Include="${windows.dotnet.dir}/System.Windows.Forms.dll" />
+            <Reference Include="${windows.dotnet.dir}/System.Xml.dll" />
+          </ItemGroup>
+          <ItemGroup>
+            <Compile Include="${cs2jtx.src.dir}\ASTNode.cs" />
+            <Compile Include="${cs2jtx.src.dir}\ASTNodeFactory.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CodeMaskEnums.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpEnvBuilder.cs" />
+            <Compile Include="${cs2jtx.src.dir}\DirectoryHT.cs" />
+            <Compile Include="${cs2jtx.src.dir}\SigEnv.cs" />
+            <Compile Include="${cs2jtx.src.dir}\TranslationTemplate.cs" />
+            <Compile Include="${cs2jtx.src.dir}\TypeTable.cs" />
+            <Compile Include="${cs2jtx.src.dir}\NetTranslatorBase.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpHooverTokenTypes.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpJavaTokenTypes.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpLexer.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpLexerBase.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpLexerBaseTokenTypes.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpLexerTokenTypes.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpParser.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpPreprocessorHooverLexer.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpPreprocessorLexer.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpPreprocessTokenTypes.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CustomHiddenStreamToken.cs" />
+            <Compile Include="${cs2jtx.src.dir}\CSharpTranslator.cs" />
+            <Compile Include="${cs2jtx.src.dir}\Exception.cs" />
+            <Compile Include="${cs2jtx.src.dir}\JavaPrettyPrinter.cs" />
+            <Compile Include="${cs2jtx.src.dir}\JavaTreeParser.cs" />
+            <Compile Include="${cs2jtx.src.dir}\Main.cs" />
+            <Compile Include="${cs2jtx.src.dir}\NetTranslator.cs" />
+            <Compile Include="${cs2jtx.src.dir}\Properties\AssemblyInfo.cs" />
+            <Compile Include="${cs2jtx.src.dir}\Set.cs" />
+            <Compile Include="${cs2jtx.src.dir}\SymbolTable.cs" />
+            <Compile Include="${cs2jtx.src.dir}\TypeRep.cs" />
+            <Compile Include="${cs2jtx.src.dir}\UnicodeLexerBase.cs" />
+            <Compile Include="${cs2jtx.src.dir}\UnicodeLexerBaseTokenTypes.cs" />
+          </ItemGroup>
+        </Project>
+      </dn:build>
+    </dn:msbuild>
+    <copy file="${antlr.dll.dir}/antlr.astframe.dll" todir="${cs2jtx.bin.dir}"/>
+    <copy file="${antlr.dll.dir}/antlr.runtime.dll" todir="${cs2jtx.bin.dir}"/>
+  </target>
+
+  <!-- "C:\Documents and Settings\kevin.glynn\My Documents\Visual Studio
+2005\Projects\Translator\Translator\bin\Debug\Translator.exe" -dumpxml
+-odir "C:\Documents and
+Settings\kevin.glynn\eclipsews\RusticiSoftware.ScormUntethered.Logic\src"
+-netdir "c:\Documents and Settings\kevin.glynn\eclipsews\CS2JLibrary"
+-appdir "c:\docume~1\kevin~1.gly\locals~1\temp\tmpk6_pcn" -cheatdir
+"c:\Documents and Settings\kevin.glynn\My Documents\Cheats"
+"c:\docume~1\kevin~1.gly\locals~1\temp\tmpk6_pcn\UntetheredLogic" -->
+	
+    <target name="translateCS2J" depends="init" description="run translator">
+        <dn:dotnetexec executable="${cs2jtx.exe}">
+            <arg value="-version"/>
+            <arg value="-dumpxml"/>
+            <arg value="-xmldir"/>
+            <arg file="${cs2jtx.build.dir}/xmls"/>
+            <arg value="-dumpenums"/>
+            <arg file="${cs2jtx.build.dir}/enums.xml"/>
+            <arg value="-cheatdir"/>
+            <arg file="${cheats.dir}"/>
+            <arg value="-netdir"/>
+            <arg file="${cs2j.dir}"/>
+            <arg value="-exnetdir"/>
+            <arg file="${cs2j.dir}/build.xml"/>
+            <arg value="-appdir"/>
+            <arg file="${cs.app.dir}"/>
+            <arg value="-odir"/>
+            <arg file="${java.output.dir}"/>
+        	<arg file="${cs.tx.dir}" />
+        </dn:dotnetexec>
+    </target>
+
+    <target name="echoTranslateCS2J" depends="" description="echo run translator command line">
+        <echo>
+        	"${cs2jtx.exe} -dumpxml -odir ${java.output.dir} -netdir ${cs2j.dir} -appdir ${cs.app.dir} -cheatdir ${cheats.dir} ${cs.tx.dir}"
+        </echo>
+    </target>
+
+	<target name="dumpProperties" description="output all set properties, a useful sanity check">
+		<echoproperties />
+	</target>
+
+	<target name="init" depends="">
+		<mkdir dir="${cs2jtx.build.dir}" />
+	</target>
+
+	<target name="clean" depends="" description="clean out build area">
+		<!-- create dir if it doesn't exist, so delete only fails if there is a real problem -->
+		<mkdir dir="${cs2jtx.build.dir}"/>
+		<delete failonerror="true" dir="${cs2jtx.build.dir}" />
+	</target>
+
+</project>

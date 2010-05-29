@@ -1,0 +1,146 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D33074E4-1525-4F22-A1DB-A7F30989D8FE}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RusticiSoftware.Translator</RootNamespace>
+    <AssemblyName>Translator</AssemblyName>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="antlr.astframe, Version=2.7.7.1, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\dll\antlr.astframe.dll</HintPath>
+    </Reference>
+    <Reference Include="antlr.runtime, Version=2.7.7.1, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\dll\antlr.runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ASTNode.cs" />
+    <Compile Include="ASTNodeFactory.cs" />
+    <Compile Include="CodeMaskEnums.cs" />
+    <Compile Include="CSharpEnvBuilder.cs" />
+    <Compile Include="DirectoryHT.cs" />
+    <Compile Include="SigEnv.cs" />
+    <Compile Include="TranslationTemplate.cs" />
+    <Compile Include="TypeTable.cs" />
+    <Compile Include="NetTranslatorBase.cs" />
+    <Compile Include="CSharpHooverTokenTypes.cs" />
+    <Compile Include="CSharpJavaTokenTypes.cs" />
+    <Compile Include="CSharpLexer.cs" />
+    <Compile Include="CSharpLexerBase.cs" />
+    <Compile Include="CSharpLexerBaseTokenTypes.cs" />
+    <Compile Include="CSharpLexerTokenTypes.cs" />
+    <Compile Include="CSharpParser.cs" />
+    <Compile Include="CSharpPreprocessorHooverLexer.cs" />
+    <Compile Include="CSharpPreprocessorLexer.cs" />
+    <Compile Include="CSharpPreprocessTokenTypes.cs" />
+    <Compile Include="CustomHiddenStreamToken.cs" />
+    <Compile Include="CSharpTranslator.cs" />
+    <Compile Include="Exception.cs" />
+    <Compile Include="JavaPrettyPrinter.cs" />
+    <Compile Include="JavaTreeParser.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="NetTranslator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Set.cs" />
+    <Compile Include="SymbolTable.cs" />
+    <Compile Include="TypeRep.cs" />
+    <Compile Include="UnicodeLexerBase.cs" />
+    <Compile Include="UnicodeLexerBaseTokenTypes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Antlr Include="UnicodeLexerBase.g">
+      <OutputFiles>UnicodeLexerBase.cs;UnicodeLexerBaseTokenTypes.cs</OutputFiles>
+    </Antlr>
+    <Antlr Include="CSharpLexerBase.g">
+      <OutputFiles>CSharpLexerBase.cs;CSharpLexerBaseTokenTypes.cs</OutputFiles>
+      <IncludeFiles>-glib UnicodeLexerBase.g</IncludeFiles>
+    </Antlr>
+    <Antlr Include="CSharpLexer.g">
+      <OutputFiles>CSharpLexer.cs;;CSharpLexerTokenTypes.cs</OutputFiles>
+      <IncludeFiles>-glib UnicodeLexerBase.g;CSharpLexerBase.g</IncludeFiles>
+    </Antlr>
+    <Antlr Include="CSharpPreprocessorLexer.g">
+      <OutputFiles>CSharpPreprocessorLexer.cs;CSharpPreprocessTokenTypes.cs</OutputFiles>
+      <IncludeFiles>-glib UnicodeLexerBase.g;CSharpLexerBase.g</IncludeFiles>
+    </Antlr>
+    <Antlr Include="CSharpPreprocessorHooverLexer.g">
+      <OutputFiles>CSharpPreprocessorHooverLexer.cs;CSharpHooverTokenTypes.cs</OutputFiles>
+      <IncludeFiles>-glib UnicodeLexerBase.g;CSharpLexerBase.g</IncludeFiles>
+    </Antlr>
+    <Antlr Include="CSharpParser.g">
+      <OutputFiles>CSharpParser.cs;CSharpJavaTokenTypes.cs</OutputFiles>
+    </Antlr>
+    <Antlr Include="CSharpEnvBuilder.g">
+      <OutputFiles>CSharpEnvBuilder.cs</OutputFiles>
+    </Antlr>
+    <Antlr Include="CSharpTranslator.g">
+      <OutputFiles>CSharpTranslator.cs</OutputFiles>
+    </Antlr>
+    <Antlr Include="NetTranslator.g">
+      <OutputFiles>NetTranslator.cs</OutputFiles>
+    </Antlr>
+    <Antlr Include="JavaPrettyPrinter.g">
+      <OutputFiles>JavaPrettyPrinter.cs</OutputFiles>
+    </Antlr>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CSharpParser_LICENSE.TXT" />
+    <Content Include="CSharpParser_README.TXT" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="GenerateAntlrCode" Inputs="@(Antlr)" Outputs="%(Antlr.OutputFiles)">
+    <Exec Command="java -cp ..\lib\antlr.jar antlr.Tool %(Antlr.IncludeFiles) @(Antlr)" Outputs="%(Antlr.OutputFiles)" />
+  </Target>
+  <Target Name="CleanAntlrCode">
+    <Delete Files="%(Antlr.OutputFiles)" />
+  </Target>
+  <PropertyGroup>
+    <BuildDependsOn>GenerateAntlrCode;$(BuildDependsOn)</BuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CleanDependsOn>CleanAntlrCode;$(CleanDependsOn)</CleanDependsOn>
+  </PropertyGroup>
+</Project>
