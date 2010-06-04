@@ -9,9 +9,23 @@
     <Property>
        <Name>UTF8</Name>
        <Type>System.Text.Encoding</Type>
-       <Get>"UTF-8"</Get>
+       <Get>(new EncodingSupport("UTF-8"))</Get>
+       <Imports>
+         <Import>RusticiSoftware.System.Text.EncodingSupport</Import>
+       </Imports>
     </Property>
   </Properties>
   <Methods>
+    <Method>
+      <Return>System.Byte[]</Return>
+      <Name>GetBytes</Name>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+      <Java>${this}.getBytes(${s})</Java>
+    </Method>
   </Methods>
 </Class>
