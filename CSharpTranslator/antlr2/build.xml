@@ -13,29 +13,31 @@
 	<taskdef name="antform" classname="com.sardak.antform.AntForm" classpath="${builder.ant.lib}/antform.jar"/>
 	<taskdef name="antmenu" classname="com.sardak.antform.AntMenu" classpath="${builder.ant.lib}/antform.jar"/>
 
-  <target name="launch">
+  <target name="launch" depends="launch-form,run" />
+  <target name="launch-full" depends="launch-full-form,run" />
+
+  <target name="launch-form">
     <property file="${basedir}/launch-simple.properties" />
     <antform title="C# to Java Translation" save="${basedir}/launch-simple.properties">
       <label>Configure the source and target locations for your translation:</label>
-      <fileSelectionProperty label="Java output directory : " property="java.output.dir" directoryChooser="true" />
       <fileSelectionProperty label="C# Translation Root : " property="cs.tx.dir" directoryChooser="true" />
+      <fileSelectionProperty label="Java output directory : " property="java.output.dir" directoryChooser="true" />
       <separator />
       <controlbar>
         <button label="Cancel" type="cancel" target="cancel" newproject="false"/>
         <button label="Reset" type="reset" />
-        <button label="OK" type="ok"/>
+        <button label="OK" type="ok" focus="true" newproject="false"/>
       </controlbar>
     </antform>
-    <antcall target="ok" />
   </target>
 
-  <target name="launch-full">
+  <target name="launch-full-form">
     <property file="${basedir}/launch-full.properties" />
     <antform title="C# to Java Translation" save="${basedir}/launch-full.properties">
       <label>Configure the source and target locations for your translation:</label>
-      <fileSelectionProperty label="Java output directory : " property="java.output.dir" directoryChooser="true" />
       <fileSelectionProperty label="C# Application Root : " property="cs.app.dir" directoryChooser="true" />
       <fileSelectionProperty label="C# Translation Root : " property="cs.tx.dir" directoryChooser="true" />
+      <fileSelectionProperty label="Java output directory : " property="java.output.dir" directoryChooser="true" />
       <fileSelectionProperty label="CS2J Translation Files : " property="cs2j.dir" directoryChooser="true" />
       <separator />
       <!-- <label>Enter the locations of the branches you want to translate from / to</label>
@@ -48,10 +50,9 @@
       <controlbar>
         <button label="Cancel" type="cancel" target="cancel" newproject="false"/>
         <button label="Reset" type="reset" />
-        <button label="OK" type="ok"/>
+        <button label="OK" type="ok" focus="true" newproject="false"/>
       </controlbar>
     </antform>
-    <antcall target="ok" />
   </target>
 
   <target name="cancel">
@@ -59,12 +60,15 @@
 		<property name="is.run.cancelled" value="true" />
 	</target>
 
-	<target name="ok" depends="init,translateCS2J" unless="is.run.cancelled">
-	</target>
+  <target name="ok">
+  </target>
+  
+  <target name="run" depends="init,translateCS2J" unless="is.run.cancelled">
+  </target>
 
 
-	<!-- We could have left this in the msbuild script fed to buildTranslator, but it is clearer in Ant :) -->
-	<target name="antlrTranslator" depends="init">
+  <!-- We could have left this in the msbuild script fed to buildTranslator, but it is clearer in Ant :) -->
+	<target name="antlrTranslator" depends="init" unless="is.run.cancelled">
 		<antlr target="${cs2jtx.src.dir}/UnicodeLexerBase.g">
 			<classpath> <pathelement location="${builder.ant.lib}/antlr.jar"/> </classpath>
 		</antlr>
@@ -105,7 +109,7 @@ ork\v2.0.50727\System.dll /reference:C:\WINDOWS\Microsoft.NET\Framework\v2.0.507
  /target:exe 
 	-->
 	
-  <target name="buildTranslator" depends="antlrTranslator" description="Builds CSharp to Java Translator">
+  <target name="buildTranslator" depends="antlrTranslator" description="Builds CSharp to Java Translator" unless="is.run.cancelled">
     <mkdir dir="${cs2jtx.bin.dir}/"/>
     <dn:msbuild>
       <dn:build>
@@ -180,7 +184,7 @@ Settings\kevin.glynn\eclipsews\RusticiSoftware.ScormUntethered.Logic\src"
 "c:\Documents and Settings\kevin.glynn\My Documents\Cheats"
 "c:\docume~1\kevin~1.gly\locals~1\temp\tmpk6_pcn\UntetheredLogic" -->
 	
-    <target name="translateCS2J" depends="init" description="run translator">
+    <target name="translateCS2J" depends="init" description="run translator" unless="is.run.cancelled">
         <dn:dotnetexec executable="${cs2jtx.exe}">
             <arg value="-version"/>
             <arg value="-v"/>
@@ -203,21 +207,14 @@ Settings\kevin.glynn\eclipsews\RusticiSoftware.ScormUntethered.Logic\src"
         </dn:dotnetexec>
     </target>
 
-    <target name="echoTranslateCS2J" depends="" description="echo run translator command line">
-        <echo>
-        	"${cs2jtx.exe} -dumpxml -odir ${java.output.dir} -netdir ${cs2j.dir} -appdir ${cs.app.dir} -cheatdir ${cheats.dir} ${cs.tx.dir}"
-        </echo>
-    </target>
-
 	<target name="dumpProperties" description="output all set properties, a useful sanity check">
 		<echoproperties />
 	</target>
 
-	<target name="init" depends="">
+	<target name="init" depends="" unless="is.run.cancelled">
     <property file="${user.home}/${ant.project.name}.build.properties" />
     <property file="${user.home}/build.properties" />
     <property file="build.properties" />
-    <antcall target="dumpProperties" inheritall="true" />
     
     <mkdir dir="${cs2jtx.build.dir}" />
 	</target>
