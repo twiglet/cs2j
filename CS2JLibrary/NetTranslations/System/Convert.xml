@@ -15,6 +15,34 @@
   </Properties>
   <Methods>
     <Method>
+      <Return>System.Byte[]</Return>
+      <Name>FromBase64String</Name>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+      <Imports>
+        <Import>org.apache.commons.codec.binary.Base64</Import>
+      </Imports>
+      <Java>Base64.decodeBase64(${s})</Java>
+    </Method>
+    <Method>
+      <Return>System.String</Return>
+      <Name>ToBase64String</Name>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>inArray</Name>
+        </Param>
+      </Params>
+      <Imports>
+        <Import>org.apache.commons.codec.binary.Base64</Import>
+      </Imports>
+      <Java>Base64.encodeBase64String(${inArray})</Java>
+    </Method>
+    <Method>
       <Return>System.Boolean</Return>
       <Name>ToBoolean</Name>
       <Params>
