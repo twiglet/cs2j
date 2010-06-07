@@ -235,9 +235,9 @@ public class StringSupport {
     	if (str.endsWith(c1+""))
     	{
     		// Add empty string for .Net
-    		ArrayList ret_al = new ArrayList(Arrays.asList(rets));
+    		ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
     		ret_al.add("");
-    		rets = (String[])ret_al.toArray(new String [ret_al.size()]);
+    		rets = ret_al.toArray(new String [ret_al.size()]);
     	}
     	return rets;
     }
@@ -248,9 +248,9 @@ public class StringSupport {
     	if (str.endsWith(c1+"") || str.endsWith(c2+""))
     	{
     		// Add empty string for .Net
-    		ArrayList ret_al = new ArrayList(Arrays.asList(rets));
+    		ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
     		ret_al.add("");
-    		rets = (String[])ret_al.toArray(new String [ret_al.size()]);
+    		rets = ret_al.toArray(new String [ret_al.size()]);
     	}
     	return rets;
     }
@@ -265,16 +265,16 @@ public class StringSupport {
     		if (options != StringSplitOptions.RemoveEmptyEntries && str.endsWith(c+""))
     		{
     			// Add empty string for .Net
-    			ArrayList ret_al = new ArrayList(Arrays.asList(rets));
+    			ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
     			ret_al.add("");
-    			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
+    			rets = ret_al.toArray(new String [ret_al.size()]);
     			break;
     		}
     	}
     	
     	if (options == StringSplitOptions.RemoveEmptyEntries)
     	{
-			ArrayList ret_al = new ArrayList();
+			ArrayList<String> ret_al = new ArrayList<String>();
 			for (String p : rets)
 			{
 				if (!p.equals(""))
@@ -282,7 +282,7 @@ public class StringSupport {
 					ret_al.add(p);
 				}
 			}
-			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
+			rets = ret_al.toArray(new String [ret_al.size()]);
     	}
     	
     	return rets;
@@ -297,16 +297,16 @@ public class StringSupport {
    		if (options != StringSplitOptions.RemoveEmptyEntries && str.endsWith(s))
    		{
    			// Add empty string for .Net
-   			ArrayList ret_al = new ArrayList(Arrays.asList(rets));
+   			ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
    			ret_al.add("");
-   			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
+   			rets = ret_al.toArray(new String [ret_al.size()]);
    			break;
    		}
    	}
    	
    	if (options == StringSplitOptions.RemoveEmptyEntries)
    	{
-			ArrayList ret_al = new ArrayList();
+			ArrayList<String> ret_al = new ArrayList<String>();
 			for (String p : rets)
 			{
 				if (!p.equals(""))
@@ -314,7 +314,7 @@ public class StringSupport {
 					ret_al.add(p);
 				}
 			}
-			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
+			rets = ret_al.toArray(new String [ret_al.size()]);
    	}
    	
    	return rets;
