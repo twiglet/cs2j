@@ -12,4 +12,8 @@ public class EncodingSupport {
 	public byte[] getBytes(String input) throws UnsupportedEncodingException {
 		return input.getBytes(coding);
 	}
+
+	public String getString() {
+		return coding;
+	}
 }
