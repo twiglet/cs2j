@@ -36,18 +36,21 @@ import java.io.StringReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
-import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
 
 public class XmlDocument extends XmlNode {
 
 	private static Logger logger = Logger.getLogger("com.rusticisoftware.scormcontentplayer");
 
-	public XmlDocument()
+	public XmlDocument() throws ParserConfigurationException
 	{
-		setNode(new DocumentImpl());
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		DOMImplementation impl = builder.getDOMImplementation();
+
+		Document doc = impl.createDocument(null,null,null);
+		setNode(doc);
 	}
 	public XmlDocument(Document d)
 	{

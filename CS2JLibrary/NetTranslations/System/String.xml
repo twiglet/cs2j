@@ -61,7 +61,10 @@
           <Type>System.String</Type>
         </Param>
       </Params>     
-      <Java>StringSupport.Compare(${arg1}, ${arg2))</Java>
+      <Java>StringSupport.Compare(${arg1}, ${arg2})</Java>
+      <Imports>
+        <Import>RusticiSoftware.System.StringSupport</Import>
+      </Imports>
     </Method>
     <Method>
       <Return>System.Int32</Return>
@@ -80,7 +83,10 @@
           <Type>System.Bool</Type>
         </Param>
       </Params>     
-      <Java>StringSupport.Compare(${arg1}, ${arg2), ${isCaseSensitive})</Java>
+      <Java>StringSupport.Compare(${arg1}, ${arg2}, ${isCaseSensitive})</Java>
+      <Imports>
+        <Import>RusticiSoftware.System.StringSupport</Import>
+      </Imports>
     </Method>
     <Method>
       <Return>System.String</Return>

@@ -18,6 +18,11 @@
        <Name>Keys</Name>
        <Get>${this}.keySet()</Get>
     </Property>
+    <Property>
+       <Type>System.Collections.ICollection</Type>
+       <Name>Values</Name>
+       <Get>${this}.values()</Get>
+    </Property>
   </Properties>
   <Methods>
     <Method>

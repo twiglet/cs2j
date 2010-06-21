@@ -24,6 +24,8 @@ package RusticiSoftware.System.Xml.Xsl;
 
 import java.io.StringWriter;
 import java.io.StringReader;
+
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.Transformer;
@@ -40,7 +42,7 @@ public class XslTransform {
 		
 	}
 	
-	public void load(XmlTextReader xmlTextReader, String ignore, String ignore2) throws TransformerConfigurationException {
+	public void load(XmlTextReader xmlTextReader, String ignore, String ignore2) throws TransformerConfigurationException, ParserConfigurationException {
 		String xmlString = xmlTextReader.ToString();
 		StringReader stringReader = new StringReader(xmlString);
 		StreamSource streamSource = new StreamSource(stringReader);

@@ -8,6 +8,11 @@
   <Constructors>
   </Constructors>
   <Properties>
+    <Property>
+      <Type>System.Boolean</Type>
+      <Name>IsAlive</Name>
+      <Get>${this}.isAlive()</Get>
+    </Property> 
   </Properties>
   <Methods>
     <Method>
@@ -20,6 +25,11 @@
         </Param>
       </Params>     
       <Java>Thread.sleep(${sleepTime})</Java>
+    </Method> 
+    <Method>
+      <Return></Return>
+      <Name>Start</Name>
+      <Java>${this}.start()</Java>
     </Method> 
   </Methods>
 </Class>

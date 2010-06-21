@@ -12,5 +12,13 @@
        <Type>System.String</Type>
        <Get>System.getProperty("line.separator")</Get>
     </Property>
+    <Property>
+		 <Imports>
+			<Import>java.net.InetAddress</Import>
+		 </Imports>
+       <Name>MachineName</Name>
+       <Type>System.String</Type>
+       <Get>InetAddress.getLocalHost().getHostName()</Get>
+    </Property>
   </Properties>
 </Class>

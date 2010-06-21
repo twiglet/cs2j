@@ -31,17 +31,23 @@ import RusticiSoftware.System.Xml.XmlDocument;
 import RusticiSoftware.System.NotImplementedException;
 
 public class XmlTextReader {
-	protected XmlDocument xmlDocument = new XmlDocument();
+	protected XmlDocument xmlDocument = null;
 	
+	protected XmlDocument getXmlDocument() throws ParserConfigurationException {
+		if (xmlDocument == null) {
+			xmlDocument = new XmlDocument();
+		}
+		return xmlDocument;
+	}
 	public XmlTextReader() throws NotImplementedException {
 		throw new NotImplementedException();
 	}
 	
 	public XmlTextReader(StringReader stringReader) throws NotImplementedException, ParserConfigurationException, SAXException, IOException {
-		xmlDocument.load(stringReader);
+		getXmlDocument().load(stringReader);
 	}
 	
-	public String ToString() {
-		return xmlDocument.getOuterXml();
+	public String ToString() throws ParserConfigurationException {
+		return getXmlDocument().getOuterXml();
 	}
 }

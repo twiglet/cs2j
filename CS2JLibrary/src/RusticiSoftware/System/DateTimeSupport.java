@@ -22,6 +22,7 @@ package RusticiSoftware.System;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -125,5 +126,13 @@ public class DateTimeSupport {
 		
 		throw new ParseException("Could not parse " + s + " as a date", 0);
 	}
+    
+    public static Date add(Date base,int field, int amount)
+    {
+    	Calendar cal = Calendar.getInstance();
+    	cal.setTime(base);
+    	cal.add(field, amount);
+    	return cal.getTime();
+    }
 
 }
