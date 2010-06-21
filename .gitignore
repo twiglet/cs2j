@@ -3,5 +3,8 @@ obj/
 build/
 *.csproj.user
 *.suo
+*.bak
 
 launch*.properties
+
+
