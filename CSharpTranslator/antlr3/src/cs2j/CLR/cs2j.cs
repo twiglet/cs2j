@@ -231,7 +231,7 @@ namespace RusticiSoftware.Translator.CSharp
                                     w.Close();
                                 }
                             }
-                         // keving: comment out for now   doFile(new FileInfo(args[i]), ".cs", translateFile, exclude); // parse it
+                            // keving: comment out for now   doFile(new FileInfo(args[i]), ".cs", translateFile, exclude); // parse it
                             if (enumXmlWriter != null)
                             {
                                 enumXmlWriter.WriteEndElement();
@@ -358,17 +358,18 @@ namespace RusticiSoftware.Translator.CSharp
         /// </summary>
         private static void DumpNodes(CommonTreeNodeStream nodes)
         {
-            // Dump out nodes if -n on command line
-            // if (Util.Args.IsFlagSet("-n"))
-            // {
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("Nodes");
             int spaces = 0;
             string str_spaces = "                                                                                       ";
             object o_prev = string.Empty;
-            for (int n = 0; n < nodes.Count; ++n)
+            //for (int n = 0; n < nodes.Count; ++n)
+            object o = nodes.NextElement();
+            while (!nodes.IsEndOfFile(o))
             {
-                object o = nodes.Get(n);
+                //object o = nodes.Get(n);
+                //object o = nodes[n];
+
                 if (o.ToString() == "DOWN")
                 {
                     spaces += 2;
@@ -385,13 +386,13 @@ namespace RusticiSoftware.Translator.CSharp
                     Console.Write(" {0}", o_prev.ToString());
 
                 o_prev = o;
+                o = nodes.NextElement();
             }
             if (o_prev.ToString() != "UP" && o_prev.ToString() != "DOWN")
                 Console.WriteLine(" {0}", o_prev.ToString());
             Console.ResetColor();
-            //}
         }
-  
+
         // Here's where we do the real work...
         public static void addNetTranslation(string fullName, Stream s)
         {
@@ -406,8 +407,8 @@ namespace RusticiSoftware.Translator.CSharp
             if (t != null)
             {
                 // A prescan of all files to build an environment mapping qualified name to typereptemplate
-            //    CSharpEnvBuilder envBuilder = new CSharpEnvBuilder();
-            //    envBuilder.compilationUnit(t, null, appEnv);
+                //    CSharpEnvBuilder envBuilder = new CSharpEnvBuilder();
+                //    envBuilder.compilationUnit(t, null, appEnv);
             }
         }
 

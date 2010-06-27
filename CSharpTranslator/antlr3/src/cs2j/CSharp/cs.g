@@ -8,47 +8,56 @@
   
 grammar cs;
 
-
 options {
     backtrack=true;
     memoize=true;
 	output=AST;
     language=CSharp2;
 }
-
+  
 tokens
 {
+	ARGUMENTS;
 	ASSIGNMENT;
 	BLOCK;
 	CAST_EXPRESSION;
 	CLASS_DECL;
+	CLASS_INHERITANCE;
 	DELEGATE_DECL;
 	ELSE;
+	EMPTY_BODY;
 	ENUM_DECL;
 	EXPRESSION;
 	FIELD_DECL;
+	FIXED_PARAMETER;
+	ID;
 	IF;
 	INTERFACE_DECL;
 	INVOCATION_EXPRESSION;
+	LOCAL_VAR;
 	LOCAL_VARIABLE_DECLARATOR;
     MEMBER_ACCESS;
 	METHOD_DECL;
 	NAMESPACE_DECL;
 	NAMESPACE_OR_TYPE_NAME;
+	NON_ASSIGNMENT_EXPRESSION;
+	NSTN;
 	PREDEFINED_TYPE;
+	PRIMARY;
 	PROPERTY_DECLARATION;
 	QID_PART;
-	RETURN_TYPE;
+	TYPE;
+	TYPE_NAME;
 	UNARY_EXPRESSION;
 	USING_DIRECTIVE;
-
+	VARIABLE_DECLARATOR;
+	
 	TELEMENT;
 	TMEMBER;
-	TINVOCATION;
+	TINVOCATION;                                         
 }
-
+    
 @lexer::header {
-	using System.Collections.Generic;
 	using System.Diagnostics;
 	using Debug = System.Diagnostics.Debug;
 }
@@ -66,10 +75,7 @@ tokens
 
 @header
 {
-	using System.Collections.Generic;
 	using System.Text;
-	
-	
 }
 
 /********************************************************************************************
@@ -81,27 +87,11 @@ compilation_unit:
 //	extern_alias_directives?   
 	using_directives?  	
 	global_attributes?   
-	namespace_declaration? 
-	namespace_body
+	namespace_body?		// specific namespace or in the global namespace
 	;
 namespace_declaration:
 	'namespace'   qualified_identifier   namespace_block   ';'? 
 	-> ^(NAMESPACE_DECL 'namespace' qualified_identifier  namespace_block   ';'?) ;
-qualified_identifier:
-	identifier ('.' identifier)* ;
-
-qid:		// qualified_identifier v2
-	qid_start qid_part* ;
-qid_start:
-	identifier ('::' identifier)? generic_argument_list?
-	| 'this'
-	| 'base'
-	| predefined_type
-	| literal ;		// 0.ToString() is legal
-qid_part:
-	access_operator   identifier   generic_argument_list?
-	-> ^(QID_PART access_operator   identifier    generic_argument_list?) ;
-
 namespace_block:
 	'{'   namespace_body   '}' ;
 namespace_body:
@@ -134,14 +124,31 @@ type_declaration:
 qualified_alias_member:
 	identifier   '::'   identifier   generic_argument_list? ;
 
+// Identifiers
+qualified_identifier:
+	identifier ('.' identifier)* ;
+
+qid:		// qualified_identifier v2
+	qid_start qid_part* ;
+qid_start:
+	identifier ('::' identifier)? generic_argument_list?
+	| 'this'
+	| 'base'
+	| predefined_type
+	| literal ;		// 0.ToString() is legal
+qid_part:
+	access_operator   identifier   generic_argument_list?
+	-> ^(QID_PART access_operator   identifier    generic_argument_list?) ;
+
+
 // B.2.1 Basic Concepts
 namespace_name
 	: namespace_or_type_name ;
 type_name: 
-	namespace_or_type_name ;
+	namespace_or_type_name -> ^(TYPE_NAME namespace_or_type_name) ;
 namespace_or_type_name:
-	id1 = identifier   ga1 = generic_argument_list?  ('::' id2 = identifier   ga2 = generic_argument_list?)? ('.'   id3 = identifier   ga3 = generic_argument_list?)*   
-	-> 	^(NAMESPACE_OR_TYPE_NAME $id1   $ga1?   ('::'   $id2   $ga2?)? ('.'   $id3   $ga3?)* )
+	id1 = identifier   ga1 = generic_argument_list?  ('::' id2 = identifier   ga2 = generic_argument_list?)? ('.'   id3 += identifier   ga3 += generic_argument_list?)*   
+	-> 	^(NAMESPACE_OR_TYPE_NAME ^(NSTN $id1   $ga1?)   ^(NSTN   '::'   $id2   $ga2?)?   ^(NSTN   $id3   $ga3?)*)
 //	| qualified_alias_member (the :: part)
     ;
            
@@ -190,14 +197,15 @@ attribute_argument_expression:
 
 /* I'm going to ignore the mostly semantic bnf in the C Sharp spec and just do syntax */
 type:
-	(type_name   |   predefined_type)   rank_specifiers   '*'*
-	| type_name '*'+
-	| type_name '?'
-	| type_name
-	| predefined_type '*'+
-	| predefined_type '?'
-	| predefined_type
-	| 'void'   '*'+ ;
+	(type_name   |   predefined_type)   rank_specifiers   '*'* ->
+	 	^(TYPE type_name? predefined_type? rank_specifiers '*'*)
+	| type_name '*'+  -> ^(TYPE type_name '*'+)
+	| type_name '?'  -> ^(TYPE type_name '?')
+	| type_name  -> ^(TYPE type_name)
+	| predefined_type '*'+  -> ^(TYPE predefined_type '*'+)
+	| predefined_type '?'  -> ^(TYPE predefined_type '?')
+	| predefined_type  -> ^(TYPE predefined_type)
+	| 'void'   '*'+  -> ^(TYPE 'void' '*'+) ;
 non_nullable_type:
 	(type_name   |   predefined_type)   rank_specifiers   '*'*
 	| type_name '*'+
@@ -240,6 +248,13 @@ type_variable_name:
 expression: 
 	non_assignment_expression -> ^(EXPRESSION non_assignment_expression)
 	| assignment -> ^(EXPRESSION assignment);
+non_assignment_expression:
+	conditional_expression
+	| lambda_expression
+	| query_expression ;
+assignment:
+	unary_expression   assignment_operator   expression
+	-> ^(ASSIGNMENT   unary_expression   assignment_operator   expression) ;
 unary_expression: 
 	cast_expression 			// primary_expression... has parenthesized_expression
 	| '+'   unary_expression 
@@ -252,6 +267,8 @@ unary_expression:
 	| primary_or_array_creation_expression   '++'?   '--'?  ->   ^(UNARY_EXPRESSION primary_or_array_creation_expression   '++'?   '--'?) 
 	| pointer_indirection_expression
 	| addressof_expression ;
+assignment_operator:
+	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 pre_increment_expression: 
 	'++'   unary_expression ;
 pre_decrement_expression: 
@@ -260,13 +277,6 @@ pointer_indirection_expression:
 	'*'   unary_expression ;
 addressof_expression:
 	'&'   unary_expression ;
-non_assignment_expression:
-	conditional_expression
-	| lambda_expression
-	| query_expression;
-assignment:
-	unary_expression   assignment_operator   expression
-	-> ^(ASSIGNMENT   unary_expression   assignment_operator   expression) ;
 variable_reference: 
 	expression  ;
 
@@ -293,31 +303,8 @@ primary_or_array_creation_expression:
 	primary_expression 
 	| array_creation_expression ;
 
-texpr:
-	tmember ;
-
-//tinvocation:
-//	te1=telement   arguments?   (access_operator   te2=telement   arguments?)*;
-
-tinvocation:
-	tmember   tinvocation_part? ;
-tinvocation_part:
-	arguments+   (access_operator!   tinvocation)
-	| arguments+   telement_part
-	| arguments+ ;
-	    
-telement:               
-	tmember   telement_part? ;
-telement_part:
-	bracket_expression+   (access_operator   telement)   ->   ^(TELEMENT   bracket_expression+   telement)
-	| bracket_expression+   tinvocation_part   ->   ^(TELEMENT   bracket_expression+   tinvocation_part)
-	| bracket_expression+   ->   ^(TELEMENT   bracket_expression) ;
-	
-tmember:
-	identifier   (access_operator   identifier)*   ->   ^(TMEMBER   identifier+) ;
-	
 primary_expression: 
-	primary_expression_start   primary_expression_part*
+	primary_expression_start   primary_expression_part*  -> ^(PRIMARY   primary_expression_start   primary_expression_part*)
 	| delegate_creation_expression 			// new FooDelegate (int X, string Y)
 	| anonymous_object_creation_expression	// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
@@ -358,7 +345,7 @@ brackets_or_arguments:
 access_operator:
 	'.'  |  '->' ;
 arguments: 
-	'('   argument_list?   ')' ;
+	'('   argument_list?   ')'  ->  ^(ARGUMENTS   argument_list*) ;
 bracket_expression:
 	'['   expression_list?   ']' ;
 
@@ -552,8 +539,6 @@ array_initializer:
 variable_initializer_list:
 	variable_initializer (',' variable_initializer)* ;
 // >>= check needed (no whitespace)
-assignment_operator:
-	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 lambda_expression:
 	anonymous_function_signature   '=>'   anonymous_function_body;
 anonymous_function_signature:
@@ -632,8 +617,8 @@ class_modifiers:
 class_modifier:
 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'abstract' | 'sealed' | 'static' | 'unsafe';
 class_base:
-	':'   class_type (',' interface_type_list)?
-	| ':'   interface_type_list ;
+	':'   class_type (',' interface_type_list)? ->  ^(CLASS_INHERITANCE class_type interface_type_list?)
+	| ':'   interface_type_list -> ^(CLASS_INHERITANCE interface_type_list) ;
 interface_type_list:
 	t += type_name (','   t += type_name)* 
 	-> $t+;
@@ -684,6 +669,11 @@ constant_modifiers:
 	constant_modifier+ ;
 constant_modifier:
 	'new' | 'public' | 'protected' | 'internal' | 'private' ;
+constant_declarators:
+	constant_declarator (',' constant_declarator)* ;
+constant_declarator:
+	identifier   ('='   constant_expression)? ;
+
 field_declaration:
 	attributes?   field_modifiers?   type   variable_declarators   ';'
 	-> ^(FIELD_DECL attributes? field_modifiers? type variable_declarators)
@@ -693,10 +683,10 @@ field_modifiers:
 field_modifier:
 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'static' | 'readonly' | 'volatile' | 'unsafe' ;
 variable_declarators:
-	variable_declarator (',' variable_declarator)* ;
+	vd += variable_declarator (',' vd += variable_declarator)* -> $vd+;
 variable_declarator:
 //	identifier ('='   variable_initializer)? ;
-	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName;
+	type_name ('='   variable_initializer)? -> ^(VARIABLE_DECLARATOR type_name ('=' variable_initializer)?) ;		// eg. event EventHandler IInterface.VariableName;
 variable_initializer:
 	expression	| array_initializer ;
 //	| literal ;
@@ -704,9 +694,9 @@ method_declarations:
 	method_declaration+ ;	
 method_declaration:
 	method_header   method_body 
-	-> ^(METHOD_DECL method_header method_body);
+	-> ^(METHOD_DECL method_header method_body?);
 method_header:
-	attributes?   method_modifiers?   'partial'?   return_type   (member_name | 'get' | 'set')   generic_parameter_list?
+	attributes?   method_modifiers?   'partial'?   return_type   member_name   generic_parameter_list?
 			'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
 method_modifiers:
 	method_modifier+ ;
@@ -714,27 +704,30 @@ method_modifier:
 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'static' | 'virtual' | 'sealed' | 'override'
 	| 'abstract' | 'extern' | 'unsafe' ;
 return_type:
-	type -> ^(RETURN_TYPE type)
-	| 'void' '*'* -> ^(RETURN_TYPE 'void'  '*'*);
+	type
+	|  'void'   '*'*  ->   ^(TYPE   ^(PREDEFINED_TYPE  'void'   '*'*));
 method_body:
 	block ;
 formal_parameter_list:
 	fp += formal_parameter (',' fp += formal_parameter)* 
 	-> $fp+ ;
 formal_parameter:
-	fixed_parameter | parameter_array | '__arglist';	// __arglist is undocumented, see google
+	fixed_parameter 
+	| parameter_array 
+	| '__arglist';	// __arglist is undocumented, see google
 fixed_parameters:
 	fixed_parameter+ ;
 // 4.0
 fixed_parameter:
-	attributes?   parameter_modifier?   type   identifier default_argument?;
+	attributes?   parameter_modifier?   type   identifier   default_argument?
+	->   ^(FIXED_PARAMETER   attributes?   parameter_modifier?   type   identifier   default_argument?) ;
 // 4.0
 default_argument:
 	'=' expression;
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
 parameter_array:
-	attributes?   'params'?   array_type   identifier ;
+	attributes?   'params'   type   identifier ;
 property_declaration:
 	attributes?   property_modifiers?   type   member_name   '{'   accessor_declarations   '}'
 	-> ^(PROPERTY_DECLARATION attributes?   property_modifiers?   type   member_name   '{'   accessor_declarations   '}') ;
@@ -952,7 +945,7 @@ fixed_pointer_initializer:
 unsafe_statement:
 	'unsafe'   block;
 block:
-	';' -> ^(BLOCK)
+	';' ->
 	| '{'   statement_list?   '}' -> ^(BLOCK statement_list?);
 statement_list:
 	statement+ ;
@@ -964,7 +957,8 @@ declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
 local_variable_declaration:
-	local_variable_type   local_variable_declarators ;
+	local_variable_type   local_variable_declarators -> 
+	^(LOCAL_VAR   local_variable_type   local_variable_declarators);
 local_variable_type:
 	type
 	| 'var' 
@@ -982,11 +976,6 @@ stackalloc_initializer:
 	'stackalloc'   unmanaged_type   '['   expression   ']' ;
 local_constant_declaration:
 	'const'   type   constant_declarators ;
-constant_declarators:
-	constant_declarator (',' constant_declarator)* ;
-constant_declarator:
-	identifier   ('='   constant_expression)? ;
-//	identifier   ('='   literal)? ;
 expression_statement:
 	expression   ';' ;
 statement_expression:
@@ -1086,8 +1075,8 @@ yield_statement:
 	| ('yield'   'break'   ';') ;
 
 identifier:
-	IDENTIFIER 
-	| also_keyword ;
+	IDENTIFIER 		-> ^(ID IDENTIFIER)
+	| also_keyword 	-> ^(ID also_keyword);
 
 literal:
 	Real_literal
@@ -1106,10 +1095,10 @@ keyword:
 
 also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'event' | 'method' | 'param' | 'property' | 'type' 
-	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
-	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'set' | 'var' | '__arglist';
+	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending'
+	| 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'set' | 'var' | '__arglist' | 'dynamic';
 ///////////////////////////////////////////////////////
-//	Lexer Section
+//	Lexar Section
 ///////////////////////////////////////////////////////
 
 TRUE : 'true';

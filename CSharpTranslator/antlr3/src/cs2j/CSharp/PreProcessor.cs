@@ -1,15 +1,15 @@
 // PreProcessor.cs
 //
+// Andrew Bradnan 2009-2010
+// andrew.bradnan@gmail.com
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Antlr.Runtime;
 using System.Diagnostics;
-using Debug = System.Diagnostics.Debug;
 
-namespace RusticiSoftware.Translator.CSharp
+namespace Browse
 {
     /// <summary> PreProcessor
     ///   The lexer preprocesses the CSharp code.
@@ -25,33 +25,14 @@ namespace RusticiSoftware.Translator.CSharp
 			Processing.Push(true);
 
             // Grab what's defined from the command line
-            //string[] args = Environment.GetCommandLineArgs();
-            //for(int n = 0; n < args.Length; ++n)
-            //{
-            //    if (args[n] == "-D")
-            //        if ((n + 1) < args.Length)
-            //            MacroDefines.Add(args[n + 1], string.Empty);
-            //}
+			string[] args = Environment.GetCommandLineArgs();
+			for(int n = 0; n < args.Length; ++n)
+			{
+				if (args[n] == "-D")
+					if ((n + 1) < args.Length)
+						MacroDefines.Add(args[n + 1], string.Empty);
+			}
 		}
-
-        public PreProcessor(ICharStream input)
-        {
-            // By default we are preprocessing input
-            Processing.Push(true);
-
-            base.CharStream = input;
-
-        }
-
-        /// <summary>
-        /// Add a macro variable to the environment
-        /// </summary>
-        /// <param name="define">Name of macro to define</param>
-        public void AddDefine(string define)
-        {
-            MacroDefines.Add(define, string.Empty);
-        }
-
 		public override void mTokens()
 		{
 			base.mTokens();
@@ -99,7 +80,8 @@ namespace RusticiSoftware.Translator.CSharp
         /// </summary>
 		public override String GetErrorMessage(RecognitionException e, String[] tokenNames)
 		{
-			IList stack = GetRuleInvocationStack(e, this.GetType().Name);
+			IList<string> stack = GetRuleInvocationStack(e, this.GetType().Name);
+			String msg = null;
 			StringBuilder sb = new StringBuilder();
 			sb.Append("\r\n");
 			foreach (object o in stack)
