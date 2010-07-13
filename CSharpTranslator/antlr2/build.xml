@@ -13,8 +13,8 @@
 	<taskdef name="antform" classname="com.sardak.antform.AntForm" classpath="${builder.ant.lib}/antform.jar"/>
 	<taskdef name="antmenu" classname="com.sardak.antform.AntMenu" classpath="${builder.ant.lib}/antform.jar"/>
 
-  <target name="launch" depends="launch-form,run" />
-  <target name="launch-full" depends="launch-full-form,run" />
+  <target name="launch" depends="launch-form,run" description="Simple Graphical Launch"/>
+  <target name="launch-full" depends="launch-full-form,run" description="Graphical Launch with all options"/>
 
   <target name="launch-form">
     <property file="${basedir}/launch-simple.properties" />
@@ -207,7 +207,7 @@ Settings\kevin.glynn\eclipsews\RusticiSoftware.ScormUntethered.Logic\src"
         </dn:dotnetexec>
     </target>
 
-	<target name="dumpProperties" description="output all set properties, a useful sanity check">
+	<target name="dumpProperties" depends="init" description="output all set properties, a useful sanity check">
 		<echoproperties />
 	</target>
 
