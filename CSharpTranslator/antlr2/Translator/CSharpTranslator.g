@@ -1424,12 +1424,18 @@ staticConstructorBody [Object w]
 	:	body[w]
 	;
 	
-destructorDeclaration [Object w]
+destructorDeclaration! [Object w]
 	:	#( 	DTOR_DECL attributes[w] modifiers[w] identifier[w] 
-			destructorBody[w]
-		)
+			b:destructorBody[w]
+		) 
+		{ ## = #( [METHOD_DECL], 
+											#( [MODIFIERS], [PROTECTED, "protected"] ), 
+											#( [TYPE], [VOID, "void"], #( [ARRAY_RANKS] ) ), 
+											#( [IDENTIFIER, "finalize"]) ,
+											#( [FORMAL_PARAMETER_LIST] ), #( [THROWS, "throws"], [IDENTIFIER, "Throwable"] ),
+											astFactory.dupTree(#b) ); }
 	;
-	
+
 destructorBody [Object w]
 	:	body[w]
 	;
