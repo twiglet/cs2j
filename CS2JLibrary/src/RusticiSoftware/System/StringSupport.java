@@ -338,6 +338,15 @@ public class StringSupport {
     	}
     	return index;
     }
+	
+    // in C# new String('x',50)
+    public static String mkString(char c, int count) {
+        char[] chars = new char[count];
+        for (int i = 0; i < count; i++) {
+        	chars[i] = c;
+        }
+        return new String(chars);
+	}
     
 	public static void Testmain(String[] args)
 	{
@@ -374,4 +383,6 @@ public class StringSupport {
 		System.out.println("Split(\"=fred\", '=') = [\"" + splitFred[0] + "\", \"" + splitFred[1] + "\"]");
 		
 }
+
+
 }
