@@ -1259,7 +1259,7 @@ primaryExpression [object w]
 					{
 					    ASTNode kosherInp = #( [INVOCATION_EXPR], #e, #args);
 					    ASTNode retAST = null;
-					    if (#e.Type == IDENTIFIER && symtab[#e.getText()] == null)
+					    if (#e != null && #e.Type == IDENTIFIER && symtab[#e.getText()] == null)
 					    {
 					      // Is it a local method call?
 						  ASTNode thisNode = #( [THIS, "DUMMYTHIS"] );
@@ -1267,7 +1267,7 @@ primaryExpression [object w]
 						  retAST = ResolveMethod( #( [INVOCATION_EXPR], #( [MEMBER_ACCESS_EXPR], thisNode, astFactory.dupTree(#e)),
 						                                                 astFactory.dupTree(#args)) );
 					    }
-						else if (#e.Type == MEMBER_ACCESS_EXPR && #e.getFirstChild().getNextSibling().Type == IDENTIFIER)
+						else if (#e != null && #e.Type == MEMBER_ACCESS_EXPR && #e.getFirstChild().getNextSibling().Type == IDENTIFIER)
 						{  // resolve method call
 							retAST = ResolveMethod( kosherInp );
 						}
