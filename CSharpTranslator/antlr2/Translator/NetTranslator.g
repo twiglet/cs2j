@@ -762,7 +762,7 @@ stat [object w]
     : typeDefinition[w]
 	|	variableDef[w, true]							
 	|	#(EXPR_STMT expression[w])				
-	|	#(LABELED_STAT IDENTIFIER	 stat[w])
+	|	#(LABEL_STMT IDENTIFIER	 stat[w])
 	|	#(IF								
 			expression[w]						
 			stat[w]								
@@ -829,6 +829,7 @@ stat [object w]
 			stat[w]										
 			expression[w]								
 			)
+	|	#("goto"	 IDENTIFIER			 )
 	|	#("break"	 (  IDENTIFIER)?			 )
 	|	#("continue"  (  IDENTIFIER)?			 )
 	|	#("return"	 (  expression[w])?  )

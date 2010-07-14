@@ -538,7 +538,7 @@ stat [TextWriter w]
 		typeDefinition[w]
 	|	variableDef[w]							{ Print(w, ";"); }
 	|	#(EXPR_STMT expression[w])				{ Print(w, ";"); }
-	|	#(LABELED_STAT id:IDENTIFIER	{ Print(w, #id, ": "); } stat[w])
+	|	#(LABEL_STMT id:IDENTIFIER	{ Print(w, #id, ": "); } stat[w])
 	|	#(lif:IF								{ Print(w, #lif, " ("); }
 			expression[w]						{ Print(w, ")"); PrintNL(w); }
 			stat[w]								
@@ -565,8 +565,9 @@ stat [TextWriter w]
 			stat[w]										{ Print(w, "while ("); }
 			expression[w]								{ Print(w, ");"); }
 			)
-	|	#(br:"break"	{ Print(w, #br); } ( { Print(w, " "); } IDENTIFIER)?			{ Print(w, ";"); } )
-	|	#(co:"continue" { Print(w, #co); } ( { Print(w, " "); } IDENTIFIER)?			{ Print(w, ";"); } )
+	|	#(gt:"goto"	{ Print(w, "// TODO: CS2J: goto is not supported by Java."); PrintNL(w); Print(w, "continue "); } gid:IDENTIFIER			{ Print(w, #gid); Print(w, ";"); } )
+	|	#(br:"break"	{ Print(w, #br); } ( { Print(w, " "); } bid:IDENTIFIER { Print(w, #bid); } )?			{ Print(w, ";"); } )
+	|	#(co:"continue" { Print(w, #co); } ( { Print(w, " "); } cid:IDENTIFIER { Print(w, #cid); } )?			{ Print(w, ";"); } )
 	|	#(re:"return"	{ Print(w, #re); } ( { Print(w, " "); } expression[w])? { Print(w, ";"); } )
 	|	#(sw:"switch"			{ Print(w, #sw, " ("); }
 			expression[w]		{ Print(w, ")"); PrintNL(w); Print(w, "{"); indentLevel++; PrintNL(w); }
