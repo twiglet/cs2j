@@ -31,14 +31,14 @@ public class LocaleSupport {
 	// singleton
 	private LocaleSupport() {}
 	
-	private static ThreadLocal threadLocal = new InheritableThreadLocal();
+	private static ThreadLocal<Locale> threadLocal = new InheritableThreadLocal<Locale>();
 
 	public static void setCurrentLocale(Locale locale) {
 		threadLocal.set(locale);
 	}
 
 	public static Locale getCurrentLocale() {
-		Locale locale = (Locale) threadLocal.get();
+		Locale locale = threadLocal.get();
 		
 		if (locale == null) {
 			return Locale.getDefault();

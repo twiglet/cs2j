@@ -23,12 +23,12 @@ package RusticiSoftware.System;
 public class EnumSupport {
 
 	// returns true iff v is a valid ordinal position of a enum in e
-	public static boolean isDefined(Class e, int v)
+	public static boolean isDefined(Class<?> e, int v)
 	{
 		return (v >= 0 && v < e.getEnumConstants().length);
 	}
 	
-	public static String toString(Enum e, String m)
+	public static String toString(Enum<?> e, String m)
 	{
 		if ("D".equals(m))
 		{
