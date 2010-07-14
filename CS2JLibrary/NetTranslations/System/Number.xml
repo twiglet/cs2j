@@ -20,6 +20,20 @@
       </Imports>
       <Java>NumberFormat.getInstance(${provider}).format(${this})</Java>
     </Method>
+    <Method>
+      <Return>System.String</Return>
+      <Name>ToString</Name>
+      <Params>
+        <Param>
+           <Type>System.String</Type>
+           <Name>format</Name>
+        </Param>
+      </Params>
+      <Imports>
+        <Import>RusticiSoftware.System.NumberSupport</Import>
+      </Imports>
+      <Java>NumberSupport.format(${this}, ${format})</Java>
+    </Method>
  </Methods>
  <Casts>
  </Casts>
