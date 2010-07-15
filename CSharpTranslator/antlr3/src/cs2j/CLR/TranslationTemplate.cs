@@ -261,13 +261,13 @@ namespace RusticiSoftware.Translator.CLR
                         switch (reader.LocalName)
                         {
                             case "Class":
-                                typeType = "RusticiSoftware.Translator.ClassRepTemplate";
+                                typeType = "RusticiSoftware.Translator.CLR.ClassRepTemplate";
                                 break;
                             case "Interface":
-                                typeType = "RusticiSoftware.Translator.InterfaceRepTemplate";
+                                typeType = "RusticiSoftware.Translator.CLR.InterfaceRepTemplate";
                                 break;
                             case "Enum":
-                                typeType = "RusticiSoftware.Translator.EnumRepTemplate";
+                                typeType = "RusticiSoftware.Translator.CLR.EnumRepTemplate";
                                 break;
                             default:
                                 typeType = "UnknownType";
