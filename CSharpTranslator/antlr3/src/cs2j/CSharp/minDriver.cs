@@ -4,9 +4,12 @@ namespace RusticiSoftware.Translator.CSharp
     using Path = System.IO.Path;
     using Antlr.Runtime;
     using RusticiSoftware.Translator.CSharp;
+    using System.IO;
+    using Antlr.Runtime.Tree;
 
     public class MinDriver
     {
+
         public static void MinDriverMain(string[] args)
         {
             if (args.Length > 0)
@@ -16,12 +19,28 @@ namespace RusticiSoftware.Translator.CSharp
                 {
                     inputFileName = Path.Combine(Environment.CurrentDirectory, inputFileName);
                 }
-                ICharStream input = new ANTLRFileStream(inputFileName);
-                PreProcessor lex = new PreProcessor(input);
-                ITokenStream tokens = new TokenRewriteStream(lex);
-                csParser parser = new csParser(tokens);
-                parser.compilation_unit();
-                Console.Out.WriteLine(tokens);
+                if (!File.Exists(inputFileName))
+                {
+                    Console.Error.WriteLine("Error: Can't find file " + inputFileName);
+                }
+                else
+                {
+                    CommonTokenStream tokens = null;
+
+                    Console.WriteLine("Parsing " + Path.GetFileName(inputFileName));
+                    PreProcessor lex = new PreProcessor();;
+
+                    ICharStream input = new ANTLRFileStream(inputFileName);
+                    lex.CharStream = input;
+
+                    tokens = new CommonTokenStream(lex);
+                    csParser p = new csParser(tokens);
+                    csParser.compilation_unit_return parser_rt;
+
+                    parser_rt = p.compilation_unit();
+
+                    Console.Out.WriteLine(((ITree)parser_rt.Tree).ToStringTree());
+                }
             }
             else
                 Console.Error.WriteLine("Usage: minDriver <input-file>");
