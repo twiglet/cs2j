@@ -9,7 +9,7 @@ using System.Text;
 using Antlr.Runtime;
 using System.Diagnostics;
 
-namespace Browse
+namespace RusticiSoftware.Translator.CSharp
 {
     /// <summary> PreProcessor
     ///   The lexer preprocesses the CSharp code.
@@ -24,16 +24,21 @@ namespace Browse
 			// By default we are preprocessing input
 			Processing.Push(true);
 
-            // Grab what's defined from the command line
-			string[] args = Environment.GetCommandLineArgs();
-			for(int n = 0; n < args.Length; ++n)
-			{
-				if (args[n] == "-D")
-					if ((n + 1) < args.Length)
-						MacroDefines.Add(args[n + 1], string.Empty);
-			}
+
 		}
-		public override void mTokens()
+        public void AddDefine(string def)
+        {
+            MacroDefines.Add(def, string.Empty);
+        }
+
+        public void AddDefine(ICollection<string> defs)
+        {
+            foreach (string def in defs) {
+                MacroDefines.Add(def, string.Empty);
+            }
+        }
+
+        public override void mTokens()
 		{
 			base.mTokens();
 			// if we aren't processing, skip this token
