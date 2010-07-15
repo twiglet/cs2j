@@ -231,7 +231,7 @@ rank_specifiers:
 	rank_specifier+ ;        
 rank_specifier: 
 	'['   dim_separators?   ']' ;
- dim_separators: 
+dim_separators: 
 	','+ ;
 generic_argument_list: 
 	'<'   type_arguments   '>' ;
