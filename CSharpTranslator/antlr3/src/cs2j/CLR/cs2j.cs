@@ -40,7 +40,7 @@ namespace RusticiSoftware.Translator.CSharp
         internal static ArrayList exAppRoot = new ArrayList();
         internal static ArrayList exclude = new ArrayList();
         internal static DirectoryHT appEnv = new DirectoryHT(null);
-        internal static ArrayList macroDefines = new ArrayList();
+        internal static List<string> macroDefines = new List<string>();
         internal static XmlTextWriter enumXmlWriter;
         internal static string xmldumpDir = Path.Combine(".", "tmpXMLs");
         internal static int verbosity = 0;
@@ -300,19 +300,14 @@ namespace RusticiSoftware.Translator.CSharp
 
             Console.WriteLine("Parsing " + Path.GetFileName(fullName));
             PreProcessor lex = new PreProcessor();
-            foreach (string d in macroDefines)
-            {
-                lex.AddDefine(d);
-            }
+            lex.AddDefine(macroDefines);
+
             ICharStream input = new ANTLRFileStream(fullName);
             lex.CharStream = input;
 
             tokens = new CommonTokenStream(lex);
             csParser p = new csParser(tokens);
-            object parser_rt;
-            CommonTree tree = null;
-
-            parser_rt = p.compilation_unit();
+            object parser_rt = p.compilation_unit();
 
             // Sometimes ANTLR returns a CommonErrorNode if we can't parse the file
             if (parser_rt is CommonErrorNode)
@@ -321,7 +316,7 @@ namespace RusticiSoftware.Translator.CSharp
                 return null;
             }
 
-            tree = (CommonTree)((RuleReturnScope)parser_rt).Tree;
+            CommonTree tree = (CommonTree)((RuleReturnScope)parser_rt).Tree;
             // Check if we didn't get an AST
             // This often happens if your grammar and tree grammar don't match
             if (tree == null)
