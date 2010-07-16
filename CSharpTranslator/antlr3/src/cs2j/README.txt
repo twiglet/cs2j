@@ -13,3 +13,6 @@ cd "C:\Documents and Settings\developer\My Documents\gitrepos\cs2j\CSharpTransla
 src\cs2j\bin\Debug\cs2j.exe -netdir "c:\Documents and Settings\s\developer\My Documents\gitrepos\cs2j\CS2JLibrary\NetTranslations" -appdir "c:\Documents and Settings\developer\My Documents\Visual Studio 2005\Projects\ScormEngineNetTrunk\src\app\ScormEngine.Core" "c:\Documents and Settings\developer\My Documents\Visual Studio 2005\Projects\ScormEngineNetTrunk\src\app\ScormEngine.Core\Logic"
 
 
+-- arguments to VS Debug
+
+-dumpcsharp -dumpxml -xmldir c:\xmls  -netdir "C:\Documents and Settings\developer\My Documents\gitrepos\cs2j\CS2JLibrary\NetTranslations" "C:\Documents and Settings\developer\My Documents\Visual Studio 2005\Projects\ScormEngineNetTrunk\src\app\ScormEngine.Core\Util\Encryption\DataProtection.cs"

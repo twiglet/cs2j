@@ -38,8 +38,18 @@ namespace RusticiSoftware.Translator.CSharp
                     csParser.compilation_unit_return parser_rt;
 
                     parser_rt = p.compilation_unit();
+                    ITree parse_tree = (ITree)parser_rt.Tree;
+                    Console.Out.WriteLine(parse_tree.ToStringTree());
 
-                    Console.Out.WriteLine(((ITree)parser_rt.Tree).ToStringTree());
+                    CommonTreeNodeStream display_nodes = new CommonTreeNodeStream(parse_tree);
+                    AntlrUtils.AntlrUtils.DumpNodes(display_nodes); 
+                    
+                    BufferedTreeNodeStream nodes = new BufferedTreeNodeStream(parse_tree);
+
+
+                    csCrawl walker = new csCrawl(nodes);
+                    walker.compilation_unit2();
+
                 }
             }
             else
