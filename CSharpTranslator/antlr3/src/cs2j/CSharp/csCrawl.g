@@ -44,7 +44,7 @@ namespace_component2:
 	;
 
 identifier2:
-    ^(ID id=IDENTIFIER { Console.Out.WriteLine("Identifier: " + id.Text);})
+    ^(ID IDENTIFIER { Console.Out.WriteLine("Identifier: " + $IDENTIFIER.Text);})
 	;
 
 compilation_unit:

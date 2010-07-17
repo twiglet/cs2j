@@ -57,6 +57,7 @@
     <Compile Include="AntlrUtils\AntlrUtils.cs" />
     <Compile Include="CLR\cs2j.cs" />
     <Compile Include="CLR\TypeRep.cs" />
+    <Compile Include="CSharp\CommonWalker.cs" />
     <Compile Include="CSharp\csCrawl.cs" />
     <Compile Include="CSharp\csLexer.cs" />
     <Compile Include="CSharp\csParser.cs" />
@@ -64,10 +65,12 @@
     <Compile Include="CSharp\minDriver.cs" />
     <Compile Include="CSharp\PreProcessor.cs" />
     <Compile Include="CLR\TranslationTemplate.cs" />
+    <Compile Include="CSharp\SignatureExtracter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\DirectoryHT.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CSharp\SignatureExtracter.g" />
     <None Include="CSharp\csCrawl.g" />
     <None Include="CSharp\cs.g" />
   </ItemGroup>
