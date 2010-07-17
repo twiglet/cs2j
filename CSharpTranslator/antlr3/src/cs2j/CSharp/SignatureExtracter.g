@@ -42,22 +42,23 @@ options {
 
 ///////////////////////////////////////////////////////
 compilation_unit: 
-	{ Debug("Debug: start"); } using_directives
+	{ Debug("start"); } using_directives
 	;
 
 using_directives:
-    ^(USING_DIRECTIVE 'using' { Console.Out.WriteLine("Debug: using"); } namespace_name ';') 
+    ^(USING_DIRECTIVE 'using'  namespace_name ';' { Debug("using " + $namespace_name.namespaceText); }) 
 	;
 
-namespace_name:
-    ^(NAMESPACE_OR_TYPE_NAME namespace_component) 
+namespace_name returns [string namespaceText]:
+    ^(NAMESPACE_OR_TYPE_NAME nsc=namespace_component { namespaceText = $nsc.idText; } 
+	                         (nscp=namespace_component { namespaceText = namespaceText + "." + $nscp.idText; } )* )  
 	;
 	
-namespace_component:
-    ^(NSTN identifier)
+namespace_component returns [string idText]:
+    ^(NSTN identifier { idText=$identifier.idText; } ) 
 	;
 
-identifier:
-    ^(ID id=IDENTIFIER { Console.Out.WriteLine("Identifier: " + id.Text);})
+identifier returns [string idText]:
+    ^(ID IDENTIFIER { idText = $IDENTIFIER.Text; Debug("Identifier: " + $IDENTIFIER.Text); } )
 	;
 
