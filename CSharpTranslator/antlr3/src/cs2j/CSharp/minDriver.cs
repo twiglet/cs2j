@@ -47,8 +47,9 @@ namespace RusticiSoftware.Translator.CSharp
                     BufferedTreeNodeStream nodes = new BufferedTreeNodeStream(parse_tree);
 
 
-                    csCrawl walker = new csCrawl(nodes);
-                    walker.compilation_unit2();
+                    SignatureExtracter sigWalker = new SignatureExtracter(nodes);
+                    sigWalker.DebugLevel = 10;
+                    sigWalker.compilation_unit();
 
                 }
             }
