@@ -12,11 +12,35 @@ namespace RusticiSoftware.Translator.CSharp
         protected CommonWalker(ITreeNodeStream input, RecognizerSharedState state)
             : base(input, state)
         { }
-        
+
+
+        /// <summary>
+        /// Debug Routines
+        /// </summary>
+        private int debugLevel = 0;
+
+        public int DebugLevel
+        {
+            get { return debugLevel; }
+            set { debugLevel = value; }
+        }
 
         protected void Debug(String s)
         {
-            Console.Out.WriteLine(s);
+            Debug(1, s);
+        }
+
+        protected void DebugDetail(string s)
+        {
+            Debug(5, s);
+        }
+
+        protected void Debug(int level, String s)
+        {
+            if (level <= DebugLevel)
+            {
+                Console.Out.WriteLine(s);
+            }
         }
     }
 }
