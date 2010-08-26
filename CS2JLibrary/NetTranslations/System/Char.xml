@@ -51,17 +51,6 @@
     </Method>
     <Method>
       <Return>System.Boolean</Return>
-      <Name>IsLetterOrDigit</Name>
-      <Params>
-         <Param>
-            <Type>System.Char</Type>
-            <Name>ch</Name>
-         </Param>
-      </Params>
-      <Java>Character.isLetterOrDigit(${ch})</Java>
-    </Method>
-   <Method>
-      <Return>System.Boolean</Return>
       <Name>IsUpper</Name>
       <Params>
          <Param>

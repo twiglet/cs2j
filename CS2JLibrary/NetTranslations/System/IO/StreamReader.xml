@@ -67,10 +67,9 @@
        </Params>
        <Imports>
           <Import>RusticiSoftware.System.IO.StreamReader</Import>
-          <Import>RusticiSoftware.System.Text.EncodingSupport</Import>
           <Import>java.io.*</Import>
        </Imports>
-       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), new EncodingSupport("UTF-8")))</Java>
+       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), "UTF-8"))</Java>
     </Constructor>
   </Constructors>
   <Methods>

@@ -24,16 +24,7 @@
        <Name>Length</Name>
        <Type>System.Int32</Type>
        <Get>${this}.length()</Get>
-       <Set>StringBuilderSupport.setLength(${this}, ${value})</Set>
-      <Imports>
-        <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
-      </Imports>     
-    </Property>
-    <Property>
-       <Name>Capacity</Name>
-       <Type>System.Int32</Type>
-       <Get>${this}.capacity()</Get>
-       <Set>${this}.ensureCapacity(${value})</Set>
+       <Set>${this}.setlength(${value})</Set>
     </Property>
   </Properties>
   <Methods>
@@ -58,20 +49,6 @@
         </Param>
       </Params>     
       <Java>${this}.append((${arg}) + System.getProperty("line.separator"))</Java>
-    </Method>
-    <Method>
-      <Return>System.Int32</Return>
-      <Name>EnsureCapacity</Name>
-       <Params>
-        <Param>
-          <Name>arg</Name>
-          <Type>System.Int32</Type>
-        </Param>
-      </Params> 
-      <Imports>
-        <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
-      </Imports>    
-      <Java>StringBuilderSupport.ensureCapacity(${this}, ${arg})</Java>
     </Method>
     <Method>
       <Return>System.Text.StringBuilder</Return>

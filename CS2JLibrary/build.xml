@@ -50,10 +50,6 @@
 
 	<target name="src" description="Make a source distribution">
 		<mkdir dir="${zip.dir}" />
-		<exec executable="git" outputproperty="build.version">
-			<arg line="describe"/>
-		</exec>
-		<property name="src.zip" value="${zip.dir}/cs2jlibrary-src-${build.version}.zip"/>
 		<zip destfile="${src.zip}">
 			<fileset dir="${basedir}">
 				<include name="src/**/*" />

@@ -121,7 +121,7 @@ public class DirectorySupport {
 		// In .Net Directory.GetFiles, if the searchpattern contains directory path separators
 		// then it will search subdirs.
 		
-		ArrayList<String> allMatches = new ArrayList<String>();
+		ArrayList allMatches = new ArrayList();
 
 		// we split on both / and \ characters
 		String[] patternComponents = searchpattern.split("[/\\\\]",2); 
@@ -145,7 +145,7 @@ public class DirectorySupport {
 			}
 		}
 		
-		return allMatches.toArray(new String[allMatches.size()]);
+		return (String[])allMatches.toArray(new String[allMatches.size()]);
 		
 	}
 
@@ -177,7 +177,7 @@ public class DirectorySupport {
             for (int i=0; i<children.length; i++) {
                 File child = new File(dp, children[i]);
                 if (child.isDirectory())
-                	DirectorySupport.delete(dp.getPath(), true);
+                	DirectorySupport.delete(child.getPath(), true);
                 else
                 	child.delete();
             }

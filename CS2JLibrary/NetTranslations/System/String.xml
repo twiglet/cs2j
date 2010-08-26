@@ -15,18 +15,15 @@
     <Constructor>
       <Params>
         <Param>
-          <Name>char</Name>
-          <Type>System.Char</Type>
-        </Param>
-        <Param>
           <Name>length</Name>
           <Type>System.Int32</Type>
         </Param>
+        <Param>
+          <Name>char</Name>
+          <Type>System.Char</Type>
+        </Param>
       </Params>
-      <Imports>
-        <Import>RusticiSoftware.System.StringSupport</Import>
-      </Imports>
-      <Java>StringSupport.mkString(${char}, ${length})</Java>
+      <Java>new String(${length}, ${char}) /* FIX ME */</Java>
     </Constructor>
     <Constructor>
       <Params>

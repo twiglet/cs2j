@@ -20,17 +20,6 @@
        <Name>TrueString</Name>
        <Get>"True"</Get>
     </Property>
-    <!-- C# 2.0 nullable value types -->
-    <Property>
-       <Type>System.Boolean</Type>
-       <Name>HasValue</Name>
-       <Get>${this} != null</Get>
-    </Property>
-    <Property>
-       <Type>System.Boolean</Type>
-       <Name>Value</Name>
-       <Get>${this}</Get>
-    </Property>
  </Properties>
  <Methods>
     <Method>

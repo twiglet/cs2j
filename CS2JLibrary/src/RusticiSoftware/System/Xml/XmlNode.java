@@ -28,6 +28,8 @@ import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import RusticiSoftware.System.StringSupport;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -179,6 +181,19 @@ public class XmlNode implements Iterable {
 		// I think the XML standard says that newlines in text are converted from their
 		// local encoding to "\n".  Java does that, but .Net does not, so here we put 'em back.
 		return node.getTextContent().replace("\n", System.getProperty("line.separator"));
+	}
+	
+	public boolean isEmptyElement()
+	{
+        if (StringSupport.IsEmptyOrBlank(node.getTextContent()) && getAttributes().size() == 0 && getChildNodes().size() == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+		
 	}
 
 	// This is a .Net extension to the DOM.  It returns markup describing

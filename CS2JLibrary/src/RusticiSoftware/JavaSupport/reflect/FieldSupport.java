@@ -24,10 +24,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
 public class FieldSupport {
 
-	public static Annotation[] getAnnotations(Field f, Class<?> filterBy, boolean inherits)
+	public static Annotation[] getAnnotations(Field f, Class filterBy, boolean inherits)
 	{
 		ArrayList<Annotation> filteredAnns = new ArrayList<Annotation>();
 		

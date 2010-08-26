@@ -235,9 +235,9 @@ public class StringSupport {
     	if (str.endsWith(c1+""))
     	{
     		// Add empty string for .Net
-    		ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
+    		ArrayList ret_al = new ArrayList(Arrays.asList(rets));
     		ret_al.add("");
-    		rets = ret_al.toArray(new String [ret_al.size()]);
+    		rets = (String[])ret_al.toArray(new String [ret_al.size()]);
     	}
     	return rets;
     }
@@ -248,9 +248,9 @@ public class StringSupport {
     	if (str.endsWith(c1+"") || str.endsWith(c2+""))
     	{
     		// Add empty string for .Net
-    		ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
+    		ArrayList ret_al = new ArrayList(Arrays.asList(rets));
     		ret_al.add("");
-    		rets = ret_al.toArray(new String [ret_al.size()]);
+    		rets = (String[])ret_al.toArray(new String [ret_al.size()]);
     	}
     	return rets;
     }
@@ -265,16 +265,16 @@ public class StringSupport {
     		if (options != StringSplitOptions.RemoveEmptyEntries && str.endsWith(c+""))
     		{
     			// Add empty string for .Net
-    			ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
+    			ArrayList ret_al = new ArrayList(Arrays.asList(rets));
     			ret_al.add("");
-    			rets = ret_al.toArray(new String [ret_al.size()]);
+    			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
     			break;
     		}
     	}
     	
     	if (options == StringSplitOptions.RemoveEmptyEntries)
     	{
-			ArrayList<String> ret_al = new ArrayList<String>();
+			ArrayList ret_al = new ArrayList();
 			for (String p : rets)
 			{
 				if (!p.equals(""))
@@ -282,7 +282,7 @@ public class StringSupport {
 					ret_al.add(p);
 				}
 			}
-			rets = ret_al.toArray(new String [ret_al.size()]);
+			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
     	}
     	
     	return rets;
@@ -297,16 +297,16 @@ public class StringSupport {
    		if (options != StringSplitOptions.RemoveEmptyEntries && str.endsWith(s))
    		{
    			// Add empty string for .Net
-   			ArrayList<String> ret_al = new ArrayList<String>(Arrays.asList(rets));
+   			ArrayList ret_al = new ArrayList(Arrays.asList(rets));
    			ret_al.add("");
-   			rets = ret_al.toArray(new String [ret_al.size()]);
+   			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
    			break;
    		}
    	}
    	
    	if (options == StringSplitOptions.RemoveEmptyEntries)
    	{
-			ArrayList<String> ret_al = new ArrayList<String>();
+			ArrayList ret_al = new ArrayList();
 			for (String p : rets)
 			{
 				if (!p.equals(""))
@@ -314,7 +314,7 @@ public class StringSupport {
 					ret_al.add(p);
 				}
 			}
-			rets = ret_al.toArray(new String [ret_al.size()]);
+			rets = (String[])ret_al.toArray(new String [ret_al.size()]);
    	}
    	
    	return rets;
@@ -328,25 +328,29 @@ public class StringSupport {
     public static final boolean IsNullOrEmpty(String str){
     	return isNullOrEmpty(str);
     }
+    
+    public static final boolean IsEmptyOrBlank(String str){
+		// Locate first non-trimmable index
+		int firstIdx = 0;
+		while (firstIdx < str.length())
+		{
+			if (isIn(str.charAt(firstIdx),wschars))
+				firstIdx++;
+			else
+				break;
+		}
+		return firstIdx == str.length();
+    }
     		
     public static final int lastIndexOfAny(String str, char[] anyOf)
     {
     	int index = -1;
     	for (char test : anyOf)
     	{
-    		index = Math.max(index, str.indexOf(test));
+    		index = Math.max(index, str.lastIndexOf(test));
     	}
     	return index;
     }
-	
-    // in C# new String('x',50)
-    public static String mkString(char c, int count) {
-        char[] chars = new char[count];
-        for (int i = 0; i < count; i++) {
-        	chars[i] = c;
-        }
-        return new String(chars);
-	}
     
 	public static void Testmain(String[] args)
 	{
@@ -383,6 +387,4 @@ public class StringSupport {
 		System.out.println("Split(\"=fred\", '=') = [\"" + splitFred[0] + "\", \"" + splitFred[1] + "\"]");
 		
 }
-
-
 }

@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import RusticiSoftware.System.Text.EncodingSupport;
-
 public class StreamReader  {
 
 	// Mimic the behaviour of .Net StreamReader
@@ -93,13 +91,13 @@ public class StreamReader  {
 		return retISR;
 	}
 
-	public static InputStreamReader make(InputStream is, EncodingSupport cs) throws IOException
+	public static InputStreamReader make(InputStream is, String cs) throws IOException
 	{	       
 		String enc = getEncoding(is);
 		if (enc != null)
 			return new InputStreamReader(is, enc);
 		else
-			return new InputStreamReader(is, cs.getString());
+			return new InputStreamReader(is, cs);
 	}
 
 }
