@@ -33,7 +33,7 @@ public class DoubleSupport {
 		
 		String formattedValue = "";
 		
-		if (format.toLowerCase().indexOf("g") == 0 && format.length() < 3) {
+		if ((format.toLowerCase().indexOf("g") == 0 || format.toLowerCase().indexOf("n") == 0) && format.length() < 3) {
 			
 			if (format.length() == 2) {
 				String lengthStr = format.substring(1);

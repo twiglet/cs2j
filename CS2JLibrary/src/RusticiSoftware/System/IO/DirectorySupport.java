@@ -177,7 +177,7 @@ public class DirectorySupport {
             for (int i=0; i<children.length; i++) {
                 File child = new File(dp, children[i]);
                 if (child.isDirectory())
-                	DirectorySupport.delete(dp.getPath(), true);
+                	DirectorySupport.delete(child.getPath(), true);
                 else
                 	child.delete();
             }

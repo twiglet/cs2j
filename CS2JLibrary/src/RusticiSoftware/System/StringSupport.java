@@ -328,13 +328,26 @@ public class StringSupport {
     public static final boolean IsNullOrEmpty(String str){
     	return isNullOrEmpty(str);
     }
+    
+    public static final boolean IsEmptyOrBlank(String str){
+		// Locate first non-trimmable index
+		int firstIdx = 0;
+		while (firstIdx < str.length())
+		{
+			if (isIn(str.charAt(firstIdx),wschars))
+				firstIdx++;
+			else
+				break;
+		}
+		return firstIdx == str.length();
+    }
     		
     public static final int lastIndexOfAny(String str, char[] anyOf)
     {
     	int index = -1;
     	for (char test : anyOf)
     	{
-    		index = Math.max(index, str.indexOf(test));
+    		index = Math.max(index, str.lastIndexOf(test));
     	}
     	return index;
     }

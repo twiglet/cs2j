@@ -16,5 +16,10 @@
       <Name>Name</Name>
       <Get>${this}.getName()</Get>
     </Property>
+    <Property>
+      <Type>System.Boolean</Type>
+      <Name>IsDirectory</Name>
+      <Get>${this}.isDirectory()</Get>
+    </Property>
   </Properties>
 </Class>
