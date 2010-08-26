@@ -346,8 +346,7 @@ type!
 		ASTNode starsBase = #[STARS, "STARS"]; 
 	}
 	:	(
-			( p:predefinedTypeName { typeBase = #p; } | 
-			  q:qualifiedIdentifier { typeBase = #q; } (LTHAN type (COMMA type)* GTHAN)? )	// typeName
+			( p:predefinedTypeName { typeBase = #p; } | q:qualifiedIdentifier { typeBase = #q; } )	// typeName
 			(
 				s1:STAR						// pointerType
 				{
@@ -1098,7 +1097,7 @@ modifier
 //
 
 classDeclaration! [AST attribs, AST modifiers]
-	:	cl:CLASS id:identifier (LTHAN type (COMMA type)* GTHAN)? ba:classBase bo:classBody ( options { greedy = true; } : SEMI! )?
+	:	cl:CLASS id:identifier ba:classBase bo:classBody ( options { greedy = true; } : SEMI! )?
 		{ ## = #( #cl, #attribs, #modifiers, #id, #ba, #bo ); }
 	;
 	
@@ -1661,7 +1660,7 @@ delegateDeclaration! [AST attribs, AST modifiers]
 			typ1:voidAsType						{ typ = #typ1; }
 		| 	typ2:type 							{ typ = #typ2; }
 		) 
-		id:identifier (LTHAN type (COMMA type)* GTHAN)? OPEN_PAREN! ( fp:formalParameterList )? CLOSE_PAREN! SEMI!
+		id:identifier OPEN_PAREN! ( fp:formalParameterList )? CLOSE_PAREN! SEMI!
 		{ ## = #( #dlg, #attribs, #modifiers, #typ, #id, #fp ); }
 	;
 	

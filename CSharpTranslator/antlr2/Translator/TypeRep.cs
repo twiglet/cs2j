@@ -424,14 +424,7 @@ namespace RusticiSoftware.Translator
             FieldsD = new Hashtable();
             foreach (FieldRepTemplate ft in template.Fields)
             {
-                try
-                {
-                    FieldsD.Add(ft.Name, FieldRep.newInstance(ft, uPath));
-                }
-                catch (Exception x)
-                {
-                    Console.Out.WriteLine("Ignore duplicate field (#iffery?)");
-                }
+                FieldsD.Add(ft.Name, FieldRep.newInstance(ft, uPath));
             }
             Casts = new CastRep[template.Casts.Length];
             for (int i = 0; i < template.Casts.Length; i++)

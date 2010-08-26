@@ -206,7 +206,7 @@ namespace RusticiSoftware.Translator
                             i++;
                             string[] argDirs = args[i].Split(';');
                             for (int j = 0; j < argDirs.Length; j++)
-                                argDirs[j] = Path.GetFullPath(argDirs[j]).ToLower();
+                                argDirs[j] = Path.GetFullPath(argDirs[j]);
                             netRoot.AddRange(argDirs);
                         }
                         else if (args[i].ToLower().Equals("-exnetdir") && i < (args.Length - 1))
@@ -258,6 +258,20 @@ namespace RusticiSoftware.Translator
                                 doFile(new FileInfo(r), ".xml", addNetTranslation, exNetRoot);
 
                             Console.Out.WriteLine(String.Format("\nFound {0} .Net template files ({1} processed successfully)\n", numFilesProcessed, numFilesSuccessfullyProcessed)); 
+
+                            // Sanity Checks
+                            if (numFilesProcessed == 0)
+                            {
+                                Console.Error.WriteLine("Can't find any templates, aborting.");
+                                Environment.Exit(1);
+                            }
+                            const double MIN_SUCCESS_RATIO = .9d;
+                            if (((Double)numFilesSuccessfullyProcessed / (Double)numFilesProcessed) < MIN_SUCCESS_RATIO)
+                            {
+                                Console.Error.WriteLine("Success ratio below " + MIN_SUCCESS_RATIO + " aborting.");
+                                Environment.Exit(1);
+                            }
+
 
                             // Load Application Class Signatures (i.e. generate templates)
                             if (appRoot.Count == 0)

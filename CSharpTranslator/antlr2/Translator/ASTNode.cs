@@ -114,11 +114,8 @@ namespace RusticiSoftware.Translator
 
 		public void CopyPositionFrom(ASTNode other)
 		{
-            if (other != null) // it might be if we are recovering from a parse error
-            {
-                Line = other.Line;
-                Column = other.Column;
-            }
+			Line   = other.Line;
+			Column = other.Column;
 		}
 		
 		//---------------------------------------------------------------------

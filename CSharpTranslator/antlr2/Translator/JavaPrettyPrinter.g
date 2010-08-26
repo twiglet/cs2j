@@ -36,8 +36,6 @@ options {
     private XmlTextWriter enumXmlWriter;
     private ArrayList enumMembers = new ArrayList();
     
-    private bool inClassModifiers = false; // Filter out static, this isn't the right place but pending rewrite this is quickest.
-    
 	/** walk list of hidden tokens in order, printing them out */
 	public void dumpHidden(TextWriter w, antlr.IHiddenStreamToken t) {
 	  for ( ; t!=null ; t=filter.getHiddenAfter(t) ) {
@@ -279,8 +277,8 @@ importDefinition [TextWriter w]
 	;
 
 typeDefinition [TextWriter w]
-	:	#(cl:CLASS	{inClassModifiers = true; }		
-			modifiers[w] {inClassModifiers = false; }
+	:	#(cl:CLASS			
+			modifiers[w] 
 			id:IDENTIFIER				{ Print(w, "class "); Print(w, #id, " "); }
 			extendsClause[w] 
 			implementsClause[w]     { PrintNL(w); Print(w, "{"); PrintNL(w); indentLevel++; }
@@ -368,7 +366,7 @@ modifier [TextWriter w]
     :   mpr:"private"				{ Print(w, #mpr); }
     |   mpu:"public"				{ Print(w, #mpu); }
     |   mpt:"protected"				{ Print(w, #mpt); }
-    |   mst:"static"				{ if (!inClassModifiers) {Print(w, #mst);} }
+    |   mst:"static"				{ Print(w, #mst); }
     |   mtr:"transient"				{ Print(w, #mtr); }
     |   mfi:FINAL					{ Print(w, #mfi); }   
     |   mab:ABSTRACT				{ Print(w, #mab); }
@@ -538,7 +536,7 @@ stat [TextWriter w]
 		typeDefinition[w]
 	|	variableDef[w]							{ Print(w, ";"); }
 	|	#(EXPR_STMT expression[w])				{ Print(w, ";"); }
-	|	#(LABEL_STMT id:IDENTIFIER	{ Print(w, #id, ": "); } stat[w])
+	|	#(LABELED_STAT id:IDENTIFIER	{ Print(w, #id, ": "); } stat[w])
 	|	#(lif:IF								{ Print(w, #lif, " ("); }
 			expression[w]						{ Print(w, ")"); PrintNL(w); }
 			stat[w]								
@@ -565,9 +563,8 @@ stat [TextWriter w]
 			stat[w]										{ Print(w, "while ("); }
 			expression[w]								{ Print(w, ");"); }
 			)
-	|	#(gt:"goto"	{ Print(w, "// TODO: CS2J: goto is not supported by Java."); PrintNL(w); Print(w, "continue "); } gid:IDENTIFIER			{ Print(w, #gid); Print(w, ";"); } )
-	|	#(br:"break"	{ Print(w, #br); } ( { Print(w, " "); } bid:IDENTIFIER { Print(w, #bid); } )?			{ Print(w, ";"); } )
-	|	#(co:"continue" { Print(w, #co); } ( { Print(w, " "); } cid:IDENTIFIER { Print(w, #cid); } )?			{ Print(w, ";"); } )
+	|	#(br:"break"	{ Print(w, #br); } ( { Print(w, " "); } IDENTIFIER)?			{ Print(w, ";"); } )
+	|	#(co:"continue" { Print(w, #co); } ( { Print(w, " "); } IDENTIFIER)?			{ Print(w, ";"); } )
 	|	#(re:"return"	{ Print(w, #re); } ( { Print(w, " "); } expression[w])? { Print(w, ";"); } )
 	|	#(sw:"switch"			{ Print(w, #sw, " ("); }
 			expression[w]		{ Print(w, ")"); PrintNL(w); Print(w, "{"); indentLevel++; PrintNL(w); }
@@ -752,7 +749,7 @@ constant [TextWriter w]
     |   st:STRING_LITERAL			{ Print(w, #st); }
     |   fl:NUM_FLOAT				{ Print(w, #fl); }
     |   db:DOUBLE_LITERAL			{ Print(w, #db); }
-    |   flt:FLOAT_LITERAL			{ Print(w, #flt); }
+    |   flr:FLOAT_LITERAL			{ Print(w, #flr); }
     |   lo:LONG_LITERAL				{ Print(w, #lo); Print(w, "L"); }
     |   ul:ULONG_LITERAL			{ Print(w, #ul); Print(w, "L"); }
     |   de:DECIMAL_LITERAL			{ Print(w, #de, "/* Unsupported Decimal Literal */"); }
