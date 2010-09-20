@@ -70,7 +70,7 @@ namespace RusticiSoftware.Translator
 	
 	class AppMain
 	{
-        private const string VERSION = "2008.1.0.6617";
+        private const string VERSION = "2010.1.0.13824";
 
         public delegate void FileProcessor(string fName, Stream s);
 
