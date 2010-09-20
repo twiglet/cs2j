@@ -93,7 +93,10 @@ namespace RusticiSoftware.Translator
         internal static DirectoryHT appEnv = new DirectoryHT(null);
         internal static XmlTextWriter enumXmlWriter;
         internal static string xmldumpDir = Path.Combine(".", "tmpXMLs");
+        internal static Boolean emitTranslationDate = true;
+        
         internal static int verbosity = 0;
+
 
         internal static TokenStreamHiddenTokenFilter filter;
 
@@ -111,6 +114,7 @@ namespace RusticiSoftware.Translator
             Console.Out.WriteLine("Usage: " + Path.GetFileNameWithoutExtension(System.Environment.GetCommandLineArgs()[0]));
             Console.Out.WriteLine(" [-help]                                                                     (this usage message)");
             Console.Out.WriteLine(" [-v]                                                                        (be [somewhat more] verbose, repeat for more verbosity)");
+            Console.Out.WriteLine(" [-markDate <true|false>]                                                    (emit date of Translation into Java Source, default:true)");
             Console.Out.WriteLine(" [-showtokens]                                                               (the lexer prints the tokenized input to the console)");
             Console.Out.WriteLine(" [-showtree][-showcsharp] [-showjavasyntax] [-showjava]                      (show parse tree at various stages of the translation)");
             Console.Out.WriteLine(" [-dumpxml] [-xmldir <directory to dump xml database>]                       (dump the translation repository as xml files)");
@@ -189,6 +193,11 @@ namespace RusticiSoftware.Translator
                         {
                             i++;
                             outDir = args[i];
+                        }
+                        else if (args[i].ToLower().Equals("-markdate") && i < (args.Length - 1))
+                        {
+                            i++;
+                            emitTranslationDate = !(args[i].ToLower().Equals("false"));
                         }
                         else if (args[i].ToLower().Equals("-dumpenums") && i < (args.Length - 1))
                         {
@@ -555,7 +564,7 @@ namespace RusticiSoftware.Translator
                     FileInfo outF = new FileInfo(fName);
                     StreamWriter w = new StreamWriter(outF.Create());
                     JavaPrettyPrinter writer = new JavaPrettyPrinter();
-                    writer.compilationUnit(netTx.getAST(), w, enumXmlWriter, filter);
+                    writer.compilationUnit(netTx.getAST(), w, enumXmlWriter, filter, emitTranslationDate);
                     w.Close();
 
                 }

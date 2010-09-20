@@ -93,7 +93,8 @@ options {
     
     private void PrintNL(TextWriter w)
     {
-		w.Write("\n");	// Should we take newline from environment?
+		w.Write("\n");            // Should we be switching to use Environment.NewLine?
+		//w.Write(Environment.NewLine);
 		if (doIndent) indented = false;
     }
     
@@ -145,6 +146,35 @@ options {
 		}
     }
     
+    /// <summary>
+	/// Prints standard text at the top of each output file
+	/// </summary>
+	/// <param name="w">The output destination.</param>
+	/// <param name="emitDate">Emit Translation Date as part of prelude.</param>
+    private void PrintFilePrelude(TextWriter w, Boolean emitDate)
+    {
+		String stdPrelude = @"
+//
+//
+// This file was translated from C# to Java by CS2J (http://www.cs2j.com).
+//
+// This code is to be used for evaluation of the CS2J tool ONLY.
+//
+// For more information about CS2J please contact cs2jcontact@scorm.com
+//
+";
+
+        if (emitDate) {
+	        //stdPrelude += "// Translated: " + DateTime.Now.ToString("s") + Environment.NewLine + 
+	        //              "//" + Environment.NewLine; 
+	   
+		    stdPrelude += "// Translated: " + DateTime.Now.ToString("s") + "\n//\n" ;   // Switch to Environment.NewLine??
+		}
+		stdPrelude += "\n";
+		w.Write(stdPrelude);
+	}
+	
+	
     // keving:  Found this precedence table on the ANTLR site.
     
     /** Encodes precedence of various operators; indexed by token type.
@@ -236,8 +266,8 @@ options {
 
 
 
-compilationUnit [TextWriter w, XmlTextWriter enumXmlWriter, TokenStreamHiddenTokenFilter f]
- { filter = f; this.enumXmlWriter = enumXmlWriter; }
+compilationUnit [TextWriter w, XmlTextWriter enumXmlWriter, TokenStreamHiddenTokenFilter f, Boolean emitDate]
+ { filter = f; this.enumXmlWriter = enumXmlWriter; PrintFilePrelude(w, emitDate); }
 	:	#( COMPILATION_UNIT 
 			packageDefinition[w]
 			useDefinitions[TextWriter.Null]    // No output for uses
