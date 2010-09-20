@@ -219,10 +219,47 @@ Settings\kevin.glynn\eclipsews\RusticiSoftware.ScormUntethered.Logic\src"
     <mkdir dir="${cs2jtx.build.dir}" />
 	</target>
 
-	<target name="clean" depends="" description="clean out build area">
-		<!-- create dir if it doesn't exist, so delete only fails if there is a real problem -->
-		<mkdir dir="${cs2jtx.build.dir}"/>
-		<delete failonerror="true" dir="${cs2jtx.build.dir}" />
-	</target>
+  <target name="clean" depends="init" description="clean out build area">
+    <!-- create dir if it doesn't exist, so delete only fails if there is a real problem -->
+    <mkdir dir="${build.dir}"/>
+    <delete failonerror="true" dir="${build.dir}" />
+    <mkdir dir="${cs2jtx.build.dir}"/>
+    <delete failonerror="true" dir="${cs2jtx.build.dir}" />
+  </target>
+
+  <target name="dist" depends="buildTranslator" description="Make a distribution of cs2j">
+    <fail message="You must set the distribution version number (cs2j.dist.version)" unless="cs2j.dist.version" />
+    <fail message="You must set the directory containing documentation (cs2j.doc.dir)" unless="cs2j.doc.dir" />
+    <delete failonerror="false"  dir="${build.dir}/cs2j" />
+    <mkdir dir="${build.dir}/cs2j" />
+    <mkdir dir="${cs2j.dist.dir}" />
+    <echo message="do dist :) ${cs2jtx.exe}" />
+    <property name="cs2j.pack.dir" value="${build.dir}/cs2j/pack/cs2j_${cs2j.dist.version}/" />
+    <!-- cs2j executable -->
+    <copy todir="${cs2j.pack.dir}/Bin/">
+      <fileset dir="${cs2jtx.bin.dir}"  excludes="*.vshost.exe*"/>
+    </copy>
+    <copy todir="${cs2j.pack.dir}/lib/">
+      <fileset dir="./lib"  excludes="antlr.jar"/>
+    </copy>
+    <copy todir="${cs2j.pack.dir}">
+      <fileset dir="${cs2j.doc.dir}" />
+    </copy>
+    <copy todir="${cs2j.pack.dir}" file="./build.xml" />
+    <copy todir="${cs2j.pack.dir}" file="./dist/build.properties" />
+    <copy todir="${cs2j.pack.dir}/CS2JLibrary">
+      <fileset dir="${cs2j.proj.dir}">
+        <include name="src/**/*" />
+        <include name="LICENSE" />
+        <include name="NOTICE" />
+        <include name="build.*" />
+        <include name=".project" />
+        <include name=".classpath" />
+        <include name="lib/*" />
+        <include name="NetTranslations/**/*" />
+      </fileset>
+    </copy>
+    <zip destfile="${cs2j.dist.dir}/cs2j_${cs2j.dist.version}.zip" basedir="${cs2j.pack.dir}/../" />
+  </target>
 
 </project>
