@@ -6,6 +6,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8ECA4801-3F48-4FD1-91B4-4DFB567D913B}"
 	ProjectSection(SolutionItems) = preProject
 		build.properties = build.properties
+		dist\build.properties = dist\build.properties
 		build.xml = build.xml
 		README.txt = README.txt
 	EndProjectSection
