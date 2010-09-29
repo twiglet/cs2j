@@ -1,0 +1,27 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" ctype="Workspace" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="src/Antlr.Runtime/Antlr.Runtime.JavaExtensions/DictionaryExtensions.cs" ctype="Workbench">
+    <Files>
+      <File FileName="src/Antlr.Runtime/Antlr.Runtime/ANTLRInputStream.cs" Line="1" Column="1" />
+      <File FileName="src/cs2j/Utils/DirectoryHT.cs" Line="1" Column="1" />
+      <File FileName="src/Antlr.Runtime/Antlr.Runtime.JavaExtensions/DictionaryExtensions.cs" Line="78" Column="48" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="Antlr3.Runtime" expanded="True">
+            <Node name="Antlr.Runtime.JavaExtensions" expanded="True" />
+          </Node>
+          <Node name="cs2j" expanded="True" selected="True">
+            <Node name="References" expanded="True" />
+            <Node name="Utils" expanded="True" />
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches ctype="PinnedWatchStore" />
+</Properties>
