@@ -8,7 +8,7 @@ namespace RusticiSoftware.Translator.CSharp
     {
         public static void Main(string[] args)
         {
-            if (args[0].ToLower() == "-mindriver")
+            if (args.Length > 0 && args[0].ToLower() == "-mindriver")
             {
                 MinDriver.MinDriverMain(args);
             }
