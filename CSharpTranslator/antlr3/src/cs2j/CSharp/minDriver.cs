@@ -14,7 +14,10 @@ namespace RusticiSoftware.Translator.CSharp
         {
             if (args.Length > 0)
             {
-                string inputFileName = args[1];
+				
+				// Just take last argument so that we ignore any passed options
+				
+                string inputFileName = args[args.Length - 1];
                 if (!Path.IsPathRooted(inputFileName))
                 {
                     inputFileName = Path.Combine(Environment.CurrentDirectory, inputFileName);

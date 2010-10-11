@@ -1,9 +1,9 @@
+using System;
+using Path = System.IO.Path;
+using Antlr.Runtime;
+
 namespace RusticiSoftware.Translator.CSharp
 {
-    using System;
-    using Path = System.IO.Path;
-    using Antlr.Runtime;
-
     public class Driver
     {
         public static void Main(string[] args)

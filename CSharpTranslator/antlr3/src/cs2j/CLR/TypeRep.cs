@@ -102,8 +102,8 @@ namespace RusticiSoftware.Translator.CLR
 
         public ConstructorRep(ConstructorRepTemplate ct, ICollection pth)
         {
-            Params = new ParamRep[ct.Params.Length];
-            for (int i = 0; i < ct.Params.Length; i++)
+            Params = new ParamRep[ct.Params.Count];
+            for (int i = 0; i < ct.Params.Count; i++)
             {
                 Params[i] = ParamRep.newInstance(ct.Params[i], pth);
             }
@@ -253,7 +253,7 @@ namespace RusticiSoftware.Translator.CLR
         {
             Name = ft.Name;
             Type = TypeRep.newInstance(ft.Type, pth);
-            Get = ft.Get;
+            Get = ft.Java;
             Imports = new string[ft.Imports.Length];
             for (int i = 0; i < ft.Imports.Length; i++)
             {
@@ -274,7 +274,7 @@ namespace RusticiSoftware.Translator.CLR
 
         public PropRep(PropRepTemplate pt, ICollection pth) : base(pt, pth)
         {
-            Set = pt.Set;
+            Set = pt.JavaSet;
         }
 
 
@@ -387,11 +387,11 @@ namespace RusticiSoftware.Translator.CLR
 
         public virtual void Build(TypeRepTemplate template)
         {
-            ICollection uPath = template.NamespacePath;
+            ICollection uPath = template.Uses;
 
             TypeName = template.TypeName;
             Java = template.Java;
-
+/*
             Imports = new string[template.Imports.Length];
             for (int i = 0; i < template.Imports.Length; i++)
             {
@@ -448,7 +448,8 @@ namespace RusticiSoftware.Translator.CLR
                 ms.Add(new MethodRep(mt, uPath));
                 MethodsD[mt.Name] = ms;
             }
-        }
+  */
+		}
 
         private static ClassRep newInstance(ClassRepTemplate template)
         {
@@ -752,20 +753,20 @@ namespace RusticiSoftware.Translator.CLR
         public ClassRep(ClassRepTemplate template)
             : base(template)
         {
-            Constructors = new ConstructorRep[template.Constructors.Length];
-            for (int i = 0; i < template.Constructors.Length; i++)
+            Constructors = new ConstructorRep[template.Constructors.Count];
+            for (int i = 0; i < template.Constructors.Count; i++)
             {
-                Constructors[i] = new ConstructorRep(template.Constructors[i], template.NamespacePath);
+                Constructors[i] = new ConstructorRep(template.Constructors[i], template.Uses);
             }
         }
 
         public override void Build(TypeRepTemplate template)
         {
             ClassRepTemplate ctemp = (ClassRepTemplate)template;
-            Constructors = new ConstructorRep[ctemp.Constructors.Length];
-            for (int i = 0; i < ctemp.Constructors.Length; i++)
+            Constructors = new ConstructorRep[ctemp.Constructors.Count];
+            for (int i = 0; i < ctemp.Constructors.Count; i++)
             {
-                Constructors[i] = new ConstructorRep(ctemp.Constructors[i], ctemp.NamespacePath);
+                Constructors[i] = new ConstructorRep(ctemp.Constructors[i], ctemp.Uses);
             }
 
             base.Build(template);
@@ -846,18 +847,18 @@ namespace RusticiSoftware.Translator.CLR
         public EnumRep(EnumRepTemplate template)
             : base(template)
         {
-            int numfields = template.Fields.Length;
+            int numfields = template.Members.Count;
             fieldsA = new string[numfields];
             for (int i = 0; i < numfields; i++)
-                fieldsA[i] = template.Fields[i].Name;
+                fieldsA[i] = template.Members[i].Name;
         }
 
-        public override void Build(TypeRepTemplate template)
+        public void Build(EnumRepTemplate template)
         {
-            int numfields = template.Fields.Length;
+            int numfields = template.Members.Count;
             fieldsA = new string[numfields];
             for (int i = 0; i < numfields; i++)
-                fieldsA[i] = template.Fields[i].Name;
+                fieldsA[i] = template.Members[i].Name;
             base.Build(template);
         }
 
@@ -881,6 +882,30 @@ namespace RusticiSoftware.Translator.CLR
         }
 
         public StructRep(StructRepTemplate template)
+            : base(template)
+        {
+        }
+
+        public override void Build(TypeRepTemplate template)
+        {
+            base.Build(template);
+        }
+    }
+
+   public class DelegateRep : TypeRep
+   {
+
+        public DelegateRep()
+            : base()
+        { }
+
+        // Dummy Delegate
+        public DelegateRep(string name)
+            : base(name)
+        {
+        }
+
+        public DelegateRep(DelegateRepTemplate template)
             : base(template)
         {
         }
