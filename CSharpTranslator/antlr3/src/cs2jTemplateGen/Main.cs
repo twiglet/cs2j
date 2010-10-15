@@ -35,32 +35,32 @@ namespace cs2j.Template.Utils
 			Console.WriteLine ("Enums:");
 			foreach (Type item in exportedTypes) {
 				if (item.IsEnum) {
-					Console.WriteLine (" * " + item.FullName);
+					Console.WriteLine (" * " + TypeHelper.buildTypeName(item));
 				}
 			}
 			
 			Console.WriteLine ("Interfaces:");
 			foreach (Type item in exportedTypes) {
 				if (item.IsInterface) {
-					Console.WriteLine (" * " + item.FullName);
+					Console.WriteLine (" * " + TypeHelper.buildTypeName(item));
 				}
 			}
 			Console.WriteLine ("Classes:");
 			foreach (Type item in exportedTypes) {
 				if (item.IsClass) {
-					Console.WriteLine (" * " + item.FullName);
+					Console.WriteLine (" * " + TypeHelper.buildTypeName(item));
 				}
 			}
 			Console.WriteLine ("Arrays:");
 			foreach (Type item in exportedTypes) {
 				if (item.IsArray) {
-					Console.WriteLine (" * " + item.FullName);
+					Console.WriteLine (" * " + TypeHelper.buildTypeName(item));
 				}
 			}
 			Console.WriteLine ("Others:");
 			foreach (Type item in exportedTypes) {
 				if (!item.IsEnum && !item.IsInterface && !item.IsClass && !item.IsArray) {
-					Console.WriteLine (" * " + item.FullName);
+					Console.WriteLine (" * " + TypeHelper.buildTypeName(item));
 				}
 			}	
 
@@ -69,7 +69,7 @@ namespace cs2j.Template.Utils
 		private void buildParameters(ConstructorRepTemplate c, MethodBase m) {				
 			foreach (ParameterInfo p in m.GetParameters()) {
 				ParamRepTemplate paramRep = new ParamRepTemplate();
-				paramRep.Type = p.ParameterType.FullName;
+				paramRep.Type = TypeHelper.buildTypeName(p.ParameterType);
 				paramRep.Name = p.Name;
 				c.Params.Add(paramRep);
 			}
@@ -77,12 +77,12 @@ namespace cs2j.Template.Utils
 
 		private void buildInterface(InterfaceRepTemplate iface, Type t) {				
 			
-			iface.TypeName = t.FullName;
+			iface.TypeName = TypeHelper.buildTypeName(t);
 			// Grab Methods
 			foreach (MethodInfo m in t.GetMethods()) {
 				MethodRepTemplate methRep = new MethodRepTemplate();
 				methRep.Name = m.Name;
-				methRep.Return = m.ReturnType.FullName;
+				methRep.Return = TypeHelper.buildTypeName(m.ReturnType);
 				buildParameters(methRep, m);
 				iface.Methods.Add(methRep);
 			}
@@ -91,7 +91,7 @@ namespace cs2j.Template.Utils
 			foreach (PropertyInfo p in t.GetProperties()) {
 				PropRepTemplate propRep = new PropRepTemplate();
 				propRep.Name = p.Name;
-				propRep.Type = p.PropertyType.FullName;
+				propRep.Type = TypeHelper.buildTypeName(p.PropertyType);
 				iface.Properties.Add(propRep);
 			}
 
@@ -99,7 +99,7 @@ namespace cs2j.Template.Utils
 			foreach (EventInfo e in t.GetEvents()) {
 				FieldRepTemplate eventRep = new FieldRepTemplate();
 				eventRep.Name = e.Name;
-				eventRep.Type = e.EventHandlerType.FullName;
+				eventRep.Type = TypeHelper.buildTypeName(e.EventHandlerType);
 				iface.Events.Add(eventRep);
 			}
 		}
@@ -117,7 +117,7 @@ namespace cs2j.Template.Utils
 			foreach (FieldInfo f in t.GetFields()) {
 				FieldRepTemplate fieldRep = new FieldRepTemplate();
 				fieldRep.Name = f.Name;
-				fieldRep.Type = f.FieldType.FullName;
+				fieldRep.Type = TypeHelper.buildTypeName(f.FieldType);
 				klass.Fields.Add(fieldRep);
 			}
 
@@ -139,7 +139,7 @@ namespace cs2j.Template.Utils
 			}
 			else if (t.IsEnum) {
 				EnumRepTemplate enumRep = new EnumRepTemplate();
-				enumRep.TypeName = t.FullName;
+				enumRep.TypeName = TypeHelper.buildTypeName(t);
 				foreach (FieldInfo f in t.GetFields(BindingFlags.Public | BindingFlags.Static)) {
 					enumRep.Members.Add(new EnumMemberRepTemplate(f.Name, f.GetRawConstantValue().ToString()));
 				}

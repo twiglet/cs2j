@@ -15,17 +15,14 @@
       <File FileName="src/cs2j/CLR/TypeRep.cs" Line="146" Column="45" />
       <File FileName="src/cs2j/CLR/cs2j.cs" Line="231" Column="56" />
       <File FileName="cs2jTest/TranslationTemplate.cs" Line="22" Column="1" />
-      <File FileName="src/cs2j/TemplateUtils/TemplateFromDLL.cs" Line="182" Column="1" />
-      <File FileName="src/NDesk.Options/Options.cs" Line="693" Column="29" />
-      <File FileName="src/cs2jTemplateGen/Main.cs" Line="80" Column="32" />
+      <File FileName="src/NDesk.Options/Options.cs" Line="261" Column="27" />
+      <File FileName="src/cs2jTemplateGen/Main.cs" Line="222" Column="5" />
+      <File FileName="../antlr2/Translator/Main.cs" Line="289" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="cs2j" expanded="True">
-            <Node name="References" expanded="True" />
-            <Node name="CSharp" expanded="True" />
-          </Node>
+          <Node name="cs2j" expanded="True" />
           <Node name="cs2jTemplateGen" expanded="True" selected="True" />
           <Node name="NDesk.Options" expanded="True" />
         </State>
@@ -34,7 +31,9 @@
         <State expanded="True" selected="True" />
       </Pad>
       <Pad Id="MonoDevelop.Debugger.WatchPad">
-        <State />
+        <State>
+          <Value>t</Value>
+        </State>
       </Pad>
       <Pad Id="ConnectionManagerPad">
         <State selected="True" />
@@ -47,7 +46,6 @@
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
       <Breakpoint file="/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2j/TestFramework/TestFramework.cs" line="27" />
-      <Breakpoint file="/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2jTemplateGen/Main.cs" line="199" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches ctype="PinnedWatchStore" />
