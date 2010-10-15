@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-testdrive</Commandlineparameters>
+    <Commandlineparameters>-genTemplate /Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2j/bin/Debug/Antlr3-2.Runtime.DotNet20.dll Antlr.Runtime.CommonTokenStream</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -114,5 +114,8 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TemplateUtils\" />
   </ItemGroup>
 </Project>

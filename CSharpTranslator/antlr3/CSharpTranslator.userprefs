@@ -1,34 +1,33 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" ctype="Workspace" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="cs2jTest/TranslationTemplate.cs" ctype="Workbench">
+  <MonoDevelop.Ide.Workbench ActiveDocument="src/cs2jTemplateGen/Main.cs" ctype="Workbench">
     <Files>
       <File FileName="src/Antlr.Runtime/Antlr.Runtime/ANTLRInputStream.cs" Line="1" Column="1" />
       <File FileName="src/cs2j/Utils/DirectoryHT.cs" Line="5" Column="43" />
       <File FileName="src/Antlr.Runtime/Antlr.Runtime.JavaExtensions/DictionaryExtensions.cs" Line="78" Column="48" />
       <File FileName="src/cs2j/CSharp/csCrawl.cs" Line="1" Column="1" />
-      <File FileName="src/cs2j/CLR/TranslationTemplate.cs" Line="601" Column="58" />
+      <File FileName="src/cs2j/CLR/TranslationTemplate.cs" Line="1091" Column="38" />
       <File FileName="src/cs2j/CSharp/SignatureExtracter.cs" Line="11" Column="1" />
-      <File FileName="src/cs2j/CSharp/Main.cs" Line="14" Column="14" />
+      <File FileName="src/cs2j/CSharp/Main.cs" Line="3" Column="21" />
       <File FileName="build.xml" Line="189" Column="35" />
       <File FileName="build.properties" Line="18" Column="35" />
       <File FileName="src/cs2j/CSharp/minDriver.cs" Line="20" Column="62" />
-      <File FileName="src/cs2j/CLR/TypeRep.cs" Line="902" Column="26" />
+      <File FileName="src/cs2j/CLR/TypeRep.cs" Line="146" Column="45" />
       <File FileName="src/cs2j/CLR/cs2j.cs" Line="231" Column="56" />
-      <File FileName="cs2jTest/TranslationTemplate.cs" Line="70" Column="28" />
-      <File FileName="src/cs2j/Utils/Util.cs" Line="66" Column="35" />
+      <File FileName="cs2jTest/TranslationTemplate.cs" Line="22" Column="1" />
+      <File FileName="src/cs2j/TemplateUtils/TemplateFromDLL.cs" Line="182" Column="1" />
+      <File FileName="src/NDesk.Options/Options.cs" Line="693" Column="29" />
+      <File FileName="src/cs2jTemplateGen/Main.cs" Line="80" Column="32" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="cs2j" expanded="True">
-            <Node name="CLR" expanded="True" />
-            <Node name="CSharp" expanded="True" />
-            <Node name="Utils" expanded="True" />
-          </Node>
-          <Node name="cs2jTest" expanded="True">
             <Node name="References" expanded="True" />
-            <Node name="TranslationTemplate.cs" selected="True" />
+            <Node name="CSharp" expanded="True" />
           </Node>
+          <Node name="cs2jTemplateGen" expanded="True" selected="True" />
+          <Node name="NDesk.Options" expanded="True" />
         </State>
       </Pad>
       <Pad Id="ClassPad">
@@ -41,27 +40,14 @@
         <State selected="True" />
       </Pad>
       <Pad Id="MonoDevelop.NUnit.TestPad">
-        <State expanded="True">
-          <Node name="cs2jTest" expanded="True">
-            <Node name="RusticiSoftware" expanded="True">
-              <Node name="Translator" expanded="True">
-                <Node name="CLR" expanded="True">
-                  <Node name="TranslationTemplateTest" expanded="True">
-                    <Node name="DelegateCase" selected="True" />
-                  </Node>
-                </Node>
-              </Node>
-            </Node>
-          </Node>
-        </State>
+        <State expanded="True" selected="True" />
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
       <Breakpoint file="/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2j/TestFramework/TestFramework.cs" line="27" />
-      <Breakpoint file="/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2j/CSharp/Main.cs" line="11" />
-      <Breakpoint file="/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/cs2jTest/TranslationTemplate.cs" line="70" />
+      <Breakpoint file="/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2jTemplateGen/Main.cs" line="199" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches ctype="PinnedWatchStore" />
