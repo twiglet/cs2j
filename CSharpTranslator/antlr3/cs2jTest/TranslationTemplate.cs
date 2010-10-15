@@ -62,9 +62,10 @@ namespace RusticiSoftware.Translator.CLR
 			DelegateRepTemplate to = new DelegateRepTemplate();
 			
 			to.Return = "System.String";
-			to.Params.Add(new ParamRepTemplate("System.Int32", "count"));
-			to.Params.Add(new ParamRepTemplate("System.Object", "fill"));
-			to.Params.Add(new ParamRepTemplate("System.Boolean", "verbose"));
+			List<ParamRepTemplate> parms = to.Params;
+			parms.Add(new ParamRepTemplate("System.Int32", "count"));
+			parms.Add(new ParamRepTemplate("System.Object", "fill"));
+			parms.Add(new ParamRepTemplate("System.Boolean", "verbose"));
 			to.Java = "fred";
 			
 			DelegateRepTemplate back = (DelegateRepTemplate)ToStreamAndBack(to);
