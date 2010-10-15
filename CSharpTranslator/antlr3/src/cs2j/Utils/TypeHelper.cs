@@ -10,7 +10,12 @@ namespace cs2j
 			if (t.IsGenericType) {
 				typeName.Append(t.GetGenericTypeDefinition().FullName + "[");
 				foreach(Type a in t.GetGenericArguments()) {
-					typeName.Append(buildTypeName(a) + ",");
+					if (a.IsGenericParameter) {
+						typeName.Append(a.Name + ",");
+					}
+					else {
+						typeName.Append(buildTypeName(a) + ",");
+					}
 				}
 				typeName.Remove(typeName.Length - 1,1);
 				typeName.Append("]");
