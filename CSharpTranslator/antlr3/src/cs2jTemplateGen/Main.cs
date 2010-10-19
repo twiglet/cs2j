@@ -110,6 +110,9 @@ namespace cs2j.Template.Utils
 					methRep.TypeParams = tParams;
 				}
 				buildParameters(methRep, m);
+				if (m.IsStatic) {
+					methRep.IsStatic = true;
+				}
 				iface.Methods.Add(methRep);
 			}
 			

@@ -302,8 +302,14 @@ namespace RusticiSoftware.Translator.CLR
 		// Return type
 		public string Return { get; set; }
 
+		// isStatic method?
+		[XmlAttribute("static")]
+		[System.ComponentModel.DefaultValueAttribute(false)]
+		public bool IsStatic{ get; set; }
+
 		public MethodRepTemplate ()
 		{
+			IsStatic = false;
 		}
 
 		public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars, string[] imps, string javaRep) : base(pars, imps, javaRep)
@@ -311,6 +317,7 @@ namespace RusticiSoftware.Translator.CLR
 			Name = methodName;
 			TypeParams = tParams;
 			Return = retType;
+			IsStatic = false;
 		}
 
 		public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars) : this(retType, methodName, tParams, pars, null, null)
@@ -332,7 +339,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 			
-			return Return == other.Return && Name == other.Name && base.Equals(other);
+			return Return == other.Return && Name == other.Name && IsStatic == other.IsStatic && base.Equals(other);
 		}
 
 		public override bool Equals (object obj)
@@ -364,7 +371,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 
-			return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ base.GetHashCode();
+			return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ base.GetHashCode();
 		}
 		#endregion
 
