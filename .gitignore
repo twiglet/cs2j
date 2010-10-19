@@ -4,6 +4,7 @@ build/
 *.csproj.user
 *.suo
 *.bak
+*.userprefs
 
 launch*.properties
 
