@@ -14,7 +14,6 @@ namespace cs2j.Template.Utils
 	{
 		private Assembly assembly = null;		
 		private int verbose = 0;
-		private List<string> extractTypes = new List<string>();
 		
 		public TemplateFromDLL (string DLLFileName)
 		{
@@ -78,8 +77,18 @@ namespace cs2j.Template.Utils
 		private void buildInterface(InterfaceRepTemplate iface, Type t) {				
 			
 			iface.TypeName = TypeHelper.buildTypeName(t);
+			
+			List<String> bases = new List<String>();
+			if (t.BaseType != null)
+				bases.Add(TypeHelper.buildTypeName(t.BaseType));
+			foreach (Type iTy in t.GetInterfaces()) {
+				bases.Add(TypeHelper.buildTypeName(iTy));
+			}
+			
+			iface.Inherits = bases.ToArray();
+			
 			// Grab Methods
-			foreach (MethodInfo m in t.GetMethods()) {
+			foreach (MethodInfo m in t.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)) {
 				MethodRepTemplate methRep = new MethodRepTemplate();
 				methRep.Name = m.Name;
 				methRep.Return = TypeHelper.buildTypeName(m.ReturnType);
@@ -123,10 +132,16 @@ namespace cs2j.Template.Utils
 
 		}
 		
-		private TypeRepTemplate mkTemplate(string typeName) {
+		private IList<TypeRepTemplate> mkTemplates(string typeName) {
 			
-			TypeRepTemplate retRep = null;
+			List<TypeRepTemplate> rets = new List<TypeRepTemplate>();
 			Type t = assembly.GetType(typeName);
+			foreach (Type nestedTy in t.GetNestedTypes()) {
+				foreach(TypeRepTemplate nestedRep in  mkTemplates(nestedTy.FullName)) {
+					rets.Add(nestedRep);
+				}
+			}
+			TypeRepTemplate retRep = null;
 			if (t.IsClass) {
 				ClassRepTemplate classRep = new ClassRepTemplate();
 				buildClass(classRep, t);
@@ -145,7 +160,8 @@ namespace cs2j.Template.Utils
 				}
 				retRep = enumRep;
 			}
-			return retRep;
+			rets.Add(retRep);
+			return rets;
 
 		}
 
@@ -205,23 +221,25 @@ namespace cs2j.Template.Utils
 			foreach (string t in extractTypes) {
 				if (templateDriver.verbose > 0)
 					Console.WriteLine (	"extracting {0}", t );
-				TypeRepTemplate tyRep = templateDriver.mkTemplate(t);
+				IList<TypeRepTemplate> tyReps = templateDriver.mkTemplates(t);
 				TextWriter writer = null;
-				if (dumpXmls) {                                
-					string xmlFName = Path.Combine(xmlDir, t.Replace('.', Path.DirectorySeparatorChar) + ".xml");
-                    string xmlFDir = Path.GetDirectoryName(xmlFName);
-                    if (!Directory.Exists(xmlFDir))
-                    {
-                        Directory.CreateDirectory(xmlFDir);
-                    }
-                    writer = new StreamWriter(xmlFName);
+				foreach (TypeRepTemplate tyRep in tyReps) {
+					if (dumpXmls) {                                
+						string xmlFName = Path.Combine(xmlDir, tyRep.TypeName.Replace('.', Path.DirectorySeparatorChar) + ".xml");
+	                    string xmlFDir = Path.GetDirectoryName(xmlFName);
+	                    if (!Directory.Exists(xmlFDir))
+	                    {
+	                        Directory.CreateDirectory(xmlFDir);
+	                    }
+	                    writer = new StreamWriter(xmlFName);
+					}
+					else {
+						writer = Console.Out;
+					}
+					templateDriver.writeXmlStream(tyRep, writer);
+					if (dumpXmls)
+	                    writer.Close();
 				}
-				else {
-					writer = Console.Out;
-				}
-				templateDriver.writeXmlStream(tyRep, writer);
-				if (dumpXmls)
-                    writer.Close();
 			}	
 		}
 	}

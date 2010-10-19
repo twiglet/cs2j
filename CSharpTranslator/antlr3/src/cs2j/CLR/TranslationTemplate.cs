@@ -603,6 +603,9 @@ namespace RusticiSoftware.Translator.CLR
 		[XmlElementAttribute("Name")]
 		public string TypeName { get; set; }
 
+//		[XmlElementAttribute("Name")]
+//		public string[] TypeName { get; set; }
+
 		// Path to use when resolving types
 		[XmlElementAttribute("Use")]
 		public UseRepTemplate[] Uses { get; set; }
