@@ -20,6 +20,9 @@ namespace cs2j
 				typeName.Remove(typeName.Length - 1,1);
 				typeName.Append("]");
 			}
+			else if (t.IsGenericParameter) {
+				typeName.Append(t.Name);
+			}
 			else {
 				typeName.Append(t.FullName);
 			}
