@@ -76,7 +76,17 @@ namespace cs2j.Template.Utils
 
 		private void buildInterface(InterfaceRepTemplate iface, Type t) {				
 			
-			iface.TypeName = TypeHelper.buildTypeName(t);
+			if (t.IsGenericType) {
+				iface.TypeName = t.GetGenericTypeDefinition().FullName;
+				string[] tParams = new string[t.GetGenericArguments().Length];
+				for (int i = 0; i < t.GetGenericArguments().Length; i++) {
+					tParams[i] = t.GetGenericArguments()[i].Name;
+				}
+				iface.TypeParams = tParams;
+			}
+			else {
+				iface.TypeName = t.FullName;
+			}
 			
 			List<String> bases = new List<String>();
 			if (t.BaseType != null)
@@ -92,6 +102,13 @@ namespace cs2j.Template.Utils
 				MethodRepTemplate methRep = new MethodRepTemplate();
 				methRep.Name = m.Name;
 				methRep.Return = TypeHelper.buildTypeName(m.ReturnType);
+				if (m.IsGenericMethod) {
+					string[] tParams = new string[m.GetGenericArguments().Length];
+					for (int i = 0; i < m.GetGenericArguments().Length; i++) {
+						tParams[i] = m.GetGenericArguments()[i].Name;
+					}
+					methRep.TypeParams = tParams;
+				}
 				buildParameters(methRep, m);
 				iface.Methods.Add(methRep);
 			}

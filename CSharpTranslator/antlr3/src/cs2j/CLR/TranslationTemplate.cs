@@ -296,6 +296,9 @@ namespace RusticiSoftware.Translator.CLR
 		// Method name
 		public string Name { get; set; }
 
+		[XmlArrayItem("Name")]
+		public string[] TypeParams { get; set; }
+
 		// Return type
 		public string Return { get; set; }
 
@@ -303,13 +306,14 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public MethodRepTemplate (string retType, string methodName, List<ParamRepTemplate> pars, string[] imps, string javaRep) : base(pars, imps, javaRep)
+		public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars, string[] imps, string javaRep) : base(pars, imps, javaRep)
 		{
 			Name = methodName;
+			TypeParams = tParams;
 			Return = retType;
 		}
 
-		public MethodRepTemplate (string retType, string methodName, List<ParamRepTemplate> pars) : this(retType, methodName, pars, null, null)
+		public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars) : this(retType, methodName, tParams, pars, null, null)
 		{
 		}
 
@@ -318,6 +322,15 @@ namespace RusticiSoftware.Translator.CLR
 		{
 			if (other == null)
 				return false;
+
+			if (TypeParams != other.TypeParams) {
+				if (TypeParams == null || other.TypeParams == null || TypeParams.Length != other.TypeParams.Length)
+					return false;
+				for (int i = 0; i < TypeParams.Length; i++) {
+					if (TypeParams[i] != other.TypeParams[i])
+						return false;
+				}
+			}
 			
 			return Return == other.Return && Name == other.Name && base.Equals(other);
 		}
@@ -344,7 +357,14 @@ namespace RusticiSoftware.Translator.CLR
 
 		public override int GetHashCode ()
 		{
-			return (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ base.GetHashCode();
+			int hashCode = 0;
+				if (TypeParams != null) {
+				foreach (string o in TypeParams) {
+					hashCode = hashCode ^ o.GetHashCode() ;
+				}
+			}
+
+			return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ base.GetHashCode();
 		}
 		#endregion
 
@@ -603,8 +623,8 @@ namespace RusticiSoftware.Translator.CLR
 		[XmlElementAttribute("Name")]
 		public string TypeName { get; set; }
 
-//		[XmlElementAttribute("Name")]
-//		public string[] TypeName { get; set; }
+		[XmlArrayItem("Name")]
+		public string[] TypeParams { get; set; }
 
 		// Path to use when resolving types
 		[XmlElementAttribute("Use")]
@@ -622,9 +642,10 @@ namespace RusticiSoftware.Translator.CLR
 			TypeName = typeName;
 		}
 
-		protected TypeRepTemplate (string tName, UseRepTemplate[] usePath, string[] imports, string javaTemplate) : base(imports, javaTemplate)
+		protected TypeRepTemplate (string tName, string[] tParams, UseRepTemplate[] usePath, string[] imports, string javaTemplate) : base(imports, javaTemplate)
 		{
 			TypeName = tName;
+			TypeParams = tParams;
 			Uses = usePath;
 		}
 
@@ -710,6 +731,14 @@ namespace RusticiSoftware.Translator.CLR
 						return false;
 				}
 			}
+			if (TypeParams != other.TypeParams) {
+				if (TypeParams == null || other.TypeParams == null || TypeParams.Length != other.TypeParams.Length)
+					return false;
+				for (int i = 0; i < TypeParams.Length; i++) {
+					if (TypeParams[i] != other.TypeParams[i])
+						return false;
+				}
+			}
 			
 			return TypeName == other.TypeName && base.Equals(other);
 		}
@@ -739,6 +768,11 @@ namespace RusticiSoftware.Translator.CLR
 			int hashCode = base.GetHashCode ();
 			if (Uses != null) {
 				foreach (UseRepTemplate e in Uses) {
+					hashCode ^= e.GetHashCode();
+				}
+			}
+			if (TypeParams != null) {
+				foreach (string e in TypeParams) {
 					hashCode ^= e.GetHashCode();
 				}
 			}
@@ -965,7 +999,8 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		protected InterfaceRepTemplate (string tName, UseRepTemplate[] usePath, string[] inherits, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, string[] imps, string javaTemplate) : base(tName, usePath, imps, javaTemplate)
+		protected InterfaceRepTemplate (string tName, string[] tParams, UseRepTemplate[] usePath, string[] inherits, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, string[] imps, string javaTemplate) 
+			: base(tName, tParams, usePath, imps, javaTemplate)
 		{
 			Inherits = inherits;
 			_methods = ms;
@@ -1130,15 +1165,17 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public ClassRepTemplate (string tName, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts,
-		string[] imports, string javaTemplate) : base(tName, usePath, inherits, ms, ps, es, ixs, imports, javaTemplate)
+		public ClassRepTemplate (string tName, string[] tParams, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts,
+		string[] imports, string javaTemplate) 
+			: base(tName, tParams, usePath, inherits, ms, ps, es, ixs, imports, javaTemplate)
 		{
 			_constructors = cs;
 			_fields = fs;
 			_casts = cts;
 		}
 
-		public ClassRepTemplate (string tName, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts) : base(tName, usePath, inherits, ms, ps, es, ixs, null, null)
+		public ClassRepTemplate (string tName, string[] tParams, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts)
+			: base(tName, tParams, usePath, inherits, ms, ps, es, ixs, null, null)
 		{
 			_constructors = cs;
 			_fields = fs;
@@ -1247,14 +1284,14 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public StructRepTemplate (string tName, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts,
-		string[] imports, string javaTemplate) : base(tName, usePath, inherits, cs, ms, ps, fs, es, ixs, cts,
+		public StructRepTemplate (string tName, string[] tParams, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts,
+		string[] imports, string javaTemplate) : base(tName, tParams, usePath, inherits, cs, ms, ps, fs, es, ixs, cts,
 		imports, javaTemplate)
 		{
 		}
 
-		public StructRepTemplate (string tName, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts) : base(tName, usePath, inherits, cs, ms, ps, fs, es, ixs, cts,
-		null, null)
+		public StructRepTemplate (string tName, string[] tParams, UseRepTemplate[] usePath, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts)
+			: base(tName, tParams, usePath, inherits, cs, ms, ps, fs, es, ixs, cts,	null, null)
 		{
 		}
 
