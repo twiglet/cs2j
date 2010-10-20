@@ -625,7 +625,8 @@ namespace RusticiSoftware.Translator.CLR
 	public class PropRepTemplate : FieldRepTemplate, IEquatable<PropRepTemplate>
 	{
 		
-		private string _javaGet = null;
+		private string _javaGet = null;		
+		[XmlElementAttribute("Get")]
 		public string JavaGet {
 			get {
 				if (!CanRead) return null;
@@ -645,6 +646,7 @@ namespace RusticiSoftware.Translator.CLR
 		}
 		
 		private string _javaSet = null;
+		[XmlElementAttribute("Set")]
 		public string JavaSet { 
 			get {
 				if (_javaSet == null) {
