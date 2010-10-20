@@ -113,6 +113,7 @@ namespace cs2j.Template.Utils
 				if (m.IsStatic) {
 					methRep.IsStatic = true;
 				}
+				methRep.SurroundingTypeName = iface.TypeName;
 				iface.Methods.Add(methRep);
 			}
 			
@@ -140,6 +141,7 @@ namespace cs2j.Template.Utils
 			foreach (ConstructorInfo c in t.GetConstructors()) {
 				ConstructorRepTemplate consRep = new ConstructorRepTemplate();
 				buildParameters(consRep, c);
+				consRep.SurroundingTypeName = klass.TypeName;
 				klass.Constructors.Add(consRep);
 			}
 			// Grab Fields

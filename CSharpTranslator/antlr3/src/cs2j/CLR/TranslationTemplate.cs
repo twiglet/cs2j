@@ -17,7 +17,12 @@ using RusticiSoftware.Translator.Utils;
 
 namespace RusticiSoftware.Translator.CLR
 {
-
+	
+	public enum Javastyle 
+	{
+		Clean, MarkAuto
+	}
+	
 	// Simple <type> <name> pairs to represent formal parameters
 	public class ParamRepTemplate : IEquatable<ParamRepTemplate>
 	{
@@ -135,14 +140,66 @@ namespace RusticiSoftware.Translator.CLR
 	{
 		[XmlArrayItem("Import")]
 		// Java imports required to make Java translation run
-		public string[] Imports { get; set; }
+		private string[] _imports = null;
+		public string[] Imports { 
+			get {
+				// if _java is not set then see if we have default imports, otherwise
+				// assume imports is already correctly (un)set
+				if (_java == null) {
+					return mkImports();
+				}
+				return _imports;
+				}
+			set { _imports = value; } 
+		}
+		
 		// The Java translation for this C# entity
-		public string Java { get; set; }
+		private string _java = null; 		
+		public string Java { 
+			get { 
+				if (_java == null) {
+					return mkJava();
+				} 
+				else {
+					return _java;
+				}
+			}
+			set { _java = value; } 
+		}
+		
+		// Optional,  but if present will jet mkJava generate better java guess in some cases
+		[XmlIgnore]
+		public string SurroundingTypeName {get; set;}
+		
+		public virtual string[] mkImports() {
+			return null;
+		}
+		
+		public string[] mkImports(Javastyle style) {
+			string[] imports = mkImports();
+			if (style == Javastyle.MarkAuto) {
+				for (int i = 0; i < imports.Length; i++) {
+					imports[i] = imports[i] + " /*auto*/";
+				}
+			}
+			return imports;
+		}
 
+		public abstract string mkJava(); 
+		
+		public string mkJava(Javastyle style) {
+			string unAdornedJava = mkJava();
+			if (style == Javastyle.MarkAuto) {
+				return "/*auto (/*" + unAdornedJava + "/*)*/";
+			}
+			else {
+				return unAdornedJava;
+			}
+		}
+		
 		protected TranslationBase ()
 		{
 			Imports = null;
-			Java = null;
 		}
 
 		protected TranslationBase (string java)
@@ -223,7 +280,38 @@ namespace RusticiSoftware.Translator.CLR
 				return _params;
 			}
 		}
+		
+		protected string mkJavaParams() {
+			StringBuilder parStr = new StringBuilder();
+			parStr.Append("(");
+			foreach (ParamRepTemplate p in Params) {
+				parStr.Append("{"+p.Name+"},");
+			}
+			if (parStr[parStr.Length-1] == ',') {
+				parStr.Remove(parStr.Length-1,1);
+			}
+			parStr.Append(")");
+			return parStr.ToString();
+		}
 
+		public override string mkJava() {
+			string constructorName = "CONSTRUCTOR";
+			if (SurroundingTypeName != null) {
+				constructorName = SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1);
+			}
+			return "new " + constructorName + mkJavaParams();
+		}
+		
+		public override string[] mkImports() {
+			if (SurroundingTypeName != null) {
+				int idxDot = SurroundingTypeName.LastIndexOf('.');
+				return new string[] {"CS2JNet." + SurroundingTypeName.Substring(0, idxDot)};
+			}
+			else {
+				return null;
+			}
+		}	
+		
 		public ConstructorRepTemplate () : base()
 		{
 		}
@@ -306,7 +394,7 @@ namespace RusticiSoftware.Translator.CLR
 		[XmlAttribute("static")]
 		[System.ComponentModel.DefaultValueAttribute(false)]
 		public bool IsStatic{ get; set; }
-
+		
 		public MethodRepTemplate ()
 		{
 			IsStatic = false;
@@ -323,7 +411,34 @@ namespace RusticiSoftware.Translator.CLR
 		public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars) : this(retType, methodName, tParams, pars, null, null)
 		{
 		}
-
+		
+		public override string[] mkImports() {
+			if (IsStatic && SurroundingTypeName != null) {
+				int idxDot = SurroundingTypeName.LastIndexOf('.');
+				return new string[] {"CS2JNet." + SurroundingTypeName.Substring(0, idxDot)};
+			}
+			else {
+				return null;
+			}
+		}	
+		
+		public override string mkJava() {
+			StringBuilder methStr = new StringBuilder();
+			if (IsStatic) {
+				if (SurroundingTypeName != null) {
+					methStr.Append(SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1) + ".");
+				}
+				else {
+					methStr.Append("TYPENAME.");
+				}
+			}
+			else {
+				methStr.Append("{this}.");
+			}
+			methStr.Append(Name);
+			return methStr.ToString() + mkJavaParams();
+		}
+		
 		#region Equality
 		public bool Equals (MethodRepTemplate other)
 		{
@@ -397,6 +512,11 @@ namespace RusticiSoftware.Translator.CLR
 		public CastRepTemplate (string fType, string tType) : this(fType, tType, null, null)
 		{
 		}
+		
+		// TODO: fix cast java
+		public override string mkJava() {
+			return "/* FIXME Cast " + From + " to " + To + "*/";
+		}
 
 		#region Equality
 		public bool Equals (CastRepTemplate other)
@@ -454,6 +574,11 @@ namespace RusticiSoftware.Translator.CLR
 
 		public FieldRepTemplate (string fType, string fName) : this(fType, fName, null, null)
 		{
+		}
+		
+				
+		public override string mkJava() {
+			return Name;
 		}
 
 		#region Equality
@@ -581,7 +706,12 @@ namespace RusticiSoftware.Translator.CLR
 		{
 			Name = n;
 			Value = v;
+		}		
+		
+		public override string mkJava() {
+			return Name;
 		}
+
 
 		#region Equality
 		public bool Equals (EnumMemberRepTemplate other)
@@ -655,7 +785,24 @@ namespace RusticiSoftware.Translator.CLR
 			TypeParams = tParams;
 			Uses = usePath;
 		}
+		
+		public override string mkJava() {
+			if (TypeName == null || TypeName == String.Empty) {
+				return null;
+			}
+			return TypeName.Substring(TypeName.LastIndexOf('.')+1);
+		}
 
+		public override string[] mkImports() {
+			int idxDot = TypeName.LastIndexOf('.');
+			if (idxDot > 0) {
+				return new string[] {"CS2JNet." + TypeName.Substring(0,idxDot)};
+			}
+			else {
+				return null;
+			}
+		}
+		
 		private static object Deserialize (Stream fs, System.Type t)
 		{
 			object o = null;
@@ -897,6 +1044,7 @@ namespace RusticiSoftware.Translator.CLR
 			return new DelegateRep ();
 		}
 
+
 		#region Equality
 		public bool Equals (DelegateRepTemplate other)
 		{
@@ -1020,7 +1168,7 @@ namespace RusticiSoftware.Translator.CLR
 		{
 			return new InterfaceRep ();
 		}
-		
+
 		#region Equality
 		public bool Equals (InterfaceRepTemplate other)
 		{
