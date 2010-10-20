@@ -99,6 +99,10 @@ namespace cs2j.Template.Utils
 			
 			// Grab Methods
 			foreach (MethodInfo m in t.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)) {
+				if (m.IsSpecialName) {
+					// e.g., a property's getter / setter method
+					continue;
+				}
 				MethodRepTemplate methRep = new MethodRepTemplate();
 				methRep.Name = m.Name;
 				methRep.Return = TypeHelper.buildTypeName(m.ReturnType);
@@ -122,6 +126,8 @@ namespace cs2j.Template.Utils
 				PropRepTemplate propRep = new PropRepTemplate();
 				propRep.Name = p.Name;
 				propRep.Type = TypeHelper.buildTypeName(p.PropertyType);
+				propRep.CanRead = p.CanRead;
+				propRep.CanWrite = p.CanWrite;			
 				iface.Properties.Add(propRep);
 			}
 

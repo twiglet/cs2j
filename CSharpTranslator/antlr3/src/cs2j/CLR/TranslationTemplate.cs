@@ -154,7 +154,7 @@ namespace RusticiSoftware.Translator.CLR
 		}
 		
 		// The Java translation for this C# entity
-		private string _java = null; 		
+		protected string _java = null; 		
 		public string Java { 
 			get { 
 				if (_java == null) {
@@ -624,11 +624,55 @@ namespace RusticiSoftware.Translator.CLR
 	// guessing that normally imports will be the same for both)
 	public class PropRepTemplate : FieldRepTemplate, IEquatable<PropRepTemplate>
 	{
-		public string JavaSet { get; set; }
+		
 		private string _javaGet = null;
 		public string JavaGet {
-			get { return _javaGet ?? Java; }
+			get {
+				if (!CanRead) return null;
+				if (_javaGet == null) {
+					if (_java == null) {
+						return (CanRead ? "${this}.get" + Name + "()" : null);
+					}
+					else {
+						return _java;
+					}
+				}
+				else {
+					return _javaGet;
+				}
+			}
 			set { _javaGet = value; }
+		}
+		
+		private string _javaSet = null;
+		public string JavaSet { 
+			get {
+				if (_javaSet == null) {
+					return (CanWrite ? "${this}.set" + Name + "(${value})" : null);
+				}
+				else {
+					return _javaSet;
+				}
+			}
+			set { _javaSet = value; }
+		}
+		
+		// canRead?
+		private bool _canRead = true;
+		[XmlAttribute("read")]
+		[System.ComponentModel.DefaultValueAttribute(true)]
+		public bool CanRead { 
+			get { return _canRead; }
+			set { _canRead = value; }
+		}
+		
+		// canWrite?
+		private bool _canWrite = true;
+		[XmlAttribute("write")]
+		[System.ComponentModel.DefaultValueAttribute(true)]
+		public bool CanWrite { 
+			get { return _canWrite; }
+			set { _canWrite = value; }
 		}
 
 		public PropRepTemplate () : base()
@@ -644,7 +688,12 @@ namespace RusticiSoftware.Translator.CLR
 		public PropRepTemplate (string fType, string fName) : this(fType, fName, null, null, null)
 		{
 		}
-
+		
+		public override string mkJava ()
+		{
+			// favour JavaGet
+			return null;
+		}
 		
 		#region Equality
 		public bool Equals (PropRepTemplate other)
