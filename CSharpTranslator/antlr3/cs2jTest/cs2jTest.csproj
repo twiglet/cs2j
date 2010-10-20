@@ -37,6 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TranslationTemplate.cs" />
+    <Compile Include="TestDLLs\Options.cs" />
+    <Compile Include="TestDLLs\Various.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\cs2j\cs2j.csproj">
@@ -45,4 +47,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="TestDLLs\" />
+  </ItemGroup>
 </Project>
