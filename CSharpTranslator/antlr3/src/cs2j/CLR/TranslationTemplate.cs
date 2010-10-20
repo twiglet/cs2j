@@ -513,9 +513,22 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 		
-		// TODO: fix cast java
+		public override string[] mkImports() {
+			if (From == null || To == null) {
+				return null;
+			}
+			else {
+				return new string[] {"CS2JNet." + From.Substring(0, From.LastIndexOf('.'))};
+			}
+		}	
+		
 		public override string mkJava() {
-			return "/* FIXME Cast " + From + " to " + To + "*/";
+			if (From == null || To == null) {
+				return null;
+			}
+			else {
+				return From.Substring(From.LastIndexOf('.') + 1) + ".__cast_" + To.Replace('.','_') + "(${expr})";
+			}
 		}
 
 		#region Equality
@@ -1356,7 +1369,6 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
-		// Cast here? or in InterfaceRepT?
 		private List<CastRepTemplate> _casts = null;
 		[XmlArrayItem("Cast")]
 		public List<CastRepTemplate> Casts {

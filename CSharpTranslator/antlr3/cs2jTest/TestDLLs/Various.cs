@@ -22,6 +22,27 @@ namespace cs2jTest.Various.Features
 			set { _testWOProperty = value;}
 		}
 		
+		public static explicit operator Various(int i)
+    	{
+        	return new Various();
+    	}
+
+		public static implicit operator Various(string i)
+    	{
+        	return new Various();
+    	}
+
+		public static explicit operator bool(Various v)
+    	{
+        	return true;
+    	}
+
+		public static implicit operator string(Various v)
+    	{
+        	return "Various";
+    	}
+
+		
 	}
 }
 

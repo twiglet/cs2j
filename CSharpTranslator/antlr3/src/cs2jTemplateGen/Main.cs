@@ -157,6 +157,16 @@ namespace cs2j.Template.Utils
 				fieldRep.Type = TypeHelper.buildTypeName(f.FieldType);
 				klass.Fields.Add(fieldRep);
 			}
+			// Grab Casts
+			foreach (MethodInfo m in t.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static )) {
+				if (m.IsSpecialName && (m.Name == "op_Explicit" || m.Name == "op_Implicit")) {
+					CastRepTemplate cast = new CastRepTemplate();
+					cast.To = TypeHelper.buildTypeName(m.ReturnType);
+					cast.From = TypeHelper.buildTypeName(m.GetParameters()[0].ParameterType);
+					klass.Casts.Add(cast);
+				}
+
+			}
 
 		}
 		
