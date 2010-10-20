@@ -285,7 +285,7 @@ namespace RusticiSoftware.Translator.CLR
 			StringBuilder parStr = new StringBuilder();
 			parStr.Append("(");
 			foreach (ParamRepTemplate p in Params) {
-				parStr.Append("{"+p.Name+"},");
+				parStr.Append("${"+p.Name+"},");
 			}
 			if (parStr[parStr.Length-1] == ',') {
 				parStr.Remove(parStr.Length-1,1);
@@ -433,7 +433,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 			else {
-				methStr.Append("{this}.");
+				methStr.Append("${this}.");
 			}
 			methStr.Append(Name);
 			return methStr.ToString() + mkJavaParams();
@@ -803,6 +803,8 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
+		#region deserialization
+		
 		private static object Deserialize (Stream fs, System.Type t)
 		{
 			object o = null;
@@ -867,6 +869,8 @@ namespace RusticiSoftware.Translator.CLR
 		{
 			return (TypeRepTemplate)Deserialize (s);
 		}
+		
+		#endregion deserialization
 
 		// Useful because it builds either an empty ClassRep or InterfaceRep or ...
 		public abstract TypeRep mkEmptyRep ();
