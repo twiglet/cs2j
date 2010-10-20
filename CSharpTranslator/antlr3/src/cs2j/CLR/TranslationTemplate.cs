@@ -304,8 +304,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 		public override string[] mkImports() {
 			if (SurroundingTypeName != null) {
-				int idxDot = SurroundingTypeName.LastIndexOf('.');
-				return new string[] {"CS2JNet." + SurroundingTypeName.Substring(0, idxDot)};
+				return new string[] {"CS2JNet." + SurroundingTypeName};
 			}
 			else {
 				return null;
@@ -414,8 +413,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 		public override string[] mkImports() {
 			if (IsStatic && SurroundingTypeName != null) {
-				int idxDot = SurroundingTypeName.LastIndexOf('.');
-				return new string[] {"CS2JNet." + SurroundingTypeName.Substring(0, idxDot)};
+				return new string[] {"CS2JNet." + SurroundingTypeName};
 			}
 			else {
 				return null;
@@ -518,7 +516,7 @@ namespace RusticiSoftware.Translator.CLR
 				return null;
 			}
 			else {
-				return new string[] {"CS2JNet." + From.Substring(0, From.LastIndexOf('.'))};
+				return new string[] {"CS2JNet." + From};
 			}
 		}	
 		
@@ -854,13 +852,12 @@ namespace RusticiSoftware.Translator.CLR
 			if (TypeName == null || TypeName == String.Empty) {
 				return null;
 			}
-			return TypeName.Substring(TypeName.LastIndexOf('.')+1);
+			return TypeName.Substring(TypeName.LastIndexOf('.') + 1);
 		}
 
 		public override string[] mkImports() {
-			int idxDot = TypeName.LastIndexOf('.');
-			if (idxDot > 0) {
-				return new string[] {"CS2JNet." + TypeName.Substring(0,idxDot)};
+			if (TypeName !=  null) {
+				return new string[] {"CS2JNet." + TypeName};
 			}
 			else {
 				return null;
