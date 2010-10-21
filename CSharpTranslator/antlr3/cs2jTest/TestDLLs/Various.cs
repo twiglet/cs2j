@@ -1,11 +1,17 @@
 using System;
 namespace cs2jTest.Various.Features
 {
+	
+	// delegate declaration
+	public delegate string MyDelegate(int i);
+
 	public class Various
 	{
 		public Various ()
 		{
 		}
+		
+		private int myInt;
 		
 		public string TestRWProperty {get; set;}
 		

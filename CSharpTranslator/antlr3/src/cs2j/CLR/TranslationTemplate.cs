@@ -214,6 +214,21 @@ namespace RusticiSoftware.Translator.CLR
 			Java = java;
 		}
 
+
+		protected string mkJavaParams(IList<ParamRepTemplate> pars) {
+			StringBuilder parStr = new StringBuilder();
+			parStr.Append("(");
+			foreach (ParamRepTemplate p in pars) {
+				parStr.Append("${"+p.Name+"},");
+			}
+			if (parStr[parStr.Length-1] == ',') {
+				parStr.Remove(parStr.Length-1,1);
+			}
+			parStr.Append(")");
+			return parStr.ToString();
+		}
+
+
 		#region Equality
 
 		public bool Equals (TranslationBase other)
@@ -281,25 +296,12 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
-		protected string mkJavaParams() {
-			StringBuilder parStr = new StringBuilder();
-			parStr.Append("(");
-			foreach (ParamRepTemplate p in Params) {
-				parStr.Append("${"+p.Name+"},");
-			}
-			if (parStr[parStr.Length-1] == ',') {
-				parStr.Remove(parStr.Length-1,1);
-			}
-			parStr.Append(")");
-			return parStr.ToString();
-		}
-
 		public override string mkJava() {
 			string constructorName = "CONSTRUCTOR";
 			if (SurroundingTypeName != null) {
 				constructorName = SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1);
 			}
-			return "new " + constructorName + mkJavaParams();
+			return "new " + constructorName + mkJavaParams(Params);
 		}
 		
 		public override string[] mkImports() {
@@ -434,7 +436,7 @@ namespace RusticiSoftware.Translator.CLR
 				methStr.Append("${this}.");
 			}
 			methStr.Append(Name);
-			return methStr.ToString() + mkJavaParams();
+			return methStr.ToString() + mkJavaParams(Params);
 		}
 		
 		#region Equality
@@ -1102,6 +1104,10 @@ namespace RusticiSoftware.Translator.CLR
 		{
 			Return = retType;
 			_params = args;
+		}
+
+		public override string mkJava() {
+			return "${delegate}.Invoke" + mkJavaParams(Params);
 		}
 
 		public override TypeRep mkEmptyRep ()

@@ -65,12 +65,12 @@ namespace cs2j.Template.Utils
 
 		}
 		
-		private void buildParameters(ConstructorRepTemplate c, MethodBase m) {				
+		private void buildParameters(IList<ParamRepTemplate> ps, MethodBase m) {				
 			foreach (ParameterInfo p in m.GetParameters()) {
 				ParamRepTemplate paramRep = new ParamRepTemplate();
 				paramRep.Type = TypeHelper.buildTypeName(p.ParameterType);
 				paramRep.Name = p.Name;
-				c.Params.Add(paramRep);
+				ps.Add(paramRep);
 			}
 		}
 
@@ -113,7 +113,7 @@ namespace cs2j.Template.Utils
 					}
 					methRep.TypeParams = tParams;
 				}
-				buildParameters(methRep, m);
+				buildParameters(methRep.Params, m);
 				if (m.IsStatic) {
 					methRep.IsStatic = true;
 				}
@@ -146,7 +146,7 @@ namespace cs2j.Template.Utils
 			// Grab Constructors
 			foreach (ConstructorInfo c in t.GetConstructors()) {
 				ConstructorRepTemplate consRep = new ConstructorRepTemplate();
-				buildParameters(consRep, c);
+				buildParameters(consRep.Params, c);
 				consRep.SurroundingTypeName = klass.TypeName;
 				klass.Constructors.Add(consRep);
 			}
@@ -170,6 +170,27 @@ namespace cs2j.Template.Utils
 
 		}
 		
+		private void buildDelegate(DelegateRepTemplate d, Type t) {	
+
+			if (t.IsGenericType) {
+				d.TypeName = t.GetGenericTypeDefinition().FullName;
+				string[] tParams = new string[t.GetGenericArguments().Length];
+				for (int i = 0; i < t.GetGenericArguments().Length; i++) {
+					tParams[i] = t.GetGenericArguments()[i].Name;
+				}
+				d.TypeParams = tParams;
+			}
+			else {
+				d.TypeName = t.FullName;
+			}
+
+			MethodInfo invoker = t.GetMethod("Invoke");
+			if (invoker == null)
+				throw new Exception("Unexpected: class " + t.FullName + " inherits from System.Delegate but doesn't have an Invoke method");
+			buildParameters(d.Params, invoker);
+			d.Return = TypeHelper.buildTypeName(invoker.ReturnType);
+		}
+		
 		private IList<TypeRepTemplate> mkTemplates(string typeName) {
 			
 			List<TypeRepTemplate> rets = new List<TypeRepTemplate>();
@@ -181,9 +202,16 @@ namespace cs2j.Template.Utils
 			}
 			TypeRepTemplate retRep = null;
 			if (t.IsClass) {
-				ClassRepTemplate classRep = new ClassRepTemplate();
-				buildClass(classRep, t);
-				retRep = classRep;
+				if (t.IsSubclassOf(typeof(System.Delegate))) {
+					DelegateRepTemplate delRep = new DelegateRepTemplate();
+					buildDelegate(delRep, t);
+					retRep = delRep;
+				}
+				else {
+					ClassRepTemplate classRep = new ClassRepTemplate();
+					buildClass(classRep, t);
+					retRep = classRep;
+				}
 			}
 			else if (t.IsInterface) {
 				InterfaceRepTemplate intRep = new InterfaceRepTemplate();
