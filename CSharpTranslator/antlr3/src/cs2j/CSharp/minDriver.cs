@@ -50,9 +50,9 @@ namespace RusticiSoftware.Translator.CSharp
                     BufferedTreeNodeStream nodes = new BufferedTreeNodeStream(parse_tree);
 
 
-                    SignatureExtracter sigWalker = new SignatureExtracter(nodes);
-                    sigWalker.DebugLevel = 10;
-                    sigWalker.compilation_unit();
+                    TemplateExtracter templateWalker = new TemplateExtracter(nodes);
+                    templateWalker.DebugLevel = 10;
+                    templateWalker.compilation_unit();
 
                 }
             }

@@ -61,16 +61,16 @@
     <Compile Include="CSharp\minDriver.cs" />
     <Compile Include="CSharp\PreProcessor.cs" />
     <Compile Include="CLR\TranslationTemplate.cs" />
-    <Compile Include="CSharp\SignatureExtracter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\DirectoryHT.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\TypeHelper.cs" />
+    <Compile Include="CSharp\TemplateExtracter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CSharp\SignatureExtracter.g" />
     <None Include="CSharp\csCrawl.g" />
     <None Include="CSharp\cs.g" />
+    <None Include="CSharp\TemplateExtracter.g" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="README.txt" />
@@ -101,6 +101,10 @@
     <ProjectReference Include="..\Antlr.Runtime\Antlr3.Runtime.csproj">
       <Project>{CF15D0D5-BE72-4F98-B70F-229ABA1DF0E8}</Project>
       <Name>Antlr3.Runtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NDesk.Options\NDesk.Options.csproj">
+      <Project>{E6ACBB37-AF38-45E1-B399-0CEE63809A15}</Project>
+      <Name>NDesk.Options</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
