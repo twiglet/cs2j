@@ -8,6 +8,8 @@ using Antlr.Runtime.Tree;
 using Antlr.Runtime;
 using System.Xml.Serialization;
 
+using NDesk.Options;
+
 using RusticiSoftware.Translator.Utils;
 using RusticiSoftware.Translator.AntlrUtils;
 using RusticiSoftware.Translator.CLR;
@@ -32,17 +34,18 @@ namespace RusticiSoftware.Translator.CSharp
         internal static bool dumpJavaSyntax = false;
         internal static bool dumpJava = false;
 
-        internal static bool dumpXMLs = false;
+        internal static bool dumpXmls = false;
+        internal static bool dumpEnums = false;
         internal static string outDir = ".";
         internal static string cheatDir = "";
-        internal static ArrayList netRoot = new ArrayList();
-        internal static ArrayList exNetRoot = new ArrayList();
-        internal static ArrayList appRoot = new ArrayList();
-        internal static ArrayList exAppRoot = new ArrayList();
-        internal static ArrayList exclude = new ArrayList();
+        internal static IList<string> netRoot = new List<string>();
+        internal static IList<string> exNetRoot = new List<string>();
+        internal static IList<string> appRoot = new List<string>();
+        internal static IList<string> exAppRoot = new List<string>();
+        internal static IList<string> exclude = new List<string>();
         internal static DirectoryHT appEnv = new DirectoryHT(null);
-        internal static List<string> macroDefines = new List<string>();
-        internal static XmlTextWriter enumXmlWriter;
+        internal static IList<string> macroDefines = new List<string>();
+        internal static XmlTextWriter enumXmlWriter = new XmlTextWriter(Path.Combine(Directory.GetCurrentDirectory(), "enums"), System.Text.Encoding.UTF8);
         internal static string xmldumpDir = Path.Combine(".", "tmpXMLs");
         internal static int verbosity = 0;
 
@@ -72,173 +75,89 @@ namespace RusticiSoftware.Translator.CSharp
             Console.Out.WriteLine(" <directory or file name to be translated>");
             Environment.Exit(0);
         }
-
+		
+		private static void addDirectories(IList<string> strs, string rawStr) {
+            string[] argDirs = rawStr.Split(';');
+            for (int i = 0; i < argDirs.Length; i++)
+                strs.Add(Path.GetFullPath(argDirs[i]).ToLower());
+		}
+		
         public static void CS2JMain(string[] args)
         {
             long startTime = DateTime.Now.Ticks;
+			IList<string> remArgs = new List<string>();
             // Use a try/catch block for parser exceptions
             try
             {
                 // if we have at least one command-line argument
                 if (args.Length > 0)
                 {
-                    if (verbosity >= 2) Console.Error.WriteLine("Parsing...");
-                    // for each directory/file specified on the command line
-                    for (int i = 0; i < args.Length; i++)
+			
+                    if (verbosity >= 2) Console.Error.WriteLine("Parsing Command Line Arguments...");
+
+					OptionSet p = new OptionSet ()
+						.Add ("v", v => verbosity++)
+						.Add ("version", v => showVersion())
+    					.Add ("help|h|?", v => showUsage())
+    					.Add ("showtree", v => showTree = true)
+    					.Add ("showcsharp", v => showCSharp = true)
+						.Add ("showjava", v => showJava = true)
+						.Add ("showjavasyntax", v => showJavaSyntax = true)
+    					.Add ("dumpcsharp", v => dumpCSharp = true)
+						.Add ("dumpjava", v => dumpJava = true)
+						.Add ("dumpjavasyntax", v => dumpJavaSyntax = true)
+						.Add ("tokens", v => displayTokens = true)
+    					.Add ("D=", def => macroDefines.Add(def)) 							
+    					.Add ("dumpenums", v => dumpEnums = true)
+    					.Add ("enumdir=", dir => enumXmlWriter = new XmlTextWriter(dir, System.Text.Encoding.UTF8))							
+    					.Add ("dumpxmls", v => dumpXmls = true)
+    					.Add ("xmldir=", dir => xmldumpDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
+    					.Add ("odir=", dir => outDir = dir)
+    					.Add ("cheatdir=", dir => cheatDir = dir)
+    					.Add ("netdir=", dirs => addDirectories(netRoot, dirs))
+    					.Add ("exnetdir=", dirs => addDirectories(exNetRoot, dirs))
+    					.Add ("appdir=", dirs => addDirectories(appRoot, dirs))
+    					.Add ("exappdir=", dirs => addDirectories(exAppRoot, dirs))
+    					.Add ("exclude=", dirs => addDirectories(exclude, dirs))
+						;
+
+                   	// Final argument is translation target
+					remArgs = p.Parse (args);
+
+                            
+					// Load .Net templates
+                    foreach (string r in netRoot)
+                        doFile(new FileInfo(r), ".xml", addNetTranslation, exNetRoot);
+
+                    // Load Application Class Signatures (i.e. generate templates)
+                    if (appRoot.Count == 0)
+                        // By default translation target is application root
+                        appRoot.Add(remArgs[0]);
+                    foreach (string r in appRoot)
+                        doFile(new FileInfo(r), ".cs", addAppSigTranslation, exAppRoot); // parse it
+                    if (dumpXmls)
                     {
-                        if (args[i].ToLower().Equals("-showtree"))
+                        // Get package name and convert to directory name
+                        foreach (DictionaryEntry de in appEnv)
                         {
-                            showTree = true;
-                        }
-                        else if (args[i].ToLower().Equals("-showcsharp"))
-                        {
-                            showCSharp = true;
-                        }
-                        else if (args[i].ToLower().Equals("-showjava"))
-                        {
-                            showJava = true;
-                        }
-                        else if (args[i].ToLower().Equals("-showjavasyntax"))
-                        {
-                            showJavaSyntax = true;
-                        }
-                        else if (args[i].ToLower().Equals("-dumpcsharp"))
-                        {
-                            dumpCSharp = true;
-                        }
-                        else if (args[i].ToLower().Equals("-dumpjava"))
-                        {
-                            dumpJava = true;
-                        }
-                        else if (args[i].ToLower().Equals("-dumpjavasyntax"))
-                        {
-                            dumpJavaSyntax = true;
-                        }
-                        else if (args[i].ToLower().Equals("-tokens"))
-                        {
-                            displayTokens = true;
-                        }
-                        else if (args[i].ToLower().Equals("-dumpxml"))
-                        {
-                            dumpXMLs = true;
-                        }
-                        else if (args[i].ToLower().Equals("-v"))
-                        {
-                            verbosity++;
-                        }
-                        else if (args[i].ToLower().Equals("-help"))
-                        {
-                            showUsage();
-                        }
-                        else if (args[i].ToLower().Equals("-version"))
-                        {
-                            showVersion();
-                        }
-                        else if (args[i].ToLower().Equals("-D") && i < (args.Length - 1))
-                        {
-                            i++;
-                            macroDefines.Add(args[i]);
-                        }
-                        else if (args[i].ToLower().Equals("-odir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            outDir = args[i];
-                        }
-                        else if (args[i].ToLower().Equals("-dumpenums") && i < (args.Length - 1))
-                        {
-                            i++;
-                            enumXmlWriter = new XmlTextWriter(args[i], System.Text.Encoding.UTF8);
-                            enumXmlWriter.WriteStartElement("enums");
-                        }
-                        else if (args[i].ToLower().Equals("-cheatdir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            cheatDir = args[i];
-                        }
-                        else if (args[i].ToLower().Equals("-netdir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            string[] argDirs = args[i].Split(';');
-                            for (int j = 0; j < argDirs.Length; j++)
-                                argDirs[j] = Path.GetFullPath(argDirs[j]).ToLower();
-                            netRoot.AddRange(argDirs);
-                        }
-                        else if (args[i].ToLower().Equals("-exnetdir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            string[] argDirs = args[i].Split(';');
-                            for (int j = 0; j < argDirs.Length; j++)
-                                argDirs[j] = Path.GetFullPath(argDirs[j]).ToLower();
-                            exNetRoot.AddRange(argDirs);
-                        }
-                        else if (args[i].ToLower().Equals("-appdir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            string[] argDirs = args[i].Split(';');
-                            for (int j = 0; j < argDirs.Length; j++)
-                                argDirs[j] = Path.GetFullPath(argDirs[j]).ToLower();
-                            appRoot.AddRange(argDirs);
-                        }
-                        else if (args[i].ToLower().Equals("-exappdir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            string[] argDirs = args[i].Split(';');
-                            for (int j = 0; j < argDirs.Length; j++)
-                                argDirs[j] = Path.GetFullPath(argDirs[j]).ToLower();
-                            exAppRoot.AddRange(argDirs);
-                        }
-                        else if (args[i].ToLower().Equals("-exclude") && i < (args.Length - 1))
-                        {
-                            i++;
-                            string[] argDirs = args[i].Split(';');
-                            for (int j = 0; j < argDirs.Length; j++)
-                                argDirs[j] = Path.GetFullPath(argDirs[j]).ToLower();
-                            exclude.AddRange(argDirs);
-                        }
-                        else if (args[i].ToLower().Equals("-xmldir") && i < (args.Length - 1))
-                        {
-                            i++;
-                            xmldumpDir = args[i];
-                        }
-                        else
-                        {
-                            // Final argument is translation target
-
-                            // Load .Net templates
-                            foreach (string r in netRoot)
-                                doFile(new FileInfo(r), ".xml", addNetTranslation, exNetRoot);
-
-                            // Load Application Class Signatures (i.e. generate templates)
-                            if (appRoot.Count == 0)
-                                // By default translation target is application root
-                                appRoot.Add(args[i]);
-                            foreach (string r in appRoot)
-                                doFile(new FileInfo(r), ".cs", addAppSigTranslation, exAppRoot); // parse it
-                            if (dumpXMLs)
+                            String xmlFName = Path.Combine(xmldumpDir,
+                                                          ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");
+                            String xmlFDir = Path.GetDirectoryName(xmlFName);
+                            if (!Directory.Exists(xmlFDir))
                             {
-                                // Get package name and convert to directory name
-                                foreach (DictionaryEntry de in appEnv)
-                                {
-                                    String xmlFName = Path.Combine(xmldumpDir,
-                                                                  ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");
-                                    String xmlFDir = Path.GetDirectoryName(xmlFName);
-                                    if (!Directory.Exists(xmlFDir))
-                                    {
-                                        Directory.CreateDirectory(xmlFDir);
-                                    }
-                                    XmlSerializer s = new XmlSerializer(de.Value.GetType());
-                                    TextWriter w = new StreamWriter(xmlFName);
-                                    s.Serialize(w, de.Value);
-                                    w.Close();
-                                }
+                                Directory.CreateDirectory(xmlFDir);
                             }
-                            // keving: comment out for now   doFile(new FileInfo(args[i]), ".cs", translateFile, exclude); // parse it
-                            if (enumXmlWriter != null)
-                            {
-                                enumXmlWriter.WriteEndElement();
-                                enumXmlWriter.Close();
-                            }
+                            XmlSerializer s = new XmlSerializer(de.Value.GetType());
+                            TextWriter w = new StreamWriter(xmlFName);
+                            s.Serialize(w, de.Value);
+                            w.Close();
                         }
+                    }
+                    // keving: comment out for now   doFile(new FileInfo(args[i]), ".cs", translateFile, exclude); // parse it
+                    if (enumXmlWriter != null)
+                    {
+                        enumXmlWriter.WriteEndElement();
+                        enumXmlWriter.Close();
                     }
                 }
                 else
@@ -262,7 +181,7 @@ namespace RusticiSoftware.Translator.CSharp
 
 
         // Call processFile on all files below f that have the given extension 
-        public static void doFile(FileInfo f, string ext, FileProcessor processFile, ArrayList excludes)
+        public static void doFile(FileInfo f, string ext, FileProcessor processFile, IList<string> excludes)
         {
             // If this is a directory, walk each file/dir in that directory
             if (!excludes.Contains(Path.GetFullPath(f.FullName).ToLower()))
