@@ -36,7 +36,7 @@ namespace RusticiSoftware.Translator.CSharp
 
         internal static bool dumpXmls = false;
         internal static bool dumpEnums = false;
-        internal static string outDir = ".";
+        internal static string outDir = Directory.GetCurrentDirectory();
         internal static string cheatDir = "";
         internal static IList<string> netRoot = new List<string>();
         internal static IList<string> exNetRoot = new List<string>();
@@ -45,8 +45,8 @@ namespace RusticiSoftware.Translator.CSharp
         internal static IList<string> exclude = new List<string>();
         internal static DirectoryHT appEnv = new DirectoryHT(null);
         internal static IList<string> macroDefines = new List<string>();
-        internal static XmlTextWriter enumXmlWriter = new XmlTextWriter(Path.Combine(Directory.GetCurrentDirectory(), "enums"), System.Text.Encoding.UTF8);
-        internal static string xmldumpDir = Path.Combine(".", "tmpXMLs");
+        internal static string xmlDir = Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs");
+		internal static string enumDir = Path.Combine(Directory.GetCurrentDirectory(), "enums");
         internal static int verbosity = 0;
 
         private static void showVersion()
@@ -86,6 +86,7 @@ namespace RusticiSoftware.Translator.CSharp
         {
             long startTime = DateTime.Now.Ticks;
 			IList<string> remArgs = new List<string>();
+			XmlTextWriter enumXmlWriter = null;
             // Use a try/catch block for parser exceptions
             try
             {
@@ -109,9 +110,9 @@ namespace RusticiSoftware.Translator.CSharp
 						.Add ("tokens", v => displayTokens = true)
     					.Add ("D=", def => macroDefines.Add(def)) 							
     					.Add ("dumpenums", v => dumpEnums = true)
-    					.Add ("enumdir=", dir => enumXmlWriter = new XmlTextWriter(dir, System.Text.Encoding.UTF8))							
+    					.Add ("enumdir=", dir => enumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
     					.Add ("dumpxmls", v => dumpXmls = true)
-    					.Add ("xmldir=", dir => xmldumpDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
+    					.Add ("xmldir=", dir => xmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
     					.Add ("odir=", dir => outDir = dir)
     					.Add ("cheatdir=", dir => cheatDir = dir)
     					.Add ("netdir=", dirs => addDirectories(netRoot, dirs))
@@ -136,12 +137,15 @@ namespace RusticiSoftware.Translator.CSharp
                         appRoot.Add(remArgs[0]);
                     foreach (string r in appRoot)
                         doFile(r, ".cs", addAppSigTranslation, exAppRoot); // parse it
+					if (dumpEnums) {
+						 enumXmlWriter = new XmlTextWriter(enumDir, System.Text.Encoding.UTF8);
+					}
                     if (dumpXmls)
                     {
                         // Get package name and convert to directory name
                         foreach (DictionaryEntry de in appEnv)
                         {
-                            String xmlFName = Path.Combine(xmldumpDir,
+                            String xmlFName = Path.Combine(xmlDir,
                                                           ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");
                             String xmlFDir = Path.GetDirectoryName(xmlFName);
                             if (!Directory.Exists(xmlFDir))
@@ -158,8 +162,8 @@ namespace RusticiSoftware.Translator.CSharp
                     if (dumpEnums)
                     {
                         enumXmlWriter.WriteEndElement();
+                    	enumXmlWriter.Close();
 					}
-                    enumXmlWriter.Close();
                 }
                 else
                 {
