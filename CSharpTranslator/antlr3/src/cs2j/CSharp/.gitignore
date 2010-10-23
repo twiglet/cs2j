@@ -1,5 +1,5 @@
 cs.tokens
 csLexer.cs
 csParser.cs
-SignatureExtracter.cs
-SignatureExtracter.tokens
+TemplateExtracter.cs
+TemplateExtracter.tokens
