@@ -20,7 +20,7 @@ namespace RusticiSoftware.Translator.CSharp
     {
         private const string VERSION = "2009.1.1.x";
 
-        public delegate void FileProcessor(string fName, Stream s);
+        public delegate void FileProcessor(string fName);
 
         // show gui explorer of parse tree
         internal static bool showTree = false;
@@ -120,21 +120,22 @@ namespace RusticiSoftware.Translator.CSharp
     					.Add ("exappdir=", dirs => addDirectories(exAppRoot, dirs))
     					.Add ("exclude=", dirs => addDirectories(exclude, dirs))
 						;
-
+					
+					//TODO: fix enum dump
                    	// Final argument is translation target
 					remArgs = p.Parse (args);
 
                             
 					// Load .Net templates
                     foreach (string r in netRoot)
-                        doFile(new FileInfo(r), ".xml", addNetTranslation, exNetRoot);
+                        doFile(r, ".xml", addNetTranslation, exNetRoot);
 
                     // Load Application Class Signatures (i.e. generate templates)
                     if (appRoot.Count == 0)
                         // By default translation target is application root
                         appRoot.Add(remArgs[0]);
                     foreach (string r in appRoot)
-                        doFile(new FileInfo(r), ".cs", addAppSigTranslation, exAppRoot); // parse it
+                        doFile(r, ".cs", addAppSigTranslation, exAppRoot); // parse it
                     if (dumpXmls)
                     {
                         // Get package name and convert to directory name
@@ -153,12 +154,12 @@ namespace RusticiSoftware.Translator.CSharp
                             w.Close();
                         }
                     }
-                    // keving: comment out for now   doFile(new FileInfo(args[i]), ".cs", translateFile, exclude); // parse it
-                    if (enumXmlWriter != null)
+                    doFile(remArgs[0], ".cs", translateFile, exclude); // parse it
+                    if (dumpEnums)
                     {
                         enumXmlWriter.WriteEndElement();
-                        enumXmlWriter.Close();
-                    }
+					}
+                    enumXmlWriter.Close();
                 }
                 else
                 {
@@ -181,65 +182,57 @@ namespace RusticiSoftware.Translator.CSharp
 
 
         // Call processFile on all files below f that have the given extension 
-        public static void doFile(FileInfo f, string ext, FileProcessor processFile, IList<string> excludes)
+        public static void doFile(string root, string ext, FileProcessor processFile, IList<string> excludes)
         {
+			string canonicalPath = Path.GetFullPath(root);
             // If this is a directory, walk each file/dir in that directory
-            if (!excludes.Contains(Path.GetFullPath(f.FullName).ToLower()))
+            if (!excludes.Contains(canonicalPath.ToLower()))
             {
-                if (Directory.Exists(f.FullName))
+                if (Directory.Exists(canonicalPath))
                 {
-                    string[] files = Directory.GetFileSystemEntries(f.FullName);
+                    string[] files = Directory.GetFileSystemEntries(canonicalPath);
                     for (int i = 0; i < files.Length; i++)
-                        doFile(new FileInfo(Path.Combine(f.FullName, files[i])), ext, processFile, excludes);
+                        doFile(Path.Combine(canonicalPath, files[i]), ext, processFile, excludes);
                 }
-                else if ((f.Name.Length > ext.Length) && f.Name.Substring(f.Name.Length - ext.Length).Equals(ext))
+                else if ((Path.GetFileName(canonicalPath).Length > ext.Length) && canonicalPath.Substring(canonicalPath.Length - ext.Length).Equals(ext))
                 {
-                    FileStream fs = null;
-                    if (verbosity >= 2) Console.WriteLine("   " + f.FullName);
+                    if (verbosity >= 2) Console.WriteLine("   " + canonicalPath);
                     try
                     {
-                        Stream s = new FileStream(f.FullName, FileMode.Open, FileAccess.Read);
-                        processFile(f.FullName, s);
+                        
+                        processFile(canonicalPath);
                     }
                     catch (Exception e)
                     {
-                        Console.Error.WriteLine("\nCannot process file: " + f.FullName);
+                        Console.Error.WriteLine("\nCannot process file: " + canonicalPath);
                         Console.Error.WriteLine("exception: " + e);
-                    }
-                    finally
-                    {
-                        if (fs != null) fs.Close();
                     }
                 }
             }
         }
 
-        public static CommonTreeNodeStream parseFile(string fullName, Stream s)
+        public static BufferedTreeNodeStream parseFile(string fullName)
         {
-            CommonTokenStream tokens = null;
+                   
+			CommonTokenStream tokens = null;
 
-            Console.WriteLine("Parsing " + Path.GetFileName(fullName));
-            PreProcessor lex = new PreProcessor();
-            lex.AddDefine(macroDefines);
+            if (verbosity > 2) Console.WriteLine("Parsing " + Path.GetFileName(fullName));
+            PreProcessor lex = new PreProcessor();;
 
             ICharStream input = new ANTLRFileStream(fullName);
             lex.CharStream = input;
 
             tokens = new CommonTokenStream(lex);
             csParser p = new csParser(tokens);
-            object parser_rt = p.compilation_unit();
+            csParser.compilation_unit_return parser_rt;
 
-            // Sometimes ANTLR returns a CommonErrorNode if we can't parse the file
-            if (parser_rt is CommonErrorNode)
-            {
-                Console.WriteLine(((CommonErrorNode)parser_rt).trappedException.Message);
-                return null;
-            }
+            parser_rt = p.compilation_unit();
+            ITree parse_tree = (ITree)parser_rt.Tree;
+            if (verbosity > 2) Console.Out.WriteLine(parse_tree.ToStringTree());
 
-            CommonTree tree = (CommonTree)((RuleReturnScope)parser_rt).Tree;
-            // Check if we didn't get an AST
-            // This often happens if your grammar and tree grammar don't match
-            if (tree == null)
+            BufferedTreeNodeStream nodes = new BufferedTreeNodeStream(parse_tree);            
+
+            if (nodes == null)
             {
                 if (tokens.Count > 0)
                 {
@@ -249,18 +242,6 @@ namespace RusticiSoftware.Translator.CSharp
                 {
                     // the file was empty, this is not an error.
                 }
-                return null;
-            }
-
-            // Get the AST stream
-            CommonTreeNodeStream nodes = new CommonTreeNodeStream(tree);
-            // Add the tokens for DumpNodes, otherwise there are no token names to print out.
-            nodes.TokenStream = tokens;
-
-            // Dump the tree nodes if -dumpcsharp is passed on the command line.
-            if (dumpCSharp)
-            {
-                AntlrUtils.AntlrUtils.DumpNodes(nodes);
             }
 
             return nodes;
@@ -268,29 +249,32 @@ namespace RusticiSoftware.Translator.CSharp
         }
 
         // Here's where we do the real work...
-        public static void addNetTranslation(string fullName, Stream s)
+        public static void addNetTranslation(string fullName)
         {
-            TypeRepTemplate t = TypeRepTemplate.newInstance(s);
+            Stream s = new FileStream(fullName, FileMode.Open, FileAccess.Read);
+			TypeRepTemplate t = TypeRepTemplate.newInstance(s);
             appEnv[t.TypeName] = t;
         }
 
         // Here's where we do the real work...
-        public static void addAppSigTranslation(string fullName, Stream s)
+        public static void addAppSigTranslation(string fullName)
         {
-            CommonTreeNodeStream t = parseFile(fullName, s);
-            if (t != null)
+            BufferedTreeNodeStream nodes = parseFile(fullName);
+            if (nodes != null)
             {
-                // A prescan of all files to build an environment mapping qualified name to typereptemplate
-                //    CSharpEnvBuilder envBuilder = new CSharpEnvBuilder();
-                //    envBuilder.compilationUnit(t, null, appEnv);
+ 
+                    TemplateExtracter templateWalker = new TemplateExtracter(nodes);
+                    templateWalker.DebugLevel = 10;
+                    templateWalker.compilation_unit();
             }
         }
 
         // Here's where we do the real work...		
-        //public static void translateFile(string fullName, ICharStream s)
-        //{
-        //    string f = Path.GetFileName(fullName);
-
+        public static void translateFile(string fullName)
+        {
+			BufferedTreeNodeStream nodes = parseFile(fullName);
+			if (dumpCSharp) AntlrUtils.AntlrUtils.DumpNodes(new CommonTreeNodeStream(nodes.TreeSource));
+			
         //    ASTNode t = parseFile(f, s);
         //    if (t != null)
         //    {
@@ -387,7 +371,7 @@ namespace RusticiSoftware.Translator.CSharp
         //            writer.compilationUnit(netTx.getAST(), w, enumXmlWriter, filter);
         //            w.Close();
 
-        //        }
+         //      }
 
         //        double elapsedTime = ((DateTime.Now.Ticks - startTime) / TimeSpan.TicksPerMillisecond) / 1000.0;
         //        //System.Console.Out.WriteLine(writer.ToString());
@@ -395,6 +379,6 @@ namespace RusticiSoftware.Translator.CSharp
         //        System.Console.Out.WriteLine("");
         //        System.Console.Out.WriteLine("Pretty-printed {0} in: {1} seconds.", f, elapsedTime);
         //    }
-        //}
+        }
     }
 }
