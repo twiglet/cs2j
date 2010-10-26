@@ -12,6 +12,7 @@ namespace cs2j.Template.Utils
 {
 	public class TemplateFromDLL
 	{
+		private const string CS2JTEMPLATE_VERSION = "pre-release";
 		private Assembly assembly = null;		
 		private int verbose = 0;
 		
@@ -195,6 +196,8 @@ namespace cs2j.Template.Utils
 			
 			List<TypeRepTemplate> rets = new List<TypeRepTemplate>();
 			Type t = assembly.GetType(typeName);
+			if (t == null)
+				throw new Exception(String.Format("Type {0} not found", typeName));
 			foreach (Type nestedTy in t.GetNestedTypes()) {
 				foreach(TypeRepTemplate nestedRep in  mkTemplates(nestedTy.FullName)) {
 					rets.Add(nestedRep);
@@ -257,8 +260,19 @@ namespace cs2j.Template.Utils
 		}
 		
 		private static void printUsageAndExit() {
-			Console.WriteLine ("Help goes here!");
-			Environment.Exit(0);
+            Console.Out.WriteLine("Usage: " + Path.GetFileNameWithoutExtension(System.Environment.GetCommandLineArgs()[0]) + " <type to dump, if not given dump all>");
+            Console.Out.WriteLine(" [-version]                                            (show version information)");
+            Console.Out.WriteLine(" [-help|h|?]                                           (this usage message)");
+            Console.Out.WriteLine(" [-v]                                                  (be [somewhat more] verbose, repeat for more verbosity)");
+            Console.Out.WriteLine(" -dll <path to dll>                                    (path to dll)");
+            Console.Out.WriteLine(" [-listtypes]                                          (show types in DLL and exit)");
+            Console.Out.WriteLine(" [-dumpxml] [-xmldir <directory to dump xml database>] (dump the translation repository as xml files)");
+            Environment.Exit(0);
+		}
+
+		private static void printVersion() {
+            Console.Out.WriteLine(Path.GetFileNameWithoutExtension(System.Environment.GetCommandLineArgs()[0]));
+			Console.WriteLine ("Version: {0}", CS2JTEMPLATE_VERSION);
 		}
 
 		public static void Main(string[] args) {
@@ -266,21 +280,31 @@ namespace cs2j.Template.Utils
 			TemplateFromDLL templateDriver = new TemplateFromDLL();
 			List<string> extractTypes = null;
 			bool dumpXmls = false;
+			bool listTypes = false;
 			string xmlDir = Directory.GetCurrentDirectory();
   			OptionSet p = new OptionSet ()
     			.Add ("v", v => templateDriver.verbose++)
+    			.Add ("version", v => printVersion())
     			.Add ("help|h|?", v => printUsageAndExit())
     			.Add ("dll=", dllFileName => templateDriver.assembly = Assembly.LoadFile(dllFileName))
+    			.Add ("listtypes", v => listTypes = true)
     			.Add ("dumpxmls", v => dumpXmls = true)
     			.Add ("xmldir=", dir => xmlDir = Path.Combine(xmlDir, dir));
     		//	.Add ("extract={,}", typeName => templateDriver.extractTypes.Add(typeName));
   			extractTypes = p.Parse (args);
 			if (templateDriver.assembly == null) {
-				Console.WriteLine("You must specify the DLL to extract the types");
+				Console.WriteLine("You must specify the DLL");
 				printUsageAndExit();
 			}
 			if (extractTypes == null || extractTypes.Count == 0) {
 				extractTypes = templateDriver.getAllTypeNames();
+			}
+			if (listTypes) {
+				Console.WriteLine ("All Types found in DLL {0}", templateDriver.assembly.FullName);
+				foreach (string item in templateDriver.getAllTypeNames()) {
+					Console.WriteLine (item);
+				}
+				Environment.Exit(0);
 			}
 			if (templateDriver.verbose > 0)
 				Console.WriteLine ("Types to extract:");
@@ -290,6 +314,13 @@ namespace cs2j.Template.Utils
 				IList<TypeRepTemplate> tyReps = templateDriver.mkTemplates(t);
 				TextWriter writer = null;
 				foreach (TypeRepTemplate tyRep in tyReps) {
+					if (tyRep == null) {
+						if(templateDriver.verbose > 1) {
+							// TODO:  We fail for enumeraters, others?
+							Console.WriteLine ("Null typerep found, skipping");
+						}
+						continue;
+					}
 					if (dumpXmls) {                                
 						string xmlFName = Path.Combine(xmlDir, tyRep.TypeName.Replace('.', Path.DirectorySeparatorChar) + ".xml");
 	                    string xmlFDir = Path.GetDirectoryName(xmlFName);
