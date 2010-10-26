@@ -51,8 +51,7 @@ namespace RusticiSoftware.Translator.CSharp
 
 
                     TemplateExtracter templateWalker = new TemplateExtracter(nodes);
-                    templateWalker.DebugLevel = 10;
-                    templateWalker.compilation_unit();
+                    templateWalker.compilation_unit(new CS2JSettings());
 
                 }
             }

@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-genTemplate /Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/src/cs2j/bin/Debug/Antlr3-2.Runtime.DotNet20.dll Antlr.Runtime.CommonTokenStream</Commandlineparameters>
+    <Commandlineparameters>-dumpcsharp /Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/cs2jTest/TestDLLs/Various.cs</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -54,7 +54,6 @@
     <Compile Include="CLR\cs2j.cs" />
     <Compile Include="CLR\TypeRep.cs" />
     <Compile Include="CSharp\CommonWalker.cs" />
-    <Compile Include="CSharp\csCrawl.cs" />
     <Compile Include="CSharp\csLexer.cs" />
     <Compile Include="CSharp\csParser.cs" />
     <Compile Include="CSharp\Main.cs" />
@@ -66,6 +65,7 @@
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\TypeHelper.cs" />
     <Compile Include="CSharp\TemplateExtracter.cs" />
+    <Compile Include="CLR\CS2JSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CSharp\csCrawl.g" />

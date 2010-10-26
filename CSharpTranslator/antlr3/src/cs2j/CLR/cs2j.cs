@@ -19,35 +19,10 @@ namespace RusticiSoftware.Translator.CSharp
     class CS2J
     {
         private const string VERSION = "2009.1.1.x";
-
+		private static DirectoryHT AppEnv { get; set; }
+		private static CS2JSettings cfg = new CS2JSettings();
+ 
         public delegate void FileProcessor(string fName);
-
-        // show gui explorer of parse tree
-        internal static bool showTree = false;
-        internal static bool showCSharp = false;
-        internal static bool showJavaSyntax = false;
-        internal static bool showJava = false;
-        internal static bool displayTokens = false;
-
-        // dump parse tree to stdout
-        internal static bool dumpCSharp = false;
-        internal static bool dumpJavaSyntax = false;
-        internal static bool dumpJava = false;
-
-        internal static bool dumpXmls = false;
-        internal static bool dumpEnums = false;
-        internal static string outDir = Directory.GetCurrentDirectory();
-        internal static string cheatDir = "";
-        internal static IList<string> netRoot = new List<string>();
-        internal static IList<string> exNetRoot = new List<string>();
-        internal static IList<string> appRoot = new List<string>();
-        internal static IList<string> exAppRoot = new List<string>();
-        internal static IList<string> exclude = new List<string>();
-        internal static DirectoryHT appEnv = new DirectoryHT(null);
-        internal static IList<string> macroDefines = new List<string>();
-        internal static string xmlDir = Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs");
-		internal static string enumDir = Path.Combine(Directory.GetCurrentDirectory(), "enums");
-        internal static int verbosity = 0;
 
         private static void showVersion()
         {
@@ -61,7 +36,6 @@ namespace RusticiSoftware.Translator.CSharp
             Console.Out.WriteLine(" [-v]                                                                        (be [somewhat more] verbose, repeat for more verbosity)");
             Console.Out.WriteLine(" [-D <macroVariable>]                                                        (define <macroVariable>, option can be repeated)");
             Console.Out.WriteLine(" [-showtokens]                                                               (the lexer prints the tokenized input to the console)");
-            Console.Out.WriteLine(" [-showtree] [-showcsharp] [-showjavasyntax] [-showjava]                      (show parse tree at various stages of the translation)");
             Console.Out.WriteLine(" [-dumpcsharp] [-dumpjavasyntax] [-dumpjava]                      (show parse tree at various stages of the translation)");
             Console.Out.WriteLine(" [-dumpxml] [-xmldir <directory to dump xml database>]                       (dump the translation repository as xml files)");
             Console.Out.WriteLine(" [-dumpenums <enum xml file>]                                                (create an xml file documenting enums)");
@@ -86,7 +60,9 @@ namespace RusticiSoftware.Translator.CSharp
         {
             long startTime = DateTime.Now.Ticks;
 			IList<string> remArgs = new List<string>();
-			XmlTextWriter enumXmlWriter = null;
+			XmlTextWriter enumXmlWriter = null;			
+	        AppEnv = new DirectoryHT(null);
+			
             // Use a try/catch block for parser exceptions
             try
             {
@@ -94,32 +70,29 @@ namespace RusticiSoftware.Translator.CSharp
                 if (args.Length > 0)
                 {
 			
-                    if (verbosity >= 2) Console.Error.WriteLine("Parsing Command Line Arguments...");
+                    if (cfg.Verbosity >= 2) Console.Error.WriteLine("Parsing Command Line Arguments...");
 
 					OptionSet p = new OptionSet ()
-						.Add ("v", v => verbosity++)
+						.Add ("v", v => cfg.Verbosity++)
+						.Add ("debug=", v => cfg.DebugLevel = Int32.Parse(v))
 						.Add ("version", v => showVersion())
     					.Add ("help|h|?", v => showUsage())
-    					.Add ("showtree", v => showTree = true)
-    					.Add ("showcsharp", v => showCSharp = true)
-						.Add ("showjava", v => showJava = true)
-						.Add ("showjavasyntax", v => showJavaSyntax = true)
-    					.Add ("dumpcsharp", v => dumpCSharp = true)
-						.Add ("dumpjava", v => dumpJava = true)
-						.Add ("dumpjavasyntax", v => dumpJavaSyntax = true)
-						.Add ("tokens", v => displayTokens = true)
-    					.Add ("D=", def => macroDefines.Add(def)) 							
-    					.Add ("dumpenums", v => dumpEnums = true)
-    					.Add ("enumdir=", dir => enumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
-    					.Add ("dumpxmls", v => dumpXmls = true)
-    					.Add ("xmldir=", dir => xmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
-    					.Add ("odir=", dir => outDir = dir)
-    					.Add ("cheatdir=", dir => cheatDir = dir)
-    					.Add ("netdir=", dirs => addDirectories(netRoot, dirs))
-    					.Add ("exnetdir=", dirs => addDirectories(exNetRoot, dirs))
-    					.Add ("appdir=", dirs => addDirectories(appRoot, dirs))
-    					.Add ("exappdir=", dirs => addDirectories(exAppRoot, dirs))
-    					.Add ("exclude=", dirs => addDirectories(exclude, dirs))
+    					.Add ("dumpcsharp", v => cfg.DumpCSharp = true)
+						.Add ("dumpjava", v => cfg.DumpJava = true)
+						.Add ("dumpjavasyntax", v => cfg.DumpJavaSyntax = true)
+						.Add ("dumptokens", v => cfg.DisplayTokens = true)
+    					.Add ("D=", def => cfg.MacroDefines.Add(def)) 							
+    					.Add ("dumpenums", v => cfg.DumpEnums = true)
+    					.Add ("enumdir=", dir => cfg.EnumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
+    					.Add ("dumpxmls", v => cfg.DumpXmls = true)
+    					.Add ("xmldir=", dir => cfg.XmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
+    					.Add ("odir=", dir => cfg.OutDir = dir)
+    					.Add ("cheatdir=", dir => cfg.CheatDir = dir)
+    					.Add ("netdir=", dirs => addDirectories(cfg.NetRoot, dirs))
+    					.Add ("exnetdir=", dirs => addDirectories(cfg.ExNetRoot, dirs))
+    					.Add ("appdir=", dirs => addDirectories(cfg.AppRoot, dirs))
+    					.Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
+    					.Add ("exclude=", dirs => addDirectories(cfg.Exclude, dirs))
 						;
 					
 					//TODO: fix enum dump
@@ -128,24 +101,24 @@ namespace RusticiSoftware.Translator.CSharp
 
                             
 					// Load .Net templates
-                    foreach (string r in netRoot)
-                        doFile(r, ".xml", addNetTranslation, exNetRoot);
+                    foreach (string r in cfg.NetRoot)
+                        doFile(r, ".xml", addNetTranslation, cfg.ExNetRoot);
 
                     // Load Application Class Signatures (i.e. generate templates)
-                    if (appRoot.Count == 0)
+                    if (cfg.AppRoot.Count == 0)
                         // By default translation target is application root
-                        appRoot.Add(remArgs[0]);
-                    foreach (string r in appRoot)
-                        doFile(r, ".cs", addAppSigTranslation, exAppRoot); // parse it
-					if (dumpEnums) {
-						 enumXmlWriter = new XmlTextWriter(enumDir, System.Text.Encoding.UTF8);
+                        cfg.AppRoot.Add(remArgs[0]);
+                    foreach (string r in cfg.AppRoot)
+                        doFile(r, ".cs", addAppSigTranslation, cfg.ExAppRoot); // parse it
+					if (cfg.DumpEnums) {
+						 enumXmlWriter = new XmlTextWriter(cfg.EnumDir, System.Text.Encoding.UTF8);
 					}
-                    if (dumpXmls)
+                    if (cfg.DumpXmls)
                     {
                         // Get package name and convert to directory name
-                        foreach (DictionaryEntry de in appEnv)
+                        foreach (DictionaryEntry de in AppEnv)
                         {
-                            String xmlFName = Path.Combine(xmlDir,
+                            String xmlFName = Path.Combine(cfg.XmlDir,
                                                           ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");
                             String xmlFDir = Path.GetDirectoryName(xmlFName);
                             if (!Directory.Exists(xmlFDir))
@@ -158,8 +131,8 @@ namespace RusticiSoftware.Translator.CSharp
                             w.Close();
                         }
                     }
-                    doFile(remArgs[0], ".cs", translateFile, exclude); // parse it
-                    if (dumpEnums)
+                    doFile(remArgs[0], ".cs", translateFile, cfg.Exclude); // parse it
+                    if (cfg.DumpEnums)
                     {
                         enumXmlWriter.WriteEndElement();
                     	enumXmlWriter.Close();
@@ -176,7 +149,7 @@ namespace RusticiSoftware.Translator.CSharp
                 Console.Error.WriteLine(e.StackTrace); // so we can get stack trace
             }
             double elapsedTime = ((DateTime.Now.Ticks - startTime) / TimeSpan.TicksPerMillisecond) / 1000.0;
-            if (verbosity >= 1)
+            if (cfg.Verbosity >= 1)
             {
                 System.Console.Out.WriteLine("");
                 System.Console.Out.WriteLine("");
@@ -200,7 +173,7 @@ namespace RusticiSoftware.Translator.CSharp
                 }
                 else if ((Path.GetFileName(canonicalPath).Length > ext.Length) && canonicalPath.Substring(canonicalPath.Length - ext.Length).Equals(ext))
                 {
-                    if (verbosity >= 2) Console.WriteLine("   " + canonicalPath);
+                    if (cfg.Verbosity >= 2) Console.WriteLine("   " + canonicalPath);
                     try
                     {
                         
@@ -215,15 +188,16 @@ namespace RusticiSoftware.Translator.CSharp
             }
         }
 
-        public static BufferedTreeNodeStream parseFile(string fullName)
+        public static CommonTreeNodeStream parseFile(string fullName)
         {
                    
 			CommonTokenStream tokens = null;
 
-            if (verbosity > 2) Console.WriteLine("Parsing " + Path.GetFileName(fullName));
+            if (cfg.Verbosity > 2) Console.WriteLine("Parsing " + Path.GetFileName(fullName));
             PreProcessor lex = new PreProcessor();;
-
-            ICharStream input = new ANTLRFileStream(fullName);
+			lex.AddDefine(cfg.MacroDefines);
+            
+			ICharStream input = new ANTLRFileStream(fullName);
             lex.CharStream = input;
 
             tokens = new CommonTokenStream(lex);
@@ -231,12 +205,9 @@ namespace RusticiSoftware.Translator.CSharp
             csParser.compilation_unit_return parser_rt;
 
             parser_rt = p.compilation_unit();
-            ITree parse_tree = (ITree)parser_rt.Tree;
-            if (verbosity > 2) Console.Out.WriteLine(parse_tree.ToStringTree());
+			
 
-            BufferedTreeNodeStream nodes = new BufferedTreeNodeStream(parse_tree);            
-
-            if (nodes == null)
+            if (parser_rt == null || parser_rt.Tree == null)
             {
                 if (tokens.Count > 0)
                 {
@@ -248,7 +219,9 @@ namespace RusticiSoftware.Translator.CSharp
                 }
             }
 
-            return nodes;
+            CommonTreeNodeStream nodes = new CommonTreeNodeStream(parser_rt.Tree);            
+
+			return nodes;
 
         }
 
@@ -257,27 +230,26 @@ namespace RusticiSoftware.Translator.CSharp
         {
             Stream s = new FileStream(fullName, FileMode.Open, FileAccess.Read);
 			TypeRepTemplate t = TypeRepTemplate.newInstance(s);
-            appEnv[t.TypeName] = t;
+            AppEnv[t.TypeName] = t;
         }
 
         // Here's where we do the real work...
         public static void addAppSigTranslation(string fullName)
         {
-            BufferedTreeNodeStream nodes = parseFile(fullName);
-            if (nodes != null)
+            ITreeNodeStream csTree = parseFile(fullName);
+            if (csTree != null)
             {
  
-                    TemplateExtracter templateWalker = new TemplateExtracter(nodes);
-                    templateWalker.DebugLevel = 10;
-                    templateWalker.compilation_unit();
+                    TemplateExtracter templateWalker = new TemplateExtracter(csTree);
+                    templateWalker.compilation_unit(cfg);
             }
         }
 
         // Here's where we do the real work...		
         public static void translateFile(string fullName)
         {
-			BufferedTreeNodeStream nodes = parseFile(fullName);
-			if (dumpCSharp) AntlrUtils.AntlrUtils.DumpNodes(new CommonTreeNodeStream(nodes.TreeSource));
+			CommonTreeNodeStream csTree = parseFile(fullName);
+			if (cfg.DumpCSharp) AntlrUtils.AntlrUtils.DumpNodes(csTree);
 			
         //    ASTNode t = parseFile(f, s);
         //    if (t != null)

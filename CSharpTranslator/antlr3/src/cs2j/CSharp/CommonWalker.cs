@@ -9,21 +9,11 @@ namespace RusticiSoftware.Translator.CSharp
 {
     public class CommonWalker : TreeParser
     {
+		protected CS2JSettings Cfg { get; set; }
+
         protected CommonWalker(ITreeNodeStream input, RecognizerSharedState state)
             : base(input, state)
         { }
-
-
-        /// <summary>
-        /// Debug Routines
-        /// </summary>
-        private int debugLevel = 0;
-
-        public int DebugLevel
-        {
-            get { return debugLevel; }
-            set { debugLevel = value; }
-        }
 
         protected void Debug(String s)
         {
@@ -37,7 +27,7 @@ namespace RusticiSoftware.Translator.CSharp
 
         protected void Debug(int level, String s)
         {
-            if (level <= DebugLevel)
+            if (level <= Cfg.DebugLevel)
             {
                 Console.Out.WriteLine(s);
             }
