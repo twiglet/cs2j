@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cd src/cs2j/CSharp
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -make cs.g
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -make TemplateExtracter.g 
+cd ../../../
+xbuild
+echo 'All Done'
+
