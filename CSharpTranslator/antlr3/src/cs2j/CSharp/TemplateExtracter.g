@@ -13,6 +13,7 @@ options {
     ASTLabelType=CommonTree;
     language=CSharp2;
     superClass='RusticiSoftware.Translator.CSharp.CommonWalker';
+    output=AST;
     //backtrack=true;
 }
 
@@ -57,7 +58,7 @@ scope UseScope;
 	;
 
 namespace_declaration:
-	'namespace'   qualified_identifier   namespace_block   ';'? ;
+	'namespace'   qi=qualified_identifier  { Debug($qi.text); }  namespace_block   ';'? ;
 namespace_block:
 	'{'   namespace_body   '}' ;
 namespace_body:
@@ -114,7 +115,7 @@ namespace_or_type_name:
 	 type_or_generic   ('::' type_or_generic)? ('.'   type_or_generic)* ;
 type_or_generic:
 	(identifier   '<') => identifier   generic_argument_list
-	| identifier 	
+	| identifier	
 ;
 
 generic_argument_list: 
@@ -129,8 +130,10 @@ type:
 	| 'void' '*'+
 	;
 
-qualified_identifier:
-	identifier ('.' identifier)* ;
+qualified_identifier
+@after{ Console.WriteLine("qualified_identifier(): " + $qualified_identifier.text); }
+:
+	^(QID identifier+) ;
 
 namespace_name
 	: namespace_or_type_name ;
@@ -162,6 +165,12 @@ predefined_type:
 	  'bool' | 'byte'   | 'char'   | 'decimal' | 'double' | 'float'  | 'int'    | 'long'   | 'object' | 'sbyte'  
 	| 'short'  | 'string' | 'uint'   | 'ulong'  | 'ushort' ;
 	
-identifier:
- 	IDENTIFIER { Debug($IDENTIFIER.Text); } ; 
+identifier
+@after{ Console.WriteLine("identifier(): " + $identifier.text); }
+:
+ 	IDENTIFIER 
+ 	| 'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type'
+	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'set' | 'var' | '__arglist' | 'dynamic'
+	; 
+
 

@@ -8,7 +8,7 @@ options {
 
 
 tokens {
-	BLOCK;
+	QID;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -43,7 +43,7 @@ compilation_unit:
 namespace_declaration:
 	'namespace'   qualified_identifier   namespace_block   ';'? ;
 namespace_block:
-	'{'   namespace_body[false]   '}' -> ^(BLOCK namespace_body) ;
+	'{'   namespace_body[false]   '}' ;
 namespace_body[bool bGlobal]:
 	extern_alias_directives?   using_directives?   global_attributes?   namespace_member_declarations? ;
 extern_alias_directives:
@@ -75,7 +75,8 @@ type_declaration:
 	| delegate_declaration ;
 // Identifiers
 qualified_identifier:
-	identifier ('.' identifier)* ;
+	i+=identifier ('.' i+=identifier)*  
+	-> ^(QID $i+) ;
 namespace_name
 	: namespace_or_type_name ;
 
@@ -1084,15 +1085,15 @@ TS:
     { Skip(); } ;
 DOC_LINE_COMMENT
     : 	('///' ~('\n'|'\r')*  ('\r' | '\n')+)
-    { Skip(); } ;
+    {$channel=Hidden;} ;
 LINE_COMMENT
     :	('//' ~('\n'|'\r')*  ('\r' | '\n')+)
-    { Skip(); } ;
+    {$channel=Hidden;} ;
 COMMENT:
    '/*'
    (options {greedy=false;} : . )* 
    '*/'
-	{ Skip(); } ;
+	{$channel=Hidden;} ;
 STRINGLITERAL
 	:
 	'"' (EscapeSequence | ~('"' | '\\'))* '"' ;
