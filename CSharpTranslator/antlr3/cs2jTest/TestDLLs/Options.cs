@@ -143,7 +143,7 @@ using System.Linq;
 using NDesk.Options;
 #endif
 
-namespace NDesk.Options {
+namespace cs2jTest.NDesk.Options {
 
 	public class OptionValueCollection : IList, IList<string> {
 
