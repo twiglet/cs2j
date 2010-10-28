@@ -1,5 +1,5 @@
 using System;
-namespace cs2jTest.Various.Features
+namespace cs2jTest.Various.Features.join.yield
 {
 	
 	// delegate declaration

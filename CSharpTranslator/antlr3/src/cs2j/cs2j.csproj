@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-dumpcsharp /Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/cs2jTest/TestDLLs/Various.cs</Commandlineparameters>
+    <Commandlineparameters>-v -v -v -dumpcsharp -debug 10  /Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/cs2jTest/TestDLLs/Various.cs</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

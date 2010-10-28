@@ -190,22 +190,18 @@ namespace RusticiSoftware.Translator.CSharp
 
         public static CommonTreeNodeStream parseFile(string fullName)
         {
-                   
-			CommonTokenStream tokens = null;
-
+            
             if (cfg.Verbosity > 2) Console.WriteLine("Parsing " + Path.GetFileName(fullName));
-            PreProcessor lex = new PreProcessor();;
-			lex.AddDefine(cfg.MacroDefines);
             
 			ICharStream input = new ANTLRFileStream(fullName);
+
+			PreProcessor lex = new PreProcessor();;
+			lex.AddDefine(cfg.MacroDefines);
             lex.CharStream = input;
 
-            tokens = new CommonTokenStream(lex);
+            CommonTokenStream tokens = new CommonTokenStream(lex);
             csParser p = new csParser(tokens);
-            csParser.compilation_unit_return parser_rt;
-
-            parser_rt = p.compilation_unit();
-			
+            csParser.compilation_unit_return parser_rt = p.compilation_unit();
 
             if (parser_rt == null || parser_rt.Tree == null)
             {
@@ -220,12 +216,12 @@ namespace RusticiSoftware.Translator.CSharp
             }
 
             CommonTreeNodeStream nodes = new CommonTreeNodeStream(parser_rt.Tree);            
-
+			nodes.TokenStream = tokens;
+			
 			return nodes;
 
         }
-
-        // Here's where we do the real work...
+      // Here's where we do the real work...
         public static void addNetTranslation(string fullName)
         {
             Stream s = new FileStream(fullName, FileMode.Open, FileAccess.Read);
