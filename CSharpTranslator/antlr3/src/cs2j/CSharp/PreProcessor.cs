@@ -86,7 +86,6 @@ namespace RusticiSoftware.Translator.CSharp
 		public override String GetErrorMessage(RecognitionException e, String[] tokenNames)
 		{
 			IList<string> stack = GetRuleInvocationStack(e, this.GetType().Name);
-			String msg = null;
 			StringBuilder sb = new StringBuilder();
 			sb.Append("\r\n");
 			foreach (object o in stack)

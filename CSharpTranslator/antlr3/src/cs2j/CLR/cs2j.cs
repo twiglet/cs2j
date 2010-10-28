@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using System.Collections;
 using System.Xml;
 using Antlr.Runtime.Tree;
 using Antlr.Runtime;
@@ -19,7 +18,7 @@ namespace RusticiSoftware.Translator.CSharp
     class CS2J
     {
         private const string VERSION = "2009.1.1.x";
-		private static DirectoryHT AppEnv { get; set; }
+		private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
 		private static CS2JSettings cfg = new CS2JSettings();
  
         public delegate void FileProcessor(string fName);
@@ -61,7 +60,7 @@ namespace RusticiSoftware.Translator.CSharp
             long startTime = DateTime.Now.Ticks;
 			IList<string> remArgs = new List<string>();
 			XmlTextWriter enumXmlWriter = null;			
-	        AppEnv = new DirectoryHT(null);
+	        AppEnv = new DirectoryHT<TypeRepTemplate>(null);
 			
             // Use a try/catch block for parser exceptions
             try
@@ -116,7 +115,7 @@ namespace RusticiSoftware.Translator.CSharp
                     if (cfg.DumpXmls)
                     {
                         // Get package name and convert to directory name
-                        foreach (DictionaryEntry de in AppEnv)
+                        foreach (KeyValuePair<string,TypeRepTemplate> de in AppEnv)
                         {
                             String xmlFName = Path.Combine(cfg.XmlDir,
                                                           ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");

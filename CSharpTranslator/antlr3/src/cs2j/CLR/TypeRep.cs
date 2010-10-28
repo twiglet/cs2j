@@ -14,7 +14,7 @@ namespace RusticiSoftware.Translator.CLR
     public abstract class RepBase
     {
 
-        protected static DirectoryHT TypeTemplateCache = new DirectoryHT();
+        protected static DirectoryHT<TypeRepTemplate> TypeTemplateCache = new DirectoryHT<TypeRepTemplate>();
         // 
 
         protected const string TYPEVAR = "${TYPE}";
@@ -288,12 +288,12 @@ namespace RusticiSoftware.Translator.CLR
     {
         private static Hashtable TypeRepCache = new Hashtable();
 
-        public static void Initialize(DirectoryHT e)
+        public static void Initialize(DirectoryHT<TypeRepTemplate> e)
         {
             TypeTemplateCache = e;
         }
 
-        public static DirectoryHT TypeEnv
+        public static DirectoryHT<TypeRepTemplate> TypeEnv
         {
             get { return TypeTemplateCache; }
         }
@@ -472,11 +472,11 @@ namespace RusticiSoftware.Translator.CLR
         private static TypeRepTemplate TemplateSearch(string typeName, ICollection pth)
         {
             TypeRepTemplate ret = null;
-            DirectoryHT ns;
+            DirectoryHT<TypeRepTemplate> ns;
 
             foreach (string p in pth)
             {
-                ns = (DirectoryHT)TypeTemplateCache.subDir(p);
+                ns = TypeTemplateCache.subDir(p);
                 ret = (ns == null ? null : ns[typeName] as TypeRepTemplate);
                 if (ret != null)
                     break;

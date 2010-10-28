@@ -13,7 +13,7 @@ options {
     ASTLabelType=CommonTree;
     language=CSharp2;
     superClass='RusticiSoftware.Translator.CSharp.CommonWalker';
-    output=AST;
+    //output=AST;
     //backtrack=true;
 }
 
@@ -27,6 +27,7 @@ scope UseScope {
 {
 	using System.Text;
 	using RusticiSoftware.Translator.CLR;
+	using RusticiSoftware.Translator.Utils;
 }
 
 @members 
@@ -36,6 +37,10 @@ scope UseScope {
     // For example a namespace rule will set the string that represents the namespace, saves
     // passing a whole load of returns through intermediate rules.
     protected string Capture {get; set;}
+
+    // This is the environment that we are building, it maps fully qualified type names to their
+    // translations
+    protected DirectoryHT<TypeRepTemplate> AppEnv {get; set;}
 
 }
 

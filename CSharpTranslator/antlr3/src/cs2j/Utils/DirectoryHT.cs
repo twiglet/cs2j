@@ -1,21 +1,21 @@
 using System;
-using System.Collections;
 using System.Text;
+using System.Collections.Generic;
 
 namespace RusticiSoftware.Translator.Utils
 {
 
     // Implements a hierarchy of directories.
-    public class DirectoryHT : IDictionary
+    public class DirectoryHT<TValue> : IDictionary<string, TValue>
     {
 
-        private DirectoryHT _parent = null;
+        private DirectoryHT<TValue> _parent = null;
 
-        private Hashtable leaves = new Hashtable();
+        private Dictionary<string, TValue> leaves = new Dictionary<string, TValue>();
 
-        private Hashtable children = new Hashtable();
+        private Dictionary<string, DirectoryHT<TValue>> children = new Dictionary<string, DirectoryHT<TValue>>();
 
-        public DirectoryHT(DirectoryHT p)
+        public DirectoryHT(DirectoryHT<TValue> p)
         {
             _parent = p;
         }
@@ -25,44 +25,225 @@ namespace RusticiSoftware.Translator.Utils
         { }
 
 
-        public Hashtable Leaves
+        public Dictionary<string, TValue> Leaves
         {
             get { return leaves; }
         }
 
         // p is key to a sub directory
-        public DirectoryHT subDir(string p)
+        public DirectoryHT<TValue> subDir(string p)
         {
             string[] components = p.Split(new char[] { '.' }, 2);
             if (components.Length == 1)
             {
-                return (DirectoryHT) children[components[0]];
+                return children[components[0]];
             }
             else
             {
-                DirectoryHT child = (DirectoryHT)children[components[0]];
+                DirectoryHT<TValue> child = children[components[0]];
                 return (child == null ? null : child.subDir(components[1]));
             }
         }
 
         #region IDictionary Members
 
-        public void Add(object key, object value)
+        public bool ContainsKey(string key)
         {
-            if (!(key is string))
-               throw new Exception("The method or operation is not implemented.");
-            
+            string[] components = key.Split(new char[] { '.' }, 2);
+            if (components.Length == 1)
+            {
+                return leaves.ContainsKey(components[0]);
+            }
+            else
+            {
+                return children[components[0]].ContainsKey(components[1]);
+            }
+        }
+
+        //        public IDictionaryEnumerator GetEnumerator()
+        //        {
+        //            IDictionaryEnumerator[] des = new IDictionaryEnumerator[1 + children.Count];
+        //            string[] pres = new string[1 + children.Count];
+        //            int i = 1;
+        //
+        //            pres[0] = "";
+        //            des[0] = leaves.GetEnumerator();
+        //            foreach (DictionaryEntry de in children)
+        //            {
+        //                pres[i] = ((string)de.Key) + ".";
+        //                des[i] = ((DirectoryHT)de.Value).GetEnumerator();
+        //                i++;
+        //            }
+        //
+        //            return new DirectoryHTEnumerator(pres,des); 
+        //        }
+
+        public ICollection<string> Keys
+        {
+            get
+            {
+                List<string> keys = new List<string>();
+                foreach (string k in leaves.Keys)
+                    keys.Add(k);
+                foreach (KeyValuePair<string, DirectoryHT<TValue>> de in children)
+                    foreach (string k in de.Value.Keys)
+                        keys.Add(de.Key + "." + k);
+                return keys;
+            }
+        }
+
+        public bool Remove(string key)
+        {
             string[] components = ((string)key).Split(new char[] { '.' }, 2);
+            if (components.Length == 1)
+            {
+                return leaves.Remove(components[0]);
+            }
+            else
+            {
+                return children[components[0]].Remove(components[1]);
+            }
+        }
+
+        public ICollection<TValue> Values
+        {
+
+            get
+            {
+                List<TValue> vals = new List<TValue>();
+                foreach (TValue v in leaves.Values)
+                    vals.Add(v);
+                foreach (KeyValuePair<string, DirectoryHT<TValue>> de in children)
+                    foreach (TValue v in de.Value.Values)
+                        vals.Add(v);
+                return vals;
+            }
+        }
+
+        public TValue this[string key]
+        {
+            get
+            {
+                // will throw KeyNotFound exception if not present
+                string[] components = key.Split(new char[] { '.' }, 2);
+                if (components.Length == 1)
+                {
+                    TValue val = leaves[key];
+                    // keving: this isn't typesafe!: return (val != null ? val : children[components[0]]);
+                    return val;
+                }
+                else
+                {
+                    DirectoryHT<TValue> child = children[components[0]];
+                    return child[components[1]];
+                }
+            }
+            set
+            {
+                Add(key, value);
+            }
+        }
+        public bool TryGetValue(string key, out TValue value)
+        {
+            string[] components = key.Split(new char[] { '.' }, 2);
+            if (components.Length == 1)
+            {
+                return leaves.TryGetValue(key, out value);
+            }
+            else
+            {
+                if (children.ContainsKey(components[0]))
+                {
+                    return children[components[0]].TryGetValue(components[1], out value);
+                }
+                else
+                {
+                    value = default(TValue);
+                    return false;
+                }
+            }
+        }
+
+        public void Add(KeyValuePair<string, TValue> item)
+        {
+            this.Add(item.Key, item.Value);
+        }
+
+        public bool Contains(KeyValuePair<string, TValue> item)
+        {
+            TValue value;
+            if (!this.TryGetValue(item.Key, out value))
+                return false;
+
+            return EqualityComparer<TValue>.Default.Equals(value, item.Value);
+        }
+
+        public bool Remove(KeyValuePair<string, TValue> item)
+        {
+            if (!this.Contains(item))
+                return false;
+
+            return this.Remove(item.Key);
+        }
+
+        public void CopyTo(KeyValuePair<string, TValue>[] array, int arrayIndex)
+        {
+            Copy(this, array, arrayIndex);
+        }
+
+        public void Add(string key, TValue value)
+        {
+            string[] components = key.Split(new char[] { '.' }, 2);
             if (components.Length == 1)
             {
                 leaves[components[0]] = value;
             }
             else
             {
-                if (children[components[0]] == null)
-                    children[components[0]] = new DirectoryHT(this);
-                ((DirectoryHT)children[components[0]]).Add(components[1], value);
+                if (!children.ContainsKey(components[0]))
+                    children[components[0]] = new DirectoryHT<TValue>(this);
+                children[components[0]].Add(components[1], value);
             }
+        }
+
+        public IEnumerator<KeyValuePair<string, TValue>> GetEnumerator()
+        {
+            foreach (KeyValuePair<string, DirectoryHT<TValue>> de in children)
+            {
+                foreach (KeyValuePair<string, TValue> cur in de.Value)
+                {
+                    yield return new KeyValuePair<string, TValue>(de.Key + "." + cur.Key, cur.Value);
+                }
+            }
+            foreach (KeyValuePair<string, TValue> de in leaves)
+            {
+                yield return new KeyValuePair<string, TValue>(de.Key, de.Value);
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+
+        #endregion
+
+        #region ICollection Members
+
+        public int Count
+        {
+            get
+            {
+                int count = leaves.Count;
+                foreach (DirectoryHT<TValue> c in children.Values)
+                    count += c.Count;
+                return count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get { return false; }
         }
 
         public void Clear()
@@ -71,221 +252,22 @@ namespace RusticiSoftware.Translator.Utils
             children.Clear();
         }
 
-        public bool Contains(object key)
-        {
-            if (!(key is string)) 
-                throw new Exception("The method or operation is not implemented.");
-            string[] components = ((String)key).Split(new char[] { '.' }, 2);
-            if (components.Length == 1)
-            {
-                return leaves.Contains(components[0]);
-            }
-            else
-            {
-                return ((DirectoryHT)children[components[0]]).Contains(components[1]);
-            }
-        }
-
-        public IDictionaryEnumerator GetEnumerator()
-        {
-            IDictionaryEnumerator[] des = new IDictionaryEnumerator[1 + children.Count];
-            string[] pres = new string[1 + children.Count];
-            int i = 1;
-
-            pres[0] = "";
-            des[0] = leaves.GetEnumerator();
-            foreach (DictionaryEntry de in children)
-            {
-                pres[i] = ((string)de.Key) + ".";
-                des[i] = ((DirectoryHT)de.Value).GetEnumerator();
-                i++;
-            }
-
-            return new DirectoryHTEnumerator(pres,des); 
-        }
-
-        public bool IsFixedSize
-        {
-            get { return false; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
-
-        public ICollection Keys
-        {
-            get {
-                ArrayList keys = new ArrayList();
-                foreach (object k in leaves.Keys)
-                    keys.Add(k);
-                foreach (DictionaryEntry de in children)
-                    foreach (string k in ((DirectoryHT)de.Value).Keys)
-                        keys.Add(de.Key + "." + k);
-                return keys;
-            }
-        }
-
-        public void Remove(object key)
-        {
-             if (!(key is string)) 
-                throw new Exception("The method or operation is not implemented.");
-            string[] components = ((string)key).Split(new char[] { '.' }, 2);
-            if (components.Length == 1)
-            {
-                leaves.Remove(components[0]);
-            }
-            else
-            {
-                ((DirectoryHT)children[components[0]]).Remove(components[1]);
-            }
-        }
-
-        public ICollection Values
-        {
- 
-            get {
-                ArrayList vals = new ArrayList();
-                foreach (object v in leaves.Values)
-                    vals.Add(v);
-                foreach (DictionaryEntry de in children)
-                    foreach (object v in ((DirectoryHT)de.Value).Values)
-                        vals.Add(v);
-                return vals;
-            }
-        }
-
-        public object this[object key]
-        {
-            get
-            {
-                if (!(key is string))
-                    throw new Exception("The method or operation is not implemented.");
-                string[] components = ((string)key).Split(new char[] { '.' }, 2);
-                if (components.Length == 1)
-                {
-                    object val = leaves[components[0]];
-                    return (val != null ? val : children[components[0]]);
-                }
-                else
-                {
-                    DirectoryHT child = (DirectoryHT)children[components[0]];
-                    return (child == null ? null : child[components[1]]);
-                }
-            }
-            set
-            {
-                Add(key, value);
-            }
-        }
-
         #endregion
 
-        #region ICollection Members
 
-        public void CopyTo(Array array, int index)
+        private static void Copy<T>(ICollection<T> source, T[] array, int arrayIndex)
         {
-            throw new Exception("The method or operation is not implemented.");
+            if (array == null)
+                throw new ArgumentNullException("array");
+
+            if (arrayIndex < 0 || arrayIndex > array.Length)
+                throw new ArgumentOutOfRangeException("arrayIndex");
+
+            if ((array.Length - arrayIndex) < source.Count)
+                throw new ArgumentException("Destination array is not large enough. Check array.Length and arrayIndex.");
+
+            foreach (T item in source)
+                array[arrayIndex++] = item;
         }
-
-        public int Count
-        {
-            get
-            {
-                int count = leaves.Count;
-                foreach (DirectoryHT c in children.Values)
-                    count += c.Count;
-                return count;
-            }
-        }
-
-        public bool IsSynchronized
-        {
-            get { throw new Exception("The method or operation is not implemented."); }
-        }
-
-        public object SyncRoot
-        {
-            get { throw new Exception("The method or operation is not implemented."); }
-        }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        #endregion
-    }
-
-    public class DirectoryHTEnumerator : IDictionaryEnumerator
-    {
-        private int _pos = 0;
-        private string[] _prefixes;
-        private IDictionaryEnumerator[] _enums;
-
-        public DirectoryHTEnumerator(string[] pres, IDictionaryEnumerator[] des)
-        {
-            _prefixes = pres;
-            _enums = des;
-        }
-
-        #region IDictionaryEnumerator Members
-
-        public DictionaryEntry Entry
-        {
-            get { return (DictionaryEntry)Current; }
-        }
-
-        public object Key
-        {
-            get { return Entry.Key; }
-        }
-
-        public object Value
-        {
-            get { return Entry.Value; }
-        }
-
-        #endregion
-
-        #region IEnumerator Members
-
-        public object Current
-        {
-            get { ValidateIndex(); 
-                  return new DictionaryEntry(_prefixes[_pos] + (string)((DictionaryEntry)_enums[_pos].Current).Key, 
-                                             ((DictionaryEntry)_enums[_pos].Current).Value); 
-            }
-        }
-
-        public bool MoveNext()
-        {
-            if (_pos >= _enums.Length)
-                return false;
-
-            while (_pos < _enums.Length && !_enums[_pos].MoveNext())
-                _pos++;
-
-            return _pos != _enums.Length;
-        }
-
-        public void Reset()
-        {
-            _pos = 0;
-        }
-
-        // Validate the enumeration index and throw an exception if the index is out of range.
-        private void ValidateIndex()
-        {
-            if (_pos < 0 || _pos >= _enums.Length)
-                throw new InvalidOperationException("Enumerator is before or after the collection.");
-        }
-
-        #endregion
     }
 }
