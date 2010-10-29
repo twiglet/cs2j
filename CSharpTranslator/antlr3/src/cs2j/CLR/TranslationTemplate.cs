@@ -828,7 +828,7 @@ namespace RusticiSoftware.Translator.CLR
 		public string[] TypeParams { get; set; }
 
 		// Path to use when resolving types
-		[XmlElementAttribute("Use")]
+		[XmlArrayItem("Use")]
 		public UseRepTemplate[] Uses { get; set; }
 
 		public TypeRepTemplate () : base()
