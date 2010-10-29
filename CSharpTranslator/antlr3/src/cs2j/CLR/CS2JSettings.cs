@@ -30,6 +30,8 @@ namespace RusticiSoftware.Translator.CSharp
 
         public int DebugLevel { get; set; }
 
+        public bool Warnings { get; set; }
+
 		public CS2JSettings ()
 		{
 		
@@ -54,6 +56,7 @@ namespace RusticiSoftware.Translator.CSharp
 			EnumDir = Path.Combine(Directory.GetCurrentDirectory(), "enums");
 	        Verbosity = 0;		
 	        DebugLevel = 0;		
+	        Warnings = false;		
 		}
 	}
 }

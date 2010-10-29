@@ -74,6 +74,7 @@ namespace RusticiSoftware.Translator.CSharp
 					OptionSet p = new OptionSet ()
 						.Add ("v", v => cfg.Verbosity++)
 						.Add ("debug=", v => cfg.DebugLevel = Int32.Parse(v))
+						.Add ("warnings", v => cfg.Warnings = true)
 						.Add ("version", v => showVersion())
     					.Add ("help|h|?", v => showUsage())
     					.Add ("dumpcsharp", v => cfg.DumpCSharp = true)
@@ -236,7 +237,8 @@ namespace RusticiSoftware.Translator.CSharp
             {
  
                     TemplateExtracter templateWalker = new TemplateExtracter(csTree);
-                    templateWalker.compilation_unit(cfg);
+                    templateWalker.Filename = fullName;
+                    templateWalker.compilation_unit(cfg, AppEnv);
             }
         }
 

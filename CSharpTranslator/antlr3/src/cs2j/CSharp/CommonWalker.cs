@@ -10,10 +10,17 @@ namespace RusticiSoftware.Translator.CSharp
     public class CommonWalker : TreeParser
     {
 		protected CS2JSettings Cfg { get; set; }
+		public string Filename { get; set; }
 
         protected CommonWalker(ITreeNodeStream input, RecognizerSharedState state)
             : base(input, state)
         { }
+
+        protected void Warning(String s)
+        {
+            if (Cfg.Warnings)
+                Console.Out.WriteLine("{0} WARNING: {1}", Filename, s);
+        }
 
         protected void Debug(String s)
         {
