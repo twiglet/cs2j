@@ -1,3 +1,5 @@
+using RusticiSoftware.Translator.Utils;
+using RusticiSoftware.Translator.CLR;
 namespace RusticiSoftware.Translator.CSharp
 {
     using System;
@@ -48,10 +50,10 @@ namespace RusticiSoftware.Translator.CSharp
                     AntlrUtils.AntlrUtils.DumpNodes(display_nodes); 
                     
                     BufferedTreeNodeStream nodes = new BufferedTreeNodeStream(parse_tree);
-
+					nodes.TokenStream = tokens;
 
                     TemplateExtracter templateWalker = new TemplateExtracter(nodes);
-                    templateWalker.compilation_unit(new CS2JSettings());
+                    templateWalker.compilation_unit(new CS2JSettings(), new DirectoryHT<TypeRepTemplate>());
 
                 }
             }

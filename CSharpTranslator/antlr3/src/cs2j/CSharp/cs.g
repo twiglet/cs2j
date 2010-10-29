@@ -9,6 +9,7 @@ options {
 
 tokens {
 	QID;
+    TYPEBARE; TYPERS; TYPEADORNED; TYPEVOID;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -75,7 +76,7 @@ type_declaration:
 // Identifiers
 qualified_identifier:
 	i+=identifier ('.' i+=identifier)*  
-	-> ^(QID $i+) ;
+	-> ^(QID identifier+) ;
 namespace_name
 	: namespace_or_type_name ;
 
@@ -334,13 +335,13 @@ qid_part:
 generic_argument_list: 
 	'<'   type_arguments   '>' ;
 type_arguments: 
-	type (',' type)* ;
+	type  (',' type)* ;
 
 type:
-	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
-	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?')
-	| (predefined_type | type_name)
-	| 'void' '*'+
+	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'* -> ^(TYPERS predefined_type? type_name? rank_specifiers '*'*)
+	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?') -> ^(TYPEADORNED predefined_type? type_name? '*'* '?'?)
+	| (predefined_type | type_name) -> ^(TYPEBARE predefined_type? type_name?)
+	| 'void' '*'+ -> ^(TYPEVOID '*'+)
 	;
 non_nullable_type:
 	(predefined_type | type_name)
