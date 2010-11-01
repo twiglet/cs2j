@@ -1143,6 +1143,9 @@ namespace RusticiSoftware.Translator.CLR
 					_params = new List<ParamRepTemplate> ();
 				return _params;
 			}
+			set {
+				_params = value;
+			}
 		}
 
 		private string _return;

@@ -790,8 +790,25 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 //	enum declaration
 ///////////////////////////////////////////////////////
-enum_declaration:
-	'enum'   identifier   enum_base?   enum_body   ';'? ;
+enum_declaration
+scope NSContext;
+@init {
+    $NSContext::nss = new List<UseRepTemplate>();
+    EnumRepTemplate eenum = new EnumRepTemplate();
+}
+:
+	'enum'   identifier   enum_base? 
+        { 
+            Debug("Processing enum: " + $identifier.text);
+            eenum.Uses = this.NameSpaceContext;
+            eenum.TypeName = this.ParentNameSpace + "." + $identifier.text;
+            // Nested types can see things in this space
+            $NSContext::nss.Add(new UseRepTemplate(eenum.TypeName));
+            $NSContext::currentNS = eenum.TypeName;
+            $NSContext::currentTypeRep = eenum;
+            AppEnv[eenum.TypeName] = eenum;
+        } 
+    enum_body   ';'? ;
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -799,7 +816,9 @@ enum_body:
 enum_member_declarations:
 	enum_member_declaration (',' enum_member_declaration)* ;
 enum_member_declaration:
-	attributes?   identifier   ('='   expression)? ;
+	attributes?   identifier   ('='   expression)? 
+        { ((EnumRepTemplate)$NSContext::currentTypeRep).Members.Add(new EnumMemberRepTemplate($identifier.text, $expression.text)); } // todo:  are arbitrary expressions really allowed
+;
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:
@@ -808,9 +827,29 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration:
+delegate_declaration
+scope NSContext;
+@init {
+    $NSContext::nss = new List<UseRepTemplate>();
+    DelegateRepTemplate dlegate = new DelegateRepTemplate();
+}
+:
 	'delegate'   return_type   identifier  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
+		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
+        { 
+            Debug("Processing delegate: " + $identifier.text);
+            dlegate.Uses = this.NameSpaceContext;
+            dlegate.TypeName = this.ParentNameSpace + "." + $identifier.text;
+            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
+                // distinguish classes with same name, but differing numbers of type arguments
+                dlegate.TypeName+= "'" + $variant_generic_parameter_list.tyargs.Count.ToString();
+                dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
+            }
+            dlegate.Return=$return_type.thetext;
+            dlegate.Params=$formal_parameter_list.paramlist;
+            AppEnv[dlegate.TypeName] = dlegate;
+        } 
+;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -847,9 +886,9 @@ type_variable_name:
 	identifier ;
 constructor_constraint:
 	'new'   '('   ')' ;
-return_type:
-	type
-	|  'void';
+return_type returns [string thetext]:
+	type { $thetext = $type.thetext; }
+	|  v='void' { $thetext = $v.text; } ;
 formal_parameter_list returns [List<ParamRepTemplate> paramlist]
 @init {
     $paramlist = new List<ParamRepTemplate>();
