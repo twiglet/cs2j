@@ -919,14 +919,36 @@ method_modifiers:
 	modifier+ ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration:
-	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
+struct_declaration
+scope NSContext;
+@init {
+    $NSContext::nss = new List<UseRepTemplate>();
+    StructRepTemplate strukt = new StructRepTemplate();
+}
+    :
+	'struct'   type_or_generic   
+        { 
+            Debug("Processing struct: " + $type_or_generic.type);
+            strukt.Uses = this.NameSpaceContext;
+            strukt.TypeName = this.ParentNameSpace + "." + $type_or_generic.type;
+            if ($type_or_generic.generic_arguments.Count > 0) {
+                // distinguish structs with same name, but differing numbers of type arguments
+                strukt.TypeName+= "'" + $type_or_generic.generic_arguments.Count.ToString();
+            }
+            strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
+            // Nested types can see things in this space
+            $NSContext::nss.Add(new UseRepTemplate(strukt.TypeName));
+            $NSContext::currentNS = strukt.TypeName;
+            $NSContext::currentTypeRep = strukt;
+            AppEnv[strukt.TypeName] = strukt;
+        } (si=struct_interfaces { strukt.Inherits =  $si.typeList.ToArray(); })?
+         type_parameter_constraints_clauses?   struct_body   ';'? ;
 struct_modifiers:
 	struct_modifier+ ;
 struct_modifier:
 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-struct_interfaces:
-	':'   interface_type_list;
+struct_interfaces returns [List<string> typeList]:
+	':'   interface_type_list  { $typeList=$interface_type_list.typeList; };
 struct_body:
 	'{'   struct_member_declarations?   '}';
 struct_member_declarations:
