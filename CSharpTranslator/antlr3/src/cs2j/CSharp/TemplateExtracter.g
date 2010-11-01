@@ -676,8 +676,8 @@ scope NSContext;
             if ($type_or_generic.generic_arguments.Count > 0) {
                 // distinguish classes with same name, but differing numbers of type arguments
                 klass.TypeName+= "'" + $type_or_generic.generic_arguments.Count.ToString();
+                klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
-            klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
             // Nested types can see things in this space
             $NSContext::nss.Add(new UseRepTemplate(klass.TypeName));
             $NSContext::currentNS = klass.TypeName;
@@ -814,10 +814,13 @@ delegate_declaration:
 delegate_modifiers:
 	modifier+ ;
 // 4.0
-variant_generic_parameter_list:
-	'<'   variant_type_parameters   '>' ;
-variant_type_parameters:
-	variant_type_variable_name (',' variant_type_variable_name)* ;
+variant_generic_parameter_list returns [List<string> tyargs]
+@init {
+    $tyargs = new List<string>();
+}:
+	'<'   variant_type_parameters[$tyargs]   '>' ;
+variant_type_parameters [List<String> tyargs]:
+	v1=variant_type_variable_name { tyargs.Add($v1.text); } (',' vn=variant_type_variable_name  { tyargs.Add($vn.text); })* ;
 variant_type_variable_name:
 	attributes?   variance_annotation?   type_variable_name ;
 variance_annotation:
@@ -876,41 +879,77 @@ parameter_array returns [ParamRepTemplate param]:
 	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext + "[]", $i.text, false); } ;
 
 ///////////////////////////////////////////////////////
-interface_declaration:
-	'interface'   identifier   variant_generic_parameter_list? 
-    	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? ;
+interface_declaration 
+scope NSContext;
+@init {
+    $NSContext::nss = new List<UseRepTemplate>();
+    InterfaceRepTemplate iface = new InterfaceRepTemplate();
+}
+:
+	'interface'   identifier   variant_generic_parameter_list?
+        { 
+            Debug("Processing interface: " + $identifier.text);
+            iface.Uses = this.NameSpaceContext;
+            iface.TypeName = this.ParentNameSpace + "." + $identifier.text;
+            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
+                // distinguish classes with same name, but differing numbers of type arguments
+                iface.TypeName+= "'" + $variant_generic_parameter_list.tyargs.Count.ToString();
+                iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
+            }
+            // Nested types can see things in this space
+            $NSContext::nss.Add(new UseRepTemplate(iface.TypeName));
+            $NSContext::currentNS = iface.TypeName;
+            $NSContext::currentTypeRep = iface;
+            AppEnv[iface.TypeName] = iface;
+        } 
+    	(interface_base { iface.Inherits = $interface_base.typeList.ToArray(); } )?   
+        type_parameter_constraints_clauses?   interface_body   ';'? ;
 interface_modifiers: 
 	modifier+ ;
-interface_base: 
-   	':' interface_type_list ;
+interface_base returns [List<string> typeList]: 
+   	':' interface_type_list { $typeList = $interface_type_list.typeList; } ;
 interface_body:
 	'{'   interface_member_declarations?   '}' ;
 interface_member_declarations:
 	interface_member_declaration+ ;
 interface_member_declaration:
 	attributes?    modifiers?
-		('void'   interface_method_declaration
+		('void'   interface_method_declaration["System.Void"]
 		| interface_event_declaration
-		| type   ( (member_name   '(') => interface_method_declaration
-		         | (member_name   '{') => interface_property_declaration 
-				 | interface_indexer_declaration)
+		| rt=type   ( (member_name   '(') => interface_method_declaration[$rt.thetext]
+		         | (member_name   '{') => interface_property_declaration[$rt.thetext] 
+				 | interface_indexer_declaration[$rt.thetext])
 		) 
 		;
-interface_property_declaration: 
-	identifier   '{'   interface_accessor_declarations   '}' ;
-interface_method_declaration:
+interface_property_declaration [string returnType]: 
+	identifier   '{'   interface_accessor_declarations   '}' 
+           { PropRepTemplate propRep = new PropRepTemplate($returnType, $identifier.text);
+            propRep.CanRead = $interface_accessor_declarations.hasGetter;
+            propRep.CanWrite = $interface_accessor_declarations.hasSetter;
+            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
+    ;
+interface_method_declaration [string returnType]:
 	identifier   generic_argument_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
+	    '('   fpl=formal_parameter_list?   ')'  
+        {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $identifier.text, ($generic_argument_list.tyargs.ToArray()), $fpl.paramlist)); }
+        type_parameter_constraints_clauses?   ';' ;
 interface_event_declaration: 
 	//attributes?   'new'?   
-	'event'   type   identifier   ';' ; 
-interface_indexer_declaration: 
+	'event'   type   identifier  { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' ; 
+interface_indexer_declaration [string returnType]: 
 	// attributes?    'new'?    type   
-	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' ;
-interface_accessor_declarations:
+	'this'   '['   fpl=formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' 
+         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, "this", null, $fpl.paramlist)); }
+    ;
+interface_accessor_declarations returns [bool hasGetter, bool hasSetter]
+@int {
+    $hasSetter = false;
+    $hasGetter = false;
+}
+:
 	attributes?   
-		(interface_get_accessor_declaration   attributes?   interface_set_accessor_declaration?
-		| interface_set_accessor_declaration   attributes?   interface_get_accessor_declaration?) ;
+		(interface_get_accessor_declaration { $hasGetter = true; }  attributes?   (interface_set_accessor_declaration { $hasSetter = true; })?
+		| interface_set_accessor_declaration  { $hasSetter = true; } attributes?   (interface_get_accessor_declaration { $hasGetter = true; })?) ;
 interface_get_accessor_declaration:
 	'get'   ';' ;		// no body / modifiers
 interface_set_accessor_declaration:
@@ -934,8 +973,8 @@ scope NSContext;
             if ($type_or_generic.generic_arguments.Count > 0) {
                 // distinguish structs with same name, but differing numbers of type arguments
                 strukt.TypeName+= "'" + $type_or_generic.generic_arguments.Count.ToString();
+                strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
-            strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
             // Nested types can see things in this space
             $NSContext::nss.Add(new UseRepTemplate(strukt.TypeName));
             $NSContext::currentNS = strukt.TypeName;
@@ -957,7 +996,7 @@ struct_member_declaration:
 	attributes?   m=modifiers?
 	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| 'partial' (method_declaration["/* partial */"] 
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration["/* partial */"] 
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
