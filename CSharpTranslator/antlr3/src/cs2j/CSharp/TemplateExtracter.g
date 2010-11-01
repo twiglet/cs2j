@@ -68,6 +68,21 @@ scope NSContext {
             return ((NSContext_scope)$NSContext.ToArray()[$NSContext.Count-2]).currentNS;
         }
     }
+
+    protected string formatTyargs(List<string> tyargs) {
+               
+        if (tyargs.Count == 0) {
+            return "";
+        }
+        StringBuilder buf = new StringBuilder();
+        buf.Append("<");
+        foreach (string t in tyargs) {
+            buf.Append(t + ",");
+        }
+        buf.Remove(buf.Length-1,1);
+        buf.Append(">");
+        return buf.ToString();
+    }
 }
 
 /********************************************************************************************
@@ -379,9 +394,9 @@ commas:
 ///////////////////////////////////////////////////////
 
 type_name returns [string thetext]: 
-	namespace_or_type_name { $thetext = $namespace_or_type_name.text; };
-namespace_or_type_name:
-	  ^(NS_OR_TN type_or_generic ^(CC type_or_generic?) type_or_generic*) ;
+	namespace_or_type_name { $thetext = $namespace_or_type_name.thetext; };
+namespace_or_type_name returns [string thetext]: 
+	 t1=type_or_generic  { $thetext=t1.type+formatTyargs($t1.generic_arguments); } ('::' tc=type_or_generic { $thetext+="::"+tc.type+formatTyargs($tc.generic_arguments); })? ('.'   tn=type_or_generic { $thetext+="."+tn.type+formatTyargs($tn.generic_arguments); } )* ;
 type_or_generic returns [string type, List<string> generic_arguments]
 @init {
     $generic_arguments = new List<String>();
@@ -420,7 +435,7 @@ type_arguments returns [List<string> tyargs]
     $tyargs = new List<string>();
 }
 : 
-	t1=type { Debug("type arg: " + $t1.text); $tyargs.Add($t1.text); } (',' tn=type { Debug("type arg: " + $tn.text); $tyargs.Add($tn.text); })* ;
+	t1=type { $tyargs.Add($t1.thetext); } (',' tn=type { $tyargs.Add($tn.thetext); })* ;
 
 type returns [string thetext]:
 	  ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } ('*' { $thetext += "*"; })*
@@ -712,10 +727,10 @@ variable_declarator [string type, bool isEvent]:
 	type_name 
        { FieldRepTemplate f = new FieldRepTemplate($type, $type_name.text);
          if (isEvent) {
-             ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(f);
+             ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(f);
          }
         else {
-             ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(f);
+             ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(f);
         }; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////

@@ -9,7 +9,6 @@ options {
 
 tokens {
 	QID;
-    NS_OR_TN; CC;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -311,7 +310,7 @@ commas:
 type_name: 
 	namespace_or_type_name ;
 namespace_or_type_name:
-	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   t3+=type_or_generic)*  -> ^(NS_OR_TN $t1 ^(CC $t2?) $t3*);
+	 type_or_generic   ('::' type_or_generic)? ('.'   type_or_generic)* ;
 type_or_generic:
 	(identifier   '<') => identifier   generic_argument_list
 	| identifier ;
