@@ -26,17 +26,37 @@ namespace RusticiSoftware.Translator.CLR
 	// Simple <type> <name> pairs to represent formal parameters
 	public class ParamRepTemplate : IEquatable<ParamRepTemplate>
 	{
-		public string Type { get; set; }
+		private string _type;
+		public string Type { 
+			get { return _type; }
+			set {
+				_type=value.Replace('<','[').Replace('>',']');
+			}
+		}
 		public string Name { get; set; }
+
+		// ref or out param?
+		[XmlAttribute("byref")]
+		[System.ComponentModel.DefaultValueAttribute(false)]
+		public bool IsByRef{ get; set; }
 
 		public ParamRepTemplate ()
 		{
+			IsByRef = false;
 		}
 
 		public ParamRepTemplate (string t, string a)
 		{
 			Type = t;
 			Name = a;
+			IsByRef = false;
+		}
+
+		public ParamRepTemplate (string t, string a, bool isbyref)
+		{
+			Type = t;
+			Name = a;
+			IsByRef = isbyref;
 		}
 
 		#region Equality
@@ -45,7 +65,7 @@ namespace RusticiSoftware.Translator.CLR
 			if (other == null)
 				return false;
 			
-			return Type == other.Type && Name == other.Name;
+			return Type == other.Type && Name == other.Name && IsByRef == other.IsByRef;
 		}
 
 		public override bool Equals (object obj)
@@ -70,7 +90,7 @@ namespace RusticiSoftware.Translator.CLR
 
 		public override int GetHashCode ()
 		{
-			return (Type ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode ();
+			return (Type ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsByRef.GetHashCode();
 		}
 		#endregion
 	}
@@ -167,10 +187,15 @@ namespace RusticiSoftware.Translator.CLR
 			set { _java = value; } 
 		}
 		
-		// Optional,  but if present will jet mkJava generate better java guess in some cases
+		// Optional,  but if present will let mkJava generate better java guess in some cases
+		private string _surroundingTypeName;
 		[XmlIgnore]
-		public string SurroundingTypeName {get; set;}
-		
+		public string SurroundingTypeName { 
+			get { return _surroundingTypeName; }
+			set {
+				_surroundingTypeName=value.Replace('<','[').Replace('>',']');
+			}
+		}		
 		public virtual string[] mkImports() {
 			return null;
 		}
@@ -389,7 +414,13 @@ namespace RusticiSoftware.Translator.CLR
 		public string[] TypeParams { get; set; }
 
 		// Return type
-		public string Return { get; set; }
+		private string _return;
+		public string Return { 
+			get { return _return; }
+			set {
+				_return=value.Replace('<','[').Replace('>',']');
+			}
+		}		
 
 		// isStatic method?
 		[XmlAttribute("static")]
@@ -496,8 +527,22 @@ namespace RusticiSoftware.Translator.CLR
 	public class CastRepTemplate : TranslationBase, IEquatable<CastRepTemplate>
 	{
 		// From and To are fully qualified types
-		public string From { get; set; }
-		public string To { get; set; }
+		private string _from;
+		public string From { 
+			get { return _from; }
+			set {
+				_from=value.Replace('<','[').Replace('>',']');
+			}
+		}		
+
+		private string _to;
+		public string To { 
+			get { return _to; }
+			set {
+				_to=value.Replace('<','[').Replace('>',']');
+			}
+		}		
+
 
 		public CastRepTemplate () : base()
 		{
@@ -572,7 +617,13 @@ namespace RusticiSoftware.Translator.CLR
 	public class FieldRepTemplate : TranslationBase, IEquatable<FieldRepTemplate>
 	{
 
-		public string Type { get; set; }
+		private string _type;
+		public string Type { 
+			get { return _type; }
+			set {
+				_type=value.Replace('<','[').Replace('>',']');
+			}
+		}		
 		public string Name { get; set; }
 
 		public FieldRepTemplate () : base()
@@ -1094,7 +1145,13 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
-		public string Return {get; set;}
+		private string _return;
+		public string Return { 
+			get { return _return; }
+			set {
+				_return=value.Replace('<','[').Replace('>',']');
+			}
+		}		
 		
 		public DelegateRepTemplate () : base()
 		{
@@ -1172,9 +1229,22 @@ namespace RusticiSoftware.Translator.CLR
 	public class InterfaceRepTemplate : TypeRepTemplate, IEquatable<InterfaceRepTemplate>
 	{
 
-
+		private string[] _inherits;
 		[XmlArrayItem("Type")]
-		public string[] Inherits { get; set; }
+		public string[] Inherits { 
+			get { return _inherits; }
+			set {
+				if (value != null) {
+					_inherits= new string[value.Length];
+					for (int i = 0; i < value.Length; i++) {
+						_inherits[i] = value[i].Replace('<','[').Replace('>',']');
+					}
+				}
+				else {
+					_inherits = null;
+				}
+			}
+		}		
 
 		private List<MethodRepTemplate> _methods = null;
 		[XmlArrayItem("Method")]
