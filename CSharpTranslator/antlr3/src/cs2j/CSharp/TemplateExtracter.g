@@ -187,7 +187,7 @@ class_member_declaration:
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
 		   | indexer_declaration[$rt.thetext, ""]	//this
 	       | field_declaration[$rt.thetext]      // qid
-	       | operator_declaration
+	       | operator_declaration[$rt.thetext]
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
@@ -948,7 +948,7 @@ struct_member_declaration:
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
 		   | indexer_declaration[$rt.thetext, ""]	//this
 	       | field_declaration[$rt.thetext]      // qid
-	       | operator_declaration
+	       | operator_declaration[$rt.thetext]
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
@@ -971,19 +971,33 @@ indexer_declarator [string returnType, string prefix]:
     ;
 	
 ///////////////////////////////////////////////////////
-operator_declaration:
-	operator_declarator   operator_body ;
-operator_declarator:
+operator_declaration [string returnType]:
+	operator_declarator[$returnType]   operator_body ;
+operator_declarator [string returnType]
+@init {
+    string opText = "";
+    List<ParamRepTemplate> paramList = new List<ParamRepTemplate>();
+    bool unaryOp = false;
+}
+@after {
+    MethodRepTemplate meth = new MethodRepTemplate($returnType, opText, null, paramList); 
+    if (unaryOp) {
+        ((ClassRepTemplate)$NSContext::currentTypeRep).UnaryOps.Add(meth);
+    }
+    else {
+        ((ClassRepTemplate)$NSContext::currentTypeRep).BinaryOps.Add(meth);
+    } 
+}:
 	'operator'   
-		(('+' | '-')   '('   type   identifier (binary_operator_declarator | unary_operator_declarator)
-		| overloadable_unary_operator   unary_operator_declarator
-		| overloadable_binary_operator   binary_operator_declarator) ;
+		(('+' { opText = "+"; } | '-' { opText = "-"; })   '('   t0=type   i0=identifier { paramList.Add(new ParamRepTemplate($t0.thetext, $i0.text)); } (binary_operator_declarator[paramList] | unary_operator_declarator { unaryOp = true; })
+		| overloadable_unary_operator { opText = $overloadable_unary_operator.text; } '('   t1=type   i1=identifier { paramList.Add(new ParamRepTemplate($t1.thetext, $i1.text)); } unary_operator_declarator { unaryOp = true;  } 
+		| overloadable_binary_operator { opText = $overloadable_binary_operator.text; } '(' t2=type   i2=identifier { paramList.Add(new ParamRepTemplate($t2.thetext, $i2.text)); } binary_operator_declarator[paramList] ) ;
 unary_operator_declarator:
 	   ')' ;
 overloadable_unary_operator:
 	/*'+' |  '-' | */ '!' |  '~' |  '++' |  '--' |  'true' |  'false' ;
-binary_operator_declarator:
-	','   type   identifier   ')' ;
+binary_operator_declarator [List<ParamRepTemplate> paramList]:
+	','   type   identifier   ')' { $paramList.Add(new ParamRepTemplate($type.thetext, $identifier.text)); } ;
 // >> check needed
 overloadable_binary_operator:
 	/*'+' | '-' | */ '*' | '/' | '%' | '&' | '|' | '^' | '<<' | '>' '>' | '==' | '!=' | '>' | '<' | '>=' | '<=' ; 
@@ -991,7 +1005,9 @@ overloadable_binary_operator:
 conversion_operator_declaration:
 	conversion_operator_declarator   operator_body ;
 conversion_operator_declarator:
-	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
+	(i='implicit' { Warning($i.line, "[UNSUPPORTED] implicit user defined casts,  an explicit cast is always required."); } | 'explicit')  'operator'   tt=type   '('   tf=type   identifier   ')' 
+         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(new CastRepTemplate($tf.thetext, $tt.thetext)); }
+    ;
 operator_body:
 	block ;
 

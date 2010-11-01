@@ -13,7 +13,7 @@ namespace cs2jTest.Various.Features.join.yield
 		
 		public const int MY_IMPORTANT_INT = 23;
 		public const String MY_IMPORTANT_STRING = "Kevin";
-		
+		private int myInt = 0;
 		private System.Collections.Generic.IDictionary<int,short> myDict;
 		
 		public string TestRWProperty {get; set;}
@@ -55,7 +55,11 @@ namespace cs2jTest.Various.Features.join.yield
         	return "Various";
     	}
 
-		
+		public static Various operator ++(Various v) {
+			Various temp = new Various();
+			temp.myInt = v.myInt+1;
+			return temp;
+		}
 	}
 }
 

@@ -812,8 +812,8 @@ operator_declaration:
 operator_declarator:
 	'operator'   
 		(('+' | '-')   '('   type   identifier (binary_operator_declarator | unary_operator_declarator)
-		| overloadable_unary_operator   unary_operator_declarator
-		| overloadable_binary_operator   binary_operator_declarator) ;
+		| overloadable_unary_operator   '('   type   identifier unary_operator_declarator
+		| overloadable_binary_operator  '('   type   identifier  binary_operator_declarator) ;
 unary_operator_declarator:
 	   ')' ;
 overloadable_unary_operator:

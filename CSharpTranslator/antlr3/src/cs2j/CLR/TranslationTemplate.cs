@@ -1452,6 +1452,26 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
+		private List<MethodRepTemplate> _unaryOps = null;
+		[XmlArrayItem("UnaryOp")]
+		public List<MethodRepTemplate> UnaryOps {
+			get {
+				if (_unaryOps == null)
+					_unaryOps = new List<MethodRepTemplate> ();
+				return _unaryOps;
+			}
+		}
+
+		private List<MethodRepTemplate> _binaryOps = null;
+		[XmlArrayItem("BinaryOp")]
+		public List<MethodRepTemplate> BinaryOps {
+			get {
+				if (_binaryOps == null)
+					_binaryOps = new List<MethodRepTemplate> ();
+				return _binaryOps;
+			}
+		}
+
 		public ClassRepTemplate ()
 		{
 		}
@@ -1514,6 +1534,25 @@ namespace RusticiSoftware.Translator.CLR
 						return false;
 				}
 			}
+
+			if (UnaryOps != other.UnaryOps) {
+				if (UnaryOps == null || other.UnaryOps == null || UnaryOps.Count != other.UnaryOps.Count)
+					return false;
+				for (int i = 0; i < UnaryOps.Count; i++) {
+					if (UnaryOps[i] != other.UnaryOps[i])
+						return false;
+				}
+			}
+
+			if (BinaryOps != other.BinaryOps) {
+				if (BinaryOps == null || other.BinaryOps == null || BinaryOps.Count != other.BinaryOps.Count)
+					return false;
+				for (int i = 0; i < BinaryOps.Count; i++) {
+					if (BinaryOps[i] != other.BinaryOps[i])
+						return false;
+				}
+			}
+
 
 			return base.Equals(other);
 		}
