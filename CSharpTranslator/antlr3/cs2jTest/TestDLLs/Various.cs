@@ -11,7 +11,10 @@ namespace cs2jTest.Various.Features.join.yield
 		{
 		}
 		
-		private int myInt;
+		public const int MY_IMPORTANT_INT = 23;
+		public const String MY_IMPORTANT_STRING = "Kevin";
+		
+		private System.Collections.Generic.IDictionary<int,short> myDict;
 		
 		public string TestRWProperty {get; set;}
 		
@@ -19,6 +22,10 @@ namespace cs2jTest.Various.Features.join.yield
 			return "hello";
 		}
 		
+		public string testgen<T>(T i) {
+			return "hello";
+		}
+			
 		private string _testROProperty = null;
 		public string TestROProperty {
 			get { return _testROProperty; }

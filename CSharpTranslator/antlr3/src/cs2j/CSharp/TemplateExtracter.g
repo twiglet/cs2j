@@ -1,4 +1,4 @@
-// SignatureExtracter.g
+// TemplateExtracter.g
 //
 // Crawler that extracts the signatures (typereptemplates) from a CSharp AST 
 //
@@ -21,6 +21,7 @@ options {
 scope NSContext {
    IList<UseRepTemplate> nss;
    string currentNS;
+   TypeRepTemplate currentTypeRep;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -83,6 +84,7 @@ scope NSContext;
     // For initial, file level scope
     $NSContext::nss = new List<UseRepTemplate>();
     $NSContext::currentNS = "";
+    $NSContext::currentTypeRep = null;
 }
 :
 { Debug("start template extraction"); }    
@@ -94,6 +96,7 @@ namespace_declaration
 scope NSContext;
 @init{
     $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::currentTypeRep = null;
 }
 :
 	'namespace'   qi=qualified_identifier  
@@ -110,7 +113,7 @@ namespace_body:
 extern_alias_directives:
 	extern_alias_directive+ ;
 extern_alias_directive:
-	'extern'   'alias'   i=identifier  ';' { Warning("UNSUPPORTED: External Alias " + $i.text); } ;
+	e='extern'   'alias'   i=identifier  ';' { Warning($e.line, "[UNSUPPORTED] External Alias " + $i.text); } ;
 using_directives:
 	using_directive+ ;
 using_directive:
@@ -130,7 +133,7 @@ namespace_member_declaration:
 	namespace_declaration
 	| attributes?   modifiers?   type_declaration ;
 type_declaration:
-	('partial') => 'partial'  { Warning("UNSUPPORTED: 'partial' definitions"); } (class_declaration
+	('partial') => p='partial'  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (class_declaration
 								| struct_declaration
 								| interface_declaration)
 	| class_declaration
@@ -154,20 +157,21 @@ modifier:
 	
 class_member_declaration:
 	attributes?
+    // TODO:  Don't emit private
 	m=modifiers?
-	( 'const'   type   constant_declarators   ';'
+	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration["/* partial */"] 
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
 	| interface_declaration	// 'interface'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
+	| 'void'   method_declaration["System.Void"]
+	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
+		   | (member_name   '{') => property_declaration[$rt.thetext]
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
 		   | indexer_declaration	//this
-	       | field_declaration      // qid
+	       | field_declaration[$rt.thetext]      // qid
 	       | operator_declaration
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
@@ -374,10 +378,10 @@ commas:
 //	Type Section
 ///////////////////////////////////////////////////////
 
-type_name: 
-	namespace_or_type_name ;
+type_name returns [string thetext]: 
+	namespace_or_type_name { $thetext = $namespace_or_type_name.text; };
 namespace_or_type_name:
-	 type_or_generic   ('::' type_or_generic)? ('.'   type_or_generic)* ;
+	  ^(NS_OR_TN type_or_generic ^(CC type_or_generic?) type_or_generic*) ;
 type_or_generic returns [string type, List<string> generic_arguments]
 @init {
     $generic_arguments = new List<String>();
@@ -388,16 +392,17 @@ type_or_generic returns [string type, List<string> generic_arguments]
 	(identifier   '<') => t=identifier   ga=generic_argument_list { $generic_arguments = $ga.tyargs; }
 	| t=identifier ;
 
-qid:		// qualified_identifier v2
-	qid_start   qid_part*
+// keving: as far as I can see this is (<interfacename>.)?identifier (<tyargs>)? at lease for C# 3.0 and less.
+qid returns [string name, List<String> tyargs]:		// qualified_identifier v2
+	qid_start   qid_part* { $name=$qid_start.name; $tyargs = $qid_start.tyargs; }
 	;
-qid_start:
-	predefined_type
-	| (identifier    '<')	=> identifier   generic_argument_list
+qid_start returns [string name, List<String> tyargs]:
+	predefined_type { $name = $predefined_type.thetext; }
+	| (identifier    '<')	=> identifier   generic_argument_list { $name = $identifier.text; $tyargs = $generic_argument_list.tyargs; } 
 //	| 'this'
 //	| 'base'
-	| identifier   ('::'   identifier)?
-	| literal 
+	| i1=identifier  { $name = $i1.text; } ('::'   inext=identifier { $name+="::" + $inext.text; })?
+	| literal { $name = $literal.text; }
 	;		// 0.ToString() is legal
 
 
@@ -417,11 +422,11 @@ type_arguments returns [List<string> tyargs]
 : 
 	t1=type { Debug("type arg: " + $t1.text); $tyargs.Add($t1.text); } (',' tn=type { Debug("type arg: " + $tn.text); $tyargs.Add($tn.text); })* ;
 
-type:
-	 ^(TYPERS predefined_type? type_name? rank_specifiers '*'*)
-	| ^(TYPEADORNED predefined_type? type_name? '*'* '?'?)
-	| ^(TYPEBARE predefined_type? type_name?)
-	| ^(TYPEVOID '*'*)
+type returns [string thetext]:
+	  ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } ('*' { $thetext += "*"; })*
+	| ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   (('*' { $thetext += "*"; })+ | '?' { $thetext += "?"; })
+	| (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; })
+	| 'void' { $thetext = "System.Void"; } ('*' { $thetext += "*"; })+
 	;
 non_nullable_type:
 	(predefined_type | type_name)
@@ -661,6 +666,7 @@ scope NSContext;
             // Nested types can see things in this space
             $NSContext::nss.Add(new UseRepTemplate(klass.TypeName));
             $NSContext::currentNS = klass.TypeName;
+            $NSContext::currentTypeRep = klass;
             AppEnv[klass.TypeName] = klass;
         }
         (cb=class_base { klass.Inherits =  $cb.typeList.ToArray(); } )?   
@@ -689,39 +695,58 @@ class_member_declarations:
 
 ///////////////////////////////////////////////////////
 constant_declaration:
-	'const'   type   constant_declarators   ';' ;
-constant_declarators:
-	constant_declarator (',' constant_declarator)* ;
-constant_declarator:
-	identifier   ('='   constant_expression)? ;
+	'const'   type   constant_declarators[$type.thetext]   ';' ;
+constant_declarators [string type]:
+	constant_declarator[$type] (',' constant_declarator[$type])* ;
+constant_declarator [string type]:
+	identifier   { ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(new FieldRepTemplate($type, $identifier.text)); } ('='   constant_expression)? ;
 constant_expression:
 	expression;
 
 ///////////////////////////////////////////////////////
-field_declaration:
-	variable_declarators   ';'	;
-variable_declarators:
-	variable_declarator (','   variable_declarator)* ;
-variable_declarator:
-	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
+field_declaration [string type]:
+	variable_declarators[$type, false]   ';'	;
+variable_declarators [string type, bool isEvent]:
+	variable_declarator[$type, $isEvent] (','   variable_declarator[$type, $isEvent])* ;
+variable_declarator [string type, bool isEvent]:
+	type_name 
+       { FieldRepTemplate f = new FieldRepTemplate($type, $type_name.text);
+         if (isEvent) {
+             ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(f);
+         }
+        else {
+             ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(f);
+        }; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration:
-	method_header   method_body ;
-method_header:
-	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
+method_declaration [string returnType]:
+	method_header[$returnType]   method_body ;
+method_header [string returnType]:
+	member_name  '('   fpl=formal_parameter_list?   ')'   
+     {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist)); }
+    type_parameter_constraints_clauses? ;
 method_body:
 	block ;
-member_name:
-	qid ;		// IInterface<int>.Method logic added.
+member_name returns [string name, List<String> tyargs]:
+	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-property_declaration:
-	member_name   '{'   accessor_declarations   '}' ;
-accessor_declarations:
+property_declaration[string type]:
+	member_name   '{'   accessor_declarations   '}' 
+           { PropRepTemplate propRep = new PropRepTemplate($type, $member_name.name);
+            propRep.CanRead = $accessor_declarations.hasGetter;
+            propRep.CanWrite = $accessor_declarations.hasSetter;
+            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
+;
+accessor_declarations returns [bool hasGetter, bool hasSetter]
+@int {
+    $hasSetter = false;
+    $hasGetter = false;
+}
+:
 	attributes?
-		(get_accessor_declaration   attributes?   set_accessor_declaration?
-		| set_accessor_declaration   attributes?   get_accessor_declaration?) ;
+		(get_accessor_declaration { $hasGetter = true; }  attributes?   (set_accessor_declaration { $hasSetter = true; })?
+		| set_accessor_declaration  { $hasSetter = true; } attributes?   (get_accessor_declaration { $hasGetter = true; })?) ;
 get_accessor_declaration:
 	accessor_modifier?   'get'   accessor_body ;
 set_accessor_declaration:
@@ -735,7 +760,7 @@ accessor_body:
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators   ';')	// typename=foo;
+		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
 		;
 event_modifiers:
 	modifier+ ;
@@ -807,23 +832,33 @@ constructor_constraint:
 return_type:
 	type
 	|  'void';
-formal_parameter_list:
-	formal_parameter (',' formal_parameter)* ;
-formal_parameter:
-	attributes?   (fixed_parameter | parameter_array) 
-	| '__arglist';	// __arglist is undocumented, see google
-fixed_parameters:
-	fixed_parameter   (','   fixed_parameter)* ;
+formal_parameter_list returns [List<ParamRepTemplate> paramlist]
+@init {
+    $paramlist = new List<ParamRepTemplate>();
+}:
+	p1=formal_parameter { $paramlist.Add($p1.param); } (',' pn=formal_parameter { $paramlist.Add($pn.param); })* ;
+formal_parameter returns [ParamRepTemplate param]:
+	attributes?   (fp=fixed_parameter { $param = $fp.param; } | pa=parameter_array { $param = $pa.param; }) 
+	| a='__arglist' { Warning($a.line, "[UNSUPPORTED] __arglist"); } ;	// __arglist is undocumented, see google
+fixed_parameters returns [List<ParamRepTemplate> paramlist]
+@init {
+    $paramlist = new List<ParamRepTemplate>();
+}:
+	p1=fixed_parameter  { $paramlist.Add($p1.param); } (','   pn=fixed_parameter { $paramlist.Add($pn.param); })* ;
 // 4.0
-fixed_parameter:
-	parameter_modifier?   type   identifier   default_argument? ;
+fixed_parameter returns [ParamRepTemplate param]
+@init {
+    bool isByRef = false;
+}
+:
+        (pm=parameter_modifier { isByRef = ($pm.text == "ref" || $pm.text == "out");  })?   t=type   i=identifier  { $param=new ParamRepTemplate($t.thetext, $i.text, isByRef); } default_argument? ;
 // 4.0
 default_argument:
 	'=' expression;
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
-parameter_array:
-	'params'   type   identifier ;
+parameter_array returns [ParamRepTemplate param]:
+	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext + "[]", $i.text, false); } ;
 
 ///////////////////////////////////////////////////////
 interface_declaration:
@@ -883,21 +918,21 @@ struct_member_declarations:
 	struct_member_declaration+ ;
 struct_member_declaration:
 	attributes?   m=modifiers?
-	( 'const'   type   constant_declarators   ';'
+	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
+	| 'partial' (method_declaration["/* partial */"] 
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
 
 	| interface_declaration	// 'interface'
 	| class_declaration		// 'class'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
+	| 'void'   method_declaration["System.Void"]
+	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
+		   | (member_name   '{') => property_declaration[$rt.thetext]
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
 		   | indexer_declaration	//this
-	       | field_declaration      // qid
+	       | field_declaration[$rt.thetext]      // qid
 	       | operator_declaration
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
@@ -947,7 +982,9 @@ operator_body:
 constructor_declaration:
 	constructor_declarator   constructor_body ;
 constructor_declarator:
-	identifier   '('   formal_parameter_list?   ')'   constructor_initializer? ;
+	identifier   '('   fpl=formal_parameter_list?   ')'   constructor_initializer? 
+         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(new ConstructorRepTemplate($fpl.paramlist)); }
+;
 constructor_initializer:
 	':'   ('base' | 'this')   '('   argument_list?   ')' ;
 constructor_body:
@@ -1036,7 +1073,7 @@ local_variable_initializer:
 stackalloc_initializer:
 	'stackalloc'   unmanaged_type   '['   expression   ']' ;
 local_constant_declaration:
-	'const'   type   constant_declarators ;
+	'const'   type   constant_declarators[$type.thetext] ;
 expression_statement:
 	expression   ';' ;
 
@@ -1141,9 +1178,23 @@ yield_statement:
 //	Lexar Section
 ///////////////////////////////////////////////////////
 
-predefined_type:
-	  'bool' | 'byte'   | 'char'   | 'decimal' | 'double' | 'float'  | 'int'    | 'long'   | 'object' | 'sbyte'  
-	| 'short'  | 'string' | 'uint'   | 'ulong'  | 'ushort' ;
+predefined_type returns [string thetext]:
+	  'bool'    { $thetext = "System.Boolean"; } 
+    | 'byte'    { $thetext = "System.Byte"; }    
+    | 'char'    { $thetext = "System.Char"; } 
+    | 'decimal' { $thetext = "System.Decimal"; } 
+    | 'double'  { $thetext = "System.Double"; } 
+    | 'float'   { $thetext = "System.Single"; } 
+    | 'int'     { $thetext = "System.Int32"; }   
+    | 'long'    { $thetext = "System.Int64"; } 
+    | 'object'  { $thetext = "System.Object"; } 
+    | 'sbyte'   { $thetext = "System.SByte"; } 
+	| 'short'   { $thetext = "System.Int16"; } 
+    | 'string'  { $thetext = "System.String"; } 
+    | 'uint'    { $thetext = "System.UInt32"; } 
+    | 'ulong'   { $thetext = "System.UInt64"; } 
+    | 'ushort'  { $thetext = "System.UInt16"; } 
+    ;
 
 identifier:
  	IDENTIFIER | 'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type'

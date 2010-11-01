@@ -47,8 +47,6 @@ namespace RusticiSoftware.Translator.CSharp
 			{
 				if (Processing.Peek() == false)
 					state.token = Token.SKIP_TOKEN;
-				else
-					state.token = state.token;
 			}
 			else if (Warn)
 			{

@@ -9,7 +9,7 @@ options {
 
 tokens {
 	QID;
-    TYPEBARE; TYPERS; TYPEADORNED; TYPEVOID;
+    NS_OR_TN; CC;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -311,7 +311,7 @@ commas:
 type_name: 
 	namespace_or_type_name ;
 namespace_or_type_name:
-	 type_or_generic   ('::' type_or_generic)? ('.'   type_or_generic)* ;
+	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   t3+=type_or_generic)*  -> ^(NS_OR_TN $t1 ^(CC $t2?) $t3*);
 type_or_generic:
 	(identifier   '<') => identifier   generic_argument_list
 	| identifier ;
@@ -338,10 +338,10 @@ type_arguments:
 	type  (',' type)* ;
 
 type:
-	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'* -> ^(TYPERS predefined_type? type_name? rank_specifiers '*'*)
-	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?') -> ^(TYPEADORNED predefined_type? type_name? '*'* '?'?)
-	| (predefined_type | type_name) -> ^(TYPEBARE predefined_type? type_name?)
-	| 'void' '*'+ -> ^(TYPEVOID '*'+)
+	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
+	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?')
+	| (predefined_type | type_name)
+	| 'void' '*'+
 	;
 non_nullable_type:
 	(predefined_type | type_name)
