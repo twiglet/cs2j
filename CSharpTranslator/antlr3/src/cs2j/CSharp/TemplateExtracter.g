@@ -184,8 +184,8 @@ class_member_declaration:
 	| 'void'   method_declaration["System.Void"]
 	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
 		   | (member_name   '{') => property_declaration[$rt.thetext]
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
+		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
+		   | indexer_declaration[$rt.thetext, ""]	//this
 	       | field_declaration[$rt.thetext]      // qid
 	       | operator_declaration
 	       )
@@ -774,7 +774,7 @@ accessor_body:
 ///////////////////////////////////////////////////////
 event_declaration:
 	'event'   type
-		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
+		((member_name   '{') => member_name '{' event_accessor_declarations '}' { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $member_name.name)); } 
 		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
 		;
 event_modifiers:
@@ -945,8 +945,8 @@ struct_member_declaration:
 	| 'void'   method_declaration["System.Void"]
 	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
 		   | (member_name   '{') => property_declaration[$rt.thetext]
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
+		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
+		   | indexer_declaration[$rt.thetext, ""]	//this
 	       | field_declaration[$rt.thetext]      // qid
 	       | operator_declaration
 	       )
@@ -962,11 +962,13 @@ struct_member_declaration:
 
 
 ///////////////////////////////////////////////////////
-indexer_declaration:
-	indexer_declarator   '{'   accessor_declarations   '}' ;
-indexer_declarator:
+indexer_declaration [string returnType, string prefix]:
+	indexer_declarator[$returnType, $prefix]   '{'   accessor_declarations   '}' ;
+indexer_declarator [string returnType, string prefix]:
 	//(type_name '.')?   
-	'this'   '['   formal_parameter_list   ']' ;
+	'this'   '['   fpl=formal_parameter_list   ']' 
+         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, $prefix+"this", null, $fpl.paramlist)); }
+    ;
 	
 ///////////////////////////////////////////////////////
 operator_declaration:
