@@ -16,10 +16,16 @@ namespace RusticiSoftware.Translator.CSharp
             : base(input, state)
         { }
 
+        protected void Warning(int line, String s)
+        {
+            if (Cfg.Warnings)
+                Console.Out.WriteLine("{0}({1}) warning: {2}", Filename, line, s);
+        }
+
         protected void Warning(String s)
         {
             if (Cfg.Warnings)
-                Console.Out.WriteLine("{0} WARNING: {1}", Filename, s);
+                Console.Out.WriteLine("{0} warning: {1}", Filename, s);
         }
 
         protected void Debug(String s)
