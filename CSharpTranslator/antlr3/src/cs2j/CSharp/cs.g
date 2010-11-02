@@ -135,7 +135,7 @@ primary_expression:
 
 primary_expression_start:
 	predefined_type            
-	| (identifier    '<') => identifier   generic_argument_list
+	| (identifier    generic_argument_list) => identifier   generic_argument_list
 	| identifier ('::'   identifier)?
 	| 'this' 
 	| 'base'
@@ -1142,7 +1142,7 @@ IDENTIFIER:
     IdentifierStart IdentifierPart* ;
 Pragma:
 	//	ignore everything after the pragma since the escape's in strings etc. are different
-	'#' ('pragma' | 'region' | 'endregion' | 'line' | 'warning' | 'error') ~('\n'|'\r')*  ('\r' | '\n')+
+	'#' TS* ('pragma' | 'region' | 'endregion' | 'line' | 'warning' | 'error') ~('\n'|'\r')*  ('\r' | '\n')+
     { Skip(); } ;
 PREPROCESSOR_DIRECTIVE:
 	| PP_CONDITIONAL;

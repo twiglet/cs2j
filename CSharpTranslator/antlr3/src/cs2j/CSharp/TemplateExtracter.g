@@ -221,7 +221,7 @@ primary_expression:
 
 primary_expression_start:
 	predefined_type            
-	| (identifier    '<') => identifier   generic_argument_list
+	| (identifier    generic_argument_list) => identifier   generic_argument_list
 	| identifier ('::'   identifier)?
 	| 'this' 
 	| 'base'
@@ -968,9 +968,10 @@ interface_property_declaration [string returnType]:
             ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
     ;
 interface_method_declaration [string returnType]:
-	identifier   generic_argument_list?
+	identifier   gal=generic_argument_list?
 	    '('   fpl=formal_parameter_list?   ')'  
-        {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $identifier.text, ($generic_argument_list.tyargs.ToArray()), $fpl.paramlist)); }
+        {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist); 
+           ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
         type_parameter_constraints_clauses?   ';' ;
 interface_event_declaration: 
 	//attributes?   'new'?   
