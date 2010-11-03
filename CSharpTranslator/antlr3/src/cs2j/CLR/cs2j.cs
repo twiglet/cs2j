@@ -195,12 +195,15 @@ namespace RusticiSoftware.Translator.CSharp
             
 			ICharStream input = new ANTLRFileStream(fullName);
 
-			PreProcessor lex = new PreProcessor();;
+			PreProcessor lex = new PreProcessor();
 			lex.AddDefine(cfg.MacroDefines);
             lex.CharStream = input;
+			lex.TraceDestination = Console.Error;
 
             CommonTokenStream tokens = new CommonTokenStream(lex);
             csParser p = new csParser(tokens);
+			p.TraceDestination = Console.Error;
+			
             csParser.compilation_unit_return parser_rt = p.compilation_unit();
 
             if (parser_rt == null || parser_rt.Tree == null)
@@ -238,6 +241,8 @@ namespace RusticiSoftware.Translator.CSharp
  
                     TemplateExtracter templateWalker = new TemplateExtracter(csTree);
                     templateWalker.Filename = fullName;
+					templateWalker.TraceDestination = Console.Error;
+				
                     templateWalker.compilation_unit(cfg, AppEnv);
             }
         }
