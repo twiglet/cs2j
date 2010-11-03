@@ -714,7 +714,9 @@ constant_declaration:
 constant_declarators [string type]:
 	constant_declarator[$type] (',' constant_declarator[$type])* ;
 constant_declarator [string type]:
-	identifier   { ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(new FieldRepTemplate($type, $identifier.text)); } ('='   constant_expression)? ;
+	identifier   { ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(new FieldRepTemplate($type, $identifier.text)); } ('='   constant_expression)? 
+        { Debug("Processing constant declaration: " + $identifier.text); }
+;
 constant_expression:
 	expression;
 
@@ -731,7 +733,9 @@ variable_declarator [string type, bool isEvent]:
          }
         else {
              ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(f);
-        }; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
+        }; } ('='   variable_initializer)? 
+    { Debug("Processing " + (isEvent ? "event" : "field") + " declaration: " + $type_name.text); }
+;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
 method_declaration [string returnType]:
@@ -739,7 +743,9 @@ method_declaration [string returnType]:
 method_header [string returnType]:
 	member_name  '('   fpl=formal_parameter_list?   ')'   
      {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist)); }
-    type_parameter_constraints_clauses? ;
+    type_parameter_constraints_clauses? 
+        { Debug("Processing method declaration: " + $member_name.name); }
+;
 method_body:
 	block ;
 member_name returns [string name, List<String> tyargs]:
@@ -752,6 +758,7 @@ property_declaration[string type]:
             propRep.CanRead = $accessor_declarations.hasGetter;
             propRep.CanWrite = $accessor_declarations.hasSetter;
             ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
+        { Debug("Processing property declaration: " + $member_name.name); }
 ;
 accessor_declarations returns [bool hasGetter, bool hasSetter]
 @int {
@@ -772,10 +779,11 @@ accessor_body:
 	block ;
 
 ///////////////////////////////////////////////////////
-event_declaration:
+event_declaration:      
 	'event'   type
 		((member_name   '{') => member_name '{' event_accessor_declarations '}' { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $member_name.name)); } 
 		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
+        { Debug("Processing event declaration: " + $member_name.name); }
 		;
 event_modifiers:
 	modifier+ ;
@@ -818,6 +826,7 @@ enum_member_declarations:
 enum_member_declaration:
 	attributes?   identifier   ('='   expression)? 
         { ((EnumRepTemplate)$NSContext::currentTypeRep).Members.Add(new EnumMemberRepTemplate($identifier.text, $expression.text)); } // todo:  are arbitrary expressions really allowed
+        { Debug("Processing enum member: " + $identifier.text); }
 ;
 //enum_modifiers:
 //	enum_modifier+ ;
@@ -966,21 +975,27 @@ interface_property_declaration [string returnType]:
             propRep.CanRead = $interface_accessor_declarations.hasGetter;
             propRep.CanWrite = $interface_accessor_declarations.hasSetter;
             ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
+        { Debug("Processing interface property declaration: " + $identifier.text); }
     ;
 interface_method_declaration [string returnType]:
 	identifier   gal=generic_argument_list?
 	    '('   fpl=formal_parameter_list?   ')'  
         {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist); 
            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
-        type_parameter_constraints_clauses?   ';' ;
+        type_parameter_constraints_clauses?   ';' 
+        { Debug("Processing interface method declaration: " + $identifier.text); }
+;
 interface_event_declaration: 
 	//attributes?   'new'?   
-	'event'   type   identifier  { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' ; 
+	'event'   type   identifier  { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' 
+        { Debug("Processing interface event declaration: " + $identifier.text); }
+; 
 interface_indexer_declaration [string returnType]: 
 	// attributes?    'new'?    type   
 	'this'   '['   fpl=formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' 
          {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, "this", null, $fpl.paramlist)); }
-    ;
+           { Debug("Processing interface indexer declaration"); }
+ ;
 interface_accessor_declarations returns [bool hasGetter, bool hasSetter]
 @int {
     $hasSetter = false;
@@ -1069,6 +1084,7 @@ indexer_declarator [string returnType, string prefix]:
 	//(type_name '.')?   
 	'this'   '['   fpl=formal_parameter_list   ']' 
          {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, $prefix+"this", null, $fpl.paramlist)); }
+        { Debug("Processing indexer declaration"); }
     ;
 	
 ///////////////////////////////////////////////////////
@@ -1088,6 +1104,7 @@ operator_declarator [string returnType]
     else {
         ((ClassRepTemplate)$NSContext::currentTypeRep).BinaryOps.Add(meth);
     } 
+    Debug("Processing operator declaration: " + meth.Name);
 }:
 	'operator'   
 		(('+' { opText = "+"; } | '-' { opText = "-"; })   '('   t0=type   i0=identifier { paramList.Add(new ParamRepTemplate($t0.thetext, $i0.text)); } (binary_operator_declarator[paramList] | unary_operator_declarator { unaryOp = true; })
@@ -1107,7 +1124,9 @@ conversion_operator_declaration:
 	conversion_operator_declarator   operator_body ;
 conversion_operator_declarator:
 	(i='implicit' { Warning($i.line, "[UNSUPPORTED] implicit user defined casts,  an explicit cast is always required."); } | 'explicit')  'operator'   tt=type   '('   tf=type   identifier   ')' 
-         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(new CastRepTemplate($tf.thetext, $tt.thetext)); }
+         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(new CastRepTemplate($tf.thetext, $tt.thetext)); 
+            Debug("Processing conversion declaration");
+        }
     ;
 operator_body:
 	block ;
@@ -1117,7 +1136,9 @@ constructor_declaration:
 	constructor_declarator   constructor_body ;
 constructor_declarator:
 	identifier   '('   fpl=formal_parameter_list?   ')'   constructor_initializer? 
-         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(new ConstructorRepTemplate($fpl.paramlist)); }
+         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(new ConstructorRepTemplate($fpl.paramlist));
+        Debug("Processing constructor declaration");
+ }
 ;
 constructor_initializer:
 	':'   ('base' | 'this')   '('   argument_list?   ')' ;
