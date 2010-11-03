@@ -404,7 +404,7 @@ type_or_generic returns [string type, List<string> generic_arguments]
 @after{
     $type = $t.text;
 }:
-	(identifier   '<') => t=identifier   ga=generic_argument_list { $generic_arguments = $ga.tyargs; }
+	(identifier   generic_argument_list) => t=identifier   ga=generic_argument_list { $generic_arguments = $ga.tyargs; }
 	| t=identifier ;
 
 // keving: as far as I can see this is (<interfacename>.)?identifier (<tyargs>)? at lease for C# 3.0 and less.
@@ -413,7 +413,7 @@ qid returns [string name, List<String> tyargs]:		// qualified_identifier v2
 	;
 qid_start returns [string name, List<String> tyargs]:
 	predefined_type { $name = $predefined_type.thetext; }
-	| (identifier    '<')	=> identifier   generic_argument_list { $name = $identifier.text; $tyargs = $generic_argument_list.tyargs; } 
+	| (identifier    generic_argument_list)	=> identifier   generic_argument_list { $name = $identifier.text; $tyargs = $generic_argument_list.tyargs; } 
 //	| 'this'
 //	| 'base'
 	| i1=identifier  { $name = $i1.text; } ('::'   inext=identifier { $name+="::" + $inext.text; })?
@@ -1142,7 +1142,7 @@ invocation_expression:
 						| invocation_part)*   arguments ;
 invocation_start:
 	predefined_type 
-	| (identifier    '<')	=> identifier   generic_argument_list
+	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
 	| 'this' 
 	| 'base'
 	| identifier   ('::'   identifier)?

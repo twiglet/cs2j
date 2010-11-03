@@ -312,7 +312,7 @@ type_name:
 namespace_or_type_name:
 	 type_or_generic   ('::' type_or_generic)? ('.'   type_or_generic)* ;
 type_or_generic:
-	(identifier   '<') => identifier   generic_argument_list
+	(identifier   generic_argument_list) => identifier   generic_argument_list
 	| identifier ;
 
 qid:		// qualified_identifier v2
@@ -320,7 +320,7 @@ qid:		// qualified_identifier v2
 	;
 qid_start:
 	predefined_type
-	| (identifier    '<')	=> identifier   generic_argument_list
+	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
 //	| 'this'
 //	| 'base'
 	| identifier   ('::'   identifier)?
@@ -859,7 +859,7 @@ invocation_expression:
 						| invocation_part)*   arguments ;
 invocation_start:
 	predefined_type 
-	| (identifier    '<')	=> identifier   generic_argument_list
+	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
 	| 'this' 
 	| 'base'
 	| identifier   ('::'   identifier)?
