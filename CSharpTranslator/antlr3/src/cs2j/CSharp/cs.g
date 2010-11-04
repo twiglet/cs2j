@@ -1222,7 +1222,7 @@ ELSE_TOKEN:
 	} ;
 fragment
 ENDIF_TOKEN:
-	'#'   'endif'
+	'#'  TS*  'endif'
 	{
 		if (Processing.Count > 0)
 			Processing.Pop();
