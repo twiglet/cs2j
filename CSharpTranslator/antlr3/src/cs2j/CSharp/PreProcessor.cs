@@ -76,6 +76,13 @@ namespace RusticiSoftware.Translator.CSharp
 			return Tokens.Dequeue();
 		}
 
+		public override void ReportError(RecognitionException e) {
+			// Ignore lexer errors in parts of the file that the preprocessor is omitting
+			// So, only report error if we are processing at the moment 
+			if (Processing.Peek())
+				base.ReportError(e);
+        }
+
         /// <summary>
         /// These two functions prints a stack of rules for a failure.  It sounds really useful but it's mostly noise and didn't
         /// help me locate errors any quicker (mostly slower).  Feel free to comment out.
