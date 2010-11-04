@@ -235,6 +235,7 @@ namespace RusticiSoftware.Translator.CSharp
         // Here's where we do the real work...
         public static void addAppSigTranslation(string fullName)
         {
+			if (cfg.DebugLevel > 3) Console.Out.WriteLine("Extracting type info from file {0}", fullName);
             ITreeNodeStream csTree = parseFile(fullName);
             if (csTree != null)
             {
@@ -250,6 +251,7 @@ namespace RusticiSoftware.Translator.CSharp
         // Here's where we do the real work...		
         public static void translateFile(string fullName)
         {
+			if (cfg.DebugLevel > 3) Console.Out.WriteLine("Translating file {0}", fullName);
 			CommonTreeNodeStream csTree = parseFile(fullName);
 			if (cfg.DumpCSharp) AntlrUtils.AntlrUtils.DumpNodes(csTree);
 			
