@@ -46,8 +46,8 @@ namespace RusticiSoftware.Translator.CSharp
 			if (Processing.Count > 0)
 			{
 				if (Processing.Peek() == false)
-					state.token = Token.SKIP_TOKEN;
-			}
+                    state.token = Antlr.Runtime.Tokens.Skip;
+            }
 			else if (Warn)
 			{
 				// Don't warn every token
