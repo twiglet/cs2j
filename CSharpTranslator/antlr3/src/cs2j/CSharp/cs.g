@@ -1070,8 +1070,8 @@ ENUM : 'enum';
 IF: 'if';
 ELIF: 'elif';
 ENDIF: 'endif';
-DEFINE: 'define';
-UNDEF: 'undef';
+//DEFINE: 'define';
+//UNDEF: 'undef';
 SEMI: ';';
 RPAREN: ')';
 
@@ -1145,7 +1145,7 @@ Pragma:
 	'#' TS* ('pragma' | 'region' | 'endregion' | 'line' | 'warning' | 'error') ~('\n'|'\r')*  ('\r' | '\n')+
     { Skip(); } ;
 PREPROCESSOR_DIRECTIVE:
-	| PP_CONDITIONAL;
+	PP_CONDITIONAL;
 fragment
 PP_CONDITIONAL:
 	(IF_TOKEN
