@@ -35,7 +35,6 @@ tokens {
 	}
 }
 
-
 compilation_unit:
 	namespace_body[true];
 
@@ -74,7 +73,7 @@ type_declaration:
 	| delegate_declaration ;
 // Identifiers
 qualified_identifier:
-	i+=identifier ('.' i+=identifier)*  
+	identifier ('.' identifier)*  
 	-> ^(QID identifier+) ;
 namespace_name
 	: namespace_or_type_name ;
@@ -320,7 +319,7 @@ qid:		// qualified_identifier v2
 	;
 qid_start:
 	predefined_type
-	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
+	| (identifier   generic_argument_list)	=> identifier   generic_argument_list
 //	| 'this'
 //	| 'base'
 	| identifier   ('::'   identifier)?
@@ -334,7 +333,7 @@ qid_part:
 generic_argument_list: 
 	'<'   type_arguments   '>' ;
 type_arguments: 
-	type  (',' type)* ;
+	type (',' type)* ;
 
 type:
 	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
@@ -810,10 +809,10 @@ indexer_declarator:
 operator_declaration:
 	operator_declarator   operator_body ;
 operator_declarator:
-	'operator'   
-		(('+' | '-')   '('   type   identifier (binary_operator_declarator | unary_operator_declarator)
-		| overloadable_unary_operator   '('   type   identifier unary_operator_declarator
-		| overloadable_binary_operator  '('   type   identifier  binary_operator_declarator) ;
+	'operator' 
+	(('+' | '-')   '('   type   identifier   (binary_operator_declarator | unary_operator_declarator)
+		| overloadable_unary_operator   '('   type identifier   unary_operator_declarator
+		| overloadable_binary_operator   '('   type identifier   binary_operator_declarator) ;
 unary_operator_declarator:
 	   ')' ;
 overloadable_unary_operator:
@@ -1033,16 +1032,20 @@ predefined_type:
 	| 'short'  | 'string' | 'uint'   | 'ulong'  | 'ushort' ;
 
 identifier:
- 	IDENTIFIER | 'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type'
-	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'set' | 'var' | '__arglist' | 'dynamic'; 
+ 	IDENTIFIER | 
+    'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type'
+	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' 
+    | 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic'
+    | 'elif' | 'endif' | 'define' | 'undef'; 
 
 keyword:
-	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' |	 'virtual' | 'void' | 'volatile' ;
+	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;
 
 also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'event' | 'method' | 'param' | 'property' | 'type' 
-	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
-	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'set' | 'var' | '__arglist' | 'dynamic';
+	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending'
+	| 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic'
+	| 'elif' | 'endif' | 'define' | 'undef';
 
 literal:
 	Real_literal
@@ -1070,8 +1073,8 @@ ENUM : 'enum';
 IF: 'if';
 ELIF: 'elif';
 ENDIF: 'endif';
-//DEFINE: 'define';
-//UNDEF: 'undef';
+DEFINE: 'define';
+UNDEF: 'undef';
 SEMI: ';';
 RPAREN: ')';
 
@@ -1142,7 +1145,7 @@ IDENTIFIER:
     IdentifierStart IdentifierPart* ;
 Pragma:
 	//	ignore everything after the pragma since the escape's in strings etc. are different
-	'#' TS* ('pragma' | 'region' | 'endregion' | 'line' | 'warning' | 'error') ~('\n'|'\r')*  ('\r' | '\n')+
+	'#'   TS*   ('pragma' | 'region' | 'endregion' | 'line' | 'warning' | 'error') ~('\n'|'\r')*  ('\r' | '\n')+
     { Skip(); } ;
 PREPROCESSOR_DIRECTIVE:
 	PP_CONDITIONAL;
@@ -1222,7 +1225,7 @@ ELSE_TOKEN:
 	} ;
 fragment
 ENDIF_TOKEN:
-	'#'  TS*  'endif'
+	'#'   TS*   'endif'
 	{
 		if (Processing.Count > 0)
 			Processing.Pop();
