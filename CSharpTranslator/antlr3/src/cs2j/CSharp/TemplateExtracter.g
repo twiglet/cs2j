@@ -156,8 +156,6 @@ type_declaration:
 	| interface_declaration
 	| enum_declaration
 	| delegate_declaration ;
-	
-	
 // Identifiers
 qualified_identifier:
 	^(QID identifier+) ;
@@ -232,7 +230,9 @@ primary_expression_start:
 
 primary_expression_part:
 	 access_identifier
-	| brackets_or_arguments ;
+	| brackets_or_arguments 
+	| '++'
+	| '--' ;
 access_identifier:
 	access_operator   type_or_generic ;
 access_operator:
@@ -485,7 +485,7 @@ assignment:
 unary_expression: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
 	(cast_expression) => cast_expression
-	| primary_or_array_creation_expression   '++'?   '--'?
+	| primary_or_array_creation_expression
 	| '+'   unary_expression 
 	| '-'   unary_expression 
 	| '!'   unary_expression 
@@ -779,7 +779,7 @@ accessor_body:
 	block ;
 
 ///////////////////////////////////////////////////////
-event_declaration:      
+event_declaration:
 	'event'   type
 		((member_name   '{') => member_name '{' event_accessor_declarations '}' { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $member_name.name)); } 
 		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
@@ -1328,7 +1328,6 @@ yield_statement:
 	'yield'   ('return'   expression   ';'
 	          | 'break'   ';') ;
 
-
 ///////////////////////////////////////////////////////
 //	Lexar Section
 ///////////////////////////////////////////////////////
@@ -1352,20 +1351,16 @@ predefined_type returns [string thetext]:
     ;
 
 identifier:
- 	IDENTIFIER | 
-    'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type'
-	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' 
-    | 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic'
-    | 'elif' | 'endif' | 'define' | 'undef'; 
+ 	IDENTIFIER | also_keyword; 
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;
 
 also_keyword:
-	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'event' | 'method' | 'param' | 'property' | 'type' 
-	| 'yield' | 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending'
-	| 'descending' | 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic'
-	| 'elif' | 'endif' | 'define' | 'undef';
+	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
+	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
+	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
+	| 'endif' | 'define' | 'undef';
 
 literal:
 	Real_literal
