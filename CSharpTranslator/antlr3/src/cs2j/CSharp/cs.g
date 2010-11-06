@@ -6,11 +6,6 @@ options {
     language=CSharp2;
 }
 
-
-tokens {
-	QID;
-}
-
 @namespace { RusticiSoftware.Translator.CSharp }
 
 @lexer::header       
@@ -74,8 +69,7 @@ type_declaration:
 	| delegate_declaration ;
 // Identifiers
 qualified_identifier:
-	identifier ('.' identifier)*  
-	-> ^(QID identifier+) ;
+	identifier ('.' identifier)*;
 namespace_name
 	: namespace_or_type_name ;
 

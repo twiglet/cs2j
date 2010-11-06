@@ -115,10 +115,10 @@ scope NSContext;
 }
 :
 	'namespace'   qi=qualified_identifier  
-        { Debug("namespace: " + $qi.text); 
-          $NSContext::nss.Add(new UseRepTemplate($qi.text));
+        { Debug("namespace: " + $qi.thetext); 
+          $NSContext::nss.Add(new UseRepTemplate($qi.thetext));
           // extend parent namespace
-          $NSContext::currentNS = this.ParentNameSpace + $qi.text;
+          $NSContext::currentNS = this.ParentNameSpace + $qi.thetext;
         }  
         namespace_block   ';'? ;
 namespace_block:
@@ -157,8 +157,8 @@ type_declaration:
 	| enum_declaration
 	| delegate_declaration ;
 // Identifiers
-qualified_identifier:
-	^(QID identifier+) ;
+qualified_identifier returns [string thetext]:
+	i1=identifier { $thetext = $i1.text; } ('.' ip=identifier { $thetext += "." + $ip.text; } )*;
 namespace_name
 	: namespace_or_type_name ;
 
