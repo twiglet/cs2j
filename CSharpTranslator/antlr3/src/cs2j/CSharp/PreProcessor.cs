@@ -18,6 +18,13 @@ namespace RusticiSoftware.Translator.CSharp
 	{
         // if there's an #if / #else mismatch, don't complain every token :)
 		bool Warn = true;
+        private bool _foundMeat = false;
+        public bool FoundMeat
+        {
+            get { return _foundMeat; }
+            set { _foundMeat = value; }
+        }
+
 
 		public PreProcessor()
 		{
@@ -65,6 +72,10 @@ namespace RusticiSoftware.Translator.CSharp
 		{
 			state.token = token;
 			Tokens.Enqueue(token);
+            if (token.Channel == Token.DEFAULT_CHANNEL)
+            {
+                FoundMeat = true;
+            }
 		}
 		public override IToken NextToken()
 		{

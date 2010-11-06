@@ -208,7 +208,7 @@ namespace RusticiSoftware.Translator.CSharp
 
             if (parser_rt == null || parser_rt.Tree == null)
             {
-                if (tokens.Count > 0)
+                if (lex.FoundMeat)
                 {
                     Console.WriteLine("No Tree returned from parsing! (Your rule did not parse correctly)");
                 }
@@ -216,6 +216,7 @@ namespace RusticiSoftware.Translator.CSharp
                 {
                     // the file was empty, this is not an error.
                 }
+                return null;
             }
 
             CommonTreeNodeStream nodes = new CommonTreeNodeStream(parser_rt.Tree);            
@@ -253,7 +254,7 @@ namespace RusticiSoftware.Translator.CSharp
         {
 			if (cfg.DebugLevel > 3) Console.Out.WriteLine("Translating file {0}", fullName);
 			CommonTreeNodeStream csTree = parseFile(fullName);
-			if (cfg.DumpCSharp) AntlrUtils.AntlrUtils.DumpNodes(csTree);
+			if (cfg.DumpCSharp && csTree != null) AntlrUtils.AntlrUtils.DumpNodes(csTree);
 			
         //    ASTNode t = parseFile(f, s);
         //    if (t != null)
