@@ -45,5 +45,25 @@ namespace RusticiSoftware.Translator.CSharp
                 Console.Out.WriteLine(s);
             }
         }
+
+        // distinguish classes with same name, but differing numbers of type arguments
+        protected string mkTypeName (string name, List<String> tyargs) {
+            return name + (tyargs.Count > 0 ? "'" + tyargs.Count.ToString() : "");
+        }
+        
+        protected string formatTyargs(List<string> tyargs) {
+               
+            if (tyargs.Count == 0) {
+                return "";
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append("<");
+            foreach (string t in tyargs) {
+                buf.Append(t + ",");
+            }
+            buf.Remove(buf.Length-1,1);
+            buf.Append(">");
+            return buf.ToString();
+        }
     }
 }

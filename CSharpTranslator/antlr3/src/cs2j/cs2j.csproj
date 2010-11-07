@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -66,11 +66,17 @@
     <Compile Include="Utils\TypeHelper.cs" />
     <Compile Include="CSharp\TemplateExtracter.cs" />
     <Compile Include="CLR\CS2JSettings.cs" />
+    <Compile Include="CSharp\JavaMaker.cs" />
+    <Compile Include="CSharp\JavaPrettyPrint.cs" />
+    <Compile Include="CSharp\NetMaker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CSharp\csCrawl.g" />
     <None Include="CSharp\cs.g" />
     <None Include="CSharp\TemplateExtracter.g" />
+    <None Include="CSharp\JavaMaker.g" />
+    <None Include="CSharp\JavaPrettyPrint.g" />
+    <None Include="CSharp\NetMaker.g" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="README.txt" />

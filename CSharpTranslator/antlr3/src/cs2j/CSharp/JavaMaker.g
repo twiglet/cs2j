@@ -1,73 +1,30 @@
-// TemplateExtracter.g
+ // JavaMaker.g
 //
-// Crawler that extracts the signatures (typereptemplates) from a CSharp AST 
+// Convert C# parse tree to a Java parse tree
 //
 // Kevin Glynn
 // kevin.glynn@twigletsoftware.com
-// June 2010
-  
-tree grammar TemplateExtracter;
+// November 2010
+tree grammar JavaMaker;
 
 options {
     tokenVocab=cs;
     ASTLabelType=CommonTree;
     language=CSharp2;
     superClass='RusticiSoftware.Translator.CSharp.CommonWalker';
-    //output=AST;
-    //backtrack=true;
-}
-
-// A scope to keep track of the namespaces available at any point in the program
-scope NSContext {
-   IList<UseRepTemplate> nss;
-   string currentNS;
-   TypeRepTemplate currentTypeRep;
+    output=AST;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
 
 @header
 {
-	using System.Text;
-	using System.Linq;
-	using RusticiSoftware.Translator.CLR;
-	using RusticiSoftware.Translator.Utils;
+
 }
 
-@members 
+@members
 {
-
-    // This is the environment that we are building, it maps fully qualified type names to their
-    // translation templates
-    protected DirectoryHT<TypeRepTemplate> AppEnv {get; set;}
-
-    protected UseRepTemplate[] NameSpaceContext {
-        get {
-            // We return the elements in source order (hopefully less confusing)
-            // so when looking for types we search from last element to first.
-            // here we are getting scopes in the opposite order so we need some
-            // jiggery pokery to restore desired order.
-             List<UseRepTemplate> rets = new List<UseRepTemplate>();
-             // returns in LIFO order, like you would expect from a stack
-             // sigh,  in C# we can't index into the scopes like you can in Java
-             // so we resort to a bit of low level hackery to get the ns lists
-             foreach (NSContext_scope nscontext in $NSContext) {
-                 IList<UseRepTemplate> nss = nscontext.nss;
-                 for (int i = nss.Count - 1; i >= 0; i--) {
-                     rets.Add(nss[i]);
-                 }
-             }
-             // And now return reversed list
-			rets.Reverse();        
-            return rets.ToArray();
-        }
-    }
-
-    protected string ParentNameSpace {
-        get {
-            return ((NSContext_scope)$NSContext.ToArray()[$NSContext.Count-2]).currentNS;
-        }
-    }
+    private IDictionary<string, CommonTree> CUs { get; set; }
 
 }
 
@@ -77,36 +34,15 @@ scope NSContext {
 
 ///////////////////////////////////////////////////////
 
-compilation_unit[CS2JSettings inCfg, DirectoryHT<TypeRepTemplate> inAppEnv]
-scope NSContext;
-@init{
-    Cfg = inCfg;
-    AppEnv = inAppEnv;
-    // For initial, file level scope
-    $NSContext::nss = new List<UseRepTemplate>();
-    $NSContext::currentNS = "";
-    $NSContext::currentTypeRep = null;
+compilation_unit[CS2JSettings inCfg, IDictionary<string, CommonTree> inCus /*, DirectoryHT<TypeRepTemplate> inAppEnv*/]
+@init {
+    CUs = inCus;
 }
 :
-{ Debug("start template extraction"); }    
-	namespace_body
-{ Debug("end template extraction"); }    
-	;
+	namespace_body;
 
-namespace_declaration
-scope NSContext;
-@init{
-    $NSContext::nss = new List<UseRepTemplate>();
-    $NSContext::currentTypeRep = null;
-}
-:
-	'namespace'   qi=qualified_identifier  
-        { Debug("namespace: " + $qi.thetext); 
-          $NSContext::nss.Add(new UseRepTemplate($qi.thetext));
-          // extend parent namespace
-          $NSContext::currentNS = this.ParentNameSpace + $qi.thetext;
-        }  
-        namespace_block   ';'? ;
+namespace_declaration:
+	'namespace'   qualified_identifier   namespace_block   ';'? ;
 namespace_block:
 	'{'   namespace_body   '}' ;
 namespace_body:
@@ -114,37 +50,37 @@ namespace_body:
 extern_alias_directives:
 	extern_alias_directive+ ;
 extern_alias_directive:
-	e='extern'   'alias'   i=identifier  ';' { Warning($e.line, "[UNSUPPORTED] External Alias " + $i.text); } ;
+	'extern'   'alias'   identifier  ';' ;
 using_directives:
 	using_directive+ ;
 using_directive:
 	(using_alias_directive
 	| using_namespace_directive) ;
-using_alias_directive
-@after{ $NSContext::nss.Add(new UseRepTemplate($i.text, $ns.text));}
-    :
-	'using'	  i=identifier   '='   ns=namespace_or_type_name   ';' ;
-using_namespace_directive
-@after{ $NSContext::nss.Add(new UseRepTemplate($ns.text));}
-    :
-	'using'   ns=namespace_name   ';' ;
+using_alias_directive:
+	'using'	  identifier   '='   namespace_or_type_name   ';' ;
+using_namespace_directive:
+	'using'   namespace_name   ';' ;
 namespace_member_declarations:
 	namespace_member_declaration+ ;
 namespace_member_declaration:
 	namespace_declaration
 	| attributes?   modifiers?   type_declaration ;
-type_declaration:
-	('partial') => p='partial'  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (class_declaration
-								| struct_declaration
-								| interface_declaration)
-	| class_declaration
-	| struct_declaration
-	| interface_declaration
-	| enum_declaration
-	| delegate_declaration ;
+// type_declaration is only called at the top level, so each of the types declared
+// here will become a Java compilation unit (and go to its own file)
+type_declaration
+:
+    ('partial') => p='partial'  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
+                                (pc=class_declaration { CUs.Add($pc.name, $pc.tree); }
+								| ps=struct_declaration { CUs.Add($ps.name, $ps.tree); }
+								| pi=interface_declaration { CUs.Add($pi.name, $pi.tree); })
+	| c=class_declaration { CUs.Add($c.name, $c.tree); }
+	| s=struct_declaration { CUs.Add($s.name, $s.tree); }
+	| i=interface_declaration { CUs.Add($i.name, $i.tree); }
+	| e=enum_declaration { CUs.Add($e.name, $e.tree); }
+	| d=delegate_declaration { CUs.Add($d.name, $d.tree); } ;
 // Identifiers
-qualified_identifier returns [string thetext]:
-	i1=identifier { $thetext = $i1.text; } ('.' ip=identifier { $thetext += "." + $ip.text; } )*;
+qualified_identifier:
+	identifier ('.' identifier)*;
 namespace_name
 	: namespace_or_type_name ;
 
@@ -156,22 +92,21 @@ modifier:
 	
 class_member_declaration:
 	attributes?
-    // TODO:  Don't emit private
 	m=modifiers?
-	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
+	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration["/* partial */"] 
+	| 'partial' (method_declaration 
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
 	| interface_declaration	// 'interface'
-	| 'void'   method_declaration["System.Void"]
-	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
-		   | (member_name   '{') => property_declaration[$rt.thetext]
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
-		   | indexer_declaration[$rt.thetext, ""]	//this
-	       | field_declaration[$rt.thetext]      // qid
-	       | operator_declaration[$rt.thetext]
+	| 'void'   method_declaration
+	| type ( (member_name   '(') => method_declaration
+		   | (member_name   '{') => property_declaration
+		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+		   | indexer_declaration	//this
+	       | field_declaration      // qid
+	       | operator_declaration
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
@@ -392,18 +327,16 @@ type_or_generic returns [string type, List<string> generic_arguments]
 }:
 	(identifier   generic_argument_list) => t=identifier   ga=generic_argument_list { $generic_arguments = $ga.tyargs; }
 	| t=identifier ;
-
-// keving: as far as I can see this is (<interfacename>.)?identifier (<tyargs>)? at lease for C# 3.0 and less.
-qid returns [string name, List<String> tyargs]:		// qualified_identifier v2
-	qid_start   qid_part* { $name=$qid_start.name; $tyargs = $qid_start.tyargs; }
+qid:		// qualified_identifier v2
+	qid_start   qid_part*
 	;
-qid_start returns [string name, List<String> tyargs]:
-	predefined_type { $name = $predefined_type.thetext; }
-	| (identifier    generic_argument_list)	=> identifier   generic_argument_list { $name = $identifier.text; $tyargs = $generic_argument_list.tyargs; } 
+qid_start:
+	predefined_type
+	| (identifier   generic_argument_list)	=> identifier   generic_argument_list
 //	| 'this'
 //	| 'base'
-	| i1=identifier  { $name = $i1.text; } ('::'   inext=identifier { $name+="::" + $inext.text; })?
-	| literal { $name = $literal.text; }
+	| identifier   ('::'   identifier)?
+	| literal 
 	;		// 0.ToString() is legal
 
 
@@ -429,6 +362,7 @@ type returns [string thetext]:
 	| (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; })
 	| 'void' { $thetext = "System.Void"; } ('*' { $thetext += "*"; })+
 	;
+
 non_nullable_type:
 	(predefined_type | type_name)
 		(   rank_specifiers   '*'*
@@ -647,45 +581,15 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration
-scope NSContext;
-@init {
-    $NSContext::nss = new List<UseRepTemplate>();
-    ClassRepTemplate klass = new ClassRepTemplate();
-}
-:
-	'class'  type_or_generic   
-        { 
-            Debug("Processing class: " + $type_or_generic.type);
-            klass.Uses = this.NameSpaceContext;
-            klass.TypeName = this.ParentNameSpace + "." + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
-            if ($type_or_generic.generic_arguments.Count > 0) {
-                klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
-            }
-            // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(klass.TypeName));
-            $NSContext::currentNS = klass.TypeName;
-            $NSContext::currentTypeRep = klass;
-            AppEnv[klass.TypeName] = klass;
-        }
-        (cb=class_base { klass.Inherits =  $cb.typeList.ToArray(); } )?   
-        type_parameter_constraints_clauses? class_body  ';'? ;
-
-class_base returns [List<string> typeList]
-@after {
-    $typeList = $i.typeList;
-}
-:
+class_declaration returns [string name]:
+	'class'  type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? ;
+class_base:
 	// syntactically base class vs interface name is the same
 	//':'   class_type (','   interface_type_list)? ;
-	':'   i=interface_type_list ;
+	':'   interface_type_list ;
 	
-interface_type_list returns [List<string> typeList]
-@init {
-    $typeList = new List<string>();
-}
-:
-	t1=type { typeList.Add($t1.text); } (','   tn=type { typeList.Add($tn.text); } )* ;
+interface_type_list:
+	type (','   type)* ;
 
 class_body:
 	'{'   class_member_declarations?   '}' ;
@@ -694,65 +598,39 @@ class_member_declarations:
 
 ///////////////////////////////////////////////////////
 constant_declaration:
-	'const'   type   constant_declarators[$type.thetext]   ';' ;
-constant_declarators [string type]:
-	constant_declarator[$type] (',' constant_declarator[$type])* ;
-constant_declarator [string type]:
-	identifier   { ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(new FieldRepTemplate($type, $identifier.text)); } ('='   constant_expression)? 
-        { Debug("Processing constant declaration: " + $identifier.text); }
-;
+	'const'   type   constant_declarators   ';' ;
+constant_declarators:
+	constant_declarator (',' constant_declarator)* ;
+constant_declarator:
+	identifier   ('='   constant_expression)? ;
 constant_expression:
 	expression;
 
 ///////////////////////////////////////////////////////
-field_declaration [string type]:
-	variable_declarators[$type, false]   ';'	;
-variable_declarators [string type, bool isEvent]:
-	variable_declarator[$type, $isEvent] (','   variable_declarator[$type, $isEvent])* ;
-variable_declarator [string type, bool isEvent]:
-	type_name 
-       { FieldRepTemplate f = new FieldRepTemplate($type, $type_name.text);
-         if (isEvent) {
-             ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(f);
-         }
-        else {
-             ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(f);
-        }; } ('='   variable_initializer)? 
-    { Debug("Processing " + (isEvent ? "event" : "field") + " declaration: " + $type_name.text); }
-;		// eg. event EventHandler IInterface.VariableName = Foo;
+field_declaration:
+	variable_declarators   ';'	;
+variable_declarators:
+	variable_declarator (','   variable_declarator)* ;
+variable_declarator:
+	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration [string returnType]:
-	method_header[$returnType]   method_body ;
-method_header [string returnType]:
-	member_name  '('   fpl=formal_parameter_list?   ')'   
-     {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist)); }
-    type_parameter_constraints_clauses? 
-        { Debug("Processing method declaration: " + $member_name.name); }
-;
+method_declaration:
+	method_header   method_body ;
+method_header:
+	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
 method_body:
 	block ;
-member_name returns [string name, List<String> tyargs]:
-	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
+member_name:
+	qid ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-property_declaration[string type]:
-	member_name   '{'   accessor_declarations   '}' 
-           { PropRepTemplate propRep = new PropRepTemplate($type, $member_name.name);
-            propRep.CanRead = $accessor_declarations.hasGetter;
-            propRep.CanWrite = $accessor_declarations.hasSetter;
-            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
-        { Debug("Processing property declaration: " + $member_name.name); }
-;
-accessor_declarations returns [bool hasGetter, bool hasSetter]
-@int {
-    $hasSetter = false;
-    $hasGetter = false;
-}
-:
+property_declaration:
+	member_name   '{'   accessor_declarations   '}' ;
+accessor_declarations:
 	attributes?
-		(get_accessor_declaration { $hasGetter = true; }  attributes?   (set_accessor_declaration { $hasSetter = true; })?
-		| set_accessor_declaration  { $hasSetter = true; } attributes?   (get_accessor_declaration { $hasGetter = true; })?) ;
+		(get_accessor_declaration   attributes?   set_accessor_declaration?
+		| set_accessor_declaration   attributes?   get_accessor_declaration?) ;
 get_accessor_declaration:
 	accessor_modifier?   'get'   accessor_body ;
 set_accessor_declaration:
@@ -765,9 +643,8 @@ accessor_body:
 ///////////////////////////////////////////////////////
 event_declaration:
 	'event'   type
-		((member_name   '{') => member_name '{' event_accessor_declarations '}' { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $member_name.name)); } 
-		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
-        { Debug("Processing event declaration: " + $member_name.name); }
+		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
+		| variable_declarators   ';')	// typename=foo;
 		;
 event_modifiers:
 	modifier+ ;
@@ -782,25 +659,8 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 //	enum declaration
 ///////////////////////////////////////////////////////
-enum_declaration
-scope NSContext;
-@init {
-    $NSContext::nss = new List<UseRepTemplate>();
-    EnumRepTemplate eenum = new EnumRepTemplate();
-}
-:
-	'enum'   identifier   enum_base? 
-        { 
-            Debug("Processing enum: " + $identifier.text);
-            eenum.Uses = this.NameSpaceContext;
-            eenum.TypeName = this.ParentNameSpace + "." + $identifier.text;
-            // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(eenum.TypeName));
-            $NSContext::currentNS = eenum.TypeName;
-            $NSContext::currentTypeRep = eenum;
-            AppEnv[eenum.TypeName] = eenum;
-        } 
-    enum_body   ';'? ;
+enum_declaration returns [string name]:
+	'enum'   identifier  { $name = $identifier.text; } enum_base?   enum_body   ';'? ;
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -808,10 +668,7 @@ enum_body:
 enum_member_declarations:
 	enum_member_declaration (',' enum_member_declaration)* ;
 enum_member_declaration:
-	attributes?   identifier   ('='   expression)? 
-        { ((EnumRepTemplate)$NSContext::currentTypeRep).Members.Add(new EnumMemberRepTemplate($identifier.text, $expression.text)); } // todo:  are arbitrary expressions really allowed
-        { Debug("Processing enum member: " + $identifier.text); }
-;
+	attributes?   identifier   ('='   expression)? ;
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:
@@ -820,37 +677,16 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration
-scope NSContext;
-@init {
-    $NSContext::nss = new List<UseRepTemplate>();
-    DelegateRepTemplate dlegate = new DelegateRepTemplate();
-}
-:
-	'delegate'   return_type   identifier  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
-        { 
-            Debug("Processing delegate: " + $identifier.text);
-            dlegate.Uses = this.NameSpaceContext;
-            dlegate.TypeName = this.ParentNameSpace + "." + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
-            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
-                dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
-            }
-            dlegate.Return=$return_type.thetext;
-            dlegate.Params=$formal_parameter_list.paramlist;
-            AppEnv[dlegate.TypeName] = dlegate;
-        } 
-;
+delegate_declaration returns [string name]:
+	'delegate'   return_type   identifier { $name = $identifier.text; }  variant_generic_parameter_list?   
+		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
-variant_generic_parameter_list returns [List<string> tyargs]
-@init {
-    $tyargs = new List<string>();
-}:
-	'<'   variant_type_parameters[$tyargs]   '>' ;
-variant_type_parameters [List<String> tyargs]:
-	v1=variant_type_variable_name { tyargs.Add($v1.text); } (',' vn=variant_type_variable_name  { tyargs.Add($vn.text); })* ;
+variant_generic_parameter_list:
+	'<'   variant_type_parameters   '>' ;
+variant_type_parameters:
+	variant_type_variable_name (',' variant_type_variable_name)* ;
 variant_type_variable_name:
 	attributes?   variance_annotation?   type_variable_name ;
 variance_annotation:
@@ -877,114 +713,63 @@ type_variable_name:
 	identifier ;
 constructor_constraint:
 	'new'   '('   ')' ;
-return_type returns [string thetext]:
-	type { $thetext = $type.thetext; }
-	|  v='void' { $thetext = $v.text; } ;
-formal_parameter_list returns [List<ParamRepTemplate> paramlist]
-@init {
-    $paramlist = new List<ParamRepTemplate>();
-}:
-	p1=formal_parameter { $paramlist.Add($p1.param); } (',' pn=formal_parameter { $paramlist.Add($pn.param); })* ;
-formal_parameter returns [ParamRepTemplate param]:
-	attributes?   (fp=fixed_parameter { $param = $fp.param; } | pa=parameter_array { $param = $pa.param; }) 
-	| a='__arglist' { Warning($a.line, "[UNSUPPORTED] __arglist"); } ;	// __arglist is undocumented, see google
-fixed_parameters returns [List<ParamRepTemplate> paramlist]
-@init {
-    $paramlist = new List<ParamRepTemplate>();
-}:
-	p1=fixed_parameter  { $paramlist.Add($p1.param); } (','   pn=fixed_parameter { $paramlist.Add($pn.param); })* ;
+return_type:
+	type
+	|  'void';
+formal_parameter_list:
+	formal_parameter (',' formal_parameter)* ;
+formal_parameter:
+	attributes?   (fixed_parameter | parameter_array) 
+	| '__arglist';	// __arglist is undocumented, see google
+fixed_parameters:
+	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
-fixed_parameter returns [ParamRepTemplate param]
-@init {
-    bool isByRef = false;
-}
-:
-        (pm=parameter_modifier { isByRef = ($pm.text == "ref" || $pm.text == "out");  })?   t=type   i=identifier  { $param=new ParamRepTemplate($t.thetext, $i.text, isByRef); } default_argument? ;
+fixed_parameter:
+	parameter_modifier?   type   identifier   default_argument? ;
 // 4.0
 default_argument:
 	'=' expression;
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
-parameter_array returns [ParamRepTemplate param]:
-	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext + "[]", $i.text, false); } ;
+parameter_array:
+	'params'   type   identifier ;
 
 ///////////////////////////////////////////////////////
-interface_declaration 
-scope NSContext;
-@init {
-    $NSContext::nss = new List<UseRepTemplate>();
-    InterfaceRepTemplate iface = new InterfaceRepTemplate();
-}
-:
-	'interface'   identifier   variant_generic_parameter_list?
-        { 
-            Debug("Processing interface: " + $identifier.text);
-            iface.Uses = this.NameSpaceContext;
-            iface.TypeName = this.ParentNameSpace + "." + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
-            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
-                iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
-            }
-            // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(iface.TypeName));
-            $NSContext::currentNS = iface.TypeName;
-            $NSContext::currentTypeRep = iface;
-            AppEnv[iface.TypeName] = iface;
-        } 
-    	(interface_base { iface.Inherits = $interface_base.typeList.ToArray(); } )?   
-        type_parameter_constraints_clauses?   interface_body   ';'? ;
+interface_declaration returns [string name]:
+	'interface'   identifier { $name = $identifier.text; }  variant_generic_parameter_list? 
+    	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? ;
 interface_modifiers: 
 	modifier+ ;
-interface_base returns [List<string> typeList]: 
-   	':' interface_type_list { $typeList = $interface_type_list.typeList; } ;
+interface_base: 
+   	':' interface_type_list ;
 interface_body:
 	'{'   interface_member_declarations?   '}' ;
 interface_member_declarations:
 	interface_member_declaration+ ;
 interface_member_declaration:
 	attributes?    modifiers?
-		('void'   interface_method_declaration["System.Void"]
+		('void'   interface_method_declaration
 		| interface_event_declaration
-		| rt=type   ( (member_name   '(') => interface_method_declaration[$rt.thetext]
-		         | (member_name   '{') => interface_property_declaration[$rt.thetext] 
-				 | interface_indexer_declaration[$rt.thetext])
+		| type   ( (member_name   '(') => interface_method_declaration
+		         | (member_name   '{') => interface_property_declaration 
+				 | interface_indexer_declaration)
 		) 
 		;
-interface_property_declaration [string returnType]: 
-	identifier   '{'   interface_accessor_declarations   '}' 
-           { PropRepTemplate propRep = new PropRepTemplate($returnType, $identifier.text);
-            propRep.CanRead = $interface_accessor_declarations.hasGetter;
-            propRep.CanWrite = $interface_accessor_declarations.hasSetter;
-            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
-        { Debug("Processing interface property declaration: " + $identifier.text); }
-    ;
-interface_method_declaration [string returnType]:
-	identifier   gal=generic_argument_list?
-	    '('   fpl=formal_parameter_list?   ')'  
-        {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist); 
-           ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
-        type_parameter_constraints_clauses?   ';' 
-        { Debug("Processing interface method declaration: " + $identifier.text); }
-;
+interface_property_declaration: 
+	identifier   '{'   interface_accessor_declarations   '}' ;
+interface_method_declaration:
+	identifier   generic_argument_list?
+	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
 interface_event_declaration: 
 	//attributes?   'new'?   
-	'event'   type   identifier  { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' 
-        { Debug("Processing interface event declaration: " + $identifier.text); }
-; 
-interface_indexer_declaration [string returnType]: 
+	'event'   type   identifier   ';' ; 
+interface_indexer_declaration: 
 	// attributes?    'new'?    type   
-	'this'   '['   fpl=formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' 
-         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, "this", null, $fpl.paramlist)); }
-           { Debug("Processing interface indexer declaration"); }
- ;
-interface_accessor_declarations returns [bool hasGetter, bool hasSetter]
-@int {
-    $hasSetter = false;
-    $hasGetter = false;
-}
-:
+	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' ;
+interface_accessor_declarations:
 	attributes?   
-		(interface_get_accessor_declaration { $hasGetter = true; }  attributes?   (interface_set_accessor_declaration { $hasSetter = true; })?
-		| interface_set_accessor_declaration  { $hasSetter = true; } attributes?   (interface_get_accessor_declaration { $hasGetter = true; })?) ;
+		(interface_get_accessor_declaration   attributes?   interface_set_accessor_declaration?
+		| interface_set_accessor_declaration   attributes?   interface_get_accessor_declaration?) ;
 interface_get_accessor_declaration:
 	'get'   ';' ;		// no body / modifiers
 interface_set_accessor_declaration:
@@ -993,56 +778,36 @@ method_modifiers:
 	modifier+ ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration
-scope NSContext;
-@init {
-    $NSContext::nss = new List<UseRepTemplate>();
-    StructRepTemplate strukt = new StructRepTemplate();
-}
-    :
-	'struct'   type_or_generic   
-        { 
-            Debug("Processing struct: " + $type_or_generic.type);
-            strukt.Uses = this.NameSpaceContext;
-            strukt.TypeName = this.ParentNameSpace + "." + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
-            if ($type_or_generic.generic_arguments.Count > 0) {
-                strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
-            }
-            // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(strukt.TypeName));
-            $NSContext::currentNS = strukt.TypeName;
-            $NSContext::currentTypeRep = strukt;
-            AppEnv[strukt.TypeName] = strukt;
-        } (si=struct_interfaces { strukt.Inherits =  $si.typeList.ToArray(); })?
-         type_parameter_constraints_clauses?   struct_body   ';'? ;
+struct_declaration returns [string name]:
+	'struct'   type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
 struct_modifiers:
 	struct_modifier+ ;
 struct_modifier:
 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-struct_interfaces returns [List<string> typeList]:
-	':'   interface_type_list  { $typeList=$interface_type_list.typeList; };
+struct_interfaces:
+	':'   interface_type_list;
 struct_body:
 	'{'   struct_member_declarations?   '}';
 struct_member_declarations:
 	struct_member_declaration+ ;
 struct_member_declaration:
 	attributes?   m=modifiers?
-	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
+	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration["/* partial */"] 
+	| 'partial' (method_declaration 
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
 
 	| interface_declaration	// 'interface'
 	| class_declaration		// 'class'
-	| 'void'   method_declaration["System.Void"]
-	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
-		   | (member_name   '{') => property_declaration[$rt.thetext]
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
-		   | indexer_declaration[$rt.thetext, ""]	//this
-	       | field_declaration[$rt.thetext]      // qid
-	       | operator_declaration[$rt.thetext]
+	| 'void'   method_declaration
+	| type ( (member_name   '(') => method_declaration
+		   | (member_name   '{') => property_declaration
+		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+		   | indexer_declaration	//this
+	       | field_declaration      // qid
+	       | operator_declaration
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
@@ -1056,44 +821,26 @@ struct_member_declaration:
 
 
 ///////////////////////////////////////////////////////
-indexer_declaration [string returnType, string prefix]:
-	indexer_declarator[$returnType, $prefix]   '{'   accessor_declarations   '}' ;
-indexer_declarator [string returnType, string prefix]:
+indexer_declaration:
+	indexer_declarator   '{'   accessor_declarations   '}' ;
+indexer_declarator:
 	//(type_name '.')?   
-	'this'   '['   fpl=formal_parameter_list   ']' 
-         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, $prefix+"this", null, $fpl.paramlist)); }
-        { Debug("Processing indexer declaration"); }
-    ;
+	'this'   '['   formal_parameter_list   ']' ;
 	
 ///////////////////////////////////////////////////////
-operator_declaration [string returnType]:
-	operator_declarator[$returnType]   operator_body ;
-operator_declarator [string returnType]
-@init {
-    string opText = "";
-    List<ParamRepTemplate> paramList = new List<ParamRepTemplate>();
-    bool unaryOp = false;
-}
-@after {
-    MethodRepTemplate meth = new MethodRepTemplate($returnType, opText, null, paramList); 
-    if (unaryOp) {
-        ((ClassRepTemplate)$NSContext::currentTypeRep).UnaryOps.Add(meth);
-    }
-    else {
-        ((ClassRepTemplate)$NSContext::currentTypeRep).BinaryOps.Add(meth);
-    } 
-    Debug("Processing operator declaration: " + meth.Name);
-}:
-	'operator'   
-		(('+' { opText = "+"; } | '-' { opText = "-"; })   '('   t0=type   i0=identifier { paramList.Add(new ParamRepTemplate($t0.thetext, $i0.text)); } (binary_operator_declarator[paramList] | unary_operator_declarator { unaryOp = true; })
-		| overloadable_unary_operator { opText = $overloadable_unary_operator.text; } '('   t1=type   i1=identifier { paramList.Add(new ParamRepTemplate($t1.thetext, $i1.text)); } unary_operator_declarator { unaryOp = true;  } 
-		| overloadable_binary_operator { opText = $overloadable_binary_operator.text; } '(' t2=type   i2=identifier { paramList.Add(new ParamRepTemplate($t2.thetext, $i2.text)); } binary_operator_declarator[paramList] ) ;
+operator_declaration:
+	operator_declarator   operator_body ;
+operator_declarator:
+	'operator' 
+	(('+' | '-')   '('   type   identifier   (binary_operator_declarator | unary_operator_declarator)
+		| overloadable_unary_operator   '('   type identifier   unary_operator_declarator
+		| overloadable_binary_operator   '('   type identifier   binary_operator_declarator) ;
 unary_operator_declarator:
 	   ')' ;
 overloadable_unary_operator:
 	/*'+' |  '-' | */ '!' |  '~' |  '++' |  '--' |  'true' |  'false' ;
-binary_operator_declarator [List<ParamRepTemplate> paramList]:
-	','   type   identifier   ')' { $paramList.Add(new ParamRepTemplate($type.thetext, $identifier.text)); } ;
+binary_operator_declarator:
+	','   type   identifier   ')' ;
 // >> check needed
 overloadable_binary_operator:
 	/*'+' | '-' | */ '*' | '/' | '%' | '&' | '|' | '^' | '<<' | '>' '>' | '==' | '!=' | '>' | '<' | '>=' | '<=' ; 
@@ -1101,11 +848,7 @@ overloadable_binary_operator:
 conversion_operator_declaration:
 	conversion_operator_declarator   operator_body ;
 conversion_operator_declarator:
-	(i='implicit' { Warning($i.line, "[UNSUPPORTED] implicit user defined casts,  an explicit cast is always required."); } | 'explicit')  'operator'   tt=type   '('   tf=type   identifier   ')' 
-         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(new CastRepTemplate($tf.thetext, $tt.thetext)); 
-            Debug("Processing conversion declaration");
-        }
-    ;
+	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
 operator_body:
 	block ;
 
@@ -1113,11 +856,7 @@ operator_body:
 constructor_declaration:
 	constructor_declarator   constructor_body ;
 constructor_declarator:
-	identifier   '('   fpl=formal_parameter_list?   ')'   constructor_initializer? 
-         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(new ConstructorRepTemplate($fpl.paramlist));
-        Debug("Processing constructor declaration");
- }
-;
+	identifier   '('   formal_parameter_list?   ')'   constructor_initializer? ;
 constructor_initializer:
 	':'   ('base' | 'this')   '('   argument_list?   ')' ;
 constructor_body:
@@ -1206,7 +945,7 @@ local_variable_initializer:
 stackalloc_initializer:
 	'stackalloc'   unmanaged_type   '['   expression   ']' ;
 local_constant_declaration:
-	'const'   type   constant_declarators[$type.thetext] ;
+	'const'   type   constant_declarators ;
 expression_statement:
 	expression   ';' ;
 
@@ -1351,3 +1090,4 @@ literal:
 	| FALSE
 	| NULL 
 	;
+
