@@ -7,6 +7,8 @@ using Antlr.Runtime.Tree;
 using Antlr.Runtime;
 using System.Xml.Serialization;
 
+using Antlr.StringTemplate;
+
 using NDesk.Options;
 
 using RusticiSoftware.Translator.Utils;
@@ -20,7 +22,8 @@ namespace RusticiSoftware.Translator.CSharp
         private const string VERSION = "2009.1.1.x";
         private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
         private static CS2JSettings cfg = new CS2JSettings();
- 
+ 		private static StringTemplateGroup templates = null;
+		
         public delegate void FileProcessor(string fName);
 
         private static void showVersion()
@@ -130,6 +133,16 @@ namespace RusticiSoftware.Translator.CSharp
                             s.Serialize(w, de.Value);
                             w.Close();
                         }
+                    }
+                    // load in T.stg template group, put in templates variable
+                    string templateLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.Combine("templates", "java.stg"));
+                    if (File.Exists(templateLocation)) {
+                       TextReader groupFileR = new StreamReader(templateLocation);
+                       templates = new StringTemplateGroup(groupFileR);
+                       groupFileR.Close();
+                    }
+                    else {
+                        templates = new StringTemplateGroup(new StringReader(Templates.JavaTemplateGroup));
                     }
                     doFile(remArgs[0], ".cs", translateFile, cfg.Exclude); // parse it
                     if (cfg.DumpEnums)
@@ -260,6 +273,7 @@ namespace RusticiSoftware.Translator.CSharp
 
             if (csTree != null)
             {
+                // Make java compilation units from C# file
                 Dictionary<string, CommonTree> cus = new Dictionary<string, CommonTree>();
                 JavaMaker javaMaker = new JavaMaker(csTree);
                 javaMaker.Filename = fullName;
@@ -267,7 +281,39 @@ namespace RusticiSoftware.Translator.CSharp
 	    
                 JavaMaker.compilation_unit_return java = javaMaker.compilation_unit(cfg, cus);
                 foreach (KeyValuePair<string, CommonTree> package in cus) {
+                    Console.WriteLine (package.Key);
 
+                    string claName = package.Key.Substring(package.Key.LastIndexOf('.')+1); 
+                    string nsDir = package.Key.Substring(0,package.Key.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
+                    
+                    if (cfg.CheatDir != "")
+                    {
+                        String ignoreMarker = Path.Combine(cfg.CheatDir, Path.Combine(nsDir, claName + ".none"));
+                        if (File.Exists(ignoreMarker))
+                        {
+                            // Don't generate this class
+                            continue;
+                        }
+                    }
+                    // Make sure parent directory exists
+                    String javaFDir = Path.Combine(cfg.OutDir, nsDir);
+                    String javaFName = Path.Combine(javaFDir, claName + ".java");
+                    if (!Directory.Exists(javaFDir))
+                    {
+                        Directory.CreateDirectory(javaFDir);
+                    }
+                    if (cfg.CheatDir != "")
+                    {
+                        String cheatFile = Path.Combine(cfg.CheatDir, Path.Combine(nsDir, claName + ".java"));
+                        if (File.Exists(cheatFile))
+                        {
+                            // the old switcheroo
+                            File.Copy(cheatFile, javaFName,true);
+                            continue;
+                        }
+                    }
+
+                    // Translate calls to .Net to calls to Java libraries
                     CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(package.Value);            
                     javaSyntaxNodes.TokenStream = csTree.TokenStream;
                     
@@ -280,11 +326,15 @@ namespace RusticiSoftware.Translator.CSharp
                     CommonTreeNodeStream javaCompilationUnitNodes = new CommonTreeNodeStream(javaCompilationUnit.Tree);            
                     javaCompilationUnitNodes.TokenStream = csTree.TokenStream;
                     
+                    // Pretty print java parse tree as text
                     JavaPrettyPrint outputMaker = new JavaPrettyPrint(javaCompilationUnitNodes);
                     outputMaker.Filename = fullName;
                     outputMaker.TraceDestination = Console.Error;
+                    outputMaker.TemplateLib = templates;
                     
-                    outputMaker.type_declaration();
+                    StreamWriter javaW = new StreamWriter(javaFName);
+                    javaW.Write(outputMaker.type_declaration().ToString());
+                    javaW.Close();
                 }
              //   ITreeNodeStream javaTree = java.Tree;
             }

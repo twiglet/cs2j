@@ -5,7 +5,7 @@ options {
     ASTLabelType=CommonTree;
     language=CSharp2;
     superClass='RusticiSoftware.Translator.CSharp.CommonWalker';
-    //output=template;
+    output=template;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -17,20 +17,19 @@ options {
 
 @members
 {
-	protected bool is_class_modifier() 
-	{
-		return false;
-	}
+
 }
 
 compilation_unit:
-	namespace_body[true];
-
+	package;
+package:
+        (PACKAGE string type_declaration) -> 
+        package(now = {DateTime.Now}, includeDate = {true}, packageName = {$string}, type = {$type_declaration});
 namespace_declaration:
 	'namespace'   qualified_identifier   namespace_block   ';'? ;
 namespace_block:
-	'{'   namespace_body[false]   '}' ;
-namespace_body[bool bGlobal]:
+	'{'   namespace_body   '}' ;
+namespace_body:
 	extern_alias_directives?   using_directives?   global_attributes?   namespace_member_declarations? ;
 extern_alias_directives:
 	extern_alias_directive+ ;
@@ -51,7 +50,7 @@ namespace_member_declaration:
 	namespace_declaration
 	| attributes?   modifiers?   type_declaration ;
 type_declaration:
-	('partial') => 'partial'   (class_declaration
+        ('partial') => 'partial'   (class_declaration
 								| struct_declaration
 								| interface_declaration)
 	| class_declaration

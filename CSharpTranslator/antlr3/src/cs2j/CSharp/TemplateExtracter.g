@@ -13,8 +13,6 @@ options {
     ASTLabelType=CommonTree;
     language=CSharp2;
     superClass='RusticiSoftware.Translator.CSharp.CommonWalker';
-    //output=AST;
-    //backtrack=true;
 }
 
 // A scope to keep track of the namespaces available at any point in the program

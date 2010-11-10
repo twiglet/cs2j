@@ -69,6 +69,7 @@
     <Compile Include="CSharp\JavaMaker.cs" />
     <Compile Include="CSharp\JavaPrettyPrint.cs" />
     <Compile Include="CSharp\NetMaker.cs" />
+    <Compile Include="CSharp\Templates.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CSharp\csCrawl.g" />
@@ -125,5 +126,13 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="antlr.runtime, Version=2.7.7.3, Culture=neutral, PublicKeyToken=d7701e059243744f">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dll\antlr.runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="StringTemplate, Version=3.0.1.6846, Culture=neutral, PublicKeyToken=beee492b52c41e85">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dll\StringTemplate.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

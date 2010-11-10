@@ -15,6 +15,12 @@ options {
     output=AST;
 }
 
+// A scope to keep track of the namespaces available at any point in the program
+scope NSContext {
+    int filler;
+    string currentNS;
+}
+
 @namespace { RusticiSoftware.Translator.CSharp }
 
 @header
@@ -26,6 +32,11 @@ options {
 {
     private IDictionary<string, CommonTree> CUs { get; set; }
 
+    protected string ParentNameSpace {
+        get {
+            return ((NSContext_scope)$NSContext.ToArray()[$NSContext.Count-2]).currentNS;
+        }
+    }
 }
 
 /********************************************************************************************
@@ -35,14 +46,23 @@ options {
 ///////////////////////////////////////////////////////
 
 compilation_unit[CS2JSettings inCfg, IDictionary<string, CommonTree> inCus /*, DirectoryHT<TypeRepTemplate> inAppEnv*/]
+scope NSContext;
 @init {
     CUs = inCus;
+    $NSContext::currentNS = "";
 }
 :
 	namespace_body;
 
-namespace_declaration:
-	'namespace'   qualified_identifier   namespace_block   ';'? ;
+namespace_declaration
+scope NSContext;
+:
+	'namespace'   qi=qualified_identifier
+    {     
+        // extend parent namespace
+        $NSContext::currentNS = this.ParentNameSpace + $qi.thetext;
+    }
+    namespace_block   ';'? ;
 namespace_block:
 	'{'   namespace_body   '}' ;
 namespace_body:
@@ -50,7 +70,7 @@ namespace_body:
 extern_alias_directives:
 	extern_alias_directive+ ;
 extern_alias_directive:
-	'extern'   'alias'   identifier  ';' ;
+	e='extern'   'alias'   i=identifier  ';' { Warning($e.line, "[UNSUPPORTED] External Alias " + $i.text); } ;
 using_directives:
 	using_directive+ ;
 using_directive:
@@ -68,19 +88,20 @@ namespace_member_declaration:
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
 type_declaration
+@init { string ns = $NSContext::currentNS; }
 :
     ('partial') => p='partial'  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
-                                (pc=class_declaration { CUs.Add($pc.name, $pc.tree); }
-								| ps=struct_declaration { CUs.Add($ps.name, $ps.tree); }
-								| pi=interface_declaration { CUs.Add($pi.name, $pi.tree); })
-	| c=class_declaration { CUs.Add($c.name, $c.tree); }
-	| s=struct_declaration { CUs.Add($s.name, $s.tree); }
-	| i=interface_declaration { CUs.Add($i.name, $i.tree); }
-	| e=enum_declaration { CUs.Add($e.name, $e.tree); }
-	| d=delegate_declaration { CUs.Add($d.name, $d.tree); } ;
+                                (pc=class_declaration { CUs.Add(ns+"."+$pc.name, $pc.tree); }
+								| ps=struct_declaration { CUs.Add(ns+"."+$ps.name, $ps.tree); }
+								| pi=interface_declaration { CUs.Add(ns+"."+$pi.name, $pi.tree); })
+	| c=class_declaration { CUs.Add(ns+"."+$c.name, $c.tree); }
+	| s=struct_declaration { CUs.Add(ns+"."+$s.name, $s.tree); }
+	| i=interface_declaration { CUs.Add(ns+"."+$i.name, $i.tree); }
+	| e=enum_declaration { CUs.Add(ns+"."+$e.name, $e.tree); }
+	| d=delegate_declaration { CUs.Add(ns+"."+$d.name, $d.tree); } ;
 // Identifiers
-qualified_identifier:
-	identifier ('.' identifier)*;
+qualified_identifier returns [string thetext]:
+	i1=identifier { $thetext = $i1.text; } ('.' ip=identifier { $thetext += "." + $ip.text; } )*;
 namespace_name
 	: namespace_or_type_name ;
 
@@ -92,10 +113,11 @@ modifier:
 	
 class_member_declaration:
 	attributes?
+    // TODO:  Don't emit private
 	m=modifiers?
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
@@ -327,16 +349,18 @@ type_or_generic returns [string type, List<string> generic_arguments]
 }:
 	(identifier   generic_argument_list) => t=identifier   ga=generic_argument_list { $generic_arguments = $ga.tyargs; }
 	| t=identifier ;
-qid:		// qualified_identifier v2
-	qid_start   qid_part*
+
+// keving: as far as I can see this is (<interfacename>.)?identifier (<tyargs>)? at lease for C# 3.0 and less.
+qid returns [string name, List<String> tyargs]:		// qualified_identifier v2
+	qid_start   qid_part* { $name=$qid_start.name; $tyargs = $qid_start.tyargs; }
 	;
-qid_start:
-	predefined_type
-	| (identifier   generic_argument_list)	=> identifier   generic_argument_list
+qid_start returns [string name, List<String> tyargs]:
+	predefined_type { $name = $predefined_type.thetext; }
+	| (identifier    generic_argument_list)	=> identifier   generic_argument_list { $name = $identifier.text; $tyargs = $generic_argument_list.tyargs; } 
 //	| 'this'
 //	| 'base'
-	| identifier   ('::'   identifier)?
-	| literal 
+	| i1=identifier  { $name = $i1.text; } ('::'   inext=identifier { $name+="::" + $inext.text; })?
+	| literal { $name = $literal.text; }
 	;		// 0.ToString() is legal
 
 
@@ -362,7 +386,6 @@ type returns [string thetext]:
 	| (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; })
 	| 'void' { $thetext = "System.Void"; } ('*' { $thetext += "*"; })+
 	;
-
 non_nullable_type:
 	(predefined_type | type_name)
 		(   rank_specifiers   '*'*
@@ -621,8 +644,8 @@ method_header:
 	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
 method_body:
 	block ;
-member_name:
-	qid ;		// IInterface<int>.Method logic added.
+member_name returns [string name, List<String> tyargs]:
+	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
 property_declaration:
@@ -683,10 +706,13 @@ delegate_declaration returns [string name]:
 delegate_modifiers:
 	modifier+ ;
 // 4.0
-variant_generic_parameter_list:
-	'<'   variant_type_parameters   '>' ;
-variant_type_parameters:
-	variant_type_variable_name (',' variant_type_variable_name)* ;
+variant_generic_parameter_list returns [List<string> tyargs]
+@init {
+    $tyargs = new List<string>();
+}:
+	'<'   variant_type_parameters[$tyargs]   '>' ;
+variant_type_parameters [List<String> tyargs]:
+	v1=variant_type_variable_name { tyargs.Add($v1.text); } (',' vn=variant_type_variable_name  { tyargs.Add($vn.text); })* ;
 variant_type_variable_name:
 	attributes?   variance_annotation?   type_variable_name ;
 variance_annotation:
@@ -794,7 +820,7 @@ struct_member_declaration:
 	attributes?   m=modifiers?
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
