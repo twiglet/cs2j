@@ -13,47 +13,32 @@ options {
 @header
 {
 	using System.Collections;
+    using System.Text.RegularExpressions;
 }
 
 @members
 {
+    protected int emittedCommentTokenIdx = 0; 
+    protected List<string> collectComments(int endIdx) {
+        List<string> rets = new List<string>();
+        List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(emittedCommentTokenIdx,endIdx);
+        foreach (IToken tok in toks) {
+            if (tok.Channel == TokenChannels.Hidden) {
+                rets.Add(new Regex("(\\n|\\r)+").Replace(tok.Text, Environment.NewLine).Trim());
+            }
+        }
+        emittedCommentTokenIdx = endIdx+1;
+        return rets;
+    }
 
 }
 
 compilation_unit:
-	package;
-package:
-        (PACKAGE string type_declaration) -> 
-        package(now = {DateTime.Now}, includeDate = {true}, packageName = {$string}, type = {$type_declaration});
-namespace_declaration:
-	'namespace'   qualified_identifier   namespace_block   ';'? ;
-namespace_block:
-	'{'   namespace_body   '}' ;
-namespace_body:
-	extern_alias_directives?   using_directives?   global_attributes?   namespace_member_declarations? ;
-extern_alias_directives:
-	extern_alias_directive+ ;
-extern_alias_directive:
-	'extern'   'alias'   identifier  ';' ;
-using_directives:
-	using_directive+ ;
-using_directive:
-	(using_alias_directive
-	| using_namespace_directive) ;
-using_alias_directive:
-	'using'	  identifier   '='   namespace_or_type_name   ';' ;
-using_namespace_directive:
-	'using'   namespace_name   ';' ;
-namespace_member_declarations:
-	namespace_member_declaration+ ;
-namespace_member_declaration:
-	namespace_declaration
-	| attributes?   modifiers?   type_declaration ;
+    ^(PACKAGE nm=PAYLOAD type_declaration) -> 
+        package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, comments = {collectComments($type_declaration.start.TokenStartIndex)}, type = {$type_declaration.st});
+
 type_declaration:
-        ('partial') => 'partial'   (class_declaration
-								| struct_declaration
-								| interface_declaration)
-	| class_declaration
+    class_declaration
 	| struct_declaration
 	| interface_declaration
 	| enum_declaration

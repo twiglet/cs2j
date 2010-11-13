@@ -19,37 +19,10 @@ options {
 }
 
 compilation_unit:
-	namespace_body[true];
+	^(PACKAGE PAYLOAD type_declaration);
 
-namespace_declaration:
-	'namespace'   qualified_identifier   namespace_block   ';'? ;
-namespace_block:
-	'{'   namespace_body[false]   '}' ;
-namespace_body[bool bGlobal]:
-	extern_alias_directives?   using_directives?   global_attributes?   namespace_member_declarations? ;
-extern_alias_directives:
-	extern_alias_directive+ ;
-extern_alias_directive:
-	'extern'   'alias'   identifier  ';' ;
-using_directives:
-	using_directive+ ;
-using_directive:
-	(using_alias_directive
-	| using_namespace_directive) ;
-using_alias_directive:
-	'using'	  identifier   '='   namespace_or_type_name   ';' ;
-using_namespace_directive:
-	'using'   namespace_name   ';' ;
-namespace_member_declarations:
-	namespace_member_declaration+ ;
-namespace_member_declaration:
-	namespace_declaration
-	| attributes?   modifiers?   type_declaration ;
 type_declaration:
-	('partial') => 'partial'   (class_declaration
-								| struct_declaration
-								| interface_declaration)
-	| class_declaration
+	class_declaration
 	| struct_declaration
 	| interface_declaration
 	| enum_declaration

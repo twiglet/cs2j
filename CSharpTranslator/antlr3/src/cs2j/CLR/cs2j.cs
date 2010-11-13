@@ -321,7 +321,7 @@ namespace RusticiSoftware.Translator.CSharp
                     netMaker.Filename = fullName;
                     netMaker.TraceDestination = Console.Error;
                     
-                    NetMaker.type_declaration_return javaCompilationUnit = netMaker.type_declaration();
+                    NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();
 
                     CommonTreeNodeStream javaCompilationUnitNodes = new CommonTreeNodeStream(javaCompilationUnit.Tree);            
                     javaCompilationUnitNodes.TokenStream = csTree.TokenStream;
@@ -333,7 +333,7 @@ namespace RusticiSoftware.Translator.CSharp
                     outputMaker.TemplateLib = templates;
                     
                     StreamWriter javaW = new StreamWriter(javaFName);
-                    javaW.Write(outputMaker.type_declaration().ToString());
+                    javaW.Write(outputMaker.compilation_unit().ToString());
                     javaW.Close();
                 }
              //   ITreeNodeStream javaTree = java.Tree;

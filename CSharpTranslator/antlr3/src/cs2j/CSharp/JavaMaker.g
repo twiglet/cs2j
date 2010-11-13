@@ -84,21 +84,28 @@ namespace_member_declarations:
 	namespace_member_declaration+ ;
 namespace_member_declaration:
 	namespace_declaration
-	| attributes?   modifiers?   type_declaration ;
+	| attributes?   modifiers?   type_declaration_pkg ;
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
-type_declaration
+type_declaration_pkg 
 @init { string ns = $NSContext::currentNS; }
+@after {
+ CUs.Add(ns+"."+$pkg.name, $type_declaration_pkg.tree); 
+}
 :
-    ('partial') => p='partial'  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
-                                (pc=class_declaration { CUs.Add(ns+"."+$pc.name, $pc.tree); }
-								| ps=struct_declaration { CUs.Add(ns+"."+$ps.name, $ps.tree); }
-								| pi=interface_declaration { CUs.Add(ns+"."+$pi.name, $pi.tree); })
-	| c=class_declaration { CUs.Add(ns+"."+$c.name, $c.tree); }
-	| s=struct_declaration { CUs.Add(ns+"."+$s.name, $s.tree); }
-	| i=interface_declaration { CUs.Add(ns+"."+$i.name, $i.tree); }
-	| e=enum_declaration { CUs.Add(ns+"."+$e.name, $e.tree); }
-	| d=delegate_declaration { CUs.Add(ns+"."+$d.name, $d.tree); } ;
+        pkg=type_declaration ->   ^(PACKAGE PAYLOAD[ns] $pkg);
+type_declaration returns [string name]
+:
+    ('partial') => p='partial'!  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
+                                (pc=class_declaration { $name=$pc.name; }
+								| ps=struct_declaration { $name=$ps.name; }
+								| pi=interface_declaration { $name=$pi.name; }) 
+	| c=class_declaration { $name=$c.name; }
+	| s=struct_declaration { $name=$s.name; }
+	| i=interface_declaration { $name=$i.name; }
+	| e=enum_declaration { $name=$e.name; }
+	| d=delegate_declaration { $name=$d.name; }
+    ;
 // Identifiers
 qualified_identifier returns [string thetext]:
 	i1=identifier { $thetext = $i1.text; } ('.' ip=identifier { $thetext += "." + $ip.text; } )*;

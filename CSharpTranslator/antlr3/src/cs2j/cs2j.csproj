@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-v -v -v -dumpcsharp -debug 10  /Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/cs2jTest/TestDLLs/Various.cs</Commandlineparameters>
+    <Commandlineparameters>-warnings -debug 10 -dumpxmls -xmldir=/tmp/xml/se -odir=/tmp/java/se /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core/Logic/Types/Mode.cs</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

@@ -6,6 +6,11 @@ options {
     language=CSharp2;
 }
 
+tokens {
+            PACKAGE;
+            PAYLOAD;   // carries arbitrary text for the output file
+}
+
 @namespace { RusticiSoftware.Translator.CSharp }
 
 @lexer::header       
