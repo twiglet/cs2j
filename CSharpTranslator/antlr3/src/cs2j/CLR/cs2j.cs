@@ -258,8 +258,11 @@ namespace RusticiSoftware.Translator.CSharp
                 TemplateExtracter templateWalker = new TemplateExtracter(csTree);
                 templateWalker.Filename = fullName;
                 templateWalker.TraceDestination = Console.Error;
-                                
-                templateWalker.compilation_unit(cfg, AppEnv);
+
+                templateWalker.Cfg = cfg;
+                templateWalker.AppEnv = AppEnv;
+
+                templateWalker.compilation_unit();
             }
         }
 
@@ -274,17 +277,24 @@ namespace RusticiSoftware.Translator.CSharp
             if (csTree != null)
             {
                 // Make java compilation units from C# file
-                Dictionary<string, CommonTree> cus = new Dictionary<string, CommonTree>();
                 JavaMaker javaMaker = new JavaMaker(csTree);
                 javaMaker.Filename = fullName;
                 javaMaker.TraceDestination = Console.Error;
-	    
-                JavaMaker.compilation_unit_return java = javaMaker.compilation_unit(cfg, cus);
-                foreach (KeyValuePair<string, CommonTree> package in cus) {
-                    Console.WriteLine (package.Key);
 
-                    string claName = package.Key.Substring(package.Key.LastIndexOf('.')+1); 
-                    string nsDir = package.Key.Substring(0,package.Key.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
+                javaMaker.Cfg = cfg;
+                javaMaker.CUMap = new Dictionary<string, CommonTree>();
+                javaMaker.CUKeys = new List<string>();
+	    
+                JavaMaker.compilation_unit_return java = javaMaker.compilation_unit();
+
+                for (int i = 0; i < javaMaker.CUKeys.Count; i++)
+                {
+                    string typeName = javaMaker.CUKeys[i];
+                    CommonTree typeAST = javaMaker.CUMap[typeName];
+                    Console.WriteLine (typeName);
+
+                    string claName = typeName.Substring(typeName.LastIndexOf('.')+1); 
+                    string nsDir = typeName.Substring(0,typeName.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
                     
                     if (cfg.CheatDir != "")
                     {
@@ -314,12 +324,14 @@ namespace RusticiSoftware.Translator.CSharp
                     }
 
                     // Translate calls to .Net to calls to Java libraries
-                    CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(package.Value);            
+                    CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(typeAST);            
                     javaSyntaxNodes.TokenStream = csTree.TokenStream;
                     
                     NetMaker netMaker = new NetMaker(javaSyntaxNodes);
                     netMaker.Filename = fullName;
                     netMaker.TraceDestination = Console.Error;
+
+                    netMaker.Cfg = cfg;
                     
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();
 
@@ -331,6 +343,9 @@ namespace RusticiSoftware.Translator.CSharp
                     outputMaker.Filename = fullName;
                     outputMaker.TraceDestination = Console.Error;
                     outputMaker.TemplateLib = templates;
+
+                    outputMaker.Cfg = cfg;
+                    outputMaker.IsLast = i == (javaMaker.CUKeys.Count - 1);
                     
                     StreamWriter javaW = new StreamWriter(javaFName);
                     javaW.Write(outputMaker.compilation_unit().ToString());

@@ -37,7 +37,7 @@ scope NSContext {
 
     // This is the environment that we are building, it maps fully qualified type names to their
     // translation templates
-    protected DirectoryHT<TypeRepTemplate> AppEnv {get; set;}
+    public DirectoryHT<TypeRepTemplate> AppEnv {get; set;}
 
     protected UseRepTemplate[] NameSpaceContext {
         get {
@@ -75,11 +75,9 @@ scope NSContext {
 
 ///////////////////////////////////////////////////////
 
-compilation_unit[CS2JSettings inCfg, DirectoryHT<TypeRepTemplate> inAppEnv]
+compilation_unit
 scope NSContext;
 @init{
-    Cfg = inCfg;
-    AppEnv = inAppEnv;
     // For initial, file level scope
     $NSContext::nss = new List<UseRepTemplate>();
     $NSContext::currentNS = "";

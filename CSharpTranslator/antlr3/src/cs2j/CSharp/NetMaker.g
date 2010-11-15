@@ -12,10 +12,6 @@ options {
 
 @members
 {
-	protected bool is_class_modifier() 
-	{
-		return false;
-	}
 }
 
 compilation_unit:

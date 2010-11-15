@@ -9,7 +9,7 @@ namespace RusticiSoftware.Translator.CSharp
 {
     public class CommonWalker : TreeParser
     {
-		protected CS2JSettings Cfg { get; set; }
+		public CS2JSettings Cfg { get; set; }
 		public string Filename { get; set; }
 
         protected CommonWalker(ITreeNodeStream input, RecognizerSharedState state)

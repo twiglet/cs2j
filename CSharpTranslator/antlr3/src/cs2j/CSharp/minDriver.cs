@@ -53,7 +53,9 @@ namespace RusticiSoftware.Translator.CSharp
 					nodes.TokenStream = tokens;
 
                     TemplateExtracter templateWalker = new TemplateExtracter(nodes);
-                    templateWalker.compilation_unit(new CS2JSettings(), new DirectoryHT<TypeRepTemplate>());
+                    templateWalker.Cfg = new CS2JSettings();
+                    templateWalker.AppEnv = new DirectoryHT<TypeRepTemplate>();
+                    templateWalker.compilation_unit();
 
                 }
             }

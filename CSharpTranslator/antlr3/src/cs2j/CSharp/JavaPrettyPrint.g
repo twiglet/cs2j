@@ -18,7 +18,12 @@ options {
 
 @members
 {
+
+    public bool IsLast { get; set; }
     protected int emittedCommentTokenIdx = 0; 
+
+    // Collect all comments from previous position to endIdx
+    // comments are the text from tokens on the Hidden channel
     protected List<string> collectComments(int endIdx) {
         List<string> rets = new List<string>();
         List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(emittedCommentTokenIdx,endIdx);
@@ -30,12 +35,17 @@ options {
         emittedCommentTokenIdx = endIdx+1;
         return rets;
     }
-
+    protected List<string> collectComments() {
+        return collectComments(((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens().Count - 1);
+    }
 }
 
 compilation_unit:
     ^(PACKAGE nm=PAYLOAD type_declaration) -> 
-        package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, comments = {collectComments($type_declaration.start.TokenStartIndex)}, type = {$type_declaration.st});
+        package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, 
+            comments = {collectComments($type_declaration.start.TokenStartIndex)}, 
+            type = {$type_declaration.st},
+            endComments = {IsLast ? collectComments() : null});
 
 type_declaration:
     class_declaration

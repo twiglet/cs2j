@@ -16,11 +16,13 @@ itsmine(now, includeDate) ::= <<
 
 >>
 
-package(now, includeDate, packageName, comments, type) ::= <<
+package(now, includeDate, packageName, comments, type, endComments) ::= <<
 <itsmine(now=now,includeDate=includeDate)>
 package <packageName>;
 
 <comments; separator="\n">
 
 <type>
+
+<endComments; separator="\n">
 >>

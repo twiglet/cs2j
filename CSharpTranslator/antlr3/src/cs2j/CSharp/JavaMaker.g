@@ -30,7 +30,12 @@ scope NSContext {
 
 @members
 {
-    private IDictionary<string, CommonTree> CUs { get; set; }
+    // Since a CS file may comtain multiple top level types (and so generate multiple Java
+    // files) we build a map from type name to AST for each top level type
+    // We also build a lit of type names so that we can maintain the order (so comments
+    // at the end of the file will get included when we emit the java for the last type)
+    public IDictionary<string, CommonTree> CUMap { get; set; }
+    public IList<string> CUKeys { get; set; }
 
     protected string ParentNameSpace {
         get {
@@ -45,10 +50,9 @@ scope NSContext {
 
 ///////////////////////////////////////////////////////
 
-compilation_unit[CS2JSettings inCfg, IDictionary<string, CommonTree> inCus /*, DirectoryHT<TypeRepTemplate> inAppEnv*/]
+compilation_unit
 scope NSContext;
 @init {
-    CUs = inCus;
     $NSContext::currentNS = "";
 }
 :
@@ -90,7 +94,8 @@ namespace_member_declaration:
 type_declaration_pkg 
 @init { string ns = $NSContext::currentNS; }
 @after {
- CUs.Add(ns+"."+$pkg.name, $type_declaration_pkg.tree); 
+ CUMap.Add(ns+"."+$pkg.name, $type_declaration_pkg.tree); 
+ CUKeys.Add(ns+"."+$pkg.name); 
 }
 :
         pkg=type_declaration ->   ^(PACKAGE PAYLOAD[ns] $pkg);
