@@ -25,7 +25,7 @@ scope NSContext {
 
 @header
 {
-
+    using System.Globalization;
 }
 
 @members
@@ -722,8 +722,26 @@ enum_member_declarations
 	e=enum_member_declaration[members,ref next] (',' enum_member_declaration[members, ref next])* 
     -> 
     ;
-enum_member_declaration[ SortedList<int,CommonTree> members, ref int next]:
-	attributes?   identifier  { $members[next] = $identifier.tree; $next++; } (('='   expression)?)! ;
+enum_member_declaration[ SortedList<int,CommonTree> members, ref int next]
+@init {
+    int calcValue = 0;
+}:
+        // Fill in members, a map from enum's value to AST
+	attributes?   identifier  { $members[$next] = $identifier.tree; $next++; } 
+        ((eq='='   ( ((NUMBER | Hex_number) (','|'}')) => 
+                        { Console.Out.WriteLine($i); $members.Remove($next-1); } 
+                           (i=NUMBER { calcValue = Int32.Parse($i.text); } 
+                            | i=Hex_number { calcValue = Int32.Parse($i.text.Substring(2), NumberStyles.AllowHexSpecifier); } )  
+                        { if (calcValue < 0 || calcValue > Int32.MaxValue) {
+                             Warning($eq.line, "[UNSUPPORTED] enum member's value initialization ignored, only numeric literals in the range 0..MAXINT supported for enum values"); 
+                             calcValue = $next-1;
+                          }
+                          else if (calcValue < $next-1) {
+                             Warning($eq.line, "[UNSUPPORTED] enum member's value initialization ignored, value has already been assigned and enum values must be unique"); 
+                             calcValue = $next-1;
+                          }
+                          $members[calcValue] = $identifier.tree; $next = calcValue + 1; } 
+                  | expression  { Warning($eq.line, "[UNSUPPORTED] enum member's value initialization ignored, only numeric literals supported for enum values"); } ))?)! ;
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:
