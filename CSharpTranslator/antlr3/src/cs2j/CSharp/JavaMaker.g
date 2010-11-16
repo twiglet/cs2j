@@ -42,6 +42,17 @@ scope NSContext {
             return ((NSContext_scope)$NSContext.ToArray()[$NSContext.Count-2]).currentNS;
         }
     }
+
+
+    // TREE CONSTRUCTION
+    protected CommonTree mkPayloadList(List<string> payloads) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+
+        foreach (string p in payloads) {
+            adaptor.AddChild(root, (CommonTree)adaptor.Create(PAYLOAD, p));
+        }
+        return root;
+    }
 }
 
 /********************************************************************************************
@@ -618,7 +629,9 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration returns [string name]:
-	'class'  type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? ;
+	c='class'  type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+    -> ^(CLASS[$c.Token] PAYLOAD[$type_or_generic.type] ^(PAYLOAD_LIST { mkPayloadList($type_or_generic.generic_arguments) } )
+         class_base?   type_parameter_constraints_clauses?   class_body );
 class_base:
 	// syntactically base class vs interface name is the same
 	//':'   class_type (','   interface_type_list)? ;

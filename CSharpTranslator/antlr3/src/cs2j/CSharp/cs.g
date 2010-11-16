@@ -9,10 +9,12 @@ options {
 tokens {
             PACKAGE;
             ENUM_BODY;
+            CLASS;
             
             FINAL; /* final modifier */
 
             PAYLOAD;   // carries arbitrary text for the output file
+            PAYLOAD_LIST;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }

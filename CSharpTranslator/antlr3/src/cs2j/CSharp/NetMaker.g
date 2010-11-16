@@ -513,7 +513,8 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration:
-	'class'  type_or_generic   class_base?   type_parameter_constraints_clauses?   class_body   ';'? ;
+   ^(CLASS PAYLOAD ^(PAYLOAD_LIST PAYLOAD* )
+         class_base?   type_parameter_constraints_clauses?   class_body ) ;
 class_base:
 	// syntactically base class vs interface name is the same
 	//':'   class_type (','   interface_type_list)? ;

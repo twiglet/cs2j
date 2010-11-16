@@ -21,16 +21,26 @@ package(now, includeDate, packageName, comments, modifiers, type, endComments) :
 package <packageName>;
 
 <comments; separator="\n">
-
-<modifiers> <type>
+<type>
 
 <endComments; separator="\n">
 >>
 
+// ******* CLASSES ***********
 
-enum(comments, attributes, name, body) ::= <<
+class(modifiers, comments, attributes, name, body) ::= <<
 <comments; separator="\n">
-enum <name>
+<modifiers(modifiers)>class <name>
+{
+    <body>
+}
+>>
+
+// ******* ENUMS ***********
+
+enum(modifiers,comments, attributes, name, body) ::= <<
+<comments; separator="\n">
+<modifiers(modifiers)>enum <name>
 {
     <body>
 }
@@ -43,7 +53,8 @@ enum_member(comments, value) ::= <<
 <value>
 >>
 
-modifiers(mods) ::= "<mods; separator=\" \">"
+modifiers(mods) ::= "<mods; separator=\" \"><if(mods)> <endif>"
+//modifiers(mods) ::= "<mods; separator=\" \">"
 
-// utility
+// ******* UTILITY ***********
 string(payload) ::= "<payload>"

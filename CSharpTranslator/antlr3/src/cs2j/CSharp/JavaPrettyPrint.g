@@ -43,21 +43,17 @@ options {
 }
 
 compilation_unit
-@init {
-    List<string> preComments = null;
-}:
-    ^(PACKAGE { preComments = collectComments($PACKAGE.TokenStartIndex); } nm=PAYLOAD modifiers? type_declaration) -> 
+:
+    ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st]) -> 
         package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, 
-            comments = { preComments },
-            modifiers = {$modifiers.st},
             type = {$type_declaration.st},
             endComments = {IsLast ? collectComments() : null});
 
-type_declaration:
-    class_declaration
+type_declaration [StringTemplate modifiersST]:
+    class_declaration[modifiersST] -> { $class_declaration.st }
 	| struct_declaration
 	| interface_declaration
-	| enum_declaration -> { $enum_declaration.st }
+	| enum_declaration[modifiersST] -> { $enum_declaration.st }
 	| delegate_declaration ;
 // Identifiers
 qualified_identifier:
@@ -80,7 +76,7 @@ class_member_declaration:
 	| event_declaration		// 'event'
 	| 'partial' (method_declaration 
 			   | interface_declaration 
-			   | class_declaration 
+			   | class_declaration[$m.st] 
 			   | struct_declaration)
 	| interface_declaration	// 'interface'
 	| 'void'   method_declaration
@@ -93,9 +89,9 @@ class_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| class_declaration		// 'class'
+	| class_declaration[$m.st]		// 'class'
 	| struct_declaration	// 'struct'	   
-	| enum_declaration		// 'enum'
+	| enum_declaration[$m.st]		// 'enum'
 	| delegate_declaration	// 'delegate'
 	| conversion_operator_declaration
 	| constructor_declaration	//	| static_constructor_declaration
@@ -550,8 +546,13 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration:
-	'class'  type_or_generic   class_base?   type_parameter_constraints_clauses?   class_body   ';'? ;
+class_declaration[StringTemplate modifiersST]
+@init {
+    List<string> preComments = null;
+}:
+   ^(c=CLASS { preComments = collectComments($c.TokenStartIndex); } nm=PAYLOAD ^(PAYLOAD_LIST PAYLOAD* )
+         class_base?   type_parameter_constraints_clauses?   class_body )
+    -> class(modifiers = {modifiersST}, name={ $nm }, comments = { preComments } ) ;
 class_base:
 	// syntactically base class vs interface name is the same
 	//':'   class_type (','   interface_type_list)? ;
@@ -628,9 +629,12 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 //	enum declaration
 ///////////////////////////////////////////////////////
-enum_declaration:
-	'enum'   identifier   enum_base?   enum_body   ';'?
-    -> enum(name={$identifier.text}, body={$enum_body.st}) ;
+enum_declaration[StringTemplate modifiersST]
+@init {
+    List<string> preComments = null;
+}:
+	e='enum' { preComments = collectComments($e.TokenStartIndex); }  identifier   enum_base?   enum_body   ';'?
+    -> enum(comments = { preComments}, modifiers = { $modifiersST }, name={$identifier.text}, body={$enum_body.st}) ;
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -764,11 +768,11 @@ struct_member_declaration:
 	| event_declaration		// 'event'
 	| 'partial' (method_declaration 
 			   | interface_declaration 
-			   | class_declaration 
+			   | class_declaration[$m.st] 
 			   | struct_declaration)
 
 	| interface_declaration	// 'interface'
-	| class_declaration		// 'class'
+	| class_declaration[$m.st]		// 'class'
 	| 'void'   method_declaration
 	| type ( (member_name   '(') => method_declaration
 		   | (member_name   '{') => property_declaration
@@ -780,7 +784,7 @@ struct_member_declaration:
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
 	| struct_declaration	// 'struct'	   
-	| enum_declaration		// 'enum'
+	| enum_declaration[$m.st]		// 'enum'
 	| delegate_declaration	// 'delegate'
 	| conversion_operator_declaration
 	| constructor_declaration	//	| static_constructor_declaration
