@@ -456,7 +456,7 @@ namespace RusticiSoftware.Translator.CSharp
             //System.Console.Out.WriteLine(writer.ToString());
             System.Console.Out.WriteLine("");
             System.Console.Out.WriteLine("");
-            System.Console.Out.WriteLine("Pretty-printed {0} in: {1} seconds.", fullName, elapsedTime);
+            System.Console.Out.WriteLine("Processed {0} in: {1} seconds.", fullName, elapsedTime);
         }
     }
 }

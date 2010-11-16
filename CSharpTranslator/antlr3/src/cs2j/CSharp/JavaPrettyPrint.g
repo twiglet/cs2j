@@ -27,12 +27,14 @@ options {
     protected List<string> collectComments(int endIdx) {
         List<string> rets = new List<string>();
         List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(emittedCommentTokenIdx,endIdx);
-        foreach (IToken tok in toks) {
-            if (tok.Channel == TokenChannels.Hidden) {
-                rets.Add(new Regex("(\\n|\\r)+").Replace(tok.Text, Environment.NewLine).Trim());
+        if (toks != null) {
+            foreach (IToken tok in toks) {
+                if (tok.Channel == TokenChannels.Hidden) {
+                    rets.Add(new Regex("(\\n|\\r)+").Replace(tok.Text, Environment.NewLine).Trim());
+                }
             }
+            emittedCommentTokenIdx = endIdx+1;
         }
-        emittedCommentTokenIdx = endIdx+1;
         return rets;
     }
     protected List<string> collectComments() {
@@ -40,10 +42,14 @@ options {
     }
 }
 
-compilation_unit:
-    ^(PACKAGE nm=PAYLOAD type_declaration) -> 
+compilation_unit
+@init {
+    List<string> preComments = null;
+}:
+    ^(PACKAGE { preComments = collectComments($PACKAGE.TokenStartIndex); } nm=PAYLOAD modifiers? type_declaration) -> 
         package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, 
-            comments = {collectComments($type_declaration.start.TokenStartIndex)}, 
+            comments = { preComments },
+            modifiers = {$modifiers.st},
             type = {$type_declaration.st},
             endComments = {IsLast ? collectComments() : null});
 
@@ -51,7 +57,7 @@ type_declaration:
     class_declaration
 	| struct_declaration
 	| interface_declaration
-	| enum_declaration
+	| enum_declaration -> { $enum_declaration.st }
 	| delegate_declaration ;
 // Identifiers
 qualified_identifier:
@@ -60,10 +66,12 @@ namespace_name
 	: namespace_or_type_name ;
 
 modifiers:
-	modifier+ ;
-modifier: 
-	'new' | 'public' | 'protected' | 'private' | 'internal' | 'unsafe' | 'abstract' | 'sealed' | 'static'
-	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override';
+	ms+=modifier+ -> modifiers(mods={$ms});
+modifier
+: 
+        (m='new' | m='public' | m='protected' | m='private' | m='abstract' | m='sealed' | m='static'
+        | m='readonly' | m='volatile' | m='extern' | m='virtual' | m='override' | m=FINAL)
+        -> string(payload={$m.text});
 	
 class_member_declaration:
 	attributes?
@@ -621,15 +629,14 @@ remove_accessor_declaration:
 //	enum declaration
 ///////////////////////////////////////////////////////
 enum_declaration:
-	'enum'   identifier   enum_base?   enum_body   ';'? ;
+	'enum'   identifier   enum_base?   enum_body   ';'?
+    -> enum(name={$identifier.text}, body={$enum_body.st}) ;
 enum_base:
 	':'   integral_type ;
 enum_body:
-	'{' (enum_member_declarations ','?)?   '}' ;
-enum_member_declarations:
-	enum_member_declaration (',' enum_member_declaration)* ;
+	^(ENUM_BODY es+=enum_member_declaration+) -> enum_body(values={$es});
 enum_member_declaration:
-	attributes?   identifier   ('='   expression)? ;
+	attributes?   identifier -> enum_member(comments = {collectComments($identifier.start.TokenStartIndex)}, value={ $identifier.st });
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:
@@ -1015,7 +1022,7 @@ predefined_type:
 	| 'short'  | 'string' | 'uint'   | 'ulong'  | 'ushort' ;
 
 identifier:
- 	IDENTIFIER | also_keyword; 
+ 	IDENTIFIER -> template(v= { $IDENTIFIER.text }) "<v>" | also_keyword -> template(v= { $also_keyword.text }) "<v>";
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;

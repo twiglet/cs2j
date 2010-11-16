@@ -16,13 +16,34 @@ itsmine(now, includeDate) ::= <<
 
 >>
 
-package(now, includeDate, packageName, comments, type, endComments) ::= <<
+package(now, includeDate, packageName, comments, modifiers, type, endComments) ::= <<
 <itsmine(now=now,includeDate=includeDate)>
 package <packageName>;
 
 <comments; separator="\n">
 
-<type>
+<modifiers> <type>
 
 <endComments; separator="\n">
 >>
+
+
+enum(comments, attributes, name, body) ::= <<
+<comments; separator="\n">
+enum <name>
+{
+    <body>
+}
+>>
+
+enum_body(values) ::= "<values; separator=\",\n\">"
+
+enum_member(comments, value) ::= <<
+<comments; separator="\n">
+<value>
+>>
+
+modifiers(mods) ::= "<mods; separator=\" \">"
+
+// utility
+string(payload) ::= "<payload>"

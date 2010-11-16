@@ -15,7 +15,7 @@ options {
 }
 
 compilation_unit:
-	^(PACKAGE PAYLOAD type_declaration);
+	^(PACKAGE PAYLOAD modifiers? type_declaration);
 
 type_declaration:
 	class_declaration
@@ -32,8 +32,8 @@ namespace_name
 modifiers:
 	modifier+ ;
 modifier: 
-	'new' | 'public' | 'protected' | 'private' | 'internal' | 'unsafe' | 'abstract' | 'sealed' | 'static'
-	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override';
+	'new' | 'public' | 'protected' | 'private' | 'abstract' | 'sealed' | 'static'
+	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override' | FINAL ;
 	
 class_member_declaration:
 	attributes?
@@ -595,11 +595,11 @@ enum_declaration:
 enum_base:
 	':'   integral_type ;
 enum_body:
-	'{' (enum_member_declarations ','?)?   '}' ;
+	^(ENUM_BODY enum_member_declarations) ;
 enum_member_declarations:
-	enum_member_declaration (',' enum_member_declaration)* ;
+	enum_member_declaration+ ;
 enum_member_declaration:
-	attributes?   identifier   ('='   expression)? ;
+	attributes?   identifier ;
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:

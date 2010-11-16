@@ -86,19 +86,20 @@ using_namespace_directive:
 	'using'   namespace_name   ';' ;
 namespace_member_declarations:
 	namespace_member_declaration+ ;
-namespace_member_declaration:
-	namespace_declaration
-	| attributes?   modifiers?   type_declaration_pkg ;
-// type_declaration is only called at the top level, so each of the types declared
-// here will become a Java compilation unit (and go to its own file)
-type_declaration_pkg 
-@init { string ns = $NSContext::currentNS; }
+namespace_member_declaration
+@init { string ns = $NSContext::currentNS; 
+        bool isCompUnit = false;}
 @after {
- CUMap.Add(ns+"."+$pkg.name, $type_declaration_pkg.tree); 
- CUKeys.Add(ns+"."+$pkg.name); 
+    if (isCompUnit) {
+        CUMap.Add(ns+"."+$ty.name, $namespace_member_declaration.tree); 
+        CUKeys.Add(ns+"."+$ty.name);
+    }; 
 }
 :
-        pkg=type_declaration ->   ^(PACKAGE PAYLOAD[ns] $pkg);
+	namespace_declaration
+	| attributes?   modifiers?   ty=type_declaration  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token] PAYLOAD[ns] modifiers? type_declaration);
+// type_declaration is only called at the top level, so each of the types declared
+// here will become a Java compilation unit (and go to its own file)
 type_declaration returns [string name]
 :
     ('partial') => p='partial'!  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
@@ -120,8 +121,8 @@ namespace_name
 modifiers:
 	modifier+ ;
 modifier: 
-	'new' | 'public' | 'protected' | 'private' | 'internal' | 'unsafe' | 'abstract' | 'sealed' | 'static'
-	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override';
+	'new' | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
+	| 'readonly' -> FINAL["final"] | 'volatile' | 'extern' | 'virtual' | 'override';
 	
 class_member_declaration:
 	attributes?
@@ -699,11 +700,30 @@ enum_declaration returns [string name]:
 enum_base:
 	':'   integral_type ;
 enum_body:
-	'{' (enum_member_declarations ','?)?   '}' ;
-enum_member_declarations:
-	enum_member_declaration (',' enum_member_declaration)* ;
-enum_member_declaration:
-	attributes?   identifier   ('='   expression)? ;
+	'{' (enum_member_declarations ','?)?   '}' -> ^(ENUM_BODY enum_member_declarations) ;
+enum_member_declarations
+@init {
+    SortedList<int,CommonTree> members = new SortedList<int,CommonTree>();
+    int next = 0;
+}
+@after{
+    $enum_member_declarations.tree = (CommonTree)adaptor.Nil;
+    int dummyCounter = 0;
+    for (int i = 0; i < next; i++) {
+        if (members.ContainsKey(i)) {
+            adaptor.AddChild($enum_member_declarations.tree, members[i]);
+        }
+        else {
+            adaptor.AddChild($enum_member_declarations.tree, adaptor.Create(IDENTIFIER, $e.start.Token, "__dummyEnum__" + dummyCounter++));
+        }
+    };
+}
+:
+	e=enum_member_declaration[members,ref next] (',' enum_member_declaration[members, ref next])* 
+    -> 
+    ;
+enum_member_declaration[ SortedList<int,CommonTree> members, ref int next]:
+	attributes?   identifier  { $members[next] = $identifier.tree; $next++; } (('='   expression)?)! ;
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:

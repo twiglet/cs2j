@@ -8,6 +8,10 @@ options {
 
 tokens {
             PACKAGE;
+            ENUM_BODY;
+            
+            FINAL; /* final modifier */
+
             PAYLOAD;   // carries arbitrary text for the output file
 }
 
