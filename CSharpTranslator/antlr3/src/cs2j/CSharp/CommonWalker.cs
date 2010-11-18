@@ -48,7 +48,7 @@ namespace RusticiSoftware.Translator.CSharp
 
         // distinguish classes with same name, but differing numbers of type arguments
         protected string mkTypeName (string name, List<String> tyargs) {
-            return name + (tyargs.Count > 0 ? "'" + tyargs.Count.ToString() : "");
+            return name + (tyargs != null && tyargs.Count > 0 ? "'" + tyargs.Count.ToString() : "");
         }
         
         protected string formatTyargs(List<string> tyargs) {
