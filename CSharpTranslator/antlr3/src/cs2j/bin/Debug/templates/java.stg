@@ -28,9 +28,17 @@ package <packageName>;
 
 // ******* CLASSES ***********
 
-class(modifiers, comments, attributes, name, body) ::= <<
+class(modifiers, comments, attributes, name, inherits, body) ::= <<
 <comments; separator="\n">
-<modifiers(modifiers)>class <name>
+<modifiers(modifiers)>class <name> <inherits>
+{
+    <body>
+}
+>>
+
+iface(modifiers, comments, attributes, name, imps, body) ::= <<
+<comments; separator="\n">
+<modifiers(modifiers)>interface <name> <imps>
 {
     <body>
 }
@@ -53,8 +61,13 @@ enum_member(comments, value) ::= <<
 <value>
 >>
 
+type(name, stars, opt) ::= "<name><stars><opt>"
+namespace_or_type(type1, type2, types) ::= "<type1><if(type2)>::<type2><endif><if(types)>.<types; separator=\".\"><endif>"
+
 modifiers(mods) ::= "<mods; separator=\" \"><if(mods)> <endif>"
-//modifiers(mods) ::= "<mods; separator=\" \">"
+
+extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
+imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 
 // ******* UTILITY ***********
 string(payload) ::= "<payload>"

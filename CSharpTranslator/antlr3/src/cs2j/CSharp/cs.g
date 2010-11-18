@@ -10,7 +10,9 @@ tokens {
             PACKAGE;
             ENUM_BODY;
             CLASS;
-            
+            EXTENDS;
+            IMPLEMENTS;
+            INTERFACE;
             FINAL; /* final modifier */
 
             PAYLOAD;   // carries arbitrary text for the output file

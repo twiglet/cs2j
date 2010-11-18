@@ -286,7 +286,7 @@ namespace RusticiSoftware.Translator.CSharp
                 javaMaker.CUKeys = new List<string>();
 	    
                 JavaMaker.compilation_unit_return java = javaMaker.compilation_unit();
-
+                int saveEmittedCommentTokenIdx = 0;
                 for (int i = 0; i < javaMaker.CUKeys.Count; i++)
                 {
                     string typeName = javaMaker.CUKeys[i];
@@ -345,11 +345,13 @@ namespace RusticiSoftware.Translator.CSharp
                     outputMaker.TemplateLib = templates;
 
                     outputMaker.Cfg = cfg;
+                    outputMaker.EmittedCommentTokenIdx = saveEmittedCommentTokenIdx;
                     outputMaker.IsLast = i == (javaMaker.CUKeys.Count - 1);
                     
                     StreamWriter javaW = new StreamWriter(javaFName);
                     javaW.Write(outputMaker.compilation_unit().ToString());
                     javaW.Close();
+                    saveEmittedCommentTokenIdx = outputMaker.EmittedCommentTokenIdx;
                 }
              //   ITreeNodeStream javaTree = java.Tree;
             }

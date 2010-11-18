@@ -1,4 +1,4 @@
- // JavaMaker.g
+// JavaMaker.g
 //
 // Convert C# parse tree to a Java parse tree
 //
@@ -52,6 +52,18 @@ scope NSContext {
             adaptor.AddChild(root, (CommonTree)adaptor.Create(PAYLOAD, p));
         }
         return root;
+    }
+
+    protected CommonTree mangleModifiersForType(CommonTree modifiers) {
+        if (modifiers == null || modifiers.Children == null)
+            return modifiers;
+        CommonTree stripped = (CommonTree)modifiers.DupNode();
+        for (int i = 0; i < modifiers.Children.Count; i++) {
+            if (((CommonTree)modifiers.Children[i]).Token.Text != "static") {
+                adaptor.AddChild(stripped, modifiers.Children[i]);
+            }
+        }
+        return stripped;
     }
 }
 
@@ -108,7 +120,7 @@ namespace_member_declaration
 }
 :
 	namespace_declaration
-	| attributes?   modifiers?   ty=type_declaration  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token] PAYLOAD[ns] modifiers? type_declaration);
+	| attributes?   modifiers?   ty=type_declaration  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token] PAYLOAD[ns] { mangleModifiersForType($modifiers.tree) } type_declaration);
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
 type_declaration returns [string name]
@@ -134,10 +146,9 @@ modifiers:
 modifier: 
 	'new' | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
 	| 'readonly' -> FINAL["final"] | 'volatile' | 'extern' | 'virtual' | 'override';
-	
+
 class_member_declaration:
 	attributes?
-    // TODO:  Don't emit private
 	m=modifiers?
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
@@ -630,15 +641,13 @@ attribute_argument_expression:
 
 class_declaration returns [string name]:
 	c='class'  type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] PAYLOAD[$type_or_generic.type] ^(PAYLOAD_LIST { mkPayloadList($type_or_generic.generic_arguments) } )
-         class_base?   type_parameter_constraints_clauses?   class_body );
+    -> ^(CLASS[$c.Token] type_or_generic class_base?   type_parameter_constraints_clauses?   class_body );
 class_base:
-	// syntactically base class vs interface name is the same
-	//':'   class_type (','   interface_type_list)? ;
-	':'   interface_type_list ;
+	// just put all types in a single list.  In NetMaker we will extract the base class if necessary
+	':'   interface_type_list -> ^(IMPLEMENTS interface_type_list);
 	
 interface_type_list:
-	type (','   type)* ;
+	ts+=type (','   ts+=type)* -> $ts+;
 
 class_body:
 	'{'   class_member_declarations?   '}' ;
@@ -825,12 +834,15 @@ parameter_array:
 
 ///////////////////////////////////////////////////////
 interface_declaration returns [string name]:
-	'interface'   identifier { $name = $identifier.text; }  variant_generic_parameter_list? 
-    	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? ;
+	c='interface'   identifier { $name = $identifier.text; }  variant_generic_parameter_list? 
+    	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
+    -> ^(INTERFACE[$c.Token] identifier variant_generic_parameter_list? interface_base?   type_parameter_constraints_clauses?   interface_body );
+
+interface_base:
+	':'   interface_type_list -> ^(EXTENDS interface_type_list);
+
 interface_modifiers: 
 	modifier+ ;
-interface_base: 
-   	':' interface_type_list ;
 interface_body:
 	'{'   interface_member_declarations?   '}' ;
 interface_member_declarations:
@@ -868,7 +880,10 @@ method_modifiers:
 	
 ///////////////////////////////////////////////////////
 struct_declaration returns [string name]:
-	'struct'   type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
+	c='struct'   type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+    -> ^(CLASS[$c.Token] type_or_generic class_base?   type_parameter_constraints_clauses?   class_body );
+
+// UNUSED, HOPEFULLY
 struct_modifiers:
 	struct_modifier+ ;
 struct_modifier:
@@ -907,7 +922,7 @@ struct_member_declaration:
 	| constructor_declaration	//	| static_constructor_declaration
 	) 
 	;
-
+// UNUSED END
 
 ///////////////////////////////////////////////////////
 indexer_declaration:

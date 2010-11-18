@@ -513,12 +513,12 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration:
-   ^(CLASS PAYLOAD ^(PAYLOAD_LIST PAYLOAD* )
-         class_base?   type_parameter_constraints_clauses?   class_body ) ;
-class_base:
-	// syntactically base class vs interface name is the same
-	//':'   class_type (','   interface_type_list)? ;
-	':'   interface_type_list ;
+   ^(CLASS type_or_generic
+         class_implements?   type_parameter_constraints_clauses?   class_body ) ;
+class_extends:
+	^(EXTENDS type*) ;
+class_implements:
+	^(IMPLEMENTS type*) ;
 	
 interface_type_list:
 	type (','   type)* ;
@@ -668,8 +668,8 @@ parameter_array:
 
 ///////////////////////////////////////////////////////
 interface_declaration:
-	'interface'   identifier   variant_generic_parameter_list? 
-    	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? ;
+   ^(INTERFACE identifier   variant_generic_parameter_list? 
+    	class_extends?   type_parameter_constraints_clauses?   interface_body ) ;
 interface_modifiers: 
 	modifier+ ;
 interface_base: 

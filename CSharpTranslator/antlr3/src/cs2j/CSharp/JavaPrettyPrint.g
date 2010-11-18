@@ -20,20 +20,20 @@ options {
 {
 
     public bool IsLast { get; set; }
-    protected int emittedCommentTokenIdx = 0; 
+    public int EmittedCommentTokenIdx { get; set; } 
 
     // Collect all comments from previous position to endIdx
     // comments are the text from tokens on the Hidden channel
     protected List<string> collectComments(int endIdx) {
         List<string> rets = new List<string>();
-        List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(emittedCommentTokenIdx,endIdx);
+        List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(EmittedCommentTokenIdx,endIdx);
         if (toks != null) {
             foreach (IToken tok in toks) {
                 if (tok.Channel == TokenChannels.Hidden) {
                     rets.Add(new Regex("(\\n|\\r)+").Replace(tok.Text, Environment.NewLine).Trim());
                 }
             }
-            emittedCommentTokenIdx = endIdx+1;
+            EmittedCommentTokenIdx = endIdx+1;
         }
         return rets;
     }
@@ -52,7 +52,7 @@ compilation_unit
 type_declaration [StringTemplate modifiersST]:
     class_declaration[modifiersST] -> { $class_declaration.st }
 	| struct_declaration
-	| interface_declaration
+	| interface_declaration[modifiersST] -> { $interface_declaration.st }
 	| enum_declaration[modifiersST] -> { $enum_declaration.st }
 	| delegate_declaration ;
 // Identifiers
@@ -75,10 +75,10 @@ class_member_declaration:
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
 	| 'partial' (method_declaration 
-			   | interface_declaration 
+			   | interface_declaration[$m.st] 
 			   | class_declaration[$m.st] 
 			   | struct_declaration)
-	| interface_declaration	// 'interface'
+	| interface_declaration[$m.st]	// 'interface'
 	| 'void'   method_declaration
 	| type ( (member_name   '(') => method_declaration
 		   | (member_name   '{') => property_declaration
@@ -294,12 +294,13 @@ commas:
 ///////////////////////////////////////////////////////
 
 type_name: 
-	namespace_or_type_name ;
+	namespace_or_type_name -> { $namespace_or_type_name.st };
 namespace_or_type_name:
-	 type_or_generic   ('::' type_or_generic)? ('.'   type_or_generic)* ;
+
+	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   ts+=type_or_generic)* -> namespace_or_type(type1={$t1.st}, type2={$t2.st}, types={$ts});
 type_or_generic:
-	(identifier   generic_argument_list) => identifier   generic_argument_list
-	| identifier ;
+	(identifier   generic_argument_list) => gi=identifier   generic_argument_list -> template(name={ $gi.st }, args={ $generic_argument_list.st }) "<name><args>"
+	| i=identifier -> { $i.st };
 
 qid:		// qualified_identifier v2
 	qid_start   qid_part*
@@ -318,15 +319,20 @@ qid_part:
 	access_identifier ;
 
 generic_argument_list: 
-	'<'   type_arguments   '>' ;
+	'<'   type_arguments   '>' -> template(args={ $type_arguments.st }) "\<<args>\>";
 type_arguments: 
-	type (',' type)* ;
+	ts+=type (',' ts+=type)* -> template(types = { $ts }) "<types; separator=\",\">";
 
-type:
-	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
-	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?')
-	| (predefined_type | type_name)
-	| 'void' '*'+
+type
+@init {
+    StringTemplate nm = null;
+    List<string> stars = new List<string>();
+    string opt = null;
+}:
+	  ((predefined_type | type_name)  rank_specifiers) => (t1p=predefined_type {nm=$t1p.st;} | t1t=type_name {nm=$t1t.st;} )   rank_specifiers   ('*' { stars.Add("*"); })* ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st })
+	| ((predefined_type | type_name)  ('*'+ | '?')) => (t2p=predefined_type {nm=$t2p.st;} | t2t=type_name {nm=$t2t.st;} )   (('*' { stars.Add("*"); })+ | '?' { opt = "?"; }) -> type(name={ nm }, stars={ stars }, opt={ opt })
+	| (t3p=predefined_type {nm=$t3p.st;} | t3t=type_name {nm=$t3t.st;} ) -> type(name={ nm }) 
+	| 'void' ('*' { stars.Add("*"); })+ -> type(name={ "void" }, stars={ stars })
 	;
 non_nullable_type:
 	(predefined_type | type_name)
@@ -550,16 +556,18 @@ class_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=CLASS { preComments = collectComments($c.TokenStartIndex); } nm=PAYLOAD ^(PAYLOAD_LIST PAYLOAD* )
-         class_base?   type_parameter_constraints_clauses?   class_body )
-    -> class(modifiers = {modifiersST}, name={ $nm }, comments = { preComments } ) ;
-class_base:
-	// syntactically base class vs interface name is the same
-	//':'   class_type (','   interface_type_list)? ;
-	':'   interface_type_list ;
+   ^(c=CLASS { preComments = collectComments($c.TokenStartIndex); } type_or_generic
+         class_extends? class_implements?   type_parameter_constraints_clauses?   class_body )
+    -> class(modifiers = {modifiersST}, name={ $type_or_generic.st }, comments = { preComments },
+            extends = { $class_extends.st }, imps = { $class_implements.st }) ;
+
+class_extends:
+	^(EXTENDS ts+=type*) -> extends(types = { $ts }) ;
+class_implements:
+	^(IMPLEMENTS ts+=type*) -> imps(types = { $ts }) ;
 	
 interface_type_list:
-	type (','   type)* ;
+	ts+=type (','   ts+=type)* -> template(types={ $ts }) "<types; separator=\",\">";
 
 class_body:
 	'{'   class_member_declarations?   '}' ;
@@ -707,9 +715,14 @@ parameter_array:
 	'params'   type   identifier ;
 
 ///////////////////////////////////////////////////////
-interface_declaration:
-	'interface'   identifier   variant_generic_parameter_list? 
-    	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? ;
+interface_declaration[StringTemplate modifiersST]
+@init {
+    List<string> preComments = null;
+}:
+   ^(c=INTERFACE { preComments = collectComments($c.TokenStartIndex); } identifier   variant_generic_parameter_list? 
+         class_extends?   type_parameter_constraints_clauses?   interface_body )
+    -> iface(modifiers = {modifiersST}, name={ $identifier.st }, comments = { preComments },
+            imps = { $class_extends.st }) ;
 interface_modifiers: 
 	modifier+ ;
 interface_base: 
@@ -767,11 +780,11 @@ struct_member_declaration:
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
 	| 'partial' (method_declaration 
-			   | interface_declaration 
+			   | interface_declaration[$m.st] 
 			   | class_declaration[$m.st] 
 			   | struct_declaration)
 
-	| interface_declaration	// 'interface'
+	| interface_declaration[$m.st]	// 'interface'
 	| class_declaration[$m.st]		// 'class'
 	| 'void'   method_declaration
 	| type ( (member_name   '(') => method_declaration
@@ -1022,8 +1035,8 @@ yield_statement:
 ///////////////////////////////////////////////////////
 
 predefined_type:
-	  'bool' | 'byte'   | 'char'   | 'decimal' | 'double' | 'float'  | 'int'    | 'long'   | 'object' | 'sbyte'  
-	| 'short'  | 'string' | 'uint'   | 'ulong'  | 'ushort' ;
+	  (t='bool' | t='byte'   | t='char'   | t='decimal' | t='double' | t='float'  | t='int'    | t='long'   | t='object' | t='sbyte'  
+	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') ->  string(payload={$t.text});
 
 identifier:
  	IDENTIFIER -> template(v= { $IDENTIFIER.text }) "<v>" | also_keyword -> template(v= { $also_keyword.text }) "<v>";
