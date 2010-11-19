@@ -318,9 +318,9 @@ qid_start:
 qid_part:
 	access_identifier ;
 
-generic_argument_list: 
+generic_argument_list:
 	'<'   type_arguments   '>' -> template(args={ $type_arguments.st }) "\<<args>\>";
-type_arguments: 
+type_arguments:
 	ts+=type (',' ts+=type)* -> template(types = { $ts }) "<types; separator=\",\">";
 
 type
@@ -556,10 +556,20 @@ class_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=CLASS { preComments = collectComments($c.TokenStartIndex); } type_or_generic
-         class_extends? class_implements?   type_parameter_constraints_clauses?   class_body )
-    -> class(modifiers = {modifiersST}, name={ $type_or_generic.st }, comments = { preComments },
+   ^(c=CLASS { preComments = collectComments($c.TokenStartIndex); } 
+            identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
+         class_extends? class_implements? class_body )
+    -> class(modifiers = {modifiersST}, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
             extends = { $class_extends.st }, imps = { $class_implements.st }) ;
+
+type_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
+    (attributes? t+=type_parameter[tpConstraints])+ -> template(params={ $t }) "\<<params; separator=\",\">\>";
+
+type_parameter [Dictionary<string,StringTemplate> tpConstraints]
+@init {
+    StringTemplate mySt = null; 
+}:
+    identifier {if (tpConstraints == null || !tpConstraints.TryGetValue($identifier.text, out mySt)) {mySt = $identifier.st;}; } -> { mySt } ;
 
 class_extends:
 	^(EXTENDS ts+=type*) -> extends(types = { $ts }) ;
@@ -658,39 +668,32 @@ integral_type:
 
 // B.2.12 Delegates
 delegate_declaration:
-	'delegate'   return_type   identifier  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
+	'delegate'   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
+		'('   formal_parameter_list?   ')'      ';' ;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
-variant_generic_parameter_list:
-	'<'   variant_type_parameters   '>' ;
-variant_type_parameters:
-	variant_type_variable_name (',' variant_type_variable_name)* ;
-variant_type_variable_name:
-	attributes?   variance_annotation?   type_variable_name ;
+variant_generic_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
+	(ps+=variant_generic_parameter[$tpConstraints])+ -> template(params={$ps}) "<params; separator=\",\">";
+variant_generic_parameter [Dictionary<string,StringTemplate> tpConstraints]:
+    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] ->  template(param={$t.st}, annotation={$variance_annotation.st}) "/* <annotation> */ <param>" ;
 variance_annotation:
-	'in' | 'out' ;
+	IN -> template() "in" | OUT -> template() "out" ;
 
-type_parameter_constraints_clauses:
-	type_parameter_constraints_clause   (','   type_parameter_constraints_clause)* ;
-type_parameter_constraints_clause:
-	'where'   type_variable_name   ':'   type_parameter_constraint_list ;
-// class, Circle, new()
-type_parameter_constraint_list:                                                   
-    ('class' | 'struct')   (','   secondary_constraint_list)?   (','   constructor_constraint)?
-	| secondary_constraint_list   (','   constructor_constraint)?
-	| constructor_constraint ;
-//primary_constraint:
-//	class_type
-//	| 'class'
-//	| 'struct' ;
-secondary_constraint_list:
-	secondary_constraint (',' secondary_constraint)* ;
-secondary_constraint:
-	type_name ;	// | type_variable_name) ;
+// tpConstraints is a map from type variable name to a string expressing the extends constraints
+type_parameter_constraints_clauses returns [Dictionary<string,StringTemplate> tpConstraints]
+@init {
+    $tpConstraints = new Dictionary<string,StringTemplate>();
+}
+:
+	ts+=type_parameter_constraints_clause[$tpConstraints]+ -> ;
+type_parameter_constraints_clause [Dictionary<string,StringTemplate> tpConstraints]
+@after{
+    tpConstraints[$t.text] = $type_parameter_constraints_clause.st;
+}:
+    ^(TYPE_PARAM_CONSTRAINT t=type_variable_name ts+=type_name+) -> type_param_constraint(param= { $type_variable_name.st }, constraints = { $ts }) ;
 type_variable_name: 
-	identifier ;
+	identifier -> { $identifier.st } ;
 constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
@@ -719,9 +722,10 @@ interface_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=INTERFACE { preComments = collectComments($c.TokenStartIndex); } identifier   variant_generic_parameter_list? 
-         class_extends?   type_parameter_constraints_clauses?   interface_body )
-    -> iface(modifiers = {modifiersST}, name={ $identifier.st }, comments = { preComments },
+   ^(c=INTERFACE { preComments = collectComments($c.TokenStartIndex); } 
+            identifier  type_parameter_constraints_clauses?  variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
+         class_extends?   interface_body )
+    -> iface(modifiers = {modifiersST}, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
             imps = { $class_extends.st }) ;
 interface_modifiers: 
 	modifier+ ;

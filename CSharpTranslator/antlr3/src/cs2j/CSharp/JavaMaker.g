@@ -640,8 +640,18 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration returns [string name]:
-	c='class'  type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] type_or_generic class_base?   type_parameter_constraints_clauses?   class_body );
+	c='class'  identifier  type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+    -> ^(CLASS[$c.Token] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+
+type_parameter_list returns [List<string> names] 
+@init {
+    List<string> names = new List<string>();
+}:
+    '<'! attributes? t1=type_parameter { names.Add($t1.name); } ( ','!  attributes? tn=type_parameter { names.Add($tn.name); })* '>'! ;
+
+type_parameter returns [string name]:
+    identifier { $name = $identifier.text; } ;
+
 class_base:
 	// just put all types in a single list.  In NetMaker we will extract the base class if necessary
 	':'   interface_type_list -> ^(IMPLEMENTS interface_type_list);
@@ -774,7 +784,9 @@ integral_type:
 // B.2.12 Delegates
 delegate_declaration returns [string name]:
 	'delegate'   return_type   identifier { $name = $identifier.text; }  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
+		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' -> 
+    'delegate'   return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
+		'('   formal_parameter_list?   ')'  ';';
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -782,33 +794,34 @@ variant_generic_parameter_list returns [List<string> tyargs]
 @init {
     $tyargs = new List<string>();
 }:
-	'<'   variant_type_parameters[$tyargs]   '>' ;
+	'<'!   variant_type_parameters[$tyargs]   '>'! ;
 variant_type_parameters [List<String> tyargs]:
-	v1=variant_type_variable_name { tyargs.Add($v1.text); } (',' vn=variant_type_variable_name  { tyargs.Add($vn.text); })* ;
+	v1=variant_type_variable_name { tyargs.Add($v1.text); } (',' vn=variant_type_variable_name  { tyargs.Add($vn.text); })* -> variant_type_variable_name+ ;
 variant_type_variable_name:
 	attributes?   variance_annotation?   type_variable_name ;
 variance_annotation:
-	'in' | 'out' ;
+	'in' -> IN | 'out' -> OUT;
 
 type_parameter_constraints_clauses:
-	type_parameter_constraints_clause   (','   type_parameter_constraints_clause)* ;
+	type_parameter_constraints_clause   (','   type_parameter_constraints_clause)* -> type_parameter_constraints_clause+ ;
 type_parameter_constraints_clause:
-	'where'   type_variable_name   ':'   type_parameter_constraint_list ;
+	'where'   type_variable_name   ':'   type_parameter_constraint_list -> ^(TYPE_PARAM_CONSTRAINT type_variable_name type_parameter_constraint_list?) ;
 // class, Circle, new()
 type_parameter_constraint_list:                                                   
-    ('class' | 'struct')   (','   secondary_constraint_list)?   (','   constructor_constraint)?
-	| secondary_constraint_list   (','   constructor_constraint)?
-	| constructor_constraint ;
+    ('class' | 'struct')   (','   secondary_constraint_list)?   (','   constructor_constraint)? -> secondary_constraint_list?
+	| secondary_constraint_list   (','   constructor_constraint)? -> secondary_constraint_list
+	| constructor_constraint -> ;
 //primary_constraint:
 //	class_type
 //	| 'class'
 //	| 'struct' ;
 secondary_constraint_list:
-	secondary_constraint (',' secondary_constraint)* ;
+	secondary_constraint (',' secondary_constraint)* -> secondary_constraint+ ;
 secondary_constraint:
 	type_name ;	// | type_variable_name) ;
 type_variable_name: 
 	identifier ;
+// keving: TOTEST we drop new constraints,  but what will happen in Java for this case? 
 constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
@@ -836,7 +849,7 @@ parameter_array:
 interface_declaration returns [string name]:
 	c='interface'   identifier { $name = $identifier.text; }  variant_generic_parameter_list? 
     	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
-    -> ^(INTERFACE[$c.Token] identifier variant_generic_parameter_list? interface_base?   type_parameter_constraints_clauses?   interface_body );
+    -> ^(INTERFACE[$c.Token] identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
 interface_base:
 	':'   interface_type_list -> ^(EXTENDS interface_type_list);
@@ -880,8 +893,8 @@ method_modifiers:
 	
 ///////////////////////////////////////////////////////
 struct_declaration returns [string name]:
-	c='struct'   type_or_generic { $name = mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] type_or_generic class_base?   type_parameter_constraints_clauses?   class_body );
+	c='struct'  identifier  type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+    -> ^(CLASS[$c.Token] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 // UNUSED, HOPEFULLY
 struct_modifiers:

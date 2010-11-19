@@ -513,8 +513,15 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration:
-   ^(CLASS type_or_generic
-         class_implements?   type_parameter_constraints_clauses?   class_body ) ;
+   ^(CLASS identifier type_parameter_constraints_clauses? type_parameter_list?
+         class_implements? class_body ) ;
+
+type_parameter_list:
+    (attributes? type_parameter)+ ;
+
+type_parameter:
+    identifier ;
+
 class_extends:
 	^(EXTENDS type*) ;
 class_implements:
@@ -610,37 +617,24 @@ integral_type:
 
 // B.2.12 Delegates
 delegate_declaration:
-	'delegate'   return_type   identifier  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
+	'delegate'   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?   
+		'('   formal_parameter_list?   ')'    ';' ;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
 variant_generic_parameter_list:
-	'<'   variant_type_parameters   '>' ;
-variant_type_parameters:
-	variant_type_variable_name (',' variant_type_variable_name)* ;
+	variant_type_variable_name+ ;
 variant_type_variable_name:
 	attributes?   variance_annotation?   type_variable_name ;
 variance_annotation:
-	'in' | 'out' ;
+	IN | OUT ;
 
 type_parameter_constraints_clauses:
-	type_parameter_constraints_clause   (','   type_parameter_constraints_clause)* ;
+	type_parameter_constraints_clause+ -> type_parameter_constraints_clause*;
 type_parameter_constraints_clause:
-	'where'   type_variable_name   ':'   type_parameter_constraint_list ;
-// class, Circle, new()
-type_parameter_constraint_list:                                                   
-    ('class' | 'struct')   (','   secondary_constraint_list)?   (','   constructor_constraint)?
-	| secondary_constraint_list   (','   constructor_constraint)?
-	| constructor_constraint ;
-//primary_constraint:
-//	class_type
-//	| 'class'
-//	| 'struct' ;
-secondary_constraint_list:
-	secondary_constraint (',' secondary_constraint)* ;
-secondary_constraint:
-	type_name ;	// | type_variable_name) ;
+    // If there are no type constraints on this variable then drop this constraint
+	^(TYPE_PARAM_CONSTRAINT type_variable_name) -> 
+    | ^(TYPE_PARAM_CONSTRAINT type_variable_name type_name+) ;
 type_variable_name: 
 	identifier ;
 constructor_constraint:
@@ -668,8 +662,8 @@ parameter_array:
 
 ///////////////////////////////////////////////////////
 interface_declaration:
-   ^(INTERFACE identifier   variant_generic_parameter_list? 
-    	class_extends?   type_parameter_constraints_clauses?   interface_body ) ;
+   ^(INTERFACE identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
+    	class_extends?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;
 interface_base: 

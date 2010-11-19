@@ -8,13 +8,17 @@ options {
 
 tokens {
             PACKAGE;
-            ENUM_BODY;
             CLASS;
             EXTENDS;
             IMPLEMENTS;
             INTERFACE;
             FINAL; /* final modifier */
+            IN;
+            OUT;
 
+            ENUM_BODY;
+            TYPE_PARAM_CONSTRAINT;
+            
             PAYLOAD;   // carries arbitrary text for the output file
             PAYLOAD_LIST;
 }
