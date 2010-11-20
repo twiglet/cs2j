@@ -16,6 +16,9 @@ tokens {
             IN;
             OUT;
 
+            OPEN_BRACKET='[';
+            CLOSE_BRACKET=']';
+
             ENUM_BODY;
             TYPE_PARAM_CONSTRAINT;
             

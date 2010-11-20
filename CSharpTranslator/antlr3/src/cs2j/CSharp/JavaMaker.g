@@ -245,10 +245,17 @@ variable_reference:
 	expression;
 rank_specifiers: 
 	rank_specifier+ ;        
+// convert dimension separators into additional dimensions, so [,,] -> [] [] []
 rank_specifier: 
-	'['   dim_separators?   ']' ;
-dim_separators: 
-	','+ ;
+	o='['   dim_separators?   c=']' -> $o $c dim_separators?;
+dim_separators
+@init {
+    CommonTree ret = (CommonTree)adaptor.Nil;
+}
+@after {
+    $dim_separators.tree = ret;
+}: 
+        (c=',' { adaptor.AddChild(ret, adaptor.Create(OPEN_BRACKET, $c.token, "["));adaptor.AddChild(ret, adaptor.Create(CLOSE_BRACKET, $c.token, "]")); })+ -> ;
 
 delegate_creation_expression: 
 	// 'new'   

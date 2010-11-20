@@ -134,9 +134,10 @@ variable_reference:
 rank_specifiers: 
 	rank_specifier+ ;        
 rank_specifier: 
-	'['   dim_separators?   ']' ;
-dim_separators: 
-	','+ ;
+	'['   /*dim_separators?*/   ']' ;
+// keving
+// dim_separators: 
+//	','+ ;
 
 delegate_creation_expression: 
 	// 'new'   

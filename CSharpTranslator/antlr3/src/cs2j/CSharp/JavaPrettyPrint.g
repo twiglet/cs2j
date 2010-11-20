@@ -166,11 +166,12 @@ ref_variable_reference:
 variable_reference:
 	expression;
 rank_specifiers: 
-	rank_specifier+ ;        
+	rs+=rank_specifier+ -> template(rs={$rs}) "<rs>";        
 rank_specifier: 
-	'['   dim_separators?   ']' ;
-dim_separators: 
-	','+ ;
+	'['  /* dim_separators? */   ']' -> string(payload={"[]"}) ;
+// keving
+// dim_separators: 
+//	','+ ;
 
 delegate_creation_expression: 
 	// 'new'   
