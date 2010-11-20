@@ -12,7 +12,7 @@ java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -ve
 #  echo NetMaker.g
 java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -verbose NetMaker.g 
 #  echo JavaPrettyPrint.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -verbose JavaPrettyPrint.g 
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 10000 -make -verbose JavaPrettyPrint.g 
 cd ../../../
 xbuild
 echo 'All Done'
