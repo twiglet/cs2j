@@ -20,11 +20,31 @@ options {
 {
 
     public bool IsLast { get; set; }
-    public int EmittedCommentTokenIdx { get; set; } 
+    public int EmittedCommentTokenIdx { get; set; }
+ 
+    private List<string> collectedComments = null;
+    List<string> CollectedComments {
+        get {
+            List<string> rets = collectedComments;
+            collectedComments = null;
+            return rets;
+        }
+        set {
+            if (collectedComments == null) 
+                collectedComments = new List<string>();
+            foreach (string c in value) {
+                collectedComments.Add(c);
+            }
+        }
+    }
 
     // Collect all comments from previous position to endIdx
     // comments are the text from tokens on the Hidden channel
-    protected List<string> collectComments(int endIdx) {
+    protected void collectComments(IToken tok) {
+        // TokenIndex may be -1, no sweat we just won't collect anything
+        collectComments(tok.TokenIndex);
+    }
+    protected void collectComments(int endIdx) {
         List<string> rets = new List<string>();
         List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(EmittedCommentTokenIdx,endIdx);
         if (toks != null) {
@@ -35,19 +55,20 @@ options {
             }
             EmittedCommentTokenIdx = endIdx+1;
         }
-        return rets;
+        collectedComments = rets;
     }
-    protected List<string> collectComments() {
-        return collectComments(((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens().Count - 1);
+
+    protected void collectComments() {
+        collectComments(((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens().Count - 1);
     }
 }
 
 compilation_unit
 :
-    ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st]) -> 
+    ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
         package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, 
             type = {$type_declaration.st},
-            endComments = {IsLast ? collectComments() : null});
+            endComments = { CollectedComments });
 
 type_declaration [StringTemplate modifiersST]:
     class_declaration[modifiersST] -> { $class_declaration.st }
@@ -72,7 +93,7 @@ modifier
 class_member_declaration:
 	attributes?
 	m=modifiers?
-	( 'const'   type   constant_declarators   ';'
+	( 'const'   t1=type   constant_declarators   ';'
 	| event_declaration		// 'event'
 	| 'partial' (method_declaration 
 			   | interface_declaration[$m.st] 
@@ -80,11 +101,11 @@ class_member_declaration:
 			   | struct_declaration)
 	| interface_declaration[$m.st]	// 'interface'
 	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
+	| t2=type ( (member_name   '(') => method_declaration
 		   | (member_name   '{') => property_declaration
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
 		   | indexer_declaration	//this
-	       | field_declaration      // qid
+	       | field_declaration     -> field(modifiers={$m.st}, type={$t2.st}, field={$field_declaration.st}) // qid
 	       | operator_declaration
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
@@ -557,11 +578,11 @@ class_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=CLASS { preComments = collectComments($c.TokenStartIndex); } 
+   ^(c=CLASS { preComments = CollectedComments; } 
             identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
          class_extends? class_implements? class_body )
     -> class(modifiers = {modifiersST}, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
-            extends = { $class_extends.st }, imps = { $class_implements.st }) ;
+            extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}) ;
 
 type_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
     (attributes? t+=type_parameter[tpConstraints])+ -> template(params={ $t }) "\<<params; separator=\",\">\>";
@@ -581,9 +602,13 @@ interface_type_list:
 	ts+=type (','   ts+=type)* -> template(types={ $ts }) "<types; separator=\",\">";
 
 class_body:
-	'{'   class_member_declarations?   '}' ;
-class_member_declarations:
-	class_member_declaration+ ;
+	'{'   cs+=class_member_declaration_aux*   '}' -> class_body(entries={$cs}) ;
+class_member_declaration_aux
+@init{
+    List<string> preComments = null;
+}:
+    { preComments = CollectedComments; } member=class_member_declaration -> class_member(comments={ preComments }, member={ $member.st }) ;
+
 
 ///////////////////////////////////////////////////////
 constant_declaration:
@@ -652,14 +677,14 @@ enum_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-	e='enum' { preComments = collectComments($e.TokenStartIndex); }  identifier   enum_base?   enum_body   ';'?
+	e='enum' { preComments = CollectedComments; }  identifier   enum_base?   enum_body   ';'?
     -> enum(comments = { preComments}, modifiers = { $modifiersST }, name={$identifier.text}, body={$enum_body.st}) ;
 enum_base:
 	':'   integral_type ;
 enum_body:
 	^(ENUM_BODY es+=enum_member_declaration+) -> enum_body(values={$es});
 enum_member_declaration:
-	attributes?   identifier -> enum_member(comments = {collectComments($identifier.start.TokenStartIndex)}, value={ $identifier.st });
+	attributes?   identifier -> enum_member(comments = { CollectedComments }, value={ $identifier.st });
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:
@@ -695,11 +720,12 @@ type_parameter_constraints_clause [Dictionary<string,StringTemplate> tpConstrain
     ^(TYPE_PARAM_CONSTRAINT t=type_variable_name ts+=type_name+) -> type_param_constraint(param= { $type_variable_name.st }, constraints = { $ts }) ;
 type_variable_name: 
 	identifier -> { $identifier.st } ;
-constructor_constraint:
-	'new'   '('   ')' ;
+// keving: stripped
+//constructor_constraint:
+//	'new'   '('   ')' ;
 return_type:
-	type
-	|  'void';
+	type -> { $type.st }
+	|  'void' -> string(payload={"void"});
 formal_parameter_list:
 	formal_parameter (',' formal_parameter)* ;
 formal_parameter:
@@ -723,7 +749,7 @@ interface_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=INTERFACE { preComments = collectComments($c.TokenStartIndex); } 
+   ^(c=INTERFACE { preComments = CollectedComments; } 
             identifier  type_parameter_constraints_clauses?  variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
          class_extends?   interface_body )
     -> iface(modifiers = {modifiersST}, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
@@ -1044,7 +1070,7 @@ predefined_type:
 	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') ->  string(payload={$t.text});
 
 identifier:
- 	IDENTIFIER -> template(v= { $IDENTIFIER.text }) "<v>" | also_keyword -> template(v= { $also_keyword.text }) "<v>";
+ 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> template(v= { $IDENTIFIER.text }) "<v>" | also_keyword -> template(v= { $also_keyword.text }) "<v>";
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;

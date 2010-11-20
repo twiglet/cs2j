@@ -44,6 +44,17 @@ iface(modifiers, comments, attributes, name, imps, body) ::= <<
 }
 >>
 
+class_body(entries) ::= <<
+<entries; separator="\n">
+>>
+
+class_member(comments, member) ::= <<
+<comments; separator="\n">
+<member>
+>>
+
+field(modifiers, type, field, comments) ::= "<comments><modifiers> <type> <field>;"
+
 type_param_constraint(param, constraints) ::= "<param> extends <constraints; separator=\" & \">"
 
 // ******* ENUMS ***********
@@ -63,7 +74,7 @@ enum_member(comments, value) ::= <<
 <value>
 >>
 
-type(name, stars, opt) ::= "<name><stars><opt>"
+type(name, rs, stars, opt) ::= "<name><rs><stars><opt>"
 namespace_or_type(type1, type2, types) ::= "<type1><if(type2)>::<type2><endif><if(types)>.<types; separator=\".\"><endif>"
 
 modifiers(mods) ::= "<mods; separator=\" \"><if(mods)> <endif>"
