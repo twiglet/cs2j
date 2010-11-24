@@ -403,7 +403,7 @@ unary_expression:
 	| addressof_expression 
 	;
 cast_expression:
-	'('   type   ')'   unary_expression ;
+	^(CAST_EXPR  type unary_expression ) -> cast_expr(type= { $type.st}, exp = { $unary_expression.st});
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 pre_increment_expression: 

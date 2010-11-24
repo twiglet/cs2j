@@ -495,7 +495,7 @@ unary_expression:
 	;
 cast_expression:
 	//'('   type   ')'   unary_expression ; 
-	'('   type   ')'   unary_expression -> ^(CAST_EXPR type SEP unary_expression);
+	'('   type   ')'   unary_expression -> ^(CAST_EXPR type unary_expression);
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 pre_increment_expression: 
@@ -533,8 +533,8 @@ relational_expression:
 			| (i='is'  t=non_nullable_type -> ^(INSTANCEOF[$i.Token,"instanceof"] $relational_expression $t) 
                 | i1='as' t1=non_nullable_type -> ^(COND_EXPR[$i1.Token, "?:"] 
                                                         ^(INSTANCEOF[$i1.Token,"instanceof"] { (CommonTree)adaptor.DupTree($relational_expression.tree) } { (CommonTree)adaptor.DupTree($t1.tree) } ) 
-                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } SEP[$i1.Token, "SEP"] { (CommonTree)adaptor.DupTree($relational_expression.tree) }) 
-                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } SEP[$i1.Token, "SEP"] NULL[$i1.Token, "null"])))
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } { (CommonTree)adaptor.DupTree($relational_expression.tree) }) 
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } NULL[$i1.Token, "null"])))
 		)* ;
 equality_expression:
 	relational_expression

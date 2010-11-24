@@ -329,7 +329,7 @@ unary_expression:
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
     //(cast_expression) => cast_expression
-	^(CAST_EXPR type SEP unary_expression) 
+	^(CAST_EXPR type unary_expression) 
 	| primary_or_array_creation_expression
 	| '+'   unary_expression 
 	| '-'   unary_expression 

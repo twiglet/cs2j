@@ -86,5 +86,9 @@ modifiers(mods) ::= "<if(mods)><mods; separator=\" \"> <endif>"
 extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
 imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 
+// ******* EXPRESSIONS *******
+
+cast_expr(type, exp) ::= "(<type>)<exp>"
+
 // ******* UTILITY ***********
 string(payload) ::= "<payload>"
