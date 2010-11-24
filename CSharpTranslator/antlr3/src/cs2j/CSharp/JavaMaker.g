@@ -136,7 +136,7 @@ namespace_member_declaration
 }
 :
 	namespace_declaration
-	| attributes?   modifiers?   ty=type_declaration  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token] PAYLOAD[ns] { mangleModifiersForType($modifiers.tree) } type_declaration);
+	| attributes?   modifiers?   ty=type_declaration  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token, "package"] PAYLOAD[ns] { mangleModifiersForType($modifiers.tree) } type_declaration);
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
 type_declaration returns [string name]

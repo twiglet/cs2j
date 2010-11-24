@@ -110,9 +110,9 @@ class_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| class_declaration[$m.st]		// 'class'
-	| struct_declaration	// 'struct'	   
-	| enum_declaration[$m.st]		// 'enum'
+	| c2=class_declaration[$m.st] -> { $c2.st }		// 'class'
+	| s2=struct_declaration	-> { $s2.st }// 'struct'	   
+	| e2=enum_declaration[$m.st]	-> { $e2.st }	// 'enum'
 	| delegate_declaration	// 'delegate'
 	| conversion_operator_declaration
 	| constructor_declaration	//	| static_constructor_declaration
@@ -123,7 +123,7 @@ class_member_declaration:
 primary_expression: 
 	('this'    brackets) => 'this'   brackets   primary_expression_part*
 	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
-	| primary_expression_start   primary_expression_part*
+	| primary_expression_start   pp+=primary_expression_part* -> primary_expression_start_parts(start={ $primary_expression_start.st }, follows={ $pp })
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
 					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
 				// try the simple one first, this has no argS and no expressions
@@ -146,7 +146,7 @@ primary_expression_start:
 	| 'base'
 	| paren_expression
 	| typeof_expression             // typeof(Foo).Name
-	| literal
+	| literal -> { $literal.st }
 	;
 
 primary_expression_part:
@@ -207,8 +207,8 @@ member_declarator_list:
 member_declarator: 
 	qid   ('='   expression)? ;
 primary_or_array_creation_expression:
-	(array_creation_expression) => array_creation_expression
-	| primary_expression 
+	(array_creation_expression) => array_creation_expression -> { $array_creation_expression.st } 
+	| primary_expression -> { $primary_expression.st } 
 	;
 // new Type[2] { }
 array_creation_expression:
@@ -230,7 +230,7 @@ array_initializer:
 variable_initializer_list:
 	variable_initializer (',' variable_initializer)* ;
 variable_initializer:
-	expression	| array_initializer ;
+	expression	-> { $expression.st } | array_initializer -> { $array_initializer.st };
 sizeof_expression:
 	'sizeof'   '('   unmanaged_type   ')';
 checked_expression: 
@@ -389,7 +389,7 @@ statement_list:
 ///////////////////////////////////////////////////////	
 expression: 
 	(unary_expression   assignment_operator) => assignment	
-	| non_assignment_expression
+	| non_assignment_expression -> { $non_assignment_expression.st }
 	;
 expression_list:
 	expression  (','   expression)* ;
@@ -397,12 +397,13 @@ assignment:
 	unary_expression   assignment_operator   expression ;
 unary_expression: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
-	(cast_expression) => cast_expression
-	| primary_or_array_creation_expression
-	| '+'   unary_expression 
-	| '-'   unary_expression 
-	| '!'   unary_expression 
-	| '~'   unary_expression 
+//	^(CAST_EXPR type expression) 
+	(cast_expression) => cast_expression 
+	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
+	| '+'   u1=unary_expression -> template(e={$u1.st}) "+<e>"
+	| '-'   u2=unary_expression  -> template(e={$u2.st}) "-<e>"
+	| '!'   u3=unary_expression  -> template(e={$u3.st}) "!<e>"
+	| '~'   u4=unary_expression  -> template(e={$u4.st}) "~<e>"
 	| pre_increment_expression 
 	| pre_decrement_expression 
 	| pointer_indirection_expression
@@ -622,11 +623,11 @@ constant_expression:
 
 ///////////////////////////////////////////////////////
 field_declaration:
-	variable_declarators   ';'	;
+	variable_declarators   ';'	-> { $variable_declarators.st };
 variable_declarators:
-	variable_declarator (','   variable_declarator)* ;
+	vs+=variable_declarator (','   vs+=variable_declarator)* -> variable_declarators(varinits = {$vs});
 variable_declarator:
-	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
+	type_name ('='   variable_initializer)? -> variable_declarator(typename = { $type_name.st }, init = { $variable_initializer.st}) ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
 method_declaration:
@@ -1090,6 +1091,6 @@ literal:
 	| Verbatim_string_literal
 	| TRUE
 	| FALSE
-	| NULL 
+	| NULL -> string(payload={"null"}) 
 	;
 
