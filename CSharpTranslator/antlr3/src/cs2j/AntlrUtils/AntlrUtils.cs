@@ -53,12 +53,43 @@ namespace RusticiSoftware.Translator.AntlrUtils
         {
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("Nodes");
+            //object o_prev = string.Empty;
             object o = nodes.NextElement();
             while (!nodes.IsEndOfFile(o))
             {
-                Console.WriteLine(" {0}", o.ToString());
+                if (o.ToString() == "DOWN")
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("{");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                }
+                else if (o.ToString() == "UP")
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write(" }");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                }
+//                 if (o.ToString() == "DOWN")
+//                 {
+//                     if (o_prev.ToString() != "UP" && o_prev.ToString() != "DOWN")
+//                         Console.Write("  {0}{}", o_prev);
+//                 }
+//                 else if (o.ToString() == "UP")
+//                 {
+//                     if (o_prev.ToString() != "UP" && o_prev.ToString() != "DOWN")
+//                         Console.Write("  {0} ]", o_prev);
+//                 }
+                else
+                {
+                    Console.Write(" {0}", o.ToString());
+                }
+
+
                 o = nodes.NextElement();
             }
+//             if (o_prev.ToString() != "UP" && o_prev.ToString() != "DOWN")
+//                 Console.Write(" {0}", o_prev.ToString());
+//             Console.WriteLine();
             Console.ResetColor();
         }
 
