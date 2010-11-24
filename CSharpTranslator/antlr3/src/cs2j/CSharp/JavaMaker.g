@@ -65,6 +65,22 @@ scope NSContext {
         }
         return stripped;
     }
+
+    // TODO:  Read reserved words from a file so that they can be extended by customer
+    private readonly static string[] javaReserved = new string[] { "int", "protected", "package" };
+    
+    protected string fixBrokenId(string id)
+    {
+        // Console.WriteLine(id);
+        foreach (string k in javaReserved)
+        {
+            if (k == id) 
+            {
+                return "__" + id;
+            }
+        }
+        return id;
+    }
 }
 
 /********************************************************************************************
@@ -1191,7 +1207,11 @@ predefined_type returns [string thetext]:
     | 'ushort'  { $thetext = "System.UInt16"; } 
     ;
 
-identifier:
+identifier
+@after {
+    string fixedId = fixBrokenId($identifier.tree.Token.Text); 
+    $identifier.tree.Token.Text = fixedId;
+}:
  	IDENTIFIER | also_keyword; 
 
 keyword:
