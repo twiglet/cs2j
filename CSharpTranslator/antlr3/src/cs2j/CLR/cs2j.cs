@@ -271,6 +271,7 @@ namespace RusticiSoftware.Translator.CSharp
         {
             long startTime = DateTime.Now.Ticks;
             if (cfg.DebugLevel > 3) Console.Out.WriteLine("Translating file {0}", fullName);
+            if (cfg.DebugLevel > 5) Console.Out.WriteLine("Parsing file {0}", fullName);
             ITreeNodeStream csTree = parseFile(fullName);
             if (cfg.DumpCSharp && csTree != null) AntlrUtils.AntlrUtils.DumpNodes((CommonTreeNodeStream)csTree);
 
@@ -285,6 +286,7 @@ namespace RusticiSoftware.Translator.CSharp
                 javaMaker.CUMap = new Dictionary<string, CommonTree>();
                 javaMaker.CUKeys = new List<string>();
 	    
+                if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} to Java", fullName);
                 JavaMaker.compilation_unit_return java = javaMaker.compilation_unit();
                 int saveEmittedCommentTokenIdx = 0;
                 for (int i = 0; i < javaMaker.CUKeys.Count; i++)
@@ -325,6 +327,7 @@ namespace RusticiSoftware.Translator.CSharp
 
                     // Translate calls to .Net to calls to Java libraries
                     CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(typeAST);            
+                    if (cfg.DumpJavaSyntax && javaSyntaxNodes != null) AntlrUtils.AntlrUtils.DumpNodesFlat(javaSyntaxNodes);
                     javaSyntaxNodes.TokenStream = csTree.TokenStream;
                     
                     NetMaker netMaker = new NetMaker(javaSyntaxNodes);
@@ -333,6 +336,7 @@ namespace RusticiSoftware.Translator.CSharp
 
                     netMaker.Cfg = cfg;
                     
+                    if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} Net Calls to Java", javaFName);
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();
 
                     CommonTreeNodeStream javaCompilationUnitNodes = new CommonTreeNodeStream(javaCompilationUnit.Tree);            
@@ -348,6 +352,7 @@ namespace RusticiSoftware.Translator.CSharp
                     outputMaker.EmittedCommentTokenIdx = saveEmittedCommentTokenIdx;
                     outputMaker.IsLast = i == (javaMaker.CUKeys.Count - 1);
                     
+                    if (cfg.DebugLevel > 5) Console.Out.WriteLine("Writing out {0}", javaFName);
                     StreamWriter javaW = new StreamWriter(javaFName);
                     javaW.Write(outputMaker.compilation_unit().ToString());
                     javaW.Close();
