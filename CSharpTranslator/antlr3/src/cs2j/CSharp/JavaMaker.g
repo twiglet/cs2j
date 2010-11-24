@@ -524,8 +524,8 @@ additive_expression:
 	multiplicative_expression (('+'|'-')^   multiplicative_expression)* ;
 // >> check needed (no whitespace)
 shift_expression:
-    a1=additive_expression ((so='<<' a3=additive_expression -> ^($so $a1 $a3))
-                            | ('>' '>' a2=additive_expression -> ^(RIGHT_SHIFT $a1 $a2)) 
+    (a1=additive_expression -> $a1) ((so='<<' a3=additive_expression -> ^($so $shift_expression $a3))
+                            | ('>' '>' a2=additive_expression -> ^(RIGHT_SHIFT $shift_expression $a2)) 
                            )* ;
 relational_expression:
 	(s1=shift_expression -> $s1) 

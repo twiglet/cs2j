@@ -351,7 +351,7 @@ type
     List<string> stars = new List<string>();
     string opt = null;
 }:
-	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;})  rank_specifiers ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
+	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;})  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
 	;
 non_nullable_type:
 	type -> { $type.st } ;
@@ -440,7 +440,7 @@ non_assignment_expression:
     | ^('*' non_assignment_expression non_assignment_expression)
     | ^('/' non_assignment_expression non_assignment_expression)
     | ^('%' non_assignment_expression non_assignment_expression) 
-    | ^(UNARY_EXPR unary_expression) -> { $unary_expression.st }
+    | unary_expression -> { $unary_expression.st }
 	;
 
 ///////////////////////////////////////////////////////
@@ -1067,8 +1067,8 @@ literal:
 	| Character_literal
 	| STRINGLITERAL
 	| Verbatim_string_literal
-	| TRUE
-	| FALSE
+	| TRUE -> string(payload={"true"}) 
+	| FALSE -> string(payload={"false"}) 
 	| NULL -> string(payload={"null"}) 
 	;
 

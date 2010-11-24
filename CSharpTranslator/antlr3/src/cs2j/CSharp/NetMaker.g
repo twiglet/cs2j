@@ -290,7 +290,7 @@ type_arguments:
 	type (',' type)* ;
 
 type:
-    ^(TYPE (predefined_type | type_name)  rank_specifiers '*'* '?'?);
+    ^(TYPE (predefined_type | type_name)  rank_specifiers? '*'* '?'?);
 non_nullable_type:
     type;
 non_array_type:
@@ -352,7 +352,6 @@ pointer_indirection_expression:
 	'*'   unary_expression ;
 addressof_expression:
 	'&'   unary_expression ;
-
 
 non_assignment_expression:
 	//'non ASSIGNment'
