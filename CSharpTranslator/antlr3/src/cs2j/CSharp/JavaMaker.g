@@ -497,7 +497,8 @@ unary_expression:
 	| addressof_expression 
 	;
 cast_expression:
-	'('   type   ')'   unary_expression ;
+	//'('   type   ')'   unary_expression ; 
+	'('   type   ')'   unary_expression -> ^(CAST_EXPR type SEP unary_expression);
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 pre_increment_expression: 
@@ -521,35 +522,42 @@ non_assignment_expression:
 ///////////////////////////////////////////////////////
 
 multiplicative_expression:
-	unary_expression (  ('*'|'/'|'%')   unary_expression)*	;
+	(u1=unary_expression -> $u1) ((op='*'|op='/'|op='%')  un=unary_expression -> ^($op $multiplicative_expression $un) )*	;
 additive_expression:
-	multiplicative_expression (('+'|'-')   multiplicative_expression)* ;
+	multiplicative_expression (('+'|'-')^   multiplicative_expression)* ;
 // >> check needed (no whitespace)
 shift_expression:
-	additive_expression (('<<'|'>' '>') additive_expression)* ;
+    a1=additive_expression ((so='<<' a3=additive_expression -> ^($so $a1 $a3))
+                            | ('>' '>' a2=additive_expression -> ^(RIGHT_SHIFT $a1 $a2)) 
+                           )* ;
 relational_expression:
-	shift_expression
-		(	(('<'|'>'|'>='|'<=')	shift_expression)
-			| (('is'|'as')   non_nullable_type)
+	(s1=shift_expression -> $s1) 
+		(	((o='<'|o='>'|o='>='|o='<=')	s2=shift_expression -> ^($o $relational_expression $s2))
+			| (i='is'  t=non_nullable_type -> ^(INSTANCEOF[$i.Token,"instanceof"] $relational_expression $t) 
+                | i1='as' t1=non_nullable_type -> ^(COND_EXPR[$i1.Token, "?:"] 
+                                                        ^(INSTANCEOF[$i1.Token,"instanceof"] { (CommonTree)adaptor.DupTree($relational_expression.tree) } { (CommonTree)adaptor.DupTree($t1.tree) } ) 
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } SEP[$i1.Token, "SEP"] { (CommonTree)adaptor.DupTree($relational_expression.tree) }) 
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } SEP[$i1.Token, "SEP"] NULL[$i1.Token, "null"])))
 		)* ;
 equality_expression:
 	relational_expression
-	   (('=='|'!=')   relational_expression)* ;
+	   (('=='|'!=')^   relational_expression)* ;
 and_expression:
-	equality_expression ('&'   equality_expression)* ;
+	equality_expression ('&'^   equality_expression)* ;
 exclusive_or_expression:
-	and_expression ('^'   and_expression)* ;
+	and_expression ('^'^   and_expression)* ;
 inclusive_or_expression:
-	exclusive_or_expression   ('|'   exclusive_or_expression)* ;
+	exclusive_or_expression   ('|'^   exclusive_or_expression)* ;
 conditional_and_expression:
-	inclusive_or_expression   ('&&'   inclusive_or_expression)* ;
+	inclusive_or_expression   ('&&'^   inclusive_or_expression)* ;
 conditional_or_expression:
-	conditional_and_expression  ('||'   conditional_and_expression)* ;
+	conditional_and_expression  ('||'^   conditional_and_expression)* ;
 
 null_coalescing_expression:
-	conditional_or_expression   ('??'   conditional_or_expression)* ;
+	conditional_or_expression   ('??'^   conditional_or_expression)* ;
 conditional_expression:
-	null_coalescing_expression   ('?'   expression   ':'   expression)? ;
+	(null_coalescing_expression   '?'   expression   ':') => e1=null_coalescing_expression   q='?'   e2=expression   ':'   e3=expression -> ^(COND_EXPR[$q.Token, "?:"] $e1 $e2 $e3)
+    | null_coalescing_expression   ;
       
 ///////////////////////////////////////////////////////
 //	lambda Section

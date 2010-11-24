@@ -335,8 +335,10 @@ expression_list:
 assignment:
 	unary_expression   assignment_operator   expression ;
 unary_expression: 
-	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
-	(cast_expression) => cast_expression
+	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
+
+    //(cast_expression) => cast_expression
+	^(CAST_EXPR type SEP unary_expression) 
 	| primary_or_array_creation_expression
 	| '+'   unary_expression 
 	| '-'   unary_expression 
@@ -348,7 +350,7 @@ unary_expression:
 	| addressof_expression 
 	;
 cast_expression:
-	'('   type   ')'   unary_expression ;
+	'('   type   ')'   non_assignment_expression ;
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 pre_increment_expression: 
@@ -360,48 +362,72 @@ pointer_indirection_expression:
 addressof_expression:
 	'&'   unary_expression ;
 
+
 non_assignment_expression:
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
-	| conditional_expression
+	|     ^(COND_EXPR non_assignment_expression expression expression) 
+        | ^('??' non_assignment_expression non_assignment_expression)
+        | ^('||' non_assignment_expression non_assignment_expression)
+        | ^('&&' non_assignment_expression non_assignment_expression)
+        | ^('|' non_assignment_expression non_assignment_expression)
+        | ^('^' non_assignment_expression non_assignment_expression)
+        | ^('&' non_assignment_expression non_assignment_expression)
+        | ^('==' non_assignment_expression non_assignment_expression)
+        | ^('!=' non_assignment_expression non_assignment_expression)
+        | ^('>' non_assignment_expression non_assignment_expression)
+        | ^('<' non_assignment_expression non_assignment_expression)
+        | ^('>=' non_assignment_expression non_assignment_expression)
+        | ^('<=' non_assignment_expression non_assignment_expression)
+        | ^(INSTANCEOF non_assignment_expression non_nullable_type)
+        | ^('<<' non_assignment_expression non_assignment_expression)
+        | ^('>>' non_assignment_expression non_assignment_expression)
+        | ^('+' non_assignment_expression non_assignment_expression)
+        | ^('-' non_assignment_expression non_assignment_expression)
+        | ^('*' non_assignment_expression non_assignment_expression)
+        | ^('/' non_assignment_expression non_assignment_expression)
+        | ^('%' non_assignment_expression non_assignment_expression) 
+ //       | ^(UNARY_EXPRESSION unary_expression)
+        | unary_expression
 	;
 
-///////////////////////////////////////////////////////
-//	Conditional Expression Section
-///////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
+// //	Conditional Expression Section
+// ///////////////////////////////////////////////////////
+// 
+// multiplicative_expression:
+// 	unary_expression (  ('*'|'/'|'%')   unary_expression)*	;
+// additive_expression:
+// 	multiplicative_expression (('+'|'-')   multiplicative_expression)* ;
+// // >> check needed (no whitespace)
+// shift_expression:
+// 	additive_expression (('<<'|'>' '>') additive_expression)* ;
+// relational_expression:
+// 	shift_expression
+// 		(	(('<'|'>'|'>='|'<=')	shift_expression)
+// 			| (('is'|'as')   non_nullable_type)
+// 		)* ;
+// equality_expression:
+// 	relational_expression
+// 	   (('=='|'!=')   relational_expression)* ;
+// and_expression:
+// 	equality_expression ('&'   equality_expression)* ;
+// exclusive_or_expression:
+// 	and_expression ('^'   and_expression)* ;
+// inclusive_or_expression:
+// 	exclusive_or_expression   ('|'   exclusive_or_expression)* ;
+// conditional_and_expression:
+// 	inclusive_or_expression   ('&&'   inclusive_or_expression)* ;
+// conditional_or_expression:
+// 	conditional_and_expression  ('||'   conditional_and_expression)* ;
+// 
+// null_coalescing_expression:
+// 	conditional_or_expression   ('??'   conditional_or_expression)* ;
+// conditional_expression:
+// 	null_coalescing_expression   ('?'   expression   ':'   expression)? ;
+//       
 
-multiplicative_expression:
-	unary_expression (  ('*'|'/'|'%')   unary_expression)*	;
-additive_expression:
-	multiplicative_expression (('+'|'-')   multiplicative_expression)* ;
-// >> check needed (no whitespace)
-shift_expression:
-	additive_expression (('<<'|'>' '>') additive_expression)* ;
-relational_expression:
-	shift_expression
-		(	(('<'|'>'|'>='|'<=')	shift_expression)
-			| (('is'|'as')   non_nullable_type)
-		)* ;
-equality_expression:
-	relational_expression
-	   (('=='|'!=')   relational_expression)* ;
-and_expression:
-	equality_expression ('&'   equality_expression)* ;
-exclusive_or_expression:
-	and_expression ('^'   and_expression)* ;
-inclusive_or_expression:
-	exclusive_or_expression   ('|'   exclusive_or_expression)* ;
-conditional_and_expression:
-	inclusive_or_expression   ('&&'   inclusive_or_expression)* ;
-conditional_or_expression:
-	conditional_and_expression  ('||'   conditional_and_expression)* ;
-
-null_coalescing_expression:
-	conditional_or_expression   ('??'   conditional_or_expression)* ;
-conditional_expression:
-	null_coalescing_expression   ('?'   expression   ':'   expression)? ;
-      
 ///////////////////////////////////////////////////////
 //	lambda Section
 ///////////////////////////////////////////////////////
