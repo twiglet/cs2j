@@ -439,18 +439,15 @@ type_arguments returns [List<string> tyargs]
 	t1=type { $tyargs.Add($t1.thetext); } (',' tn=type { $tyargs.Add($tn.thetext); })* ;
 
 type returns [string thetext]:
-	  ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } ('*' { $thetext += "*"; })*
-	| ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   (('*' { $thetext += "*"; })+ | '?' { $thetext += "?"; })
-	| (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; })
-	| 'void' { $thetext = "System.Void"; } ('*' { $thetext += "*"; })+
-	;
+         ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } (s1+='*' { $thetext += "*"; })* -> ^(TYPE $p1? $tn1? $rs $s1*)
+       | ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   ((s2+='*' { $thetext += "*"; })+ | o2='?' { $thetext += "?"; }) -> ^(TYPE $p2? $tn2? $s2* $o2?)
+       | (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; }) -> ^(TYPE $p3? $tn3?)
+       | v='void' { $thetext = "System.Void"; } (s+='*' { $thetext += "*"; })+  -> ^(TYPE $v $s+)
+       ;
 non_nullable_type:
-	(predefined_type | type_name)
-		(   rank_specifiers   '*'*
-			| ('*'+)?
-		)
-	| 'void'   '*'+ ;
-	
+       type
+       ;
+       
 non_array_type:
 	type;
 array_type:
@@ -857,7 +854,7 @@ constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
 	type
-	|  'void';
+	|  v='void' -> ^(TYPE $v);
 formal_parameter_list:
 	formal_parameter (',' formal_parameter)* ;
 formal_parameter:
@@ -1106,6 +1103,7 @@ selection_statement:
 	| switch_statement ;
 if_statement:
 	// else goes with closest if
+	// i='if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)? -> ^(IF[$i.Token] boolean_expression embedded_statement else_statement?)
 	'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
 	;
 else_statement:

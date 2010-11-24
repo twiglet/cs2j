@@ -290,18 +290,9 @@ type_arguments:
 	type (',' type)* ;
 
 type:
-	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
-	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?')
-	| (predefined_type | type_name)
-	| 'void' '*'+
-	;
+    ^(TYPE (predefined_type | type_name)  rank_specifiers '*'* '?'?);
 non_nullable_type:
-	(predefined_type | type_name)
-		(   rank_specifiers   '*'*
-			| ('*'+)?
-		)
-	| 'void'   '*'+ ;
-	
+    type;
 non_array_type:
 	type;
 array_type:
@@ -667,8 +658,7 @@ type_variable_name:
 constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
-	type
-	|  'void';
+	type ;
 formal_parameter_list:
 	formal_parameter (',' formal_parameter)* ;
 formal_parameter:

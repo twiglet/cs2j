@@ -351,28 +351,21 @@ type
     List<string> stars = new List<string>();
     string opt = null;
 }:
-	  ((predefined_type | type_name)  rank_specifiers) => (t1p=predefined_type {nm=$t1p.st;} | t1t=type_name {nm=$t1t.st;} )   rank_specifiers   ('*' { stars.Add("*"); })* ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st })
-	| ((predefined_type | type_name)  ('*'+ | '?')) => (t2p=predefined_type {nm=$t2p.st;} | t2t=type_name {nm=$t2t.st;} )   (('*' { stars.Add("*"); })+ | '?' { opt = "?"; }) -> type(name={ nm }, stars={ stars }, opt={ opt })
-	| (t3p=predefined_type {nm=$t3p.st;} | t3t=type_name {nm=$t3t.st;} ) -> type(name={ nm }) 
-	| 'void' ('*' { stars.Add("*"); })+ -> type(name={ "void" }, stars={ stars })
+	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;})  rank_specifiers ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
 	;
 non_nullable_type:
-	(predefined_type | type_name)
-		(   rank_specifiers   '*'*
-			| ('*'+)?
-		)
-	| 'void'   '*'+ ;
+	type -> { $type.st } ;
 	
 non_array_type:
-	type;
+	type -> { $type.st } ;
 array_type:
-	type;
+	type -> { $type.st } ;
 unmanaged_type:
-	type;
+	type -> { $type.st } ;
 class_type:
-	type;
+	type -> { $type.st } ;
 pointer_type:
-	type;
+	type -> { $type.st } ;
 
 
 ///////////////////////////////////////////////////////
@@ -711,8 +704,7 @@ type_variable_name:
 //constructor_constraint:
 //	'new'   '('   ')' ;
 return_type:
-	type -> { $type.st }
-	|  'void' -> string(payload={"void"});
+	type -> { $type.st } ;
 formal_parameter_list:
 	formal_parameter (',' formal_parameter)* ;
 formal_parameter:
@@ -936,7 +928,7 @@ local_variable_declaration:
 local_variable_type:
 	('var') => 'var'
 	| ('dynamic') => 'dynamic'
-	| type ;
+	| type  -> { $type.st } ;
 local_variable_declarators:
 	local_variable_declarator (',' local_variable_declarator)* ;
 local_variable_declarator:
