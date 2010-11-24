@@ -49,6 +49,18 @@ namespace RusticiSoftware.Translator.AntlrUtils
             Console.ResetColor();
         }
 
+        public static void DumpNodesFlat(CommonTreeNodeStream nodes)
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Nodes");
+            object o = nodes.NextElement();
+            while (!nodes.IsEndOfFile(o))
+            {
+                Console.WriteLine(" {0}", o.ToString());
+                o = nodes.NextElement();
+            }
+            Console.ResetColor();
+        }
 
     }
 }
