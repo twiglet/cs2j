@@ -18,12 +18,23 @@ tokens {
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
+            LPAREN='(';
+            NULL_COALESCE='??';
+            IF='if';
 
+            COND_EXPR;  // (<x> ? <y> : <z>)
+            RIGHT_SHIFT;
+            INSTANCEOF;
+
+            TYPE;
             ENUM_BODY;
             TYPE_PARAM_CONSTRAINT;
+            UNARY_EXPR;
+            CAST_EXPR;
             
             PAYLOAD;   // carries arbitrary text for the output file
             PAYLOAD_LIST;
+            SEP;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -131,6 +142,7 @@ class_member_declaration:
 
 primary_expression: 
 	('this'    brackets) => 'this'   brackets   primary_expression_part*
+// keving: this doesn't look right:
 	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 	| primary_expression_start   primary_expression_part*
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
