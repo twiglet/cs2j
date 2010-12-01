@@ -36,39 +36,60 @@ modifier:
 	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override' | FINAL ;
 	
 class_member_declaration:
-	attributes?
-	m=modifiers?
-	( 'const'   type   constant_declarators   ';'
-	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
-			   | interface_declaration 
-			   | class_declaration 
-			   | struct_declaration)
-	| interface_declaration	// 'interface'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
-	       | field_declaration      // qid
-	       | operator_declaration
-	       )
-//	common_modifiers// (method_modifiers | field_modifiers)
-	
-	| class_declaration		// 'class'
-	| struct_declaration	// 'struct'	   
-	| enum_declaration		// 'enum'
-	| delegate_declaration	// 'delegate'
-	| conversion_operator_declaration
-	| constructor_declaration	//	| static_constructor_declaration
-	| destructor_declaration
-	) 
-	;
-
+    ^(CONST attributes? modifiers? type constant_declarators)
+    | ^(EVENT attributes? modifiers? event_declaration)
+    | ^(METHOD attributes? modifiers? type method_declaration)
+    | ^(INTERFACE attributes? modifiers? interface_declaration)
+    | ^(CLASS attributes? modifiers? class_declaration)
+    | ^(PROPERTY attributes? modifiers? type property_declaration)
+    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
+    | ^(FIELD attributes? modifiers? type field_declaration)
+    | ^(OPERATOR attributes? modifiers? type operator_declaration)
+    | ^(ENUM attributes? modifiers? enum_declaration)
+    | ^(DELEGATE attributes? modifiers? delegate_declaration)
+    | ^(CONSTRUCTOR attributes? modifiers? constructor_declaration)
+    | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
+    ;
+// class_member_declaration:
+// 	attributes?
+// 	m=modifiers?
+// 	( 'const'   type   constant_declarators   ';'
+// 	| event_declaration		// 'event'
+// 	| 'partial' (method_declaration 
+// 			   | interface_declaration 
+// 			   | class_declaration 
+// 			   | struct_declaration)
+// 	| interface_declaration	// 'interface'
+// //	| 'void'   method_declaration
+// 	| type ( (member_name   '(') => method_declaration
+// 		   | (member_name   '{') => property_declaration
+// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+// 		   | indexer_declaration	//this
+// 	       | field_declaration      // qid
+// 	       | operator_declaration
+// 	       )
+// //	common_modifiers// (method_modifiers | field_modifiers)
+// 	
+// 	| class_declaration		// 'class'
+// 	| struct_declaration	// 'struct'	   
+// 	| enum_declaration		// 'enum'
+// 	| delegate_declaration	// 'delegate'
+// 	| conversion_operator_declaration
+// 	| constructor_declaration	//	| static_constructor_declaration
+// 	| destructor_declaration
+// 	) 
+// 	;
+// 
 primary_expression: 
-	('this'    brackets) => 'this'   brackets   primary_expression_part*
-	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
-	| primary_expression_start   primary_expression_part*
+    ^(INDEX expression expression_list?)
+    | ^(APPLY expression argument_list?)
+    | ^(POSTINC expression)
+    | ^(POSTDEC expression)
+    | primary_expression_start
+    | ^(access_operator expression type_or_generic)
+//	('this'    brackets) => 'this'   brackets   primary_expression_part*
+//	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
+//	| primary_expression_start   primary_expression_part*
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
 					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
 				// try the simple one first, this has no argS and no expressions
@@ -89,7 +110,7 @@ primary_expression_start:
 	| identifier ('::'   identifier)?
 	| 'this' 
 	| 'base'
-	| paren_expression
+	| ^(TEMPPARENS expression)
 	| typeof_expression             // typeof(Foo).Name
 	| literal
 	;
@@ -157,7 +178,7 @@ primary_or_array_creation_expression:
 	;
 // new Type[2] { }
 array_creation_expression:
-	'new'   
+	^('new'   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   array_initializer?	// new int[4]
 					// | invocation_part*
@@ -169,7 +190,7 @@ array_creation_expression:
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
-		) ;
+		)) ;
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 variable_initializer_list:
@@ -177,15 +198,15 @@ variable_initializer_list:
 variable_initializer:
 	expression	| array_initializer ;
 sizeof_expression:
-	'sizeof'   '('   unmanaged_type   ')';
+	^('sizeof'  unmanaged_type );
 checked_expression: 
-	'checked'   '('   expression   ')' ;
+	^('checked' expression ) ;
 unchecked_expression: 
-	'unchecked'   '('   expression   ')' ;
+	^('unchecked' expression ) ;
 default_value_expression: 
-	'default'   '('   type   ')' ;
+	^('default' type   ) ;
 anonymous_method_expression:
-	'delegate'   explicit_anonymous_function_signature?   block;
+	^('delegate'   explicit_anonymous_function_signature?   block);
 explicit_anonymous_function_signature:
 	'('   explicit_anonymous_function_parameter_list?   ')' ;
 explicit_anonymous_function_parameter_list:
@@ -232,9 +253,7 @@ initializer_value:
 ///////////////////////////////////////////////////////
 
 typeof_expression: 
-	'typeof'   '('   ((unbound_type_name) => unbound_type_name
-					  | type 
-					  | 'void')   ')' ;
+	^('typeof'  (unbound_type_name | type | 'void') ) ;
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -290,7 +309,7 @@ type_arguments:
 	type (',' type)* ;
 
 type:
-    ^(TYPE (predefined_type | type_name)  rank_specifiers? '*'* '?'?);
+    ^(TYPE (predefined_type | type_name | 'void')  rank_specifiers? '*'* '?'?);
 non_nullable_type:
     type;
 non_array_type:
@@ -331,27 +350,27 @@ unary_expression:
     //(cast_expression) => cast_expression
 	^(CAST_EXPR type unary_expression) 
 	| primary_or_array_creation_expression
-	| '+'   unary_expression 
-	| '-'   unary_expression 
-	| '!'   unary_expression 
-	| '~'   unary_expression 
-	| pre_increment_expression 
-	| pre_decrement_expression 
-	| pointer_indirection_expression
-	| addressof_expression 
+	| ^(MONOPLUS unary_expression)
+	| ^(MONOMINUS unary_expression)
+	| ^(MONONOT unary_expression)
+	| ^(MONOTWIDDLE unary_expression)
+	| ^(PREINC unary_expression)
+	| ^(PREDEC unary_expression)
+	| ^(MONOSTAR unary_expression)
+	| ^(ADDRESSOF unary_expression)
 	;
-cast_expression:
-	'('   type   ')'   non_assignment_expression ;
+//cast_expression:
+//	'('   type   ')'   non_assignment_expression ;
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
-pre_increment_expression: 
-	'++'   unary_expression ;
-pre_decrement_expression: 
-	'--'   unary_expression ;
-pointer_indirection_expression:
-	'*'   unary_expression ;
-addressof_expression:
-	'&'   unary_expression ;
+//pre_increment_expression: 
+//	'++'   unary_expression ;
+//pre_decrement_expression: 
+//	'--'   unary_expression ;
+//pointer_indirection_expression:
+//	'*'   unary_expression ;
+//addressof_expression:
+//	'&'   unary_expression ;
 
 non_assignment_expression:
 	//'non ASSIGNment'
@@ -834,13 +853,17 @@ invocation_part:
 
 ///////////////////////////////////////////////////////
 
+// keving: split statement into two parts, there seems to be a problem with the state
+// machine if we combine statement and statement_plus. (It fails to recognise dataHelper.Add();)
 statement:
-	(declaration_statement) => declaration_statement
-	| (identifier   ':') => labeled_statement
-	| embedded_statement 
+    (declaration_statement) => declaration_statement 
+    | statement_plus;
+statement_plus:
+    (identifier   ':') => labeled_statement 
+    | embedded_statement 
 	;
 embedded_statement:
-	block
+block
 	| selection_statement	// if, switch
 	| iteration_statement	// while, do, for, foreach
 	| jump_statement		// break, continue, goto, return, throw

@@ -15,6 +15,32 @@ tokens {
             FINAL; /* final modifier */
             IN;
             OUT;
+            CONST;
+            EVENT;
+            METHOD;
+            PROPERTY;
+            INDEXER;
+            FIELD;
+            OPERATOR;
+            ENUM;
+            DELEGATE;
+            CONVERSION_OPERATOR;
+            CONSTRUCTOR;
+            DESTRUCTOR;
+
+            MONOPLUS;
+            MONOMINUS;
+            MONONOT;
+            MONOTWIDDLE;
+            MONOSTAR;
+            ADDRESSOF;
+            PREINC;
+            PREDEC;
+            POSTINC;
+            POSTDEC;
+            TEMPPARENS;
+            INDEX;
+            APPLY;
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
@@ -35,6 +61,7 @@ tokens {
             PAYLOAD;   // carries arbitrary text for the output file
             PAYLOAD_LIST;
             SEP;
+            KGHOLE;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -115,7 +142,7 @@ class_member_declaration:
 	m=modifiers?
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
+	| 'partial' ('void' method_declaration 
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)

@@ -164,41 +164,42 @@ modifier:
 	| 'readonly' -> FINAL["final"] | 'volatile' | 'extern' | 'virtual' | 'override';
 
 class_member_declaration:
-	attributes?
+	a=attributes?
 	m=modifiers?
-	( 'const'   type   constant_declarators   ';'
-	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration
-			   | interface_declaration 
-			   | class_declaration 
-			   | struct_declaration)
-	| interface_declaration	// 'interface'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
-	       | field_declaration      // qid
-	       | operator_declaration
+	( c='const'   ct=type   constant_declarators   ';' -> ^(CONST[$c.token, "CONST"] $a? $m? $ct constant_declarators)
+	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1='void' m3=method_declaration -> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
+			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
+			   | c1=class_declaration -> ^(CLASS[$c1.start.Token, "CLASS"] $a? $m? $c1)
+			   | s1=struct_declaration) -> ^(CLASS[$s1.start.Token, "CLASS"] $a? $m? $s1)
+	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
+	| v='void'   m1=method_declaration -> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
+	| t=type ( (member_name   '(') => m2=method_declaration -> ^(METHOD[$t.start.Token, "METHOD"] $a? $m? $t $m2)
+		   | (member_name   '{') => property_declaration -> ^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t property_declaration)
+		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration -> ^(INDEXER[$t.start.Token, "INDEXER"] $a? $m? $t type_name $ix1)
+		   | ix2=indexer_declaration	-> ^(INDEXER[$t.start.Token,"INDEXER"] $a? $m? $t $ix2) //this
+	       | field_declaration     -> ^(FIELD[$t.start.Token, "FIELD"] $a? $m? $t field_declaration) // qid
+	       | operator_declaration -> ^(OPERATOR[$t.start.Token, "OPERATOR"] $a? $m? $t operator_declaration)
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| class_declaration		// 'class'
-	| struct_declaration	// 'struct'	   
-	| enum_declaration		// 'enum'
-	| delegate_declaration	// 'delegate'
-	| conversion_operator_declaration
-	| constructor_declaration	//	| static_constructor_declaration
-	| destructor_declaration
+	| c3=class_declaration	-> ^(CLASS[$c3.start.Token, "CLASS"] $a? $m? $c3)	// 'class'
+	| s3=struct_declaration	-> ^(CLASS[$s3.start.Token, "CLASS"] $a? $m? $s3)
+	| e3=enum_declaration	-> ^(ENUM[$e3.start.Token, "ENUM"] $a? $m? $e3)
+	| d3=delegate_declaration	-> ^(DELEGATE[$d3.start.Token, "DELEGATE"] $a? $m? $d3)
+	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
+	| con3=constructor_declaration	-> ^(CONSTRUCTOR[$con3.start.Token, "CONSTRUCTOR"] $a? $m? $con3)
+	| de3=destructor_declaration -> ^(DESTRUCTOR[$de3.start.Token, "DESTRUCTOR"] $a? $m? $de3)
 	) 
 	;
 
 primary_expression: 
-	('this'    brackets) => 'this'   brackets   primary_expression_part*
-	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
-	| primary_expression_start   primary_expression_part*
+	('this'    brackets[null]) => (t='this' -> $t)  (b1=brackets[$primary_expression.tree] -> $b1) (pp1=primary_expression_part[$primary_expression.tree] -> $pp1) *
+	| ('base'   brackets[null]) => (b='this' -> $b)  (b2=brackets[$primary_expression.tree] -> $b2) (pp2=primary_expression_part[$primary_expression.tree] -> $pp2) *
+	| (primary_expression_start -> primary_expression_start)   (pp3=primary_expression_part[$primary_expression.tree] -> $pp3 )*
+// keving:TODO fixup
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
-					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
+					object_creation_expression   primary_expression_part[null]+ 		// new Foo(arg, arg).Member
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation
 				| (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
@@ -222,23 +223,25 @@ primary_expression_start:
 	| literal
 	;
 
-primary_expression_part:
-	 access_identifier
-	| brackets_or_arguments 
-	| '++'
-	| '--' ;
-access_identifier:
-	access_operator   type_or_generic ;
+primary_expression_part [CommonTree lhs]:
+	 access_identifier[$lhs]
+	| brackets_or_arguments[$lhs] 
+	| p='++' -> ^(POSTINC[$p.token, "POST++"] { (CommonTree)adaptor.DupTree($lhs) } )
+	| m='--' -> ^(POSTDEC[$m.token, "POST--"] { (CommonTree)adaptor.DupTree($lhs) } )
+    ;
+access_identifier [CommonTree lhs]:
+	access_operator   type_or_generic -> ^(access_operator { (CommonTree)adaptor.DupTree($lhs) } type_or_generic);
 access_operator:
 	'.'  |  '->' ;
-brackets_or_arguments:
-	brackets | arguments ;
-brackets:
-	'['   expression_list?   ']' ;	
+brackets_or_arguments [CommonTree lhs]:
+	brackets[$lhs] | arguments[$lhs] ;
+brackets [CommonTree lhs]:
+	'['   expression_list?   ']' -> ^(INDEX { (CommonTree)adaptor.DupTree($lhs) } expression_list?);	
+// keving: TODO: drop this.
 paren_expression:	
-	'('   expression   ')' ;
-arguments: 
-	'('   argument_list?   ')' ;
+	'('   expression   ')' -> ^(TEMPPARENS expression);
+arguments [CommonTree lhs]: 
+	'('   argument_list?   ')' -> ^(APPLY { (CommonTree)adaptor.DupTree($lhs) } argument_list?);
 argument_list: 
 	argument (',' argument)*;
 // 4.0
@@ -291,12 +294,12 @@ primary_or_array_creation_expression:
 	;
 // new Type[2] { }
 array_creation_expression:
-	'new'   
+	'new'^   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   array_initializer?	// new int[4]
 					// | invocation_part*
-					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
-					  | invocation_part)*   arguments
+					| ( ((arguments[null]   ('['|'.'|'->')) => arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]   invocation_part)// new object[2].GetEnumerator()
+					  | invocation_part)*   arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]
 					)							// new int[4]()
 				| array_initializer		
 				)
@@ -311,15 +314,15 @@ variable_initializer_list:
 variable_initializer:
 	expression	| array_initializer ;
 sizeof_expression:
-	'sizeof'   '('   unmanaged_type   ')';
+	'sizeof'^   '('!   unmanaged_type   ')'!;
 checked_expression: 
-	'checked'   '('   expression   ')' ;
+	'checked'^   '('!   expression   ')'! ;
 unchecked_expression: 
-	'unchecked'   '('   expression   ')' ;
+	'unchecked'^   '('!   expression   ')'! ;
 default_value_expression: 
-	'default'   '('   type   ')' ;
+	'default'^   '('!   type   ')'! ;
 anonymous_method_expression:
-	'delegate'   explicit_anonymous_function_signature?   block;
+	'delegate'^   explicit_anonymous_function_signature?   block;
 explicit_anonymous_function_signature:
 	'('   explicit_anonymous_function_parameter_list?   ')' ;
 explicit_anonymous_function_parameter_list:
@@ -366,9 +369,9 @@ initializer_value:
 ///////////////////////////////////////////////////////
 
 typeof_expression: 
-	'typeof'   '('   ((unbound_type_name) => unbound_type_name
+	'typeof'^   '('!   ((unbound_type_name) => unbound_type_name
 					  | type 
-					  | 'void')   ')' ;
+					  | 'void')   ')'! ;
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -423,7 +426,7 @@ qid_start returns [string name, List<String> tyargs]:
 
 
 qid_part:
-	access_identifier ;
+	access_identifier[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
 
 generic_argument_list returns [List<string> tyargs]
 @after { 
@@ -442,12 +445,12 @@ type returns [string thetext]:
          ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } (s1+='*' { $thetext += "*"; })* -> ^(TYPE $p1? $tn1? $rs $s1*)
        | ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   ((s2+='*' { $thetext += "*"; })+ | o2='?' { $thetext += "?"; }) -> ^(TYPE $p2? $tn2? $s2* $o2?)
        | (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; }) -> ^(TYPE $p3? $tn3?)
-       | v='void' { $thetext = "System.Void"; } (s+='*' { $thetext += "*"; })+  -> ^(TYPE $v $s+)
+       | v='void' { $thetext = "System.Void"; } (s+='*' { $thetext += "*"; })+  -> ^(TYPE[$v.token, "TYPE"] $v $s+)
        ;
 non_nullable_type:
-       type
+	(p=predefined_type | t=type_name) rs=rank_specifiers? (s+='*')* ->  ^(TYPE["TYPE"] $p? $t? $rs? $s*)
+       | v='void' (s+='*')+  -> ^(TYPE[$v.token,"TYPE"] $v $s+)
        ;
-       
 non_array_type:
 	type;
 array_type:
@@ -482,30 +485,30 @@ assignment:
 	unary_expression   assignment_operator   expression ;
 unary_expression: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
-	(cast_expression) => cast_expression
-	| primary_or_array_creation_expression
-	| '+'   unary_expression 
-	| '-'   unary_expression 
-	| '!'   unary_expression 
-	| '~'   unary_expression 
-	| pre_increment_expression 
-	| pre_decrement_expression 
-	| pointer_indirection_expression
-	| addressof_expression 
+    (cast_expression) => cast_expression
+	| primary_or_array_creation_expression -> primary_or_array_creation_expression
+	| p='+'   unary_expression -> ^(MONOPLUS[$p.token,"MONOPLUS"] unary_expression) 
+	| m='-'   unary_expression -> ^(MONOMINUS[$m.token, "MONOMINUS"] unary_expression) 
+	| n='!'   unary_expression -> ^(MONONOT[$n.token, "MONONOT"] unary_expression) 
+	| t='~'   unary_expression -> ^(MONOTWIDDLE[$t.token, "TWIDDLE"] unary_expression) 
+	| pre_increment_expression -> pre_increment_expression
+	| pre_decrement_expression -> pre_decrement_expression
+	| pointer_indirection_expression -> pointer_indirection_expression
+	| addressof_expression -> addressof_expression 
 	;
 cast_expression:
-	//'('   type   ')'   unary_expression ; 
-	'('   type   ')'   unary_expression -> ^(CAST_EXPR type unary_expression);
+//	//'('   type   ')'   unary_expression ; 
+	l='('   type   ')'   unary_expression -> ^(CAST_EXPR[$l.token, "CAST"] type unary_expression);
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 pre_increment_expression: 
-	'++'   unary_expression ;
+	s='++'   unary_expression -> ^(PREINC[$s.token, "PRE++"] unary_expression) ;
 pre_decrement_expression: 
-	'--'   unary_expression ;
+	s='--'   unary_expression -> ^(PREDEC[$s.token, "PRE--"] unary_expression);
 pointer_indirection_expression:
-	'*'   unary_expression ;
+	s='*'   unary_expression -> ^(MONOSTAR[$s.token, "STAR"] unary_expression);
 addressof_expression:
-	'&'   unary_expression ;
+	a='&'   unary_expression -> ^(ADDRESSOF[$a.token, "ADDRESSOF"] unary_expression);
 
 non_assignment_expression:
 	//'non ASSIGNment'
@@ -553,8 +556,9 @@ conditional_or_expression:
 null_coalescing_expression:
 	conditional_or_expression   ('??'^   conditional_or_expression)* ;
 conditional_expression:
-	(null_coalescing_expression   '?'   expression   ':') => e1=null_coalescing_expression   q='?'   e2=expression   ':'   e3=expression -> ^(COND_EXPR[$q.Token, "?:"] $e1 $e2 $e3)
-    | null_coalescing_expression   ;
+     (ne=null_coalescing_expression  -> $ne) (q='?'   te=expression   ':'   ee=expression ->  ^(COND_EXPR[$q.token, "?:"] $conditional_expression $te $ee))? ;
+//	(null_coalescing_expression   '?'   expression   ':') => e1=null_coalescing_expression   q='?'   e2=expression   ':'   e3=expression -> ^(COND_EXPR[$q.token, "?:"] $e1 $e2 $e3)
+//    | null_coalescing_expression   ;
       
 ///////////////////////////////////////////////////////
 //	lambda Section
@@ -854,7 +858,7 @@ constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
 	type
-	|  v='void' -> ^(TYPE $v);
+	|  v='void' -> ^(TYPE[$v.token, "TYPE"] $v);
 formal_parameter_list:
 	formal_parameter (',' formal_parameter)* ;
 formal_parameter:
@@ -1021,8 +1025,8 @@ destructor_body:
 
 ///////////////////////////////////////////////////////
 invocation_expression:
-	invocation_start   (((arguments   ('['|'.'|'->')) => arguments   invocation_part)
-						| invocation_part)*   arguments ;
+	invocation_start   (((arguments[null]   ('['|'.'|'->')) => arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]   invocation_part)
+						| invocation_part)*   arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
 invocation_start:
 	predefined_type 
 	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
@@ -1032,8 +1036,8 @@ invocation_start:
 	| typeof_expression             // typeof(Foo).Name
 	;
 invocation_part:
-	 access_identifier
-	| brackets ;
+	 access_identifier[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]
+	| brackets[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
 
 ///////////////////////////////////////////////////////
 

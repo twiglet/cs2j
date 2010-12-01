@@ -51,8 +51,13 @@ namespace RusticiSoftware.Translator.AntlrUtils
 
         public static void DumpNodesFlat(CommonTreeNodeStream nodes)
         {
+            DumpNodesFlat(nodes, "Nodes");
+        }
+
+        public static void DumpNodesFlat(CommonTreeNodeStream nodes, string title)
+        {
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Nodes");
+            Console.WriteLine(title);
             //object o_prev = string.Empty;
             object o = nodes.NextElement();
             while (!nodes.IsEndOfFile(o))
@@ -89,7 +94,7 @@ namespace RusticiSoftware.Translator.AntlrUtils
             }
 //             if (o_prev.ToString() != "UP" && o_prev.ToString() != "DOWN")
 //                 Console.Write(" {0}", o_prev.ToString());
-//             Console.WriteLine();
+            Console.WriteLine();
             Console.ResetColor();
         }
 

@@ -272,8 +272,12 @@ namespace RusticiSoftware.Translator.CSharp
             long startTime = DateTime.Now.Ticks;
             if (cfg.DebugLevel > 3) Console.Out.WriteLine("Translating file {0}", fullName);
             if (cfg.DebugLevel > 5) Console.Out.WriteLine("Parsing file {0}", fullName);
-            ITreeNodeStream csTree = parseFile(fullName);
-            if (cfg.DumpCSharp && csTree != null) AntlrUtils.AntlrUtils.DumpNodes((CommonTreeNodeStream)csTree);
+            CommonTreeNodeStream csTree = parseFile(fullName);
+            if (cfg.DumpCSharp && csTree != null)
+            {
+                AntlrUtils.AntlrUtils.DumpNodesFlat(csTree, "C Sharp Parse Tree");
+                csTree.Reset();
+            }
 
             if (csTree != null)
             {
@@ -327,7 +331,11 @@ namespace RusticiSoftware.Translator.CSharp
 
                     // Translate calls to .Net to calls to Java libraries
                     CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(typeAST);            
-                    if (cfg.DumpJavaSyntax && javaSyntaxNodes != null) AntlrUtils.AntlrUtils.DumpNodesFlat(javaSyntaxNodes);
+                    if (cfg.DumpJavaSyntax && javaSyntaxNodes != null)
+                    {
+                        AntlrUtils.AntlrUtils.DumpNodesFlat(javaSyntaxNodes, "Java Syntax Parse Tree for " + claName);
+                        javaSyntaxNodes.Reset();    
+                    }
                     javaSyntaxNodes.TokenStream = csTree.TokenStream;
                     
                     NetMaker netMaker = new NetMaker(javaSyntaxNodes);
@@ -342,6 +350,11 @@ namespace RusticiSoftware.Translator.CSharp
                     CommonTreeNodeStream javaCompilationUnitNodes = new CommonTreeNodeStream(javaCompilationUnit.Tree);            
                     javaCompilationUnitNodes.TokenStream = csTree.TokenStream;
                     
+                    if (cfg.DumpJava && javaCompilationUnitNodes != null)
+                    {
+                        AntlrUtils.AntlrUtils.DumpNodesFlat(javaCompilationUnitNodes, "Final Java Parse Tree for " + claName);
+                        javaCompilationUnitNodes.Reset();    
+                    }
                     // Pretty print java parse tree as text
                     JavaPrettyPrint outputMaker = new JavaPrettyPrint(javaCompilationUnitNodes);
                     outputMaker.Filename = fullName;

@@ -91,39 +91,61 @@ modifier
         -> string(payload={$m.text});
 	
 class_member_declaration:
-	attributes?
-	m=modifiers?
-	( 'const'   t1=type   constant_declarators   ';'
-	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
-			   | interface_declaration[$m.st] 
-			   | class_declaration[$m.st] 
-			   | struct_declaration)
-	| interface_declaration[$m.st]	// 'interface'
-	| 'void'   method_declaration
-	| t2=type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
-	       | field_declaration     -> field(modifiers={$m.st}, type={$t2.st}, field={$field_declaration.st}) // qid
-	       | operator_declaration
-	       )
-//	common_modifiers// (method_modifiers | field_modifiers)
-	
-	| c2=class_declaration[$m.st] -> { $c2.st }		// 'class'
-	| s2=struct_declaration	-> { $s2.st }// 'struct'	   
-	| e2=enum_declaration[$m.st]	-> { $e2.st }	// 'enum'
-	| delegate_declaration	// 'delegate'
-	| conversion_operator_declaration
-	| constructor_declaration	//	| static_constructor_declaration
-	| destructor_declaration
-	) 
-	;
+    ^(CONST attributes? modifiers? type constant_declarators)
+    | ^(EVENT attributes? modifiers? event_declaration)
+    | ^(METHOD attributes? modifiers? type method_declaration)
+    | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st])
+    | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st])
+    | ^(PROPERTY attributes? modifiers? type property_declaration)
+    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
+    | ^(FIELD attributes? modifiers? type field_declaration)     -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
+    | ^(OPERATOR attributes? modifiers? type operator_declaration)
+    | ^(ENUM attributes? modifiers? enum_declaration[$modifiers.st])
+    | ^(DELEGATE attributes? modifiers? delegate_declaration)
+    | ^(CONSTRUCTOR attributes? modifiers? constructor_declaration)
+    | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
+    ;
 
+// class_member_declaration:
+// 	attributes?
+// 	m=modifiers?
+// 	( 'const'   t1=type   constant_declarators   ';'
+// 	| event_declaration		// 'event'
+// 	| 'partial' (method_declaration 
+// 			   | interface_declaration[$m.st] 
+// 			   | class_declaration[$m.st] 
+// 			   | struct_declaration)
+// 	| interface_declaration[$m.st]	// 'interface'
+// //	| 'void'   method_declaration
+// 	| t2=type ( (member_name   '(') => method_declaration
+// 		   | (member_name   '{') => property_declaration
+// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+// 		   | indexer_declaration	//this
+// 	       | field_declaration     -> field(modifiers={$m.st}, type={$t2.st}, field={$field_declaration.st}) // qid
+// 	       | operator_declaration
+// 	       )
+// //	common_modifiers// (method_modifiers | field_modifiers)
+// 	
+// 	| c2=class_declaration[$m.st] -> { $c2.st }		// 'class'
+// 	| s2=struct_declaration	-> { $s2.st }// 'struct'	   
+// 	| e2=enum_declaration[$m.st]	-> { $e2.st }	// 'enum'
+// 	| delegate_declaration	// 'delegate'
+// 	| conversion_operator_declaration
+// 	| constructor_declaration	//	| static_constructor_declaration
+// 	| destructor_declaration
+// 	) 
+// 	;
+// 
 primary_expression: 
-	('this'    brackets) => 'this'   brackets   primary_expression_part*
-	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
-	| primary_expression_start   pp+=primary_expression_part* -> primary_expression_start_parts(start={ $primary_expression_start.st }, follows={ $pp })
+    ^(INDEX expression expression_list?)
+    | ^(APPLY expression argument_list?)
+    | ^(POSTINC expression)
+    | ^(POSTDEC expression)
+    | primary_expression_start -> { $primary_expression_start.st }
+    | ^(access_operator expression type_or_generic)
+//	('this'    brackets) => 'this'   brackets   primary_expression_part*
+//	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
+//	| primary_expression_start   primary_expression_part*
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
 					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
 				// try the simple one first, this has no argS and no expressions
@@ -137,6 +159,23 @@ primary_expression:
 	| default_value_expression      		// default
 	| anonymous_method_expression			// delegate (int foo) {}
 	;
+// primary_expression: 
+// 	('this'    brackets) => 'this'   brackets   primary_expression_part*
+// 	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
+// 	| primary_expression_start   pp+=primary_expression_part* -> primary_expression_start_parts(start={ $primary_expression_start.st }, follows={ $pp })
+// 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
+// 					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
+// 				// try the simple one first, this has no argS and no expressions
+// 				// symantically could be object creation
+// 				| (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
+// 				| object_creation_expression
+// 				| anonymous_object_creation_expression)							// new {int X, string Y} 
+// 	| sizeof_expression						// sizeof (struct)
+// 	| checked_expression            		// checked (...
+// 	| unchecked_expression          		// unchecked {...}
+// 	| default_value_expression      		// default
+// 	| anonymous_method_expression			// delegate (int foo) {}
+// 	;
 
 primary_expression_start:
 	predefined_type            
@@ -144,7 +183,7 @@ primary_expression_start:
 	| identifier ('::'   identifier)?
 	| 'this' 
 	| 'base'
-	| paren_expression
+	| ^(TEMPPARENS expression) -> template(e={$expression.st}) "(<e>)" 
 	| typeof_expression             // typeof(Foo).Name
 	| literal -> { $literal.st }
 	;
@@ -212,7 +251,7 @@ primary_or_array_creation_expression:
 	;
 // new Type[2] { }
 array_creation_expression:
-	'new'   
+	^('new'   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   array_initializer?	// new int[4]
 					// | invocation_part*
@@ -224,7 +263,7 @@ array_creation_expression:
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
-		) ;
+		)) ;
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 variable_initializer_list:
@@ -232,15 +271,15 @@ variable_initializer_list:
 variable_initializer:
 	expression	-> { $expression.st } | array_initializer -> { $array_initializer.st };
 sizeof_expression:
-	'sizeof'   '('   unmanaged_type   ')';
+	^('sizeof'  unmanaged_type );
 checked_expression: 
-	'checked'   '('   expression   ')' ;
+	^('checked' expression ) ;
 unchecked_expression: 
-	'unchecked'   '('   expression   ')' ;
+	^('unchecked' expression ) ;
 default_value_expression: 
-	'default'   '('   type   ')' ;
+	^('default' type   ) ;
 anonymous_method_expression:
-	'delegate'   explicit_anonymous_function_signature?   block;
+	^('delegate'   explicit_anonymous_function_signature?   block);
 explicit_anonymous_function_signature:
 	'('   explicit_anonymous_function_parameter_list?   ')' ;
 explicit_anonymous_function_parameter_list:
@@ -287,9 +326,7 @@ initializer_value:
 ///////////////////////////////////////////////////////
 
 typeof_expression: 
-	'typeof'   '('   ((unbound_type_name) => unbound_type_name
-					  | type 
-					  | 'void')   ')' ;
+	^('typeof'  (unbound_type_name | type | 'void') ) ;
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -351,7 +388,7 @@ type
     List<string> stars = new List<string>();
     string opt = null;
 }:
-	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;})  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
+	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;} | tv='void' {nm=new StringTemplate("void");})  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
 	;
 non_nullable_type:
 	type -> { $type.st } ;
@@ -391,29 +428,41 @@ assignment:
 unary_expression: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
 //	^(CAST_EXPR type expression) 
-	(cast_expression) => cast_expression 
+	^(CAST_EXPR type u0=unary_expression)  -> cast_expr(type= { $type.st}, exp = { $u0.st})
 	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
-	| '+'   u1=unary_expression -> template(e={$u1.st}) "+<e>"
-	| '-'   u2=unary_expression  -> template(e={$u2.st}) "-<e>"
-	| '!'   u3=unary_expression  -> template(e={$u3.st}) "!<e>"
-	| '~'   u4=unary_expression  -> template(e={$u4.st}) "~<e>"
-	| pre_increment_expression 
-	| pre_decrement_expression 
-	| pointer_indirection_expression
-	| addressof_expression 
-	;
-cast_expression:
-	^(CAST_EXPR  type unary_expression ) -> cast_expr(type= { $type.st}, exp = { $unary_expression.st});
-assignment_operator:
+	| ^(MONOPLUS u1=unary_expression) -> template(e={$u1.st}) "+<e>"
+	| ^(MONOMINUS u2=unary_expression) -> template(e={$u2.st}) "-<e>"
+	| ^(MONONOT u3=unary_expression) -> template(e={$u3.st}) "!<e>"
+	| ^(MONOTWIDDLE u4=unary_expression) -> template(e={$u4.st}) "~<e>"
+	| ^(PREINC u5=unary_expression) -> template(e={$u5.st}) "++<e>"
+	| ^(PREDEC u6=unary_expression) -> template(e={$u6.st}) "--<e>"
+	| ^(MONOSTAR unary_expression) 
+	| ^(ADDRESSOF unary_expression)
+    ;
+    
+// 	(cast_expression) => cast_expression 
+// 	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
+// 	| '+'   u1=unary_expression -> template(e={$u1.st}) "+<e>"
+// 	| '-'   u2=unary_expression  -> template(e={$u2.st}) "-<e>"
+// 	| '!'   u3=unary_expression  -> template(e={$u3.st}) "!<e>"
+// 	| '~'   u4=unary_expression  -> template(e={$u4.st}) "~<e>"
+// 	| pre_increment_expression 
+// 	| pre_decrement_expression 
+// 	| pointer_indirection_expression
+// 	| addressof_expression 
+// 	;
+// cast_expression:
+// 	^(CAST_EXPR  type unary_expression ) -> cast_expr(type= { $type.st}, exp = { $unary_expression.st});
+ assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
-pre_increment_expression: 
-	'++'   unary_expression ;
-pre_decrement_expression: 
-	'--'   unary_expression ;
-pointer_indirection_expression:
-	'*'   unary_expression ;
-addressof_expression:
-	'&'   unary_expression ;
+// pre_increment_expression: 
+// 	'++'   unary_expression ;
+// pre_decrement_expression: 
+// 	'--'   unary_expression ;
+// pointer_indirection_expression:
+// 	'*'   unary_expression ;
+// addressof_expression:
+// 	'&'   unary_expression ;
 
 non_assignment_expression:
 	//'non ASSIGNment'
@@ -887,9 +936,14 @@ invocation_part:
 
 ///////////////////////////////////////////////////////
 
+// keving: split statement into two parts, there seems to be a problem with the state
+// machine if we combine statement and statement_plus.
 statement:
 	(declaration_statement) => declaration_statement
-	| (identifier   ':') => labeled_statement
+	| statement_plus
+	;
+statement_plus:
+	(identifier   ':') => labeled_statement
 	| embedded_statement 
 	;
 embedded_statement:
