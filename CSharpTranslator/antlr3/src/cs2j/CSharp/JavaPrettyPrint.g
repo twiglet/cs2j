@@ -13,7 +13,8 @@ options {
 @header
 {
 	using System.Collections;
-    using System.Text.RegularExpressions;
+	using System.Text;
+	using System.Text.RegularExpressions;
 }
 
 @members
@@ -61,12 +62,56 @@ options {
     protected void collectComments() {
         collectComments(((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens().Count - 1);
     }
+
+    protected string escapeJavaString(string rawStr)
+    {
+        StringBuilder buf = new StringBuilder(rawStr.Length * 2);
+        bool seenDQ = false;
+        foreach (char ch in rawStr)
+        {
+            switch (ch)
+            {
+            case '\\':
+                buf.Append("\\\\");
+                break;
+            case '"':
+                if (seenDQ)
+                    buf.Append("\\\"");
+                seenDQ = !seenDQ;
+                break;
+            case '\'':
+                buf.Append("\\'");
+                break;
+            case '\b':
+                buf.Append("\\b");
+                break;
+            case '\t':
+                buf.Append("\\t");
+                break;
+            case '\n':
+                buf.Append("\\n");
+                break;
+            case '\f':
+                buf.Append("\\f");
+                break;
+            case '\r':
+                buf.Append("\\r");
+                break;
+            default:
+                buf.Append(ch);
+                break;
+            }
+            if (ch != '"')
+                seenDQ = false;
+        }
+        return buf.ToString();
+    }
 }
 
 compilation_unit
 :
     ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
-        package(now = {DateTime.Now}, includeDate = {true}, packageName = {$nm.text}, 
+        package(now = {DateTime.Now}, includeDate = {true}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)}, 
             type = {$type_declaration.st},
             endComments = { CollectedComments });
 
@@ -1120,12 +1165,12 @@ also_keyword:
 	| 'endif' | 'define' | 'undef';
 
 literal:
-	Real_literal
-	| NUMBER
-	| Hex_number
-	| Character_literal
-	| STRINGLITERAL
-	| Verbatim_string_literal
+	Real_literal -> string(payload={$Real_literal.text}) 
+	| NUMBER -> string(payload={$NUMBER.text}) 
+	| Hex_number -> string(payload={$Hex_number.text}) 
+	| Character_literal -> string(payload={$Character_literal.text}) 
+	| STRINGLITERAL -> string(payload={ $STRINGLITERAL.text }) 
+	| Verbatim_string_literal -> string(payload={ escapeJavaString($Verbatim_string_literal.text) }) 
 	| TRUE -> string(payload={"true"}) 
 	| FALSE -> string(payload={"false"}) 
 	| NULL -> string(payload={"null"}) 

@@ -82,6 +82,14 @@ scope NSContext {
         return id;
     }
 
+    // Map of C# built in types to Java equivalents
+    Dictionary<string, string> predefined_type_map = new Dictionary<string, string>()
+    {
+        {"bool", "boolean"},
+        {"object", "Object"},
+        {"string", "String"}
+    };
+
     protected CommonTree mkHole() {
         return mkHole(null);
     }
@@ -169,7 +177,7 @@ modifiers:
 	modifier+ ;
 modifier: 
 	'new' | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
-	| 'readonly' -> FINAL["final"] | 'volatile' | 'extern' | 'virtual' | 'override';
+	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | 'extern' | 'virtual' | 'override';
 
 class_member_declaration:
 	a=attributes?
@@ -1207,8 +1215,14 @@ yield_statement:
 //	Lexar Section
 ///////////////////////////////////////////////////////
 
-predefined_type returns [string thetext]:
-	  'bool'    { $thetext = "System.Boolean"; } 
+predefined_type returns [string thetext]
+@after{
+    string newText;
+    if (predefined_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
+        $predefined_type.tree.Token.Text = newText;
+    }
+}:
+	  'bool'    { $thetext = "System.Boolean"; }
     | 'byte'    { $thetext = "System.Byte"; }    
     | 'char'    { $thetext = "System.Char"; } 
     | 'decimal' { $thetext = "System.Decimal"; } 
