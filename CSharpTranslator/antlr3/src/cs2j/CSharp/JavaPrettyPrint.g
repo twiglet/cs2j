@@ -1170,7 +1170,7 @@ literal:
 	| Hex_number -> string(payload={$Hex_number.text}) 
 	| Character_literal -> string(payload={$Character_literal.text}) 
 	| STRINGLITERAL -> string(payload={ $STRINGLITERAL.text }) 
-	| Verbatim_string_literal -> string(payload={ escapeJavaString($Verbatim_string_literal.text) }) 
+	| Verbatim_string_literal -> string(payload={ "\"" + escapeJavaString($Verbatim_string_literal.text.Substring(1)) + "\"" }) 
 	| TRUE -> string(payload={"true"}) 
 	| FALSE -> string(payload={"false"}) 
 	| NULL -> string(payload={"null"}) 
