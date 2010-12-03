@@ -81,6 +81,14 @@ scope NSContext {
         }
         return id;
     }
+
+    protected CommonTree mkHole() {
+        return mkHole(null);
+    }
+
+    protected CommonTree mkHole(IToken tok) {
+        return (CommonTree)adaptor.Create(KGHOLE, tok, "KGHOLE");
+    }
 }
 
 /********************************************************************************************
@@ -199,12 +207,12 @@ primary_expression:
 	| (primary_expression_start -> primary_expression_start)   (pp3=primary_expression_part[$primary_expression.tree] -> $pp3 )*
 // keving:TODO fixup
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
-					object_creation_expression   primary_expression_part[null]+ 		// new Foo(arg, arg).Member
+					(oc1=object_creation_expression -> $oc1)   (pp4=primary_expression_part[ $primary_expression.tree ] -> $pp4 )+ 		// new Foo(arg, arg).Member
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation
-				| (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
-				| object_creation_expression
-				| anonymous_object_creation_expression)							// new {int X, string Y} 
+				| (delegate_creation_expression) => delegate_creation_expression -> delegate_creation_expression // new FooDelegate (MyFunction)
+				| oc2=object_creation_expression -> $oc2
+				| anonymous_object_creation_expression -> anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
 	| unchecked_expression          		// unchecked {...}
@@ -243,7 +251,7 @@ paren_expression:
 arguments [CommonTree lhs]: 
 	'('   argument_list?   ')' -> ^(APPLY { (CommonTree)adaptor.DupTree($lhs) } argument_list?);
 argument_list: 
-	argument (',' argument)*;
+	a1=argument (',' an+=argument)* -> ^(ARGS[$a1.start.Token,"ARGS"] $a1 $an*);
 // 4.0
 argument:
 	argument_name   argument_value
@@ -278,7 +286,7 @@ dim_separators
 
 delegate_creation_expression: 
 	// 'new'   
-	type_name   '('   type_name   ')' ;
+	t1=type_name   '('   t2=type_name   ')' -> ^(NEW[$t1.start.Token, "NEW"] ^(TYPE[$t1.start.Token, "TYPE"] $t1) ^(ARGS[$t2.start.Token, "ARGS"] $t2));
 anonymous_object_creation_expression: 
 	// 'new'
 	anonymous_object_initializer ;
@@ -337,8 +345,8 @@ anonymous_function_parameter_modifier:
 object_creation_expression: 
 	// 'new'
 	type   
-		( '('   argument_list?   ')'   object_or_collection_initializer?  
-		  | object_or_collection_initializer )
+		( '('   argument_list?   ')'   o1=object_or_collection_initializer?  -> ^(NEW[$type.start.Token, "NEW"] type argument_list? $o1?)
+		  | o2=object_or_collection_initializer -> ^(NEW[$type.start.Token, "NEW"] type $o2)) 
 	;
 object_or_collection_initializer: 
 	'{'  (object_initializer 
@@ -400,7 +408,7 @@ commas:
 type_name returns [string thetext]: 
 	namespace_or_type_name { $thetext = $namespace_or_type_name.thetext; };
 namespace_or_type_name returns [string thetext]: 
-	 t1=type_or_generic  { $thetext=t1.type+formatTyargs($t1.generic_arguments); } ('::' tc=type_or_generic { $thetext+="::"+tc.type+formatTyargs($tc.generic_arguments); })? ('.'   tn=type_or_generic { $thetext+="."+tn.type+formatTyargs($tn.generic_arguments); } )* ;
+	 t1=type_or_generic  { $thetext=t1.type+formatTyargs($t1.generic_arguments); } ('::'^ tc=type_or_generic { $thetext+="::"+tc.type+formatTyargs($tc.generic_arguments); })? ('.'^   tn=type_or_generic { $thetext+="."+tn.type+formatTyargs($tn.generic_arguments); } )* ;
 type_or_generic returns [string type, List<string> generic_arguments]
 @init {
     $generic_arguments = new List<String>();
@@ -413,7 +421,7 @@ type_or_generic returns [string type, List<string> generic_arguments]
 
 // keving: as far as I can see this is (<interfacename>.)?identifier (<tyargs>)? at lease for C# 3.0 and less.
 qid returns [string name, List<String> tyargs]:		// qualified_identifier v2
-	qid_start   qid_part* { $name=$qid_start.name; $tyargs = $qid_start.tyargs; }
+	(qs=qid_start -> $qs)  (qp=qid_part[$qid.tree] -> $qp)* { $name=$qid_start.name; $tyargs = $qid_start.tyargs; }
 	;
 qid_start returns [string name, List<String> tyargs]:
 	predefined_type { $name = $predefined_type.thetext; }
@@ -425,8 +433,8 @@ qid_start returns [string name, List<String> tyargs]:
 	;		// 0.ToString() is legal
 
 
-qid_part:
-	access_identifier[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
+qid_part[CommonTree lhs]:
+	access_identifier[ $lhs ] ;
 
 generic_argument_list returns [List<string> tyargs]
 @after { 
@@ -657,11 +665,11 @@ attribute_arguments:
 			  )	')'
 			) ;
 positional_argument_list: 
-	positional_argument (',' positional_argument)* ;
+	a1=positional_argument (',' an+=positional_argument)* -> ^(ARGS[$a1.start.Token,"ARGS"] $a1 $an*);
 positional_argument: 
 	attribute_argument_expression ;
 named_argument_list: 
-	named_argument (',' named_argument)* ;
+	a1=named_argument (',' an+=named_argument)* -> ^(ARGS[$a1.start.Token,"ARGS"] $a1 $an*);
 named_argument: 
 	identifier   '='   attribute_argument_expression ;
 attribute_argument_expression: 

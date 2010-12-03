@@ -41,6 +41,8 @@ tokens {
             TEMPPARENS;
             INDEX;
             APPLY;
+            ARGS;
+            NEW;
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';

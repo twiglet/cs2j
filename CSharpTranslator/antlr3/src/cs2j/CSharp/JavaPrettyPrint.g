@@ -102,6 +102,7 @@ class_member_declaration:
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | ^(ENUM attributes? modifiers? enum_declaration[$modifiers.st])
     | ^(DELEGATE attributes? modifiers? delegate_declaration)
+    | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
     | ^(CONSTRUCTOR attributes? modifiers? constructor_declaration)
     | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
@@ -146,11 +147,11 @@ primary_expression:
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
-	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
-					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
+    | ^(NEW type argument_list? object_or_collection_initializer?)
+	| 'new' (   
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation
-				| (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
+				 (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
 				| object_creation_expression
 				| anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
@@ -206,7 +207,7 @@ paren_expression:
 arguments: 
 	'('   argument_list?   ')' ;
 argument_list: 
-	argument (',' argument)*;
+	^(ARGS argument+);
 // 4.0
 argument:
 	argument_name   argument_value
@@ -355,14 +356,18 @@ commas:
 type_name: 
 	namespace_or_type_name -> { $namespace_or_type_name.st };
 namespace_or_type_name:
+	 t1=type_or_generic -> { $t1.st }
+    | ^('::' n2=namespace_or_type_name t2=type_or_generic) -> template(ns={ $n2.st }, tg={ $t2.st }) "<ns>::<tg>"
+    | ^('.'  n3=namespace_or_type_name t3=type_or_generic)  -> template(ns={ $n3.st }, tg={ $t3.st }) "<ns>.<tg>";
 
-	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   ts+=type_or_generic)* -> namespace_or_type(type1={$t1.st}, type2={$t2.st}, types={$ts});
+//	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   ts+=type_or_generic)* -> namespace_or_type(type1={$t1.st}, type2={$t2.st}, types={$ts});
 type_or_generic:
 	(identifier   generic_argument_list) => gi=identifier   generic_argument_list -> template(name={ $gi.st }, args={ $generic_argument_list.st }) "<name><args>"
 	| i=identifier -> { $i.st };
 
 qid:		// qualified_identifier v2
-	qid_start   qid_part*
+    ^(access_operator qd=qid type_or_generic) -> template(op={ $access_operator.st }, start = { $qd.st}, end = { $type_or_generic.st }) "<start><op><end>"
+	| qid_start  -> { $qid_start.st }
 	;
 qid_start:
 	predefined_type
@@ -589,11 +594,11 @@ attribute_arguments:
 			  )	')'
 			) ;
 positional_argument_list: 
-	positional_argument (',' positional_argument)* ;
+	^(ARGS positional_argument+) ;
 positional_argument: 
 	attribute_argument_expression ;
 named_argument_list: 
-	named_argument (',' named_argument)* ;
+	^(ARGS named_argument+) ;
 named_argument: 
 	identifier   '='   attribute_argument_expression ;
 attribute_argument_expression: 

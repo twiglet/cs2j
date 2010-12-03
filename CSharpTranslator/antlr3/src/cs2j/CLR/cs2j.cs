@@ -164,8 +164,6 @@ namespace RusticiSoftware.Translator.CSharp
             double elapsedTime = ((DateTime.Now.Ticks - startTime) / TimeSpan.TicksPerMillisecond) / 1000.0;
             if (cfg.Verbosity >= 1)
             {
-                System.Console.Out.WriteLine("");
-                System.Console.Out.WriteLine("");
                 System.Console.Out.WriteLine("Total run time was {0} seconds.", elapsedTime);
             }
         }
@@ -297,7 +295,6 @@ namespace RusticiSoftware.Translator.CSharp
                 {
                     string typeName = javaMaker.CUKeys[i];
                     CommonTree typeAST = javaMaker.CUMap[typeName];
-                    Console.WriteLine (typeName);
 
                     string claName = typeName.Substring(typeName.LastIndexOf('.')+1); 
                     string nsDir = typeName.Substring(0,typeName.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
@@ -474,9 +471,9 @@ namespace RusticiSoftware.Translator.CSharp
 
             double elapsedTime = ((DateTime.Now.Ticks - startTime) / TimeSpan.TicksPerMillisecond) / 1000.0;
             //System.Console.Out.WriteLine(writer.ToString());
-            System.Console.Out.WriteLine("");
-            System.Console.Out.WriteLine("");
             System.Console.Out.WriteLine("Processed {0} in: {1} seconds.", fullName, elapsedTime);
+            System.Console.Out.WriteLine("");
+            System.Console.Out.WriteLine("");
         }
     }
 }
