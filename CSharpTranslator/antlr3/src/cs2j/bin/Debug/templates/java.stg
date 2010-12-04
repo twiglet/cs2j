@@ -54,7 +54,7 @@ class_member(comments, member) ::= <<
 >>
 
 field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field><if(init)> = <init><endif>;"
-variable_declarators(varinits) ::= "<varinits; separator=\",\">"
+variable_declarators(varinits) ::= "<varinits; separator=\", \">"
 variable_declarator(typename,init) ::= "<typename><if(init)> = <init><endif>" 
 
 primary_expression_start_parts(start,follows) ::= "<start><follows>"
@@ -92,3 +92,7 @@ cast_expr(type, exp) ::= "(<type>)<exp>"
 
 // ******* UTILITY ***********
 string(payload) ::= "<payload>"
+
+verbatim_string(payload) ::= <<
+"<payload; separator="\" + \n\"">"
+>>

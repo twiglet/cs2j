@@ -56,16 +56,17 @@ options {
             }
             EmittedCommentTokenIdx = endIdx+1;
         }
-        collectedComments = rets;
+        CollectedComments = rets;
     }
 
     protected void collectComments() {
         collectComments(((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens().Count - 1);
     }
 
-    protected string escapeJavaString(string rawStr)
+    protected List<string> escapeJavaString(string rawStr)
     {
-        StringBuilder buf = new StringBuilder(rawStr.Length * 2);
+        List<string> rets = new List<string>();
+        StringBuilder buf = new StringBuilder();
         bool seenDQ = false;
         foreach (char ch in rawStr)
         {
@@ -90,6 +91,8 @@ options {
                 break;
             case '\n':
                 buf.Append("\\n");
+                rets.Add(buf.ToString());
+                buf = new StringBuilder();
                 break;
             case '\f':
                 buf.Append("\\f");
@@ -104,7 +107,10 @@ options {
             if (ch != '"')
                 seenDQ = false;
         }
-        return buf.ToString();
+        if (buf.Length > 0) {
+           rets.Add(buf.ToString());
+        }
+        return rets;
     }
 }
 
@@ -1170,7 +1176,7 @@ literal:
 	| Hex_number -> string(payload={$Hex_number.text}) 
 	| Character_literal -> string(payload={$Character_literal.text}) 
 	| STRINGLITERAL -> string(payload={ $STRINGLITERAL.text }) 
-	| Verbatim_string_literal -> string(payload={ "\"" + escapeJavaString($Verbatim_string_literal.text.Substring(1)) + "\"" }) 
+	| Verbatim_string_literal -> verbatim_string(payload={ escapeJavaString($Verbatim_string_literal.text.Substring(1)) }) 
 	| TRUE -> string(payload={"true"}) 
 	| FALSE -> string(payload={"false"}) 
 	| NULL -> string(payload={"null"}) 
