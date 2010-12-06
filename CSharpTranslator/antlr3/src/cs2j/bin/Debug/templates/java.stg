@@ -53,10 +53,10 @@ class_member(comments, member) ::= <<
 <member>
 >>
 
-method(modifiers, typeparams, type, name, params, exception="Throwable", body) ::= <<
-<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">) throws <exception><if(body)> {<else>;<endif>
+method(modifiers, typeparams, type, name, params, exception="Throwable", bodyIsSemi, body) ::= <<
+<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">) throws <exception><if(!bodyIsSemi)> {<else>;<endif>
 <body>
-<if(body)>}<endif>
+<if(!bodyIsSemi)>}<endif>
 >>
 
 field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field>;"
@@ -73,6 +73,10 @@ fixed_parameter(mod,type,name,def) ::= <<
 >>
 
 identifier(id, id2) ::= "<id><if(id2)>::<id2><endif>"
+
+statement_list(statements) ::= <<
+<statements; separator="\n">
+>>
 
 // ******* ENUMS ***********
 

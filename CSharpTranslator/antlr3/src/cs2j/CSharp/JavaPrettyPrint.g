@@ -145,7 +145,7 @@ class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators)
     | ^(EVENT attributes? modifiers? event_declaration)
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list? method_body)
-      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, body={ $method_body.st })
+      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
 //    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st])
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st])
@@ -467,9 +467,13 @@ pointer_type:
 ///////////////////////////////////////////////////////
 //	Statement Section
 ///////////////////////////////////////////////////////
-block:
-	';'
-	| '{'   statement_list?   '}';
+block returns [bool isSemi]
+@init {
+    $isSemi = false;
+}:
+	';' { $isSemi = true; } -> 
+	| '{'   s+=statement*   '}' -> statement_list(statements = { $s });
+
 statement_list:
 	statement+ ;
 	
@@ -722,8 +726,8 @@ variable_declarator:
 //method_header:
 //    ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
 //	-> method_header(name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st });
-method_body:
-	block -> { $block.st };
+method_body returns [bool isSemi]:
+	block { $isSemi = $block.isSemi; } -> { $block.st };
 member_name:
     t+=type_or_generic ('.' t+=type_or_generic)* -> dotlist(items = { $t })
     ;
