@@ -177,7 +177,7 @@ modifiers:
 	modifier+ ;
 modifier: 
 	'new' | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
-	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | 'extern' | 'virtual' | 'override';
+	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | 'extern' | 'virtual' -> | 'override' -> /* not in Java,maybe convert to override annotation */;
 
 class_member_declaration:
 	a=attributes?
@@ -734,10 +734,16 @@ variable_declarator:
 method_declaration:
 	method_header   method_body ;
 method_header:
-	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
+	member_name type_parameter_list? '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? 
+       -> ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
 method_body:
 	block ;
-member_name returns [string name, List<String> tyargs]:
+member_name :
+    type_or_generic ('.' type_or_generic)*
+   // keving [interface_type.identifier] | type_name '.' identifier 
+    ;
+
+member_name_orig returns [string name, List<String> tyargs]:
 	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
@@ -876,7 +882,7 @@ return_type:
 	type
 	|  v='void' -> ^(TYPE[$v.token, "TYPE"] $v);
 formal_parameter_list:
-	formal_parameter (',' formal_parameter)* ;
+	formal_parameter (',' formal_parameter)* -> ^(PARAMS formal_parameter+);
 formal_parameter:
 	attributes?   (fixed_parameter | parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google

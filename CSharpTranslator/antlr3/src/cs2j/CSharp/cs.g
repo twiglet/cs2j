@@ -27,6 +27,8 @@ tokens {
             CONVERSION_OPERATOR;
             CONSTRUCTOR;
             DESTRUCTOR;
+            METHOD_HEADER;
+            PARAMS;
 
             MONOPLUS;
             MONOMINUS;

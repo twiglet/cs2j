@@ -144,7 +144,7 @@ modifier
 class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators)
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type method_declaration)
+    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st])
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st])
     | ^(PROPERTY attributes? modifiers? type property_declaration)
@@ -421,12 +421,12 @@ qid:		// qualified_identifier v2
 	| qid_start  -> { $qid_start.st }
 	;
 qid_start:
-	predefined_type
-	| (identifier   generic_argument_list)	=> identifier   generic_argument_list
+	predefined_type -> { $predefined_type.st }
+	| (identifier   generic_argument_list)	=> identifier   generic_argument_list -> template(id={ $identifier.st }, args={ $generic_argument_list.st }) "<id><args>"
 //	| 'this'
 //	| 'base'
-	| identifier   ('::'   identifier)?
-	| literal 
+	| i1=identifier   ('::'   i2=identifier)?  -> identifier(id={ $i1.st }, id2={ $i2.st })
+	| literal -> { $literal.st }
 	;		// 0.ToString() is legal
 
 
@@ -715,13 +715,19 @@ variable_declarator:
 
 ///////////////////////////////////////////////////////
 method_declaration:
-	method_header   method_body ;
+	method_header   method_body -> method_declaration(header={$method_header.st}, body={$method_body.st}) ;
 method_header:
-	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
+     ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
+	-> method_header(name={ $member_name.st }, typeparams = { $type_parameter_constraints_clauses.st }, params={ $formal_parameter_list.st });
 method_body:
-	block ;
+	block -> { $block.st };
 member_name:
-	qid ;		// IInterface<int>.Method logic added.
+    t+=type_or_generic ('.' t+=type_or_generic)* -> template(items = { $t }) "<items; separator=\".\">"
+    ;
+    // keving: missing interface_type.identifier
+//	identifier -> { $identifier.st };		// IInterface<int>.Method logic added.
+//member_name:
+//	qid -> { $qid.st };		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
 property_declaration:
@@ -811,7 +817,7 @@ type_variable_name:
 return_type:
 	type -> { $type.st } ;
 formal_parameter_list:
-	formal_parameter (',' formal_parameter)* ;
+    ^(PARAMS formal_parameter+) ;
 formal_parameter:
 	attributes?   (fixed_parameter | parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google

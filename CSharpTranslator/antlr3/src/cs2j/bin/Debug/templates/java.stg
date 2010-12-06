@@ -53,13 +53,34 @@ class_member(comments, member) ::= <<
 <member>
 >>
 
-field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field><if(init)> = <init><endif>;"
+method(modifiers, type, field, comments) ::= "<comments><modifiers(modifiers)><type> <method>"
+
+method_header(name, typeparams, params, exception="Throwable") ::= <<
+<name><typeparams>(<params; separator=", ">) throws <exception>
+>>
+
+method_declaration(header, body) ::= <<
+<header><if(body)> {<else>;<endif>
+<body>
+<if(body)>}<endif>
+>>
+
+method_body(body) ::= <<
+{
+    <body>
+}
+>>
+
+field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field>;"
+
 variable_declarators(varinits) ::= "<varinits; separator=\", \">"
 variable_declarator(typename,init) ::= "<typename><if(init)> = <init><endif>" 
 
 primary_expression_start_parts(start,follows) ::= "<start><follows>"
 
 type_param_constraint(param, constraints) ::= "<param> extends <constraints; separator=\" & \">"
+
+identifier(id, id2) ::= "<id><if(id2)>::<id2><endif>"
 
 // ******* ENUMS ***********
 
