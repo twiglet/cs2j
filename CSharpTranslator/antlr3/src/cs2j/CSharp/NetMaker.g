@@ -38,7 +38,7 @@ modifier:
 class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators)
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type method_declaration)
+    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body)
     | ^(INTERFACE attributes? modifiers? interface_declaration)
     | ^(CLASS attributes? modifiers? class_declaration)
     | ^(PROPERTY attributes? modifiers? type property_declaration)
@@ -597,7 +597,7 @@ variable_declarator:
 method_declaration:
 	method_header   method_body ;
 method_header:
-    ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
+    ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
 method_body:
 	block ;
 member_name:

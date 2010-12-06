@@ -53,22 +53,10 @@ class_member(comments, member) ::= <<
 <member>
 >>
 
-method(modifiers, type, field, comments) ::= "<comments><modifiers(modifiers)><type> <method>"
-
-method_header(name, typeparams, params, exception="Throwable") ::= <<
-<name><typeparams>(<params; separator=", ">) throws <exception>
->>
-
-method_declaration(header, body) ::= <<
-<header><if(body)> {<else>;<endif>
+method(modifiers, typeparams, type, name, params, exception="Throwable", body) ::= <<
+<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">) throws <exception><if(body)> {<else>;<endif>
 <body>
 <if(body)>}<endif>
->>
-
-method_body(body) ::= <<
-{
-    <body>
-}
 >>
 
 field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field>;"
@@ -79,6 +67,10 @@ variable_declarator(typename,init) ::= "<typename><if(init)> = <init><endif>"
 primary_expression_start_parts(start,follows) ::= "<start><follows>"
 
 type_param_constraint(param, constraints) ::= "<param> extends <constraints; separator=\" & \">"
+
+fixed_parameter(mod,type,name,def) ::= <<
+<mod> <type> <name><if(def)> = <def><endif>
+>>
 
 identifier(id, id2) ::= "<id><if(id2)>::<id2><endif>"
 
@@ -104,12 +96,27 @@ namespace_or_type(type1, type2, types) ::= "<type1><if(type2)>::<type2><endif><i
 
 modifiers(mods) ::= "<if(mods)><mods; separator=\" \"> <endif>"
 
+type_parameter_list(items) ::= <<
+\<<items; separator=", ">\>
+>>
+
 extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
 imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 
 // ******* EXPRESSIONS *******
 
 cast_expr(type, exp) ::= "(<type>)<exp>"
+
+// ******* MISC ***********
+
+parens(e) ::= "(<e>)"
+rank_specifiers(rs) ::= "<rs>"
+op(pre,op,post) ::= "<pre><op><post>"
+generic_args(args) ::= "\<<args>\>"
+parameter(annotation,param) ::=  "/* <annotation> */ <param>"
+inline_comment(payload, explanation) ::= "/* <explanation> <payload> */"
+commalist(items) ::= "<items; separator=\", \">"
+dotlist(items) ::= "<items; separator=\".\">"
 
 // ******* UTILITY ***********
 string(payload) ::= "<payload>"

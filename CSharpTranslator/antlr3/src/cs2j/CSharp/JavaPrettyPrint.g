@@ -123,7 +123,7 @@ compilation_unit
 
 type_declaration [StringTemplate modifiersST]:
     class_declaration[modifiersST] -> { $class_declaration.st }
-	| struct_declaration
+//	| struct_declaration
 	| interface_declaration[modifiersST] -> { $interface_declaration.st }
 	| enum_declaration[modifiersST] -> { $enum_declaration.st }
 	| delegate_declaration ;
@@ -144,7 +144,9 @@ modifier
 class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators)
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
+    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list? method_body)
+      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, body={ $method_body.st })
+//    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st])
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st])
     | ^(PROPERTY attributes? modifiers? type property_declaration)
@@ -235,7 +237,7 @@ primary_expression_start:
 	| identifier ('::'   identifier)?
 	| 'this' 
 	| 'base'
-	| ^(TEMPPARENS expression) -> template(e={$expression.st}) "(<e>)" 
+	| ^(TEMPPARENS expression) -> parens(e={$expression.st}) 
 	| typeof_expression             // typeof(Foo).Name
 	| literal -> { $literal.st }
 	;
@@ -278,7 +280,7 @@ ref_variable_reference:
 variable_reference:
 	expression;
 rank_specifiers: 
-	rs+=rank_specifier+ -> template(rs={$rs}) "<rs>";        
+	rs+=rank_specifier+ -> rank_specifiers(rs={$rs});        
 rank_specifier: 
 	'['  /* dim_separators? */   ']' -> string(payload={"[]"}) ;
 // keving
@@ -408,21 +410,22 @@ type_name:
 	namespace_or_type_name -> { $namespace_or_type_name.st };
 namespace_or_type_name:
 	 t1=type_or_generic -> { $t1.st }
-    | ^('::' n2=namespace_or_type_name t2=type_or_generic) -> template(ns={ $n2.st }, tg={ $t2.st }) "<ns>::<tg>"
-    | ^('.'  n3=namespace_or_type_name t3=type_or_generic)  -> template(ns={ $n3.st }, tg={ $t3.st }) "<ns>.<tg>";
+        // keving: external aliases not supported
+    | ^('::' n2=namespace_or_type_name t2=type_or_generic) -> { $t2.st }
+    | ^(op='.'  n3=namespace_or_type_name t3=type_or_generic)  -> op(pre={ $n3.st }, op = { "." }, post={ $t3.st });
 
 //	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   ts+=type_or_generic)* -> namespace_or_type(type1={$t1.st}, type2={$t2.st}, types={$ts});
 type_or_generic:
-	(identifier   generic_argument_list) => gi=identifier   generic_argument_list -> template(name={ $gi.st }, args={ $generic_argument_list.st }) "<name><args>"
+	(identifier   generic_argument_list) => gi=identifier   generic_argument_list -> op(pre={ $gi.st }, post={ $generic_argument_list.st })
 	| i=identifier -> { $i.st };
 
 qid:		// qualified_identifier v2
-    ^(access_operator qd=qid type_or_generic) -> template(op={ $access_operator.st }, start = { $qd.st}, end = { $type_or_generic.st }) "<start><op><end>"
+    ^(access_operator qd=qid type_or_generic) -> op(op={ $access_operator.st }, pre = { $qd.st}, post = { $type_or_generic.st })
 	| qid_start  -> { $qid_start.st }
 	;
 qid_start:
 	predefined_type -> { $predefined_type.st }
-	| (identifier   generic_argument_list)	=> identifier   generic_argument_list -> template(id={ $identifier.st }, args={ $generic_argument_list.st }) "<id><args>"
+	| (identifier   generic_argument_list)	=> identifier   generic_argument_list -> op(pre={ $identifier.st }, post={ $generic_argument_list.st })
 //	| 'this'
 //	| 'base'
 	| i1=identifier   ('::'   i2=identifier)?  -> identifier(id={ $i1.st }, id2={ $i2.st })
@@ -434,9 +437,9 @@ qid_part:
 	access_identifier ;
 
 generic_argument_list:
-	'<'   type_arguments   '>' -> template(args={ $type_arguments.st }) "\<<args>\>";
+	'<'   type_arguments   '>' -> generic_args(args={ $type_arguments.st });
 type_arguments:
-	ts+=type (',' ts+=type)* -> template(types = { $ts }) "<types; separator=\",\">";
+	ts+=type (',' ts+=type)* -> commalist(items = { $ts });
 
 type
 @init {
@@ -486,12 +489,12 @@ unary_expression:
 //	^(CAST_EXPR type expression) 
 	^(CAST_EXPR type u0=unary_expression)  -> cast_expr(type= { $type.st}, exp = { $u0.st})
 	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
-	| ^(MONOPLUS u1=unary_expression) -> template(e={$u1.st}) "+<e>"
-	| ^(MONOMINUS u2=unary_expression) -> template(e={$u2.st}) "-<e>"
-	| ^(MONONOT u3=unary_expression) -> template(e={$u3.st}) "!<e>"
-	| ^(MONOTWIDDLE u4=unary_expression) -> template(e={$u4.st}) "~<e>"
-	| ^(PREINC u5=unary_expression) -> template(e={$u5.st}) "++<e>"
-	| ^(PREDEC u6=unary_expression) -> template(e={$u6.st}) "--<e>"
+	| ^(MONOPLUS u1=unary_expression) -> op(op={"+"}, post={$u1.st})
+	| ^(MONOMINUS u2=unary_expression) -> op(op={"-"}, post={$u2.st})
+	| ^(MONONOT u3=unary_expression) -> op(op={"!"}, post={$u3.st})
+	| ^(MONOTWIDDLE u4=unary_expression) -> op(op={"~"}, post={$u4.st})
+	| ^(PREINC u5=unary_expression) -> op(op={"++"}, post={$u5.st})
+	| ^(PREDEC u6=unary_expression) -> op(op={"--"}, post={$u6.st})
 	| ^(MONOSTAR unary_expression) 
 	| ^(ADDRESSOF unary_expression)
     ;
@@ -670,7 +673,7 @@ class_declaration[StringTemplate modifiersST]
             extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}) ;
 
 type_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
-    (attributes? t+=type_parameter[tpConstraints])+ -> template(params={ $t }) "\<<params; separator=\",\">\>";
+    (attributes? t+=type_parameter[tpConstraints])+ -> type_parameter_list(items={ $t });
 
 type_parameter [Dictionary<string,StringTemplate> tpConstraints]
 @init {
@@ -684,7 +687,7 @@ class_implements:
 	^(IMPLEMENTS ts+=type*) -> imps(types = { $ts }) ;
 	
 interface_type_list:
-	ts+=type (','   ts+=type)* -> template(types={ $ts }) "<types; separator=\",\">";
+	ts+=type (','   ts+=type)* -> commalist(items={ $ts });
 
 class_body:
 	'{'   cs+=class_member_declaration_aux*   '}' -> class_body(entries={$cs}) ;
@@ -714,15 +717,15 @@ variable_declarator:
 	type_name ('='   variable_initializer)? -> variable_declarator(typename = { $type_name.st }, init = { $variable_initializer.st}) ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration:
-	method_header   method_body -> method_declaration(header={$method_header.st}, body={$method_body.st}) ;
-method_header:
-     ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
-	-> method_header(name={ $member_name.st }, typeparams = { $type_parameter_constraints_clauses.st }, params={ $formal_parameter_list.st });
+//method_declaration:
+//	method_header   method_body -> method_declaration(header={$method_header.st}, body={$method_body.st}) ;
+//method_header:
+//    ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
+//	-> method_header(name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st });
 method_body:
 	block -> { $block.st };
 member_name:
-    t+=type_or_generic ('.' t+=type_or_generic)* -> template(items = { $t }) "<items; separator=\".\">"
+    t+=type_or_generic ('.' t+=type_or_generic)* -> dotlist(items = { $t })
     ;
     // keving: missing interface_type.identifier
 //	identifier -> { $identifier.st };		// IInterface<int>.Method logic added.
@@ -791,11 +794,11 @@ delegate_modifiers:
 	modifier+ ;
 // 4.0
 variant_generic_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
-	(ps+=variant_generic_parameter[$tpConstraints])+ -> template(params={$ps}) "<params; separator=\",\">";
+	(ps+=variant_generic_parameter[$tpConstraints])+ -> commalist(items={$ps});
 variant_generic_parameter [Dictionary<string,StringTemplate> tpConstraints]:
-    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] ->  template(param={$t.st}, annotation={$variance_annotation.st}) "/* <annotation> */ <param>" ;
+    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] ->  parameter(param={$t.st}, annotation={$variance_annotation.st});
 variance_annotation:
-	IN -> template() "in" | OUT -> template() "out" ;
+	IN -> string(payload={ "in" }) | OUT -> string(payload={ "out" }) ;
 
 // tpConstraints is a map from type variable name to a string expressing the extends constraints
 type_parameter_constraints_clauses returns [Dictionary<string,StringTemplate> tpConstraints]
@@ -817,20 +820,20 @@ type_variable_name:
 return_type:
 	type -> { $type.st } ;
 formal_parameter_list:
-    ^(PARAMS formal_parameter+) ;
+    ^(PARAMS fps+=formal_parameter+) -> commalist(items= {$fps} );
 formal_parameter:
-	attributes?   (fixed_parameter | parameter_array) 
+	attributes?   (fixed_parameter -> { $fixed_parameter.st }| parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google
-fixed_parameters:
-	fixed_parameter   (','   fixed_parameter)* ;
+//fixed_parameters:
+//	fps+=fixed_parameter   (','   fps+=fixed_parameter)* -> { $fps };
 // 4.0
 fixed_parameter:
-	parameter_modifier?   type   identifier   default_argument? ;
+	parameter_modifier?   type   identifier   default_argument? -> fixed_parameter(mod={ $parameter_modifier.st }, type = { $type.st }, name = { $identifier.st }, default = { $default_argument.st });
 // 4.0
 default_argument:
-	'=' expression;
+	'=' expression -> { $expression.st };
 parameter_modifier:
-	'ref' | 'out' | 'this' ;
+	(m='ref' | m='out' | m='this') -> inline_comment(payload={ $m.text }, explanation={ "parameter modifiers are not yet supported" }) ;
 parameter_array:
 	'params'   type   identifier ;
 
@@ -884,47 +887,47 @@ method_modifiers:
 	modifier+ ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration:
-	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
-struct_modifiers:
-	struct_modifier+ ;
-struct_modifier:
-	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-struct_interfaces:
-	':'   interface_type_list;
-struct_body:
-	'{'   struct_member_declarations?   '}';
-struct_member_declarations:
-	struct_member_declaration+ ;
-struct_member_declaration:
-	attributes?   m=modifiers?
-	( 'const'   type   constant_declarators   ';'
-	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
-			   | interface_declaration[$m.st] 
-			   | class_declaration[$m.st] 
-			   | struct_declaration)
-
-	| interface_declaration[$m.st]	// 'interface'
-	| class_declaration[$m.st]		// 'class'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
-	       | field_declaration      // qid
-	       | operator_declaration
-	       )
-//	common_modifiers// (method_modifiers | field_modifiers)
-	
-	| struct_declaration	// 'struct'	   
-	| enum_declaration[$m.st]		// 'enum'
-	| delegate_declaration	// 'delegate'
-	| conversion_operator_declaration
-	| constructor_declaration	//	| static_constructor_declaration
-	) 
-	;
-
+// struct_declaration:
+// 	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
+// struct_modifiers:
+// 	struct_modifier+ ;
+// struct_modifier:
+// 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
+// struct_interfaces:
+// 	':'   interface_type_list;
+// struct_body:
+// 	'{'   struct_member_declarations?   '}';
+// struct_member_declarations:
+// 	struct_member_declaration+ ;
+// struct_member_declaration:
+// 	attributes?   m=modifiers?
+// 	( 'const'   type   constant_declarators   ';'
+// 	| event_declaration		// 'event'
+// 	| 'partial' (method_declaration 
+// 			   | interface_declaration[$m.st] 
+// 			   | class_declaration[$m.st] 
+// 			   | struct_declaration)
+// 
+// 	| interface_declaration[$m.st]	// 'interface'
+// 	| class_declaration[$m.st]		// 'class'
+// 	| 'void'   method_declaration
+// 	| type ( (member_name   '(') => method_declaration
+// 		   | (member_name   '{') => property_declaration
+// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+// 		   | indexer_declaration	//this
+// 	       | field_declaration      // qid
+// 	       | operator_declaration
+// 	       )
+// //	common_modifiers// (method_modifiers | field_modifiers)
+// 	
+// 	| struct_declaration	// 'struct'	   
+// 	| enum_declaration[$m.st]		// 'enum'
+// 	| delegate_declaration	// 'delegate'
+// 	| conversion_operator_declaration
+// 	| constructor_declaration	//	| static_constructor_declaration
+// 	) 
+// 	;
+// 
 
 ///////////////////////////////////////////////////////
 indexer_declaration:
@@ -1165,7 +1168,7 @@ predefined_type:
 	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') ->  string(payload={$t.text});
 
 identifier:
- 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> template(v= { $IDENTIFIER.text }) "<v>" | also_keyword -> template(v= { $also_keyword.text }) "<v>";
+ 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> string(payload= { $IDENTIFIER.text }) | also_keyword -> string(payload= { $also_keyword.text });
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;

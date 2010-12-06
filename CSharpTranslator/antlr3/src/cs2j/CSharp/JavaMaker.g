@@ -66,6 +66,14 @@ scope NSContext {
         return stripped;
     }
 
+    protected CommonTree mkType(CommonTree t) {
+        CommonTree root_1 = (CommonTree)adaptor.Nil;
+        root_1 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, t.token, "TYPE"), root_1);
+        adaptor.AddChild(root_1, adaptor.DupTree(t));
+
+        return root_1;
+    }
+
     // TODO:  Read reserved words from a file so that they can be extended by customer
     private readonly static string[] javaReserved = new string[] { "int", "protected", "package" };
     
@@ -184,13 +192,13 @@ class_member_declaration:
 	m=modifiers?
 	( c='const'   ct=type   constant_declarators   ';' -> ^(CONST[$c.token, "CONST"] $a? $m? $ct constant_declarators)
 	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1='void' m3=method_declaration -> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1='void' m3=method_declaration[$a.tree, $m.tree, mkType($v1)] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
 			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
 			   | c1=class_declaration -> ^(CLASS[$c1.start.Token, "CLASS"] $a? $m? $c1)
 			   | s1=struct_declaration) -> ^(CLASS[$s1.start.Token, "CLASS"] $a? $m? $s1)
 	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
-	| v='void'   m1=method_declaration -> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
-	| t=type ( (member_name   '(') => m2=method_declaration -> ^(METHOD[$t.start.Token, "METHOD"] $a? $m? $t $m2)
+	| v2='void'   m1=method_declaration[$a.tree, $m.tree, mkType($v2) ] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
+	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $t.tree] -> $m2
 		   | (member_name   '{') => property_declaration -> ^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t property_declaration)
 		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration -> ^(INDEXER[$t.start.Token, "INDEXER"] $a? $m? $t type_name $ix1)
 		   | ix2=indexer_declaration	-> ^(INDEXER[$t.start.Token,"INDEXER"] $a? $m? $t $ix2) //this
@@ -231,7 +239,7 @@ primary_expression:
 primary_expression_start:
 	predefined_type            
 	| (identifier    generic_argument_list) => identifier   generic_argument_list
-	| identifier ('::'   identifier)?
+	| identifier ((c='::'   identifier { Warning($c.line, "[UNSUPPORTED] external aliases are not yet supported"); })?)!
 	| 'this' 
 	| 'base'
 	| paren_expression
@@ -731,15 +739,16 @@ variable_declarator:
 	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration:
-	method_header   method_body ;
-method_header:
-	member_name type_parameter_list? '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? 
-       -> ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
+method_declaration[CommonTree atts, CommonTree mods, CommonTree type]:
+		member_name type_parameter_list? '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    method_body 
+       -> ^(METHOD { (CommonTree)adaptor.DupTree($atts) } { (CommonTree)adaptor.DupTree($mods) } { (CommonTree)adaptor.DupTree($type) } 
+            member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body);
+//method_header[CommonTree atts, CommonTree mods, CommonTree type]:
+
 method_body:
 	block ;
 member_name :
-    type_or_generic ('.' type_or_generic)*
+    (type_or_generic '.')* identifier
    // keving [interface_type.identifier] | type_name '.' identifier 
     ;
 
@@ -965,15 +974,15 @@ struct_member_declaration:
 	attributes?   m=modifiers?
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1='void' method_declaration[$attributes.tree, $modifiers.tree, mkType($v1)]
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
 
 	| interface_declaration	// 'interface'
 	| class_declaration		// 'class'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
+	| v2='void' method_declaration[$attributes.tree, $modifiers.tree, mkType($v2) ]
+	| t1=type ( (member_name   type_parameter_list? '(') => method_declaration[$attributes.tree, $modifiers.tree, $t1.tree]
 		   | (member_name   '{') => property_declaration
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
 		   | indexer_declaration	//this
