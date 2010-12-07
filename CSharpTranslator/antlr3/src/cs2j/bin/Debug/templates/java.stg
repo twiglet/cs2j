@@ -55,7 +55,7 @@ class_member(comments, member) ::= <<
 
 method(modifiers, typeparams, type, name, params, exception="Throwable", bodyIsSemi, body) ::= <<
 <modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">) throws <exception><if(!bodyIsSemi)> {<else>;<endif>
-<body>
+    <body>
 <if(!bodyIsSemi)>}<endif>
 >>
 
@@ -77,6 +77,18 @@ identifier(id, id2) ::= "<id><if(id2)>::<id2><endif>"
 statement_list(statements) ::= <<
 <statements; separator="\n">
 >>
+
+statement(statement) ::= <<
+<statement>;
+>>
+
+
+//***** local var declarations:
+
+local_variable_declaration(type,decs) ::= "<type> <decs>"
+local_variable_declarator(name, init) ::= "<name><if(init)> = <init><endif>"
+
+return(exp) ::= "return <exp>"
 
 // ******* ENUMS ***********
 
@@ -110,6 +122,9 @@ imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 // ******* EXPRESSIONS *******
 
 cast_expr(type, exp) ::= "(<type>)<exp>"
+construct(type, args, inits) ::= "new <type>(<args>)<if(inits)> /* [UNIMPLEMENTED] <inits> */<endif>"
+
+stackalloc(type, exp) ::= "stackalloc <type>[<exp>]"
 
 // ******* MISC ***********
 
@@ -121,6 +136,10 @@ parameter(annotation,param) ::=  "/* <annotation> */ <param>"
 inline_comment(payload, explanation) ::= "/* <explanation> <payload> */"
 commalist(items) ::= "<items; separator=\", \">"
 dotlist(items) ::= "<items; separator=\".\">"
+list(items,sep) ::= "<items;separator=sep>"
+
+unsupported(reason, text) ::= "/* [UNSUPPORTED] <reason> \"<text>\" */"
+
 
 // ******* UTILITY ***********
 string(payload) ::= "<payload>"

@@ -196,11 +196,11 @@ primary_expression:
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
     | primary_expression_start -> { $primary_expression_start.st }
-    | ^(access_operator expression type_or_generic)
+    | ^(access_operator expression type_or_generic) -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $type_or_generic.st })
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
-    | ^(NEW type argument_list? object_or_collection_initializer?)
+    | ^(NEW type argument_list? object_or_collection_initializer?) -> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
 	| 'new' (   
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation
@@ -232,15 +232,21 @@ primary_expression:
 // 	;
 
 primary_expression_start:
-	predefined_type            
-	| (identifier    generic_argument_list) => identifier   generic_argument_list
-	| identifier ('::'   identifier)?
+	predefined_type    -> { $predefined_type.st }        
+	| (identifier    generic_argument_list) => identifier   generic_argument_list -> op(pre={ $identifier.st }, post={ $generic_argument_list.st})
+	| i1=identifier -> { $i1.st } 
+	| primary_expression_extalias -> unsupported(reason = {"external aliases are not yet supported"}, text= { $primary_expression_extalias.st } ) 
 	| 'this' 
 	| 'base'
 	| ^(TEMPPARENS expression) -> parens(e={$expression.st}) 
 	| typeof_expression             // typeof(Foo).Name
 	| literal -> { $literal.st }
 	;
+
+primary_expression_extalias:
+	i1=identifier '::'   i2=identifier -> op(pre={ $i1.st }, op = { "::" }, post={ $i2.st }) 
+    ;
+
 
 primary_expression_part:
 	 access_identifier
@@ -260,15 +266,17 @@ paren_expression:
 arguments: 
 	'('   argument_list?   ')' ;
 argument_list: 
-	^(ARGS argument+);
+	^(ARGS args+=argument+) -> list(items= {$args}, sep={", "});
 // 4.0
 argument:
 	argument_name   argument_value
-	| argument_value;
+	| argument_value -> { $argument_value.st };
 argument_name:
-	identifier   ':';
+	argument_name_unsupported -> unsupported(reason={ "named parameters are not yet supported"}, text = { $argument_name_unsupported.st } );
+argument_name_unsupported:
+	identifier   ':' -> op(pre={$identifier.st}, op={":"});
 argument_value: 
-	expression 
+	expression -> { $expression.st }
 	| ref_variable_reference 
 	| 'out'   variable_reference ;
 ref_variable_reference:
@@ -824,7 +832,7 @@ type_variable_name:
 return_type:
 	type -> { $type.st } ;
 formal_parameter_list:
-    ^(PARAMS fps+=formal_parameter+) -> commalist(items= {$fps} );
+    ^(PARAMS fps+=formal_parameter+) -> list(items= {$fps}, sep={", "});
 formal_parameter:
 	attributes?   (fixed_parameter -> { $fixed_parameter.st }| parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google
@@ -1008,18 +1016,18 @@ invocation_part:
 // keving: split statement into two parts, there seems to be a problem with the state
 // machine if we combine statement and statement_plus.
 statement:
-	(declaration_statement) => declaration_statement
-	| statement_plus
+	(declaration_statement) => declaration_statement -> statement(statement = { $declaration_statement.st })
+	| statement_plus -> statement(statement = { $statement_plus.st })
 	;
 statement_plus:
-	(identifier   ':') => labeled_statement
-	| embedded_statement 
+	(identifier   ':') => labeled_statement -> statement(statement = { $labeled_statement.st })
+	| embedded_statement  -> statement(statement = { $embedded_statement.st })
 	;
 embedded_statement:
-	block
+	block -> { $block.st }
 	| selection_statement	// if, switch
 	| iteration_statement	// while, do, for, foreach
-	| jump_statement		// break, continue, goto, return, throw
+	| jump_statement	-> { $jump_statement.st }	// break, continue, goto, return, throw
 	| try_statement
 	| checked_statement
 	| unchecked_statement
@@ -1028,7 +1036,7 @@ embedded_statement:
 	| yield_statement 
 	| unsafe_statement
 	| fixed_statement
-	| expression_statement	// expression!
+	| expression_statement	-> { $expression_statement.st } // expression!
 	;
 fixed_statement:
 	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
@@ -1044,28 +1052,30 @@ unsafe_statement:
 labeled_statement:
 	identifier   ':'   statement ;
 declaration_statement:
-	(local_variable_declaration 
-	| local_constant_declaration) ';' ;
+	(local_variable_declaration -> { $local_variable_declaration.st }
+	| local_constant_declaration -> { $local_constant_declaration.st }) ';' ;
 local_variable_declaration:
-	local_variable_type   local_variable_declarators ;
+	local_variable_type   local_variable_declarators -> local_variable_declaration(type={ $local_variable_type.st }, decs = { $local_variable_declarators.st } );
 local_variable_type:
-	('var') => 'var'
-	| ('dynamic') => 'dynamic'
+	('var') => 'var' -> string(payload = {"/* [UNSUPPORTED] 'var' as type is unsupported */"} )
+	| ('dynamic') => 'dynamic' -> string(payload = {"/* [UNSUPPORTED] 'dynamic' as type is unsupported */"} )
 	| type  -> { $type.st } ;
 local_variable_declarators:
-	local_variable_declarator (',' local_variable_declarator)* ;
+	vs+=local_variable_declarator (',' vs+=local_variable_declarator)* -> list(items={$vs}, sep={", "});
 local_variable_declarator:
-	identifier ('='   local_variable_initializer)? ; 
+	identifier ('='   local_variable_initializer)? -> local_variable_declarator(name= { $identifier.st }, init = { $local_variable_initializer.st }); 
 local_variable_initializer:
-	expression
+	expression -> { $expression.st }
 	| array_initializer 
 	| stackalloc_initializer;
 stackalloc_initializer:
-	'stackalloc'   unmanaged_type   '['   expression   ']' ;
+	 stackalloc_initializer_unsupported -> unsupported(reason={"'stackalloc' is unsupported"}, text={ $stackalloc_initializer_unsupported.st });
+stackalloc_initializer_unsupported:
+	'stackalloc'   unmanaged_type   '['   expression   ']' -> stackalloc(type={$unmanaged_type.st}, exp = { $expression.st });
 local_constant_declaration:
 	'const'   type   constant_declarators ;
 expression_statement:
-	expression   ';' ;
+	expression   ';'  -> { $expression.st };
 
 // TODO: should be assignment, call, increment, decrement, and new object expressions
 statement_expression:
@@ -1117,21 +1127,21 @@ statement_expression_list:
 foreach_statement:
 	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement ;
 jump_statement:
-	break_statement
-	| continue_statement
-	| goto_statement
-	| return_statement
-	| throw_statement ;
+	break_statement-> { $break_statement.st }
+	| continue_statement-> { $continue_statement.st }
+	| goto_statement-> { $goto_statement.st }
+	| return_statement -> { $return_statement.st }
+	| throw_statement -> { $throw_statement.st };
 break_statement:
-	'break'   ';' ;
+	'break'   ';'  -> string(payload={"break"});
 continue_statement:
-	'continue'   ';' ;
+	'continue'   ';' -> string(payload={"continue"});
 goto_statement:
 	'goto'   ( identifier
 			 | 'case'   constant_expression
 			 | 'default')   ';' ;
 return_statement:
-	'return'   expression?   ';' ;
+	'return'   expression?   ';' -> return(exp = { $expression.st });
 throw_statement:
 	'throw'   expression?   ';' ;
 try_statement:
