@@ -108,10 +108,10 @@ primary_expression:
 primary_expression_start:
 	predefined_type            
 	| (identifier    generic_argument_list) => identifier   generic_argument_list
-	| identifier ('::'   identifier)?
+    | identifier
+	| ^('::' identifier identifier)
 	| 'this' 
 	| 'base'
-	| ^(TEMPPARENS expression)
 	| typeof_expression             // typeof(Foo).Name
 	| literal
 	;
@@ -362,6 +362,7 @@ unary_expression:
 	| ^(PREDEC unary_expression)
 	| ^(MONOSTAR unary_expression)
 	| ^(ADDRESSOF unary_expression)
+	| ^(PARENS expression) 
 	;
 //cast_expression:
 //	'('   type   ')'   non_assignment_expression ;
@@ -930,7 +931,8 @@ selection_statement:
 	| switch_statement ;
 if_statement:
 	// else goes with closest if
-	'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
+	// 'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
+    ^(IF boolean_expression SEP embedded_statement else_statement?)
 	;
 else_statement:
 	'else'   embedded_statement	;

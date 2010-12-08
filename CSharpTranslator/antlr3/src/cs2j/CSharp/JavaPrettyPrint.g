@@ -112,9 +112,112 @@ options {
         }
         return rets;
     }
+
+    // keving:  Found this precedence table on the ANTLR site.
+    
+    /** Encodes precedence of various operators; indexed by token type.
+     *  If precedence[op1] > precedence[op2] then op1 should happen
+     *  before op2;
+     * table from http://www.cs.princeton.edu/introcs/11precedence/ 
+     */
+    private int[] precedence = new int[tokenNames.Length];
+    private bool precedenceInitted = false;
+    protected bool IsPrecedenceInitted {
+        get { return precedenceInitted; }
+        set { precedenceInitted = value; }
+    }
+    private void initPrecedence()
+    {
+        if (IsPrecedenceInitted) 
+            return;
+
+        for (int i=0; i<precedence.Length; i++) {
+            // anything but these operators binds super tight
+            // for example METHOD_CALL binds tighter than PLUS
+            precedence[i] =  int.MaxValue;
+        }
+        precedence[ASSIGN] = 1;
+        precedence[PLUS_ASSIGN] = 1;
+        precedence[MINUS_ASSIGN] = 1;
+        precedence[STAR_ASSIGN] = 1;
+        precedence[DIV_ASSIGN] = 1;
+        precedence[MOD_ASSIGN] = 1;
+        precedence[RIGHT_SHIFT_ASSIGN] = 1;
+        precedence[LEFT_SHIFT_ASSIGN] = 1;
+        precedence[UNSIGNED_RIGHT_SHIFT_ASSIGN] = 1;
+        precedence[BIT_AND_ASSIGN] =1;
+        precedence[BIT_XOR_ASSIGN] = 1;
+        precedence[BIT_OR_ASSIGN] = 1;
+
+        precedence[COND_EXPR] = 2;
+
+        precedence[LOG_OR] = 3;
+
+        precedence[LOG_AND] = 4;
+
+        precedence[BIT_OR] = 5;
+
+        precedence[BIT_XOR] = 6;
+
+        precedence[BIT_AND] = 7;
+
+        precedence[NOT_EQUAL] = 8;
+        precedence[EQUAL] = 8;
+
+        precedence[LTHAN] = 9;
+        precedence[GT] = 9;
+        precedence[LTE] = 9;
+        precedence[GTE] = 9;
+        precedence[INSTANCEOF] = 9;
+        
+        precedence[LEFT_SHIFT] = 10;
+        precedence[RIGHT_SHIFT] = 10;
+        precedence[UNSIGNED_RIGHT_SHIFT] = 10;
+
+        precedence[PLUS] = 11;
+        precedence[MINUS] = 11;
+ 
+        precedence[DIV] = 12;
+        precedence[MOD] = 12;
+        precedence[STAR] = 12;
+         
+        precedence[CAST_EXPR] = 13;
+        precedence[NEW] = 13;
+ 
+        precedence[PREINC] = 14;
+        precedence[PREDEC] = 14;
+        precedence[MONONOT] = 14;
+        precedence[MONOTWIDDLE] = 14;
+        precedence[MONOMINUS] = 14;
+        precedence[MONOPLUS] = 14;
+ 
+        precedence[POSTINC] = 15;
+        precedence[POSTDEC] = 15;   
+        precedence[APPLY] = 15;   
+        precedence[INDEX] = 15;   
+        precedence[DOT] = 15;   
+
+        IsPrecedenceInitted = true;
+     }
+
+
+    // Compares precedence of op1 and op2. 
+    // Returns -1 if op2 < op1
+    //	        0 if op1 == op2
+    //          1 if op2 > op1
+    public int comparePrecedence(IToken op1, IToken op2) {
+        return Math.Sign(precedence[op2.Type]-precedence[op1.Type]);
+    }
 }
 
 compilation_unit
+@init{
+    initPrecedence();
+    // Print all tokens
+    //for (int i = 0; i < TokenNames.Length; i++) {
+    //    Console.Out.WriteLine("{0}  ->  {1}", TokenNames[i], i);
+    //}
+}
 :
     ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
         package(now = {DateTime.Now}, includeDate = {true}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)}, 
@@ -141,10 +244,11 @@ modifier
         | m='readonly' | m='volatile' | m='extern' | m='virtual' | m='override' | m=FINAL)
         -> string(payload={$m.text});
 	
-class_member_declaration:
+class_member_declaration returns [List<String> preComments]:
     ^(CONST attributes? modifiers? type constant_declarators)
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list? method_body)
+    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?
+            { $preComments = CollectedComments; } method_body)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
 //    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st])
@@ -238,7 +342,6 @@ primary_expression_start:
 	| primary_expression_extalias -> unsupported(reason = {"external aliases are not yet supported"}, text= { $primary_expression_extalias.st } ) 
 	| 'this' 
 	| 'base'
-	| ^(TEMPPARENS expression) -> parens(e={$expression.st}) 
 	| typeof_expression             // typeof(Foo).Name
 	| literal -> { $literal.st }
 	;
@@ -509,6 +612,10 @@ unary_expression:
 	| ^(PREDEC u6=unary_expression) -> op(op={"--"}, post={$u6.st})
 	| ^(MONOSTAR unary_expression) 
 	| ^(ADDRESSOF unary_expression)
+      // PARENS is not stictly necessary because we insert parens where necessary. However
+      // we maintin parens inserted by original programmer since tey presumably thought
+      // it would improve understandability
+	| ^(PARENS expression) -> parens(e={$expression.st}) 
     ;
     
 // 	(cast_expression) => cast_expression 
@@ -678,9 +785,9 @@ class_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=CLASS { preComments = CollectedComments; } 
+   ^(c=CLASS 
             identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
-         class_extends? class_implements? class_body )
+         class_extends? class_implements?  { preComments = CollectedComments; } class_body )
     -> class(modifiers = {modifiersST}, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
             extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}) ;
 
@@ -703,11 +810,8 @@ interface_type_list:
 
 class_body:
 	'{'   cs+=class_member_declaration_aux*   '}' -> class_body(entries={$cs}) ;
-class_member_declaration_aux
-@init{
-    List<string> preComments = null;
-}:
-    { preComments = CollectedComments; } member=class_member_declaration -> class_member(comments={ preComments }, member={ $member.st }) ;
+class_member_declaration_aux:
+    member=class_member_declaration -> class_member(comments={ $member.preComments }, member={ $member.st }) ;
 
 
 ///////////////////////////////////////////////////////
@@ -1025,10 +1129,10 @@ statement_plus:
 	;
 embedded_statement:
 	block -> { $block.st }
-	| selection_statement	// if, switch
-	| iteration_statement	// while, do, for, foreach
+	| selection_statement -> { $selection_statement.st }	// if, switch
+	| iteration_statement -> { $iteration_statement.st }	// while, do, for, foreach
 	| jump_statement	-> { $jump_statement.st }	// break, continue, goto, return, throw
-	| try_statement
+	| try_statement -> { $try_statement.st }
 	| checked_statement
 	| unchecked_statement
 	| lock_statement
@@ -1082,14 +1186,14 @@ statement_expression:
 	expression
 	;
 selection_statement:
-	if_statement
-	| switch_statement ;
+	if_statement -> { $if_statement.st }
+	| switch_statement -> { $switch_statement.st };
 if_statement:
 	// else goes with closest if
-	'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
+	^(IF boolean_expression  SEP  embedded_statement else_statement?) -> if(cond= { $boolean_expression.st }, then = { $embedded_statement.st }, else = { $else_statement.st })
 	;
 else_statement:
-	'else'   embedded_statement	;
+	'else'   embedded_statement	-> { $embedded_statement.st } ;
 switch_statement:
 	'switch'   '('   expression   ')'   switch_block ;
 switch_block:

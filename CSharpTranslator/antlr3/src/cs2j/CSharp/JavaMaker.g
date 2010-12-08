@@ -239,7 +239,7 @@ primary_expression:
 primary_expression_start:
 	predefined_type            
 	| (identifier    generic_argument_list) => identifier   generic_argument_list
-	| identifier ((c='::'   identifier { Warning($c.line, "[UNSUPPORTED] external aliases are not yet supported"); })?)!
+	| identifier ((c='::'^   identifier { Warning($c.line, "[UNSUPPORTED] external aliases are not yet supported"); })?)!
 	| 'this' 
 	| 'base'
 	| paren_expression
@@ -263,7 +263,7 @@ brackets [CommonTree lhs]:
 	'['   expression_list?   ']' -> ^(INDEX { (CommonTree)adaptor.DupTree($lhs) } expression_list?);	
 // keving: TODO: drop this.
 paren_expression:	
-	'('   expression   ')' -> ^(TEMPPARENS expression);
+	'('   expression   ')' -> ^(PARENS expression);
 arguments [CommonTree lhs]: 
 	'('   argument_list?   ')' -> ^(APPLY { (CommonTree)adaptor.DupTree($lhs) } argument_list?);
 argument_list: 
@@ -524,7 +524,7 @@ cast_expression:
 //	//'('   type   ')'   unary_expression ; 
 	l='('   type   ')'   unary_expression -> ^(CAST_EXPR[$l.token, "CAST"] type unary_expression);
 assignment_operator:
-	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
+	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | r='>' '>=' -> RIGHT_SHIFT_ASSIGN[$r.token, ">>="] ;
 pre_increment_expression: 
 	s='++'   unary_expression -> ^(PREINC[$s.token, "PRE++"] unary_expression) ;
 pre_decrement_expression: 
@@ -552,7 +552,7 @@ additive_expression:
 // >> check needed (no whitespace)
 shift_expression:
     (a1=additive_expression -> $a1) ((so='<<' a3=additive_expression -> ^($so $shift_expression $a3))
-                            | ('>' '>' a2=additive_expression -> ^(RIGHT_SHIFT $shift_expression $a2)) 
+                            | (r='>' '>' a2=additive_expression -> ^(RIGHT_SHIFT[$r.token, ">>"] $shift_expression $a2)) 
                            )* ;
 relational_expression:
 	(s1=shift_expression -> $s1) 
@@ -1138,8 +1138,8 @@ selection_statement:
 	| switch_statement ;
 if_statement:
 	// else goes with closest if
-	// i='if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)? -> ^(IF[$i.Token] boolean_expression embedded_statement else_statement?)
-	'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
+	i='if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)? -> ^(IF[$i.Token] boolean_expression SEP embedded_statement else_statement?)
+//	'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
 	;
 else_statement:
 	'else'   embedded_statement	;

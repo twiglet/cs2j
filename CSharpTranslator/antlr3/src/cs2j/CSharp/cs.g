@@ -32,15 +32,15 @@ tokens {
 
             MONOPLUS;
             MONOMINUS;
-            MONONOT;
-            MONOTWIDDLE;
+            MONONOT = '!';
+            MONOTWIDDLE = '~';
             MONOSTAR;
             ADDRESSOF;
             PREINC;
             PREDEC;
             POSTINC;
             POSTDEC;
-            TEMPPARENS;
+            PARENS;
             INDEX;
             APPLY;
             ARGS;
@@ -52,9 +52,50 @@ tokens {
             NULL_COALESCE='??';
             IF='if';
 
+            ASSIGN = '=';
+
+            PLUS_ASSIGN = '+=';
+            MINUS_ASSIGN = '-=';
+            STAR_ASSIGN = '*=';
+            DIV_ASSIGN = '/=';
+            MOD_ASSIGN = '%=';
+
+            BIT_AND_ASSIGN = '&=';
+            BIT_OR_ASSIGN = '|=';
+            BIT_XOR_ASSIGN = '^=';
+
+            LEFT_SHIFT_ASSIGN = '<<=';
+            RIGHT_SHIFT_ASSIGN;
+
+            UNSIGNED_RIGHT_SHIFT_ASSIGN;  /* not in C#: >>>= */
+
             COND_EXPR;  // (<x> ? <y> : <z>)
             RIGHT_SHIFT;
             INSTANCEOF;
+
+            LOG_OR = '||';
+            LOG_AND = '&&';
+            BIT_OR = '|';
+            BIT_XOR = '^';
+            BIT_AND = '&';
+
+            NOT_EQUAL = '!=';
+            EQUAL = '==';
+
+            LTHAN = '<';
+            LTE = '<=';
+            GTE = '>=';
+
+            LEFT_SHIFT = '<<';
+            RIGHT_SHIFT;
+            UNSIGNED_RIGHT_SHIFT;  /* not in C#: >>> */
+
+            PLUS = '+';
+            
+
+            DIV = '/';
+            MOD = '%';
+            STAR = '*';
 
             TYPE;
             ENUM_BODY;

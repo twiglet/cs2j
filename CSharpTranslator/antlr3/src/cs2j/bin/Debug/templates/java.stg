@@ -119,6 +119,13 @@ type_parameter_list(items) ::= <<
 extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
 imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 
+// ******* STATEMENTS *******
+if(cond,then,else) ::= <<
+if (<cond>)
+<then>
+<else>
+>>
+
 // ******* EXPRESSIONS *******
 
 cast_expr(type, exp) ::= "(<type>)<exp>"
