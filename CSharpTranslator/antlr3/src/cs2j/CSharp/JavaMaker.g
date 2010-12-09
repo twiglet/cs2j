@@ -511,10 +511,10 @@ unary_expression:
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
     (cast_expression) => cast_expression
 	| primary_or_array_creation_expression -> primary_or_array_creation_expression
-	| p='+'   unary_expression -> ^(MONOPLUS[$p.token,"MONOPLUS"] unary_expression) 
-	| m='-'   unary_expression -> ^(MONOMINUS[$m.token, "MONOMINUS"] unary_expression) 
-	| n='!'   unary_expression -> ^(MONONOT[$n.token, "MONONOT"] unary_expression) 
-	| t='~'   unary_expression -> ^(MONOTWIDDLE[$t.token, "TWIDDLE"] unary_expression) 
+	| p='+'   unary_expression -> ^(MONOPLUS[$p.token,"+"] unary_expression) 
+	| m='-'   unary_expression -> ^(MONOMINUS[$m.token, "-"] unary_expression) 
+	| n='!'   unary_expression -> ^(MONONOT[$n.token, "!"] unary_expression) 
+	| t='~'   unary_expression -> ^(MONOTWIDDLE[$t.token, "~"] unary_expression) 
 	| pre_increment_expression -> pre_increment_expression
 	| pre_decrement_expression -> pre_decrement_expression
 	| pointer_indirection_expression -> pointer_indirection_expression

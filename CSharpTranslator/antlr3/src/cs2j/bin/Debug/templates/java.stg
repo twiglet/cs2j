@@ -79,16 +79,17 @@ statement_list(statements) ::= <<
 >>
 
 statement(statement) ::= <<
-<statement>;
+<statement>
 >>
 
 
 //***** local var declarations:
 
-local_variable_declaration(type,decs) ::= "<type> <decs>"
+local_variable_declaration(type,decs) ::= "<type> <decs>;"
 local_variable_declarator(name, init) ::= "<name><if(init)> = <init><endif>"
 
-return(exp) ::= "return <exp>"
+return(exp) ::= "return <exp>;"
+throw(exp) ::= "throw <exp>;"
 
 // ******* ENUMS ***********
 
@@ -120,24 +121,49 @@ extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
 imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 
 // ******* STATEMENTS *******
-if(cond,then,else) ::= <<
+if(cond,then,thensemi, thenbraces,else, elseisif, elsesemi,elsebraces) ::= <<
 if (<cond>)
-<then>
+<block(statements = then, issemi = thensemi, isbraces = thenbraces)>
+<if(else)>
+else<if(elseisif)> <block(statements = else, issemi = elsesemi, isbraces = elsebraces)><else>
+
+<block(statements = else, issemi = elsesemi, isbraces = elsebraces)>
+<endif>
+<endif> 
+>>
+
+block(statements,issemi,isbraces) ::= <<
+<if(issemi)>
+    ;
 <else>
+<if(isbraces)>
+{
+
+<endif>
+    <statements>
+<if(isbraces)>
+}
+<endif>
+<endif>
 >>
 
 // ******* EXPRESSIONS *******
 
 cast_expr(type, exp) ::= "(<type>)<exp>"
 construct(type, args, inits) ::= "new <type>(<args>)<if(inits)> /* [UNIMPLEMENTED] <inits> */<endif>"
-
+application(func, funcparens, args) ::= "<optparens(parens=funcparens,e=func)>(<args>)" 
 stackalloc(type, exp) ::= "stackalloc <type>[<exp>]"
+
+// ******* TYPES ***********
+void() ::= "void"
 
 // ******* MISC ***********
 
+optparens(parens, e) ::= "<if(parens)>(<endif><e><if(parens)>)<endif>"
 parens(e) ::= "(<e>)"
 rank_specifiers(rs) ::= "<rs>"
-op(pre,op,post) ::= "<pre><op><post>"
+op(pre,op,post,mkparen,space) ::= "<if(mkparen)>(<endif><pre><space><op><space><post><if(mkparen)>)<endif>"
+assign(lhs,lhsparen,assign,rhs,rhsparen) ::= "<if(lhsparen)>(<endif><lhs><if(lhsparen)>)<endif> <assign> <if(rhsparen)>(<endif><rhs><if(rhsparen)>)<endif>"
 generic_args(args) ::= "\<<args>\>"
 parameter(annotation,param) ::=  "/* <annotation> */ <param>"
 inline_comment(payload, explanation) ::= "/* <explanation> <payload> */"

@@ -208,6 +208,12 @@ options {
     public int comparePrecedence(IToken op1, IToken op2) {
         return Math.Sign(precedence[op2.Type]-precedence[op1.Type]);
     }
+    public int comparePrecedence(IToken op1, int childPrec) {
+        return Math.Sign(childPrec-precedence[op1.Type]);
+    }
+    public int comparePrecedence(int parentPrec, int childPrec) {
+        return Math.Sign(childPrec-parentPrec);
+    }
 }
 
 compilation_unit
@@ -296,7 +302,7 @@ class_member_declaration returns [List<String> preComments]:
 // 
 primary_expression: 
     ^(INDEX expression expression_list?)
-    | ^(APPLY expression argument_list?)
+    | ^(APPLY expression argument_list?) -> application(func= { $expression.st }, funcparens = { comparePrecedence(APPLY, $expression.precedence) <= 0 }, args = { $argument_list.st } )
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
     | primary_expression_start -> { $primary_expression_start.st }
@@ -359,7 +365,7 @@ primary_expression_part:
 access_identifier:
 	access_operator   type_or_generic ;
 access_operator:
-	'.'  |  '->' ;
+	(op='.'  |  op='->') -> string(payload = { $op.token.Text }) ;
 brackets_or_arguments:
 	brackets | arguments ;
 brackets:
@@ -558,7 +564,7 @@ type
     List<string> stars = new List<string>();
     string opt = null;
 }:
-	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;} | tv='void' {nm=new StringTemplate("void");})  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
+	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;} | tv='void' { nm=%void();})  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
 	;
 non_nullable_type:
 	type -> { $type.st } ;
@@ -591,33 +597,45 @@ statement_list:
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
-expression: 
-	(unary_expression   assignment_operator) => assignment	
-	| non_assignment_expression -> { $non_assignment_expression.st }
+expression returns [int precedence]: 
+	(unary_expression   assignment_operator) => assignment { $precedence = $assignment.precedence; } -> { $assignment.st }
+	| non_assignment_expression { $precedence = $non_assignment_expression.precedence; } -> { $non_assignment_expression.st }
 	;
 expression_list:
 	expression  (','   expression)* ;
-assignment:
-	unary_expression   assignment_operator   expression ;
-unary_expression: 
+assignment returns [int precedence]:
+	unary_expression   assignment_operator   expression { $precedence = $assignment_operator.precedence; }
+                                                         -> assign(lhs={ $unary_expression.st }, assign = { $assignment_operator.st }, rhs = { $expression.st }, 
+                                                                    lhsparen={ comparePrecedence($assignment_operator.precedence, $unary_expression.precedence) <= 0 },
+                                                                     rhsparen={ comparePrecedence($assignment_operator.precedence, $expression.precedence) < 0});
+unary_expression returns [int precedence]
+@init {
+    // By default parens not needed
+    $precedence = int.MaxValue;
+}: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
 //	^(CAST_EXPR type expression) 
-	^(CAST_EXPR type u0=unary_expression)  -> cast_expr(type= { $type.st}, exp = { $u0.st})
+	^(CAST_EXPR type u0=unary_expression)  { $precedence = precedence[CAST_EXPR]; } -> cast_expr(type= { $type.st}, exp = { $u0.st})
 	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
-	| ^(MONOPLUS u1=unary_expression) -> op(op={"+"}, post={$u1.st})
-	| ^(MONOMINUS u2=unary_expression) -> op(op={"-"}, post={$u2.st})
-	| ^(MONONOT u3=unary_expression) -> op(op={"!"}, post={$u3.st})
-	| ^(MONOTWIDDLE u4=unary_expression) -> op(op={"~"}, post={$u4.st})
-	| ^(PREINC u5=unary_expression) -> op(op={"++"}, post={$u5.st})
-	| ^(PREDEC u6=unary_expression) -> op(op={"--"}, post={$u6.st})
-	| ^(MONOSTAR unary_expression) 
-	| ^(ADDRESSOF unary_expression)
-      // PARENS is not stictly necessary because we insert parens where necessary. However
-      // we maintin parens inserted by original programmer since tey presumably thought
-      // it would improve understandability
-	| ^(PARENS expression) -> parens(e={$expression.st}) 
+	| ^((op=MONOPLUS | op=MONOMINUS | op=MONONOT | op=MONOTWIDDLE | op=PREINC | op=PREDEC)  u1=unary_expression) { $precedence = precedence[$op.token.Type]; }
+          -> op(postparen={ comparePrecedence($op.token, $u1.precedence) > 0 }, op={ $op.token.Text }, post={$u1.st})
+	| ^((op=MONOSTAR|op=ADDRESSOF) u1=unary_expression) 
+        { 
+            StringTemplate opText = %op();
+            %{opText}.post = $u1.st;
+            %{opText}.op = $op.token.Text;
+            $st = %unsupported();
+            %{$st}.reason = "the " + ($op.token.Type == MONOSTAR ? "pointer indirection" : "address of") + " operator is not supported";
+            %{$st}.text = opText;
+        }
+      // PARENS is not strictly necessary because we insert parens where necessary. However
+      // we maintain parens inserted by original programmer since, presumably, they 
+      // improve understandability
+	| ^(PARENS expression) { $precedence = Cfg.TranslatorKeepParens ? int.MaxValue : $expression.precedence; } 
+                           -> { Cfg.TranslatorKeepParens}? parens(e={$expression.st}) 
+                           -> {$expression.st} 
     ;
-    
+
 // 	(cast_expression) => cast_expression 
 // 	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
 // 	| '+'   u1=unary_expression -> template(e={$u1.st}) "+<e>"
@@ -631,8 +649,9 @@ unary_expression:
 // 	;
 // cast_expression:
 // 	^(CAST_EXPR  type unary_expression ) -> cast_expr(type= { $type.st}, exp = { $unary_expression.st});
- assignment_operator:
-	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
+ assignment_operator returns [int precedence]: 
+   (op='=' | op='+=' | op='-=' | op='*=' | op='/=' | op='%=' | op='&=' | op='|=' | op='^=' | op='<<=' | op=RIGHT_SHIFT_ASSIGN) { $precedence = precedence[$op.token.Type]; } 
+      -> string(payload = { $op.token.Text });
 // pre_increment_expression: 
 // 	'++'   unary_expression ;
 // pre_decrement_expression: 
@@ -642,32 +661,24 @@ unary_expression:
 // addressof_expression:
 // 	'&'   unary_expression ;
 
-non_assignment_expression:
+non_assignment_expression returns [int precedence]
+@init {
+    // By default parens not needed
+    $precedence = int.MaxValue;
+}: 
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
 	| ^(COND_EXPR non_assignment_expression non_assignment_expression non_assignment_expression) 
     | ^('??' non_assignment_expression non_assignment_expression)
-    | ^('||' non_assignment_expression non_assignment_expression)
-    | ^('&&' non_assignment_expression non_assignment_expression)
-    | ^('|' non_assignment_expression non_assignment_expression)
-    | ^('^' non_assignment_expression non_assignment_expression)
-    | ^('&' non_assignment_expression non_assignment_expression)
-    | ^('==' non_assignment_expression non_assignment_expression)
-    | ^('!=' non_assignment_expression non_assignment_expression)
-    | ^('>' non_assignment_expression non_assignment_expression)
-    | ^('<' non_assignment_expression non_assignment_expression)
-    | ^('>=' non_assignment_expression non_assignment_expression)
-    | ^('<=' non_assignment_expression non_assignment_expression)
+    // All these operators have left to right associativity
+    | ^((op='=='|op='!='|op='||'|op='&&'|op='|'|op='^'|op='&'|op='>'|op='<'|op='>='|op='<='|op='<<'|op='>>'|op='+'|op='-'|op='*'|op='/'|op='%') 
+        e1=non_assignment_expression e2=non_assignment_expression)
+         -> op(pre={ $e1.st }, op = { $op.token.Text }, post = { $e2.st }, space = { " " },
+                preparen={ comparePrecedence($op.token, $e1.precedence) < 0 },
+                postparen={ comparePrecedence($op.token, $e2.precedence) <= 0})
     | ^(INSTANCEOF non_assignment_expression non_nullable_type)
-    | ^('<<' non_assignment_expression non_assignment_expression)
-    | ^('>>' non_assignment_expression non_assignment_expression)
-    | ^('+' non_assignment_expression non_assignment_expression)
-    | ^('-' non_assignment_expression non_assignment_expression)
-    | ^('*' non_assignment_expression non_assignment_expression)
-    | ^('/' non_assignment_expression non_assignment_expression)
-    | ^('%' non_assignment_expression non_assignment_expression) 
-    | unary_expression -> { $unary_expression.st }
+    | unary_expression { $precedence = $unary_expression.precedence; }-> { $unary_expression.st }
 	;
 
 ///////////////////////////////////////////////////////
@@ -732,7 +743,7 @@ group_clause:
 where_clause:
 	'where'   boolean_expression ;
 boolean_expression:
-	expression;
+	expression -> { $expression.st };
 
 ///////////////////////////////////////////////////////
 // B.2.13 Attributes
@@ -1127,9 +1138,13 @@ statement_plus:
 	(identifier   ':') => labeled_statement -> statement(statement = { $labeled_statement.st })
 	| embedded_statement  -> statement(statement = { $embedded_statement.st })
 	;
-embedded_statement:
-	block -> { $block.st }
-	| selection_statement -> { $selection_statement.st }	// if, switch
+embedded_statement returns [bool isSemi, bool isBraces, bool isIf]
+@init {
+    $isBraces = false;
+    $isIf = false;
+}:
+	block { $isSemi = $block.isSemi; $isBraces = !$block.isSemi;} -> { $block.st }
+	| selection_statement { $isIf = $selection_statement.isIf; }-> { $selection_statement.st }	// if, switch
 	| iteration_statement -> { $iteration_statement.st }	// while, do, for, foreach
 	| jump_statement	-> { $jump_statement.st }	// break, continue, goto, return, throw
 	| try_statement -> { $try_statement.st }
@@ -1140,7 +1155,7 @@ embedded_statement:
 	| yield_statement 
 	| unsafe_statement
 	| fixed_statement
-	| expression_statement	-> { $expression_statement.st } // expression!
+	| expression_statement	-> op( pre={ $expression_statement.st }, op={ ";" })  // make an expression a statement, need to terminate with semi
 	;
 fixed_statement:
 	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
@@ -1161,8 +1176,8 @@ declaration_statement:
 local_variable_declaration:
 	local_variable_type   local_variable_declarators -> local_variable_declaration(type={ $local_variable_type.st }, decs = { $local_variable_declarators.st } );
 local_variable_type:
-	('var') => 'var' -> string(payload = {"/* [UNSUPPORTED] 'var' as type is unsupported */"} )
-	| ('dynamic') => 'dynamic' -> string(payload = {"/* [UNSUPPORTED] 'dynamic' as type is unsupported */"} )
+	('var') => 'var' -> unsupported(reason = {"'var' as type is unsupported"}, text = { "var" } )
+	| ('dynamic') => 'dynamic' -> unsupported(reason = {"'dynamic' as type is unsupported"}, text = { "dynamic" } )
 	| type  -> { $type.st } ;
 local_variable_declarators:
 	vs+=local_variable_declarator (',' vs+=local_variable_declarator)* -> list(items={$vs}, sep={", "});
@@ -1185,15 +1200,18 @@ expression_statement:
 statement_expression:
 	expression
 	;
-selection_statement:
-	if_statement -> { $if_statement.st }
-	| switch_statement -> { $switch_statement.st };
+selection_statement returns [bool isIf]:
+	if_statement { $isIf = true; }-> { $if_statement.st }
+	| switch_statement { $isIf = false; }-> { $switch_statement.st };
 if_statement:
 	// else goes with closest if
-	^(IF boolean_expression  SEP  embedded_statement else_statement?) -> if(cond= { $boolean_expression.st }, then = { $embedded_statement.st }, else = { $else_statement.st })
+	^(IF boolean_expression  SEP  t=embedded_statement e=else_statement?) 
+        -> if(cond= { $boolean_expression.st }, 
+              then = { $t.st }, thensemi = { $t.isSemi }, thenbraces = { $t.isBraces },  
+              else = { $else_statement.st }, elsesemi = { $e.isSemi }, elsebraces = { $e.isBraces }, elseisif = { $e.isIf })
 	;
-else_statement:
-	'else'   embedded_statement	-> { $embedded_statement.st } ;
+else_statement returns [bool isSemi, bool isBraces, bool isIf]:
+	'else'   s=embedded_statement	{ $isSemi = $s.isSemi; $isBraces = $s.isBraces; $isIf = $s.isIf; } -> { $embedded_statement.st } ;
 switch_statement:
 	'switch'   '('   expression   ')'   switch_block ;
 switch_block:
@@ -1247,7 +1265,7 @@ goto_statement:
 return_statement:
 	'return'   expression?   ';' -> return(exp = { $expression.st });
 throw_statement:
-	'throw'   expression?   ';' ;
+	'throw'   expression?   ';' -> throw(exp = { $expression.st });
 try_statement:
       'try'   block   ( catch_clauses   finally_clause?
 					  | finally_clause);

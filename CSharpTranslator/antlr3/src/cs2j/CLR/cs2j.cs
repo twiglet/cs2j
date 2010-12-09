@@ -38,7 +38,7 @@ namespace RusticiSoftware.Translator.CSharp
             Console.Out.WriteLine(" [-v]                                                                        (be [somewhat more] verbose, repeat for more verbosity)");
             Console.Out.WriteLine(" [-D <macroVariable>]                                                        (define <macroVariable>, option can be repeated)");
             Console.Out.WriteLine(" [-showtokens]                                                               (the lexer prints the tokenized input to the console)");
-            Console.Out.WriteLine(" [-dumpcsharp] [-dumpjavasyntax] [-dumpjava]                      (show parse tree at various stages of the translation)");
+            Console.Out.WriteLine(" [-dumpcsharp] [-dumpjavasyntax] [-dumpjava]                                 (show parse tree at various stages of the translation)");
             Console.Out.WriteLine(" [-dumpxml] [-xmldir <directory to dump xml database>]                       (dump the translation repository as xml files)");
             Console.Out.WriteLine(" [-dumpenums <enum xml file>]                                                (create an xml file documenting enums)");
             Console.Out.WriteLine(" [-odir <root of translated classes>]");
@@ -48,6 +48,7 @@ namespace RusticiSoftware.Translator.CSharp
             Console.Out.WriteLine(" [-appdir <root of C# application>]");
             Console.Out.WriteLine(" [-exappdir <directories/files to be excluded from translation repository>+] (can be multiple directories/files, separated by semi-colons)");
             Console.Out.WriteLine(" [-exclude <directories/files to be excluded from translation>+]             (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
             Console.Out.WriteLine(" <directory or file name to be translated>");
             Environment.Exit(0);
         }
@@ -96,6 +97,7 @@ namespace RusticiSoftware.Translator.CSharp
                         .Add ("appdir=", dirs => addDirectories(cfg.AppRoot, dirs))
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
                         .Add ("exclude=", dirs => addDirectories(cfg.Exclude, dirs))
+                        .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         ;
 					
                     //TODO: fix enum dump
