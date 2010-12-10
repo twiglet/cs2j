@@ -349,8 +349,8 @@ primary_expression_start:
 	| (identifier    generic_argument_list) => identifier   generic_argument_list -> op(pre={ $identifier.st }, post={ $generic_argument_list.st})
 	| i1=identifier -> { $i1.st } 
 	| primary_expression_extalias -> unsupported(reason = {"external aliases are not yet supported"}, text= { $primary_expression_extalias.st } ) 
-	| 'this' 
-	| 'base'
+	| 'this' -> string(payload = { "this" }) 
+	| 'base'-> string(payload = { "super" }) 
     // keving: needs fixing in javamaker - > type.class
 	| ^('typeof'  unbound_type_name ) -> typeof(type= { $unbound_type_name.st })
 	| ^('typeof'  type ) -> typeof(type= { $type.st })
@@ -667,15 +667,21 @@ non_assignment_expression returns [int precedence]
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
-	| ^(COND_EXPR non_assignment_expression non_assignment_expression non_assignment_expression) 
+	| ^(cop=COND_EXPR ce1=non_assignment_expression ce2=non_assignment_expression ce3=non_assignment_expression) { $precedence = precedence[$cop.token.Type]; } 
+          -> cond( condexp = { $ce1.st }, thenexp = { $ce2.st }, elseexp = { $ce3.st },
+                    condparens = { comparePrecedence($cop.token, $ce1.precedence) <= 0 }, 
+                    thenparens = { comparePrecedence($cop.token, $ce2.precedence) <= 0 }, 
+                    elseparens = { comparePrecedence($cop.token, $ce3.precedence) <= 0 }) 
     | ^('??' non_assignment_expression non_assignment_expression)
     // All these operators have left to right associativity
     | ^((op='=='|op='!='|op='||'|op='&&'|op='|'|op='^'|op='&'|op='>'|op='<'|op='>='|op='<='|op='<<'|op='>>'|op='+'|op='-'|op='*'|op='/'|op='%') 
-        e1=non_assignment_expression e2=non_assignment_expression)
+        e1=non_assignment_expression e2=non_assignment_expression) { $precedence = precedence[$op.token.Type]; }
          -> op(pre={ $e1.st }, op = { $op.token.Text }, post = { $e2.st }, space = { " " },
                 preparen={ comparePrecedence($op.token, $e1.precedence) < 0 },
                 postparen={ comparePrecedence($op.token, $e2.precedence) <= 0})
-    | ^(INSTANCEOF non_assignment_expression non_nullable_type)
+    | ^(iop=INSTANCEOF ie=non_assignment_expression non_nullable_type) 
+          -> op(pre = { $ie.st }, op = { "instanceof" }, space = { " " }, post = { $non_nullable_type.st },
+                  preparen={ comparePrecedence($iop.token, $ie.precedence) < 0 })
     | unary_expression { $precedence = $unary_expression.precedence; }-> { $unary_expression.st }
 	;
 
@@ -1251,7 +1257,7 @@ goto_statement:
 			 | 'case'   constant_expression
 			 | 'default')   ';' ;
 catch_clauses:
-    c+=catch_clause+ -> list(items={ $c }, sep = {"\n" }) ;
+    c+=catch_clause+ -> list(items={ $c }, sep = { "\n" }) ;
 catch_clause:
 	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi } );
 finally_clause:

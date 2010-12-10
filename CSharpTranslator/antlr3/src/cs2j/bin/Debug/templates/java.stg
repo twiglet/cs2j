@@ -173,7 +173,9 @@ finally
 switch(comments,scrutinee, sections) ::= <<
 <comments; separator="\n">
 switch(<scrutinee>)
+{
     <sections>
+}
 >>
 
 switch_section(labels,statements) ::= <<
@@ -219,6 +221,10 @@ application(func, funcparens, args) ::= "<optparens(parens=funcparens,e=func)>(<
 index(func, funcparens, args) ::= "<optparens(parens=funcparens,e=func)>[<args>]" 
 stackalloc(type, exp) ::= "stackalloc <type>[<exp>]"
 typeof(type) ::= "<type>.class"
+
+cond(condexp,condparens,thenexp,thenparens,elseexp,elseparens) ::= <<
+<if(condparens)>(<endif><condexp><if(condparens)>)<endif> ? <if(thenparens)>(<endif><thenexp><if(thenparens)>)<endif> : <if(elseparens)>(<endif><elseexp><if(elseparens)>)<endif>
+>>
 
 // ******* TYPES ***********
 void() ::= "void"
