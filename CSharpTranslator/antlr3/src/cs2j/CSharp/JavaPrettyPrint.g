@@ -1141,26 +1141,29 @@ embedded_statement returns [bool isSemi, bool isBraces, bool isIf]
     StringTemplate someText = null;
     $isBraces = false;
     $isIf = false;
+    List<String> preComments = null;
 }:
 	block { $isSemi = $block.isSemi; $isBraces = !$block.isSemi;} -> { $block.st }
-	| ^(IF boolean_expression  SEP  t=embedded_statement e=else_statement?) { $isIf = true; }
-        -> if(cond= { $boolean_expression.st }, 
+	| ^(IF boolean_expression { preComments = CollectedComments; } SEP  t=embedded_statement e=else_statement?) { $isIf = true; }
+        -> if_template(comments = { preComments }, cond= { $boolean_expression.st }, 
               then = { $t.st }, thensemi = { $t.isSemi }, thenbraces = { $t.isBraces },  
               else = { $e.st }, elsesemi = { $e.isSemi }, elsebraces = { $e.isBraces }, elseisif = { $e.isIf })
-    | ^('switch' expression s+=switch_section*) -> switch(scrutinee = { $expression.st }, sections = { $s }) 
+    | ^('switch' expression  { preComments = CollectedComments; } s+=switch_section*) -> switch(comments = { preComments }, scrutinee = { $expression.st }, sections = { $s }) 
 	| iteration_statement -> { $iteration_statement.st }	// while, do, for, foreach
 	| jump_statement	-> { $jump_statement.st }	// break, continue, goto, return, throw
-	| ^('try' b=block catch_clauses? finally_clause?) -> try(block = {$b.st}, blocksemi = {$b.isSemi}, blockbraces = { !$b.isSemi },
-                                                               catches = { $catch_clauses.st }, fin = { $finally_clause.st } )
+	| ^('try'  { preComments = CollectedComments; } b=block catch_clauses? finally_clause?) 
+        -> try(comments = { preComments }, block = {$b.st}, blocksemi = {$b.isSemi}, blockbraces = { !$b.isSemi },
+               catches = { $catch_clauses.st }, fin = { $finally_clause.st } )
 	| checked_statement
 	| unchecked_statement
 	| lock_statement -> { $lock_statement.st }
 	| using_statement 
 	| yield_statement 
-    | ^('unsafe'   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
-      -> unsupported(reason = {"unsafe blocks are not supported"}, text = { someText } )
+    | ^('unsafe'  { preComments = CollectedComments; }   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
+      -> unsupported(comments = { preComments }, reason = {"unsafe blocks are not supported"}, text = { someText } )
 	| fixed_statement
-	| expression_statement	-> op( pre={ $expression_statement.st }, op={ ";" })  // make an expression a statement, need to terminate with semi
+	| expression_statement  { preComments = CollectedComments; }	
+         -> op(comments = { preComments }, pre={ $expression_statement.st }, op={ ";" })  // make an expression a statement, need to terminate with semi
 	;
 fixed_statement:
 	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
@@ -1173,9 +1176,12 @@ fixed_pointer_initializer:
 	expression;
 labeled_statement:
 	identifier   ':'   statement ;
-declaration_statement:
-	(local_variable_declaration -> op(pre = { $local_variable_declaration.st }, op = { ";" })
-	| local_constant_declaration -> op(pre = { $local_constant_declaration.st }, op = { ";" }) ) ';' ;
+declaration_statement
+@init {
+    List<String> preComments = null;
+}:
+	(local_variable_declaration { preComments = CollectedComments; } -> op(comments = { preComments }, pre = { $local_variable_declaration.st }, op = { ";" })
+	| local_constant_declaration { preComments = CollectedComments; } -> op(comments = { preComments }, pre = { $local_constant_declaration.st }, op = { ";" }) ) ';' ;
 local_variable_declaration:
 	local_variable_type   local_variable_declarators -> local_variable_declaration(type={ $local_variable_type.st }, decs = { $local_variable_declarators.st } );
 local_variable_type:
