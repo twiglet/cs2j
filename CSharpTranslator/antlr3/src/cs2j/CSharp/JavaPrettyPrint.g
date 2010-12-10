@@ -300,17 +300,20 @@ class_member_declaration returns [List<String> preComments]:
 // 	) 
 // 	;
 // 
-primary_expression: 
-    ^(INDEX expression expression_list?)
-    | ^(APPLY expression argument_list?) -> application(func= { $expression.st }, funcparens = { comparePrecedence(APPLY, $expression.precedence) <= 0 }, args = { $argument_list.st } )
-    | ^(POSTINC expression)
-    | ^(POSTDEC expression)
+primary_expression returns [int precedence]
+@init {
+    $precedence = int.MaxValue;
+}: 
+    ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(INDEX, $expression.precedence) <= 0 }, args = { $expression_list.st } )
+    | ^(APPLY expression argument_list?) { $precedence = precedence[APPLY]; } -> application(func= { $expression.st }, funcparens = { comparePrecedence(APPLY, $expression.precedence) <= 0 }, args = { $argument_list.st } )
+    | ^((op=POSTINC|op=POSTDEC) expression) { $precedence = precedence[$op.token.Type]; } 
+         -> op(pre={$expression.st}, op={ $op.token.Text }, preparens= { comparePrecedence($op.token, $expression.precedence) <= 0 })
     | primary_expression_start -> { $primary_expression_start.st }
-    | ^(access_operator expression type_or_generic) -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $type_or_generic.st })
+    | ^(access_operator expression type_or_generic) { $precedence = $access_operator.precedence; } -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $type_or_generic.st })
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
-    | ^(NEW type argument_list? object_or_collection_initializer?) -> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
+    | ^(NEW type argument_list? object_or_collection_initializer?) { $precedence = precedence[NEW]; }-> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
 	| 'new' (   
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation
@@ -348,7 +351,9 @@ primary_expression_start:
 	| primary_expression_extalias -> unsupported(reason = {"external aliases are not yet supported"}, text= { $primary_expression_extalias.st } ) 
 	| 'this' 
 	| 'base'
-	| typeof_expression             // typeof(Foo).Name
+    // keving: needs fixing in javamaker - > type.class
+	| ^('typeof'  unbound_type_name ) -> typeof(type= { $unbound_type_name.st })
+	| ^('typeof'  type ) -> typeof(type= { $type.st })
 	| literal -> { $literal.st }
 	;
 
@@ -364,8 +369,8 @@ primary_expression_part:
 	| '--' ;
 access_identifier:
 	access_operator   type_or_generic ;
-access_operator:
-	(op='.'  |  op='->') -> string(payload = { $op.token.Text }) ;
+access_operator returns [int precedence]:
+	(op='.'  |  op='->') { $precedence = precedence[$op.token.Type]; } -> string(payload = { $op.token.Text }) ;
 brackets_or_arguments:
 	brackets | arguments ;
 brackets:
@@ -496,8 +501,6 @@ initializer_value:
 
 ///////////////////////////////////////////////////////
 
-typeof_expression: 
-	^('typeof'  (unbound_type_name | type | 'void') ) ;
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -575,8 +578,6 @@ array_type:
 	type -> { $type.st } ;
 unmanaged_type:
 	type -> { $type.st } ;
-class_type:
-	type -> { $type.st } ;
 pointer_type:
 	type -> { $type.st } ;
 
@@ -591,9 +592,6 @@ block returns [bool isSemi]
 	';' { $isSemi = true; } -> 
 	| '{'   s+=statement*   '}' -> statement_list(statements = { $s });
 
-statement_list:
-	statement+ ;
-	
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
@@ -602,7 +600,7 @@ expression returns [int precedence]:
 	| non_assignment_expression { $precedence = $non_assignment_expression.precedence; } -> { $non_assignment_expression.st }
 	;
 expression_list:
-	expression  (','   expression)* ;
+	e+=expression  (','   e+=expression)* -> list(items= { $e }, sep = {", "});
 assignment returns [int precedence]:
 	unary_expression   assignment_operator   expression { $precedence = $assignment_operator.precedence; }
                                                          -> assign(lhs={ $unary_expression.st }, assign = { $assignment_operator.st }, rhs = { $expression.st }, 
@@ -833,7 +831,7 @@ constant_declarators:
 constant_declarator:
 	identifier   ('='   constant_expression)? ;
 constant_expression:
-	expression;
+	expression -> { $expression.st };
 
 ///////////////////////////////////////////////////////
 field_declaration:
@@ -1120,7 +1118,7 @@ invocation_start:
 	| 'this' 
 	| 'base'
 	| identifier   ('::'   identifier)?
-	| typeof_expression             // typeof(Foo).Name
+	| ^('typeof'  (unbound_type_name | type ) )             // typeof(Foo).Name
 	;
 invocation_part:
 	 access_identifier
@@ -1140,20 +1138,27 @@ statement_plus:
 	;
 embedded_statement returns [bool isSemi, bool isBraces, bool isIf]
 @init {
+    StringTemplate someText = null;
     $isBraces = false;
     $isIf = false;
 }:
 	block { $isSemi = $block.isSemi; $isBraces = !$block.isSemi;} -> { $block.st }
-	| selection_statement { $isIf = $selection_statement.isIf; }-> { $selection_statement.st }	// if, switch
+	| ^(IF boolean_expression  SEP  t=embedded_statement e=else_statement?) { $isIf = true; }
+        -> if(cond= { $boolean_expression.st }, 
+              then = { $t.st }, thensemi = { $t.isSemi }, thenbraces = { $t.isBraces },  
+              else = { $e.st }, elsesemi = { $e.isSemi }, elsebraces = { $e.isBraces }, elseisif = { $e.isIf })
+    | ^('switch' expression s+=switch_section*) -> switch(scrutinee = { $expression.st }, sections = { $s }) 
 	| iteration_statement -> { $iteration_statement.st }	// while, do, for, foreach
 	| jump_statement	-> { $jump_statement.st }	// break, continue, goto, return, throw
-	| try_statement -> { $try_statement.st }
+	| ^('try' b=block catch_clauses? finally_clause?) -> try(block = {$b.st}, blocksemi = {$b.isSemi}, blockbraces = { !$b.isSemi },
+                                                               catches = { $catch_clauses.st }, fin = { $finally_clause.st } )
 	| checked_statement
 	| unchecked_statement
-	| lock_statement
+	| lock_statement -> { $lock_statement.st }
 	| using_statement 
 	| yield_statement 
-	| unsafe_statement
+    | ^('unsafe'   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
+      -> unsupported(reason = {"unsafe blocks are not supported"}, text = { someText } )
 	| fixed_statement
 	| expression_statement	-> op( pre={ $expression_statement.st }, op={ ";" })  // make an expression a statement, need to terminate with semi
 	;
@@ -1166,13 +1171,11 @@ fixed_pointer_declarator:
 fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
-unsafe_statement:
-	'unsafe'   block;
 labeled_statement:
 	identifier   ':'   statement ;
 declaration_statement:
-	(local_variable_declaration -> { $local_variable_declaration.st }
-	| local_constant_declaration -> { $local_constant_declaration.st }) ';' ;
+	(local_variable_declaration -> op(pre = { $local_variable_declaration.st }, op = { ";" })
+	| local_constant_declaration -> op(pre = { $local_constant_declaration.st }, op = { ";" }) ) ';' ;
 local_variable_declaration:
 	local_variable_type   local_variable_declarators -> local_variable_declaration(type={ $local_variable_type.st }, decs = { $local_variable_declarators.st } );
 local_variable_type:
@@ -1198,94 +1201,69 @@ expression_statement:
 
 // TODO: should be assignment, call, increment, decrement, and new object expressions
 statement_expression:
-	expression
+	expression -> { $expression.st }
 	;
-selection_statement returns [bool isIf]:
-	if_statement { $isIf = true; }-> { $if_statement.st }
-	| switch_statement { $isIf = false; }-> { $switch_statement.st };
 if_statement:
 	// else goes with closest if
-	^(IF boolean_expression  SEP  t=embedded_statement e=else_statement?) 
-        -> if(cond= { $boolean_expression.st }, 
-              then = { $t.st }, thensemi = { $t.isSemi }, thenbraces = { $t.isBraces },  
-              else = { $else_statement.st }, elsesemi = { $e.isSemi }, elsebraces = { $e.isBraces }, elseisif = { $e.isIf })
+	
 	;
 else_statement returns [bool isSemi, bool isBraces, bool isIf]:
 	'else'   s=embedded_statement	{ $isSemi = $s.isSemi; $isBraces = $s.isBraces; $isIf = $s.isIf; } -> { $embedded_statement.st } ;
-switch_statement:
-	'switch'   '('   expression   ')'   switch_block ;
-switch_block:
-	'{'   switch_sections?   '}' ;
-switch_sections:
-	switch_section+ ;
 switch_section:
-	switch_labels   statement_list ;
-switch_labels:
-	switch_label+ ;
+    ^(SWITCH_SECTION lab+=switch_label+ stat+=statement+) -> switch_section(labels = { $lab }, statements = { $stat });
 switch_label:
-	('case'   constant_expression   ':')
-	| ('default'   ':') ;
+	^('case'   constant_expression) -> case(what = { $constant_expression.st })
+	| 'default' -> default_template() ;
 iteration_statement:
-	while_statement
-	| do_statement
-	| for_statement
-	| foreach_statement ;
-while_statement:
-	'while'   '('   boolean_expression   ')'   embedded_statement ;
+	^('while' boolean_expression  SEP embedded_statement) 
+          -> while(cond = { $boolean_expression.st }, block = { $embedded_statement.st }, blocksemi = { $embedded_statement.isSemi }, blockbraces = { $embedded_statement.isBraces })
+	| do_statement -> { $do_statement.st }
+	| ^('for' for_initializer? SEP expression? SEP for_iterator? SEP embedded_statement)
+         -> for(init = { $for_initializer.st }, cond = { $expression.st }, iter = { $for_iterator.st },
+                      block = { $embedded_statement.st }, blocksemi = { $embedded_statement.isSemi }, blockbraces = { $embedded_statement.isBraces })
+	| ^('foreach' local_variable_type   identifier  expression SEP  embedded_statement) 
+          -> foreach(type = { $local_variable_type.st }, loopid = { $identifier.st }, fromexp = { $expression.st },
+                      block = { $embedded_statement.st }, blocksemi = { $embedded_statement.isSemi }, blockbraces = { $embedded_statement.isBraces });
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
-for_statement:
-	'for'   '('   for_initializer?   ';'   for_condition?   ';'   for_iterator?   ')'   embedded_statement ;
 for_initializer:
-	(local_variable_declaration) => local_variable_declaration
-	| statement_expression_list 
+	(local_variable_declaration) => local_variable_declaration -> { $local_variable_declaration.st }
+	| statement_expression_list -> { $statement_expression_list.st }
 	;
-for_condition:
-	boolean_expression ;
 for_iterator:
-	statement_expression_list ;
+	statement_expression_list -> { $statement_expression_list.st };
 statement_expression_list:
-	statement_expression (',' statement_expression)* ;
-foreach_statement:
-	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement ;
+	s+=statement_expression (',' s+=statement_expression)* -> list(items = { $s }, sep = { ", " });
 jump_statement:
-	break_statement-> { $break_statement.st }
-	| continue_statement-> { $continue_statement.st }
+	'break'   ';'  -> string(payload={"break;"})
+	| 'continue'   ';' -> string(payload={"continue;"})
 	| goto_statement-> { $goto_statement.st }
-	| return_statement -> { $return_statement.st }
-	| throw_statement -> { $throw_statement.st };
-break_statement:
-	'break'   ';'  -> string(payload={"break"});
-continue_statement:
-	'continue'   ';' -> string(payload={"continue"});
+	| ^('return'   expression?) -> return(exp = { $expression.st })
+	| ^('throw'   expression?) -> throw(exp = { $expression.st });
 goto_statement:
 	'goto'   ( identifier
 			 | 'case'   constant_expression
 			 | 'default')   ';' ;
-return_statement:
-	'return'   expression?   ';' -> return(exp = { $expression.st });
-throw_statement:
-	'throw'   expression?   ';' -> throw(exp = { $expression.st });
-try_statement:
-      'try'   block   ( catch_clauses   finally_clause?
-					  | finally_clause);
-//TODO one or both
 catch_clauses:
-	'catch'   (specific_catch_clauses | general_catch_clause) ;
-specific_catch_clauses:
-	specific_catch_clause   ('catch'   (specific_catch_clause | general_catch_clause))*;
-specific_catch_clause:
-	'('   class_type   identifier?   ')'   block ;
-general_catch_clause:
-	block ;
+    c+=catch_clause+ -> list(items={ $c }, sep = {"\n" }) ;
+catch_clause:
+	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi } );
 finally_clause:
-	'finally'   block ;
+	^('finally'   block) -> fin(block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi });
 checked_statement:
 	'checked'   block ;
 unchecked_statement:
 	'unchecked'   block ;
-lock_statement:
-	'lock'   '('  expression   ')'   embedded_statement ;
+lock_statement
+@init {
+    StringTemplate someText = null;
+}:
+	'lock'   '('  expression   ')'   embedded_statement 
+        { someText = %lock(); 
+          %{someText}.exp = $expression.st; 
+          %{someText}.block = $embedded_statement.st;
+          %{someText}.blocksemi = $embedded_statement.isSemi;
+          %{someText}.blockbraces = $embedded_statement.isBraces; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } );
 using_statement:
 	'using'   '('    resource_acquisition   ')'    embedded_statement ;
 resource_acquisition:

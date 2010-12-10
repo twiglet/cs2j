@@ -872,16 +872,17 @@ statement_plus:
 	;
 embedded_statement:
 block
-	| selection_statement	// if, switch
+	| ^(IF boolean_expression SEP embedded_statement else_statement?)
+    | ^('switch' expression switch_section*)
 	| iteration_statement	// while, do, for, foreach
 	| jump_statement		// break, continue, goto, return, throw
-	| try_statement
+	| ^('try' block catch_clauses? finally_clause?)
 	| checked_statement
 	| unchecked_statement
 	| lock_statement
 	| using_statement 
 	| yield_statement 
-	| unsafe_statement
+    | ^('unsafe'   block)
 	| fixed_statement
 	| expression_statement	// expression!
 	;
@@ -894,8 +895,6 @@ fixed_pointer_declarator:
 fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
-unsafe_statement:
-	'unsafe'   block;
 labeled_statement:
 	identifier   ':'   statement ;
 declaration_statement:
@@ -926,40 +925,20 @@ expression_statement:
 statement_expression:
 	expression
 	;
-selection_statement:
-	if_statement
-	| switch_statement ;
-if_statement:
-	// else goes with closest if
-	// 'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
-    ^(IF boolean_expression SEP embedded_statement else_statement?)
-	;
 else_statement:
 	'else'   embedded_statement	;
-switch_statement:
-	'switch'   '('   expression   ')'   switch_block ;
-switch_block:
-	'{'   switch_sections?   '}' ;
-switch_sections:
-	switch_section+ ;
 switch_section:
-	switch_labels   statement_list ;
-switch_labels:
-	switch_label+ ;
+	^(SWITCH_SECTION switch_label+ statement_list) ;
 switch_label:
-	('case'   constant_expression   ':')
-	| ('default'   ':') ;
+	^('case'   constant_expression)
+	| 'default';
 iteration_statement:
-	while_statement
+	^('while' boolean_expression SEP embedded_statement)
 	| do_statement
-	| for_statement
-	| foreach_statement ;
-while_statement:
-	'while'   '('   boolean_expression   ')'   embedded_statement ;
+	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement)
+	| ^('foreach' local_variable_type   identifier  expression SEP  embedded_statement);
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
-for_statement:
-	'for'   '('   for_initializer?   ';'   for_condition?   ';'   for_iterator?   ')'   embedded_statement ;
 for_initializer:
 	(local_variable_declaration) => local_variable_declaration
 	| statement_expression_list 
@@ -970,14 +949,12 @@ for_iterator:
 	statement_expression_list ;
 statement_expression_list:
 	statement_expression (',' statement_expression)* ;
-foreach_statement:
-	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement ;
 jump_statement:
 	break_statement
 	| continue_statement
 	| goto_statement
-	| return_statement
-	| throw_statement ;
+	| ^('return' expression?)
+	| ^('throw'  expression?);
 break_statement:
 	'break'   ';' ;
 continue_statement:
@@ -986,24 +963,12 @@ goto_statement:
 	'goto'   ( identifier
 			 | 'case'   constant_expression
 			 | 'default')   ';' ;
-return_statement:
-	'return'   expression?   ';' ;
-throw_statement:
-	'throw'   expression?   ';' ;
-try_statement:
-      'try'   block   ( catch_clauses   finally_clause?
-					  | finally_clause);
-//TODO one or both
 catch_clauses:
-	'catch'   (specific_catch_clauses | general_catch_clause) ;
-specific_catch_clauses:
-	specific_catch_clause   ('catch'   (specific_catch_clause | general_catch_clause))*;
-specific_catch_clause:
-	'('   class_type   identifier?   ')'   block ;
-general_catch_clause:
-	block ;
+    catch_clause+ ;
+catch_clause:
+	^('catch' class_type   identifier block) ;
 finally_clause:
-	'finally'   block ;
+	^('finally'   block) ;
 checked_statement:
 	'checked'   block ;
 unchecked_statement:

@@ -29,6 +29,7 @@ tokens {
             DESTRUCTOR;
             METHOD_HEADER;
             PARAMS;
+            SWITCH_SECTION;
 
             MONOPLUS;
             MONOMINUS;

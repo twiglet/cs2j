@@ -66,14 +66,6 @@ scope NSContext {
         return stripped;
     }
 
-    protected CommonTree mkType(CommonTree t) {
-        CommonTree root_1 = (CommonTree)adaptor.Nil;
-        root_1 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, t.token, "TYPE"), root_1);
-        adaptor.AddChild(root_1, adaptor.DupTree(t));
-
-        return root_1;
-    }
-
     // TODO:  Read reserved words from a file so that they can be extended by customer
     private readonly static string[] javaReserved = new string[] { "int", "protected", "package" };
     
@@ -105,6 +97,9 @@ scope NSContext {
     protected CommonTree mkHole(IToken tok) {
         return (CommonTree)adaptor.Create(KGHOLE, tok, "KGHOLE");
     }
+
+    // counter to ensure that the catch vars we introduce are unique 
+    protected int dummyCatchVarCtr = 0;
 }
 
 /********************************************************************************************
@@ -192,12 +187,12 @@ class_member_declaration:
 	m=modifiers?
 	( c='const'   ct=type   constant_declarators   ';' -> ^(CONST[$c.token, "CONST"] $a? $m? $ct constant_declarators)
 	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1='void' m3=method_declaration[$a.tree, $m.tree, mkType($v1)] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $v1.tree] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
 			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
 			   | c1=class_declaration -> ^(CLASS[$c1.start.Token, "CLASS"] $a? $m? $c1)
 			   | s1=struct_declaration) -> ^(CLASS[$s1.start.Token, "CLASS"] $a? $m? $s1)
 	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
-	| v2='void'   m1=method_declaration[$a.tree, $m.tree, mkType($v2) ] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
+	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $v2.tree] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $t.tree] -> $m2
 		   | (member_name   '{') => property_declaration -> ^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t property_declaration)
 		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration -> ^(INDEXER[$t.start.Token, "INDEXER"] $a? $m? $t type_name $ix1)
@@ -250,8 +245,8 @@ primary_expression_start:
 primary_expression_part [CommonTree lhs]:
 	 access_identifier[$lhs]
 	| brackets_or_arguments[$lhs] 
-	| p='++' -> ^(POSTINC[$p.token, "POST++"] { (CommonTree)adaptor.DupTree($lhs) } )
-	| m='--' -> ^(POSTDEC[$m.token, "POST--"] { (CommonTree)adaptor.DupTree($lhs) } )
+	| p='++' -> ^(POSTINC[$p.token, "++"] { (CommonTree)adaptor.DupTree($lhs) } )
+	| m='--' -> ^(POSTDEC[$m.token, "--"] { (CommonTree)adaptor.DupTree($lhs) } )
     ;
 access_identifier [CommonTree lhs]:
 	access_operator   type_or_generic -> ^(access_operator { (CommonTree)adaptor.DupTree($lhs) } type_or_generic);
@@ -395,7 +390,7 @@ initializer_value:
 typeof_expression: 
 	'typeof'^   '('!   ((unbound_type_name) => unbound_type_name
 					  | type 
-					  | 'void')   ')'! ;
+					  | void_type)   ')'! ;
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -889,7 +884,7 @@ constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
 	type
-	|  v='void' -> ^(TYPE[$v.token, "TYPE"] $v);
+	|  void_type ;
 formal_parameter_list:
 	formal_parameter (',' formal_parameter)* -> ^(PARAMS formal_parameter+);
 formal_parameter:
@@ -925,7 +920,7 @@ interface_member_declarations:
 	interface_member_declaration+ ;
 interface_member_declaration:
 	attributes?    modifiers?
-		('void'   interface_method_declaration
+		(void_type   interface_method_declaration
 		| interface_event_declaration
 		| type   ( (member_name   '(') => interface_method_declaration
 		         | (member_name   '{') => interface_property_declaration 
@@ -974,14 +969,14 @@ struct_member_declaration:
 	attributes?   m=modifiers?
 	( 'const'   type   constant_declarators   ';'
 	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1='void' method_declaration[$attributes.tree, $modifiers.tree, mkType($v1)]
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type method_declaration[$attributes.tree, $modifiers.tree, $v1.tree]
 			   | interface_declaration 
 			   | class_declaration 
 			   | struct_declaration)
 
 	| interface_declaration	// 'interface'
 	| class_declaration		// 'class'
-	| v2='void' method_declaration[$attributes.tree, $modifiers.tree, mkType($v2) ]
+	| v2=void_type method_declaration[$attributes.tree, $modifiers.tree, $v2.tree]
 	| t1=type ( (member_name   type_parameter_list? '(') => method_declaration[$attributes.tree, $modifiers.tree, $t1.tree]
 		   | (member_name   '{') => property_declaration
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
@@ -1102,9 +1097,9 @@ fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
 unsafe_statement:
-	'unsafe'   block;
+	'unsafe'^   block;
 labeled_statement:
-	identifier   ':'   statement ;
+	identifier   ':'^   statement ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
@@ -1144,29 +1139,30 @@ if_statement:
 else_statement:
 	'else'   embedded_statement	;
 switch_statement:
-	'switch'   '('   expression   ')'   switch_block ;
+	s='switch'   '('   expression   ')'   switch_block -> ^($s expression switch_block);
 switch_block:
-	'{'   switch_sections?   '}' ;
-switch_sections:
-	switch_section+ ;
+	'{'!   switch_section*   '}'! ;
+//switch_sections:
+//	switch_section+ ;
 switch_section:
-	switch_labels   statement_list ;
-switch_labels:
-	switch_label+ ;
+	switch_label+   statement_list -> ^(SWITCH_SECTION switch_label+ statement_list);
+//switch_labels:
+//	switch_label+ ;
 switch_label:
-	('case'   constant_expression   ':')
-	| ('default'   ':') ;
+	('case'^   constant_expression   ':'!)
+	| ('default'   ':'!);
 iteration_statement:
 	while_statement
 	| do_statement
 	| for_statement
 	| foreach_statement ;
 while_statement:
-	'while'   '('   boolean_expression   ')'   embedded_statement ;
+	w='while'   '('   boolean_expression   ')'   embedded_statement -> ^($w boolean_expression SEP embedded_statement);
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
 for_statement:
-	'for'   '('   for_initializer?   ';'   for_condition?   ';'   for_iterator?   ')'   embedded_statement ;
+	f='for'   '('   for_initializer?   ';'   for_condition?   ';'   for_iterator?   ')'   embedded_statement 
+         -> ^($f for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement);
 for_initializer:
 	(local_variable_declaration) => local_variable_declaration
 	| statement_expression_list 
@@ -1178,7 +1174,8 @@ for_iterator:
 statement_expression_list:
 	statement_expression (',' statement_expression)* ;
 foreach_statement:
-	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement ;
+	f='foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement 
+    -> ^($f local_variable_type   identifier  expression SEP  embedded_statement);
 jump_statement:
 	break_statement
 	| continue_statement
@@ -1194,23 +1191,25 @@ goto_statement:
 			 | 'case'   constant_expression
 			 | 'default')   ';' ;
 return_statement:
-	'return'   expression?   ';' ;
+	'return'^   expression?   ';'! ;
 throw_statement:
-	'throw'   expression?   ';' ;
+	'throw'^   expression?   ';'! ;
 try_statement:
-      'try'   block   ( catch_clauses   finally_clause?
-					  | finally_clause);
-//TODO one or both
+      t='try'   block   ( catch_clauses   finally_clause?
+					  | finally_clause) -> ^($t block catch_clauses? finally_clause?);
+// We rewrite the catch clauses so that they all have the form "(catch Type Var)" by introducing
+// Throwable and dummy vars as necessary
 catch_clauses:
-	'catch'   (specific_catch_clauses | general_catch_clause) ;
+	'catch'^   general_catch_clause
+    |  c='catch'   specific_catch_clause catch_clauses* -> ^($c specific_catch_clause) catch_clauses*;
 specific_catch_clauses:
 	specific_catch_clause   ('catch'   (specific_catch_clause | general_catch_clause))*;
 specific_catch_clause:
-	'('   class_type   identifier?   ')'   block ;
+	'('   class_type   (identifier|magicCatchVar)   ')'   block -> class_type identifier? magicCatchVar? block ;  
 general_catch_clause:
-	block ;
+	block magicThrowableType magicCatchVar -> magicThrowableType magicCatchVar block;
 finally_clause:
-	'finally'   block ;
+	'finally'^   block ;
 checked_statement:
 	'checked'   block ;
 unchecked_statement:
@@ -1282,3 +1281,11 @@ literal:
 	| NULL 
 	;
 
+void_type:
+    v='void' -> ^(TYPE[$v.token, "TYPE"] $v);
+
+magicThrowableType:
+ -> ^(TYPE["TYPE"] IDENTIFIER["Throwable"]);
+
+magicCatchVar:
+  -> IDENTIFIER["__dummyCatchVar" + dummyCatchVarCtr++];

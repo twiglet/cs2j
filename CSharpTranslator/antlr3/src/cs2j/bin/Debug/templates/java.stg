@@ -85,7 +85,7 @@ statement(statement) ::= <<
 
 //***** local var declarations:
 
-local_variable_declaration(type,decs) ::= "<type> <decs>;"
+local_variable_declaration(type,decs) ::= "<type> <decs>"
 local_variable_declarator(name, init) ::= "<name><if(init)> = <init><endif>"
 
 return(exp) ::= "return <exp>;"
@@ -132,6 +132,63 @@ else<if(elseisif)> <block(statements = else, issemi = elsesemi, isbraces = elseb
 <endif> 
 >>
 
+while(cond,block,blocksemi, blockbraces) ::= <<
+while (<cond>)
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
+for(init,cond,iter,block,blocksemi, blockbraces) ::= <<
+for (<init>;<cond>;<iter>)
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
+foreach(type,loopid,fromexp,block,blocksemi, blockbraces) ::= <<
+for (<type> <loopid> : <fromexp>)
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
+try(block,blocksemi, blockbraces, catches, fin) ::= <<
+try
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<catches>
+<fin>
+>>
+
+catch_template(type, id, block,blocksemi, blockbraces) ::= <<
+catch (<type> <id>)
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
+fin(block,blocksemi, blockbraces) ::= <<
+finally
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
+
+switch(scrutinee, sections) ::= <<
+switch(<scrutinee>)
+    <sections>
+>>
+
+switch_section(labels,statements) ::= <<
+<labels>
+    <statements; separator="\n">
+
+>>
+
+case(what) ::= <<
+case <what>: 
+>>
+
+default_template() ::= <<
+default: 
+>>
+
+lock(exp,block,blocksemi, blockbraces) ::= <<
+lock(<exp>)
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
 block(statements,issemi,isbraces) ::= <<
 <if(issemi)>
     ;
@@ -152,7 +209,9 @@ block(statements,issemi,isbraces) ::= <<
 cast_expr(type, exp) ::= "(<type>)<exp>"
 construct(type, args, inits) ::= "new <type>(<args>)<if(inits)> /* [UNIMPLEMENTED] <inits> */<endif>"
 application(func, funcparens, args) ::= "<optparens(parens=funcparens,e=func)>(<args>)" 
+index(func, funcparens, args) ::= "<optparens(parens=funcparens,e=func)>[<args>]" 
 stackalloc(type, exp) ::= "stackalloc <type>[<exp>]"
+typeof(type) ::= "<type>.class"
 
 // ******* TYPES ***********
 void() ::= "void"
@@ -162,7 +221,7 @@ void() ::= "void"
 optparens(parens, e) ::= "<if(parens)>(<endif><e><if(parens)>)<endif>"
 parens(e) ::= "(<e>)"
 rank_specifiers(rs) ::= "<rs>"
-op(pre,op,post,mkparen,space) ::= "<if(mkparen)>(<endif><pre><space><op><space><post><if(mkparen)>)<endif>"
+op(pre,op,post,mkparen,space) ::= "<if(mkparen)>(<endif><if(pre)><pre><space><endif><op><if(post)><space><post><endif><if(mkparen)>)<endif>"
 assign(lhs,lhsparen,assign,rhs,rhsparen) ::= "<if(lhsparen)>(<endif><lhs><if(lhsparen)>)<endif> <assign> <if(rhsparen)>(<endif><rhs><if(rhsparen)>)<endif>"
 generic_args(args) ::= "\<<args>\>"
 parameter(annotation,param) ::=  "/* <annotation> */ <param>"
