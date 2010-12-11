@@ -179,7 +179,7 @@ switch(<scrutinee>)
 >>
 
 switch_section(labels,statements) ::= <<
-<labels>
+<labels; separator="\n">
     <statements; separator="\n">
 
 >>
@@ -234,9 +234,9 @@ void() ::= "void"
 optparens(parens, e) ::= "<if(parens)>(<endif><e><if(parens)>)<endif>"
 parens(e) ::= "(<e>)"
 rank_specifiers(rs) ::= "<rs>"
-op(comments,pre,op,post,mkparen,space) ::= <<
+op(comments,pre,op,post,preparen,postparen,space) ::= <<
 <comments; separator="\n">
-<if(mkparen)>(<endif><if(pre)><pre><space><endif><op><if(post)><space><post><endif><if(mkparen)>)<endif>
+<if(pre)><if(preparen)>(<endif><pre><if(preparen)>)<endif><space><endif><op><if(post)><space><if(postparen)>(<endif><post><if(postparen)>)<endif><endif>
 >>
 assign(lhs,lhsparen,assign,rhs,rhsparen) ::= "<if(lhsparen)>(<endif><lhs><if(lhsparen)>)<endif> <assign> <if(rhsparen)>(<endif><rhs><if(rhsparen)>)<endif>"
 generic_args(args) ::= "\<<args>\>"
