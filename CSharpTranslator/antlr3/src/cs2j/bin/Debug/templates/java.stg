@@ -244,7 +244,13 @@ parameter(annotation,param) ::=  "/* <annotation> */ <param>"
 inline_comment(payload, explanation) ::= "/* <explanation> <payload> */"
 commalist(items) ::= "<items; separator=\", \">"
 dotlist(items) ::= "<items; separator=\".\">"
-list(items,sep) ::= "<items;separator=sep>"
+//list(items,sep) ::= "<items;separator=sep>"
+list(items,sep) ::= <<
+<items;separator=sep>
+>>
+seplist(items,sep) ::= <<
+<items;separator=sep>
+>>
 
 unsupported(reason, text) ::= "/* [UNSUPPORTED] <reason> \"<text>\" */"
 

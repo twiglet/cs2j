@@ -1257,7 +1257,7 @@ goto_statement:
 			 | 'case'   constant_expression
 			 | 'default')   ';' ;
 catch_clauses:
-    c+=catch_clause+ -> list(items={ $c }, sep = { "\n" }) ;
+    c+=catch_clause+ -> seplist(items={ $c }, sep = { "\n" }) ;
 catch_clause:
 	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi } );
 finally_clause:
