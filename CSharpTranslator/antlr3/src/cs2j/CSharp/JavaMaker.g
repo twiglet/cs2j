@@ -249,22 +249,22 @@ primary_expression_start:
 primary_expression_part [CommonTree lhs]:
 	 access_identifier[$lhs]
 	| brackets_or_arguments[$lhs] 
-	| p='++' -> ^(POSTINC[$p.token, "++"] { (CommonTree)adaptor.DupTree($lhs) } )
-	| m='--' -> ^(POSTDEC[$m.token, "--"] { (CommonTree)adaptor.DupTree($lhs) } )
+	| p='++' -> ^(POSTINC[$p.token, "++"] { dupTree($lhs) } )
+	| m='--' -> ^(POSTDEC[$m.token, "--"] { dupTree($lhs) } )
     ;
 access_identifier [CommonTree lhs]:
-	access_operator   type_or_generic -> ^(access_operator { (CommonTree)adaptor.DupTree($lhs) } type_or_generic);
+	access_operator   type_or_generic -> ^(access_operator { dupTree($lhs) } type_or_generic);
 access_operator:
 	'.'  |  '->' ;
 brackets_or_arguments [CommonTree lhs]:
 	brackets[$lhs] | arguments[$lhs] ;
 brackets [CommonTree lhs]:
-	'['   expression_list?   ']' -> ^(INDEX { (CommonTree)adaptor.DupTree($lhs) } expression_list?);	
+	'['   expression_list?   ']' -> ^(INDEX { dupTree($lhs) } expression_list?);	
 // keving: TODO: drop this.
 paren_expression:	
 	'('   expression   ')' -> ^(PARENS expression);
 arguments [CommonTree lhs]: 
-	'('   argument_list?   ')' -> ^(APPLY { (CommonTree)adaptor.DupTree($lhs) } argument_list?);
+	'('   argument_list?   ')' -> ^(APPLY { dupTree($lhs) } argument_list?);
 argument_list: 
 	a1=argument (',' an+=argument)* -> ^(ARGS[$a1.start.Token,"ARGS"] $a1 $an*);
 // 4.0
@@ -558,9 +558,9 @@ relational_expression:
 		(	((o='<'|o='>'|o='>='|o='<=')	s2=shift_expression -> ^($o $relational_expression $s2))
 			| (i='is'  t=non_nullable_type -> ^(INSTANCEOF[$i.Token,"instanceof"] $relational_expression $t) 
                 | i1='as' t1=non_nullable_type -> ^(COND_EXPR[$i1.Token, "?:"] 
-                                                        ^(INSTANCEOF[$i1.Token,"instanceof"] { (CommonTree)adaptor.DupTree($relational_expression.tree) } { (CommonTree)adaptor.DupTree($t1.tree) } ) 
-                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } { (CommonTree)adaptor.DupTree($relational_expression.tree) }) 
-                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { (CommonTree)adaptor.DupTree($t1.tree) } NULL[$i1.Token, "null"])))
+                                                        ^(INSTANCEOF[$i1.Token,"instanceof"] { dupTree($relational_expression.tree) } { dupTree($t1.tree) } ) 
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { dupTree($t1.tree) } { dupTree($relational_expression.tree) }) 
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { dupTree($t1.tree) } NULL[$i1.Token, "null"])))
 		)* ;
 equality_expression:
 	relational_expression
@@ -738,9 +738,9 @@ variable_declarator:
 	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration[CommonTree atts, CommonTree mods, CommonTree type]:
+method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 		member_name type_parameter_list? '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    method_body 
-       -> ^(METHOD { (CommonTree)adaptor.DupTree($atts) } { (CommonTree)adaptor.DupTree($mods) } { (CommonTree)adaptor.DupTree($type) } 
+       -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
             member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body);
 //method_header[CommonTree atts, CommonTree mods, CommonTree type]:
 
@@ -923,23 +923,25 @@ interface_body:
 interface_member_declarations:
 	interface_member_declaration+ ;
 interface_member_declaration:
-	attributes?    modifiers?
-		(void_type   interface_method_declaration
-		| interface_event_declaration
-		| type   ( (member_name   '(') => interface_method_declaration
-		         | (member_name   '{') => interface_property_declaration 
-				 | interface_indexer_declaration)
+	a=attributes?    m=modifiers?
+		(vt=void_type   im1=interface_method_declaration[$a.tree, $m.tree, $vt.tree] -> $im1
+		| ie=interface_event_declaration[$a.tree, $m.tree] -> $ie
+		| t=type   ( (member_name   '(') => im2=interface_method_declaration[$a.tree, $m.tree, $t.tree] -> $im2
+		         | (member_name   '{') => ip=interface_property_declaration[$a.tree, $m.tree, $t.tree] -> ^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t interface_property_declaration)
+				 | ii=interface_indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ii)
 		) 
 		;
-interface_property_declaration: 
+interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	identifier   '{'   interface_accessor_declarations   '}' ;
-interface_method_declaration:
+interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	identifier   generic_argument_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
-interface_event_declaration: 
+	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
+       -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
+            identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list?);
+interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
 	'event'   type   identifier   ';' ; 
-interface_indexer_declaration: 
+interface_indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
 	// attributes?    'new'?    type   
 	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' ;
 interface_accessor_declarations:

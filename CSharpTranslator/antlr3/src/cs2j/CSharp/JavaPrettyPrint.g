@@ -257,8 +257,8 @@ class_member_declaration returns [List<String> preComments]:
             { $preComments = CollectedComments; } method_body)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
 //    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
-    | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st])
-    | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st])
+    | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
+    | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
     | ^(PROPERTY attributes? modifiers? type property_declaration)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
     | ^(FIELD attributes? modifiers? type field_declaration)     -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
@@ -979,27 +979,25 @@ interface_declaration[StringTemplate modifiersST]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=INTERFACE { preComments = CollectedComments; } 
+   ^(c=INTERFACE 
             identifier  type_parameter_constraints_clauses?  variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
-         class_extends?   interface_body )
+         class_extends?   { preComments = CollectedComments; } interface_body )
     -> iface(modifiers = {modifiersST}, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
-            imps = { $class_extends.st }) ;
-interface_modifiers: 
-	modifier+ ;
-interface_base: 
-   	':' interface_type_list ;
+            imps = { $class_extends.st }, body = { $interface_body.st }) ;
+//interface_base: 
+//   	':' interface_type_list ;
 interface_body:
-	'{'   interface_member_declarations?   '}' ;
-interface_member_declarations:
-	interface_member_declaration+ ;
-interface_member_declaration:
-	attributes?    modifiers?
-		('void'   interface_method_declaration
-		| interface_event_declaration
-		| type   ( (member_name   '(') => interface_method_declaration
-		         | (member_name   '{') => interface_property_declaration 
-				 | interface_indexer_declaration)
-		) 
+	'{'   ms+=interface_member_declaration_aux*   '}' -> class_body(entries = { $ms });
+interface_member_declaration_aux:
+	member=interface_member_declaration -> class_member(comments = { $member.preComments }, member = { $member.st });
+
+interface_member_declaration returns [List<String> preComments]:
+    ^(EVENT attributes? modifiers? event_declaration)
+    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
+         { $preComments = CollectedComments; }
+      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $identifier.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { true })
+    | ^(PROPERTY attributes? modifiers? type property_declaration)
+    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
 		;
 interface_property_declaration: 
 	identifier   '{'   interface_accessor_declarations   '}' ;

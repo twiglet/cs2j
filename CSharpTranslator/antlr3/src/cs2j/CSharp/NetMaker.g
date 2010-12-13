@@ -716,13 +716,10 @@ interface_body:
 interface_member_declarations:
 	interface_member_declaration+ ;
 interface_member_declaration:
-	attributes?    modifiers?
-		('void'   interface_method_declaration
-		| interface_event_declaration
-		| type   ( (member_name   '(') => interface_method_declaration
-		         | (member_name   '{') => interface_property_declaration 
-				 | interface_indexer_declaration)
-		) 
+    ^(EVENT attributes? modifiers? event_declaration)
+    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?)
+    | ^(PROPERTY attributes? modifiers? type property_declaration)
+    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
 		;
 interface_property_declaration: 
 	identifier   '{'   interface_accessor_declarations   '}' ;
