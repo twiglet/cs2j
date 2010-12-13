@@ -1200,14 +1200,15 @@ try_statement:
 // We rewrite the catch clauses so that they all have the form "(catch Type Var)" by introducing
 // Throwable and dummy vars as necessary
 catch_clauses:
-	'catch'^   general_catch_clause
-    |  c='catch'   specific_catch_clause catch_clauses* -> ^($c specific_catch_clause) catch_clauses*;
-specific_catch_clauses:
-	specific_catch_clause   ('catch'   (specific_catch_clause | general_catch_clause))*;
-specific_catch_clause:
-	'('   class_type   (identifier|magicCatchVar)   ')'   block -> class_type identifier? magicCatchVar? block ;  
-general_catch_clause:
-	block magicThrowableType magicCatchVar -> magicThrowableType magicCatchVar block;
+    catch_clause+;
+catch_clause
+@init {
+    CommonTree ty = null, var = null;
+}:
+    c='catch' ('('   given_t=class_type { ty = $given_t.tree; }  (given_v=identifier { var = $given_v.tree; } | magic_v=magicCatchVar { var = $magic_v.tree; } ) ')'
+                 | magic_t=magicThrowableType magic_v=magicCatchVar { ty = $magic_t.tree; var = $magic_v.tree; })   block
+       -> ^($c { ty } { var } block)
+    ;
 finally_clause:
 	'finally'^   block ;
 checked_statement:
