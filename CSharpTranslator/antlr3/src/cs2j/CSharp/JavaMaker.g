@@ -100,6 +100,10 @@ scope NSContext {
 
     // counter to ensure that the catch vars we introduce are unique 
     protected int dummyCatchVarCtr = 0;
+
+    protected CommonTree dupTree(CommonTree t) {
+        return (CommonTree)adaptor.DupTree(t);
+    }
 }
 
 /********************************************************************************************
@@ -1192,8 +1196,13 @@ goto_statement:
 			 | 'default')   ';' ;
 return_statement:
 	'return'^   expression?   ';'! ;
-throw_statement:
-	'throw'^   expression?   ';'! ;
+throw_statement
+// If throw exp is missing then it is the var from closest enclosing catch
+@init {
+    CommonTree var = null;
+    bool missingThrowExp = true;
+}:
+	t='throw'   (e=expression { missingThrowExp = false;})?  { var = missingThrowExp ? dupTree($catch_clause::throwVar) : $e.tree; } ';' -> ^($t { var });
 try_statement:
       t='try'   block   ( catch_clauses   finally_clause?
 					  | finally_clause) -> ^($t block catch_clauses? finally_clause?);
@@ -1202,11 +1211,12 @@ try_statement:
 catch_clauses:
     catch_clause+;
 catch_clause
+scope { CommonTree throwVar; }
 @init {
     CommonTree ty = null, var = null;
 }:
     c='catch' ('('   given_t=class_type { ty = $given_t.tree; }  (given_v=identifier { var = $given_v.tree; } | magic_v=magicCatchVar { var = $magic_v.tree; } ) ')'
-                 | magic_t=magicThrowableType magic_v=magicCatchVar { ty = $magic_t.tree; var = $magic_v.tree; })   block
+                 | magic_t=magicThrowableType magic_v=magicCatchVar { ty = $magic_t.tree; var = $magic_v.tree; })   { $catch_clause::throwVar = var; } block
        -> ^($c { ty } { var } block)
     ;
 finally_clause:
