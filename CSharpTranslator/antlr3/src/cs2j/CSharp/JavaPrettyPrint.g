@@ -304,12 +304,15 @@ primary_expression returns [int precedence]
 @init {
     $precedence = int.MaxValue;
 }: 
-    ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(INDEX, $expression.precedence) <= 0 }, args = { $expression_list.st } )
-    | ^(APPLY expression argument_list?) { $precedence = precedence[APPLY]; } -> application(func= { $expression.st }, funcparens = { comparePrecedence(APPLY, $expression.precedence) <= 0 }, args = { $argument_list.st } )
+    ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(precedence[INDEX], $expression.precedence) < 0 }, args = { $expression_list.st } )
+    | ^(APPLY expression argument_list?) { $precedence = precedence[APPLY]; } -> application(func= { $expression.st }, funcparens = { comparePrecedence(precedence[APPLY], $expression.precedence) < 0 }, args = { $argument_list.st } )
     | ^((op=POSTINC|op=POSTDEC) expression) { $precedence = precedence[$op.token.Type]; } 
          -> op(pre={$expression.st}, op={ $op.token.Text }, preparens= { comparePrecedence($op.token, $expression.precedence) <= 0 })
     | primary_expression_start -> { $primary_expression_start.st }
-    | ^(access_operator expression type_or_generic) { $precedence = $access_operator.precedence; } -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $type_or_generic.st })
+    | ^(access_operator expression type_or_generic) { $precedence = $access_operator.precedence; } 
+       -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $type_or_generic.st },
+              preparen = { comparePrecedence($access_operator.precedence, $expression.precedence) < 0 },
+              postparen = { comparePrecedence($access_operator.precedence, $type_or_generic.precedence) <= 0 })
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
@@ -421,12 +424,12 @@ member_declarator_list:
 	member_declarator  (',' member_declarator)* ; 
 member_declarator: 
 	qid   ('='   expression)? ;
-primary_or_array_creation_expression:
-	(array_creation_expression) => array_creation_expression -> { $array_creation_expression.st } 
-	| primary_expression -> { $primary_expression.st } 
+primary_or_array_creation_expression returns [int precedence]:
+	(array_creation_expression) => array_creation_expression { $precedence = $array_creation_expression.precedence; }  -> { $array_creation_expression.st } 
+	| primary_expression { $precedence = $primary_expression.precedence; } -> { $primary_expression.st } 
 	;
 // new Type[2] { }
-array_creation_expression:
+array_creation_expression returns [int precedence]:
 	^('new'   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   array_initializer?	// new int[4]
@@ -439,7 +442,7 @@ array_creation_expression:
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
-		)) ;
+		)) { $precedence = precedence[NEW]; };
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 variable_initializer_list:
@@ -535,7 +538,10 @@ namespace_or_type_name:
     | ^(op='.'  n3=namespace_or_type_name t3=type_or_generic)  -> op(pre={ $n3.st }, op = { "." }, post={ $t3.st });
 
 //	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   ts+=type_or_generic)* -> namespace_or_type(type1={$t1.st}, type2={$t2.st}, types={$ts});
-type_or_generic:
+type_or_generic returns [int precedence]
+@init {
+    $precedence = int.MaxValue;
+}:
 	(identifier   generic_argument_list) => gi=identifier   generic_argument_list -> op(pre={ $gi.st }, post={ $generic_argument_list.st })
 	| i=identifier -> { $i.st };
 
@@ -614,9 +620,9 @@ unary_expression returns [int precedence]
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
 //	^(CAST_EXPR type expression) 
 	^(CAST_EXPR type u0=unary_expression)  { $precedence = precedence[CAST_EXPR]; } -> cast_expr(type= { $type.st}, exp = { $u0.st})
-	| primary_or_array_creation_expression -> { $primary_or_array_creation_expression.st }
+	| primary_or_array_creation_expression { $precedence = $primary_or_array_creation_expression.precedence; } -> { $primary_or_array_creation_expression.st }
 	| ^((op=MONOPLUS | op=MONOMINUS | op=MONONOT | op=MONOTWIDDLE | op=PREINC | op=PREDEC)  u1=unary_expression) { $precedence = precedence[$op.token.Type]; }
-          -> op(postparen={ comparePrecedence($op.token, $u1.precedence) > 0 }, op={ $op.token.Text }, post={$u1.st})
+          -> op(postparen={ comparePrecedence($op.token, $u1.precedence) <= 0 }, op={ $op.token.Text }, post={$u1.st})
 	| ^((op=MONOSTAR|op=ADDRESSOF) u1=unary_expression) 
         { 
             StringTemplate opText = %op();

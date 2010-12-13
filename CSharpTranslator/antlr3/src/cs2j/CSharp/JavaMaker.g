@@ -525,13 +525,13 @@ cast_expression:
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | r='>' '>=' -> RIGHT_SHIFT_ASSIGN[$r.token, ">>="] ;
 pre_increment_expression: 
-	s='++'   unary_expression -> ^(PREINC[$s.token, "PRE++"] unary_expression) ;
+	s='++'   unary_expression -> ^(PREINC[$s.token, "++"] unary_expression) ;
 pre_decrement_expression: 
-	s='--'   unary_expression -> ^(PREDEC[$s.token, "PRE--"] unary_expression);
+	s='--'   unary_expression -> ^(PREDEC[$s.token, "--"] unary_expression);
 pointer_indirection_expression:
-	s='*'   unary_expression -> ^(MONOSTAR[$s.token, "STAR"] unary_expression);
+	s='*'   unary_expression -> ^(MONOSTAR[$s.token, "*"] unary_expression);
 addressof_expression:
-	a='&'   unary_expression -> ^(ADDRESSOF[$a.token, "ADDRESSOF"] unary_expression);
+	a='&'   unary_expression -> ^(ADDRESSOF[$a.token, "&"] unary_expression);
 
 non_assignment_expression:
 	//'non ASSIGNment'

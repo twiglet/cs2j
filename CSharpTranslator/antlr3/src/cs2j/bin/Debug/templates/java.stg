@@ -28,9 +28,9 @@ package(now, includeDate, packageName, comments, modifiers, type, endComments) :
 
 // ******* CLASSES ***********
 
-class(modifiers, comments, attributes, name, typeparams, inherits, body) ::= <<
+class(modifiers, comments, attributes, name, typeparams, extends, imps, body) ::= <<
 <comments; separator="\n">
-<modifiers(modifiers)>class <name> <typeparams> <inherits>
+<modifiers(modifiers)>class <name> <typeparams> <extends> <imps>
 {
     <body>
 }
