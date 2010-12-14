@@ -47,8 +47,13 @@ tokens {
             ARGS;
             NEW;
 
+            RETURN = 'return';
+            PRIVATE = 'private';
+
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
+            OPEN_BRACE='{';
+            CLOSE_BRACE='}';
             LPAREN='(';
             NULL_COALESCE='??';
             IF='if';

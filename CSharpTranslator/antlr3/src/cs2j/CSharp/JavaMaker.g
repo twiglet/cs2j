@@ -198,9 +198,9 @@ class_member_declaration:
 	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
 	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $v2.tree] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $t.tree] -> $m2
-		   | (member_name   '{') => property_declaration -> ^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t property_declaration)
-		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration -> ^(INDEXER[$t.start.Token, "INDEXER"] $a? $m? $t type_name $ix1)
-		   | ix2=indexer_declaration	-> ^(INDEXER[$t.start.Token,"INDEXER"] $a? $m? $t $ix2) //this
+		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
+		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ix1
+		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree]	-> $ix2 //this
 	       | field_declaration     -> ^(FIELD[$t.start.Token, "FIELD"] $a? $m? $t field_declaration) // qid
 	       | operator_declaration -> ^(OPERATOR[$t.start.Token, "OPERATOR"] $a? $m? $t operator_declaration)
 	       )
@@ -731,7 +731,7 @@ constant_expression:
 
 ///////////////////////////////////////////////////////
 field_declaration:
-	variable_declarators   ';'	;
+	variable_declarators   ';'!	;
 variable_declarators:
 	variable_declarator (','   variable_declarator)* ;
 variable_declarator:
@@ -746,8 +746,8 @@ method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 
 method_body:
 	block ;
-member_name :
-    (type_or_generic '.')* identifier
+member_name returns [String rawId]:
+    (type_or_generic '.')* i=identifier { $rawId = $i.text; }
    // keving [interface_type.identifier] | type_name '.' identifier 
     ;
 
@@ -755,20 +755,32 @@ member_name_orig returns [string name, List<String> tyargs]:
 	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-property_declaration:
-	member_name   '{'   accessor_declarations   '}' ;
-accessor_declarations:
-	attributes?
-		(get_accessor_declaration   attributes?   set_accessor_declaration?
-		| set_accessor_declaration   attributes?   get_accessor_declaration?) ;
-get_accessor_declaration:
-	accessor_modifier?   'get'   accessor_body ;
-set_accessor_declaration:
-	accessor_modifier?   'set'   accessor_body ;
+property_declaration [CommonTree atts, CommonTree mods, CommonTree type]
+scope { bool emptyGetterSetter; }
+@init {
+    $property_declaration::emptyGetterSetter = false;
+    CommonTree privateVar = null;               
+}
+:
+	i=member_name   '{'   ads=accessor_declarations[atts, mods, type, $i.text, $i.rawId]   '}' 
+        v=magicMkPropertyVar[type, "__" + $i.tree.Text] { privateVar = $property_declaration::emptyGetterSetter ? $v.tree : null; }-> { privateVar } $ads ;
+
+accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, String propName, String rawVarName]:
+    accessor_declaration[atts, mods, type, propName, rawVarName]+;
+
+accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, String propName, String rawVarName]
+@init {
+     CommonTree propBlock = null; 
+     bool mkBody = false;
+}:
+	la=attributes? lm=accessor_modifier? 
+      (g='get' ((';')=> gbe=';'  { $property_declaration::emptyGetterSetter = true; propBlock = $gbe.tree; mkBody = true; rawVarName = "__" + rawVarName; } 
+                | gb=block { propBlock = $gb.tree; } ) getm=magicPropGetter[atts, $la.tree, mods, $lm.tree, type, $g.token, propBlock, propName, mkBody, rawVarName] -> $getm
+       | s='set' ((';')=> sbe=';'  { $property_declaration::emptyGetterSetter = true; propBlock = $sbe.tree; mkBody = true; rawVarName = "__" + rawVarName; } 
+                  | sb=block { propBlock = $sb.tree; } ) setm=magicPropSetter[atts, $la.tree, mods, $lm.tree, type, $s.token, propBlock, propName, mkBody, rawVarName] -> $setm)
+    ;
 accessor_modifier:
 	'public' | 'protected' | 'private' | 'internal' ;
-accessor_body:
-	block ;
 
 ///////////////////////////////////////////////////////
 event_declaration:
@@ -927,12 +939,13 @@ interface_member_declaration:
 		(vt=void_type   im1=interface_method_declaration[$a.tree, $m.tree, $vt.tree] -> $im1
 		| ie=interface_event_declaration[$a.tree, $m.tree] -> $ie
 		| t=type   ( (member_name   '(') => im2=interface_method_declaration[$a.tree, $m.tree, $t.tree] -> $im2
-		         | (member_name   '{') => ip=interface_property_declaration[$a.tree, $m.tree, $t.tree] -> ^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t interface_property_declaration)
+                   // property will rewrite to one, or two method headers
+		         | (member_name   '{') => ip=interface_property_declaration[$a.tree, $m.tree, $t.tree] -> $ip //^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t interface_property_declaration)
 				 | ii=interface_indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ii)
 		) 
 		;
 interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
-	identifier   '{'   interface_accessor_declarations   '}' ;
+	i=identifier   '{'   iads=interface_accessor_declarations[atts, mods, type, $i.text]   '}' -> $iads ;
 interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	identifier   generic_argument_list?
 	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
@@ -943,17 +956,14 @@ interface_event_declaration [CommonTree atts, CommonTree mods]:
 	'event'   type   identifier   ';' ; 
 interface_indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
 	// attributes?    'new'?    type   
-	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' ;
-interface_accessor_declarations:
-	attributes?   
-		(interface_get_accessor_declaration   attributes?   interface_set_accessor_declaration?
-		| interface_set_accessor_declaration   attributes?   interface_get_accessor_declaration?) ;
-interface_get_accessor_declaration:
-	'get'   ';' ;		// no body / modifiers
-interface_set_accessor_declaration:
-	'set'   ';' ;		// no body / modifiers
-method_modifiers:
-	modifier+ ;
+	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations[atts,mods,type, "INDEX"]   '}' ;
+interface_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, String propName]:
+    interface_accessor_declaration[atts, mods, type, propName]+
+    ;
+interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, String propName]:
+	la=attributes? (g='get' semi=';' magicPropGetter[atts, $la.tree, mods, null, type, $g.token, $semi.tree, propName, false, ""] -> magicPropGetter
+                    | s='set' semi=';'  magicPropSetter[atts, $la.tree, mods, null, type, $s.token, $semi.tree, propName, false, ""] -> magicPropSetter)
+    ;
 	
 ///////////////////////////////////////////////////////
 struct_declaration returns [string name]:
@@ -961,49 +971,49 @@ struct_declaration returns [string name]:
     -> ^(CLASS[$c.Token] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 // UNUSED, HOPEFULLY
-struct_modifiers:
-	struct_modifier+ ;
-struct_modifier:
-	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-struct_interfaces:
-	':'   interface_type_list;
-struct_body:
-	'{'   struct_member_declarations?   '}';
-struct_member_declarations:
-	struct_member_declaration+ ;
-struct_member_declaration:
-	attributes?   m=modifiers?
-	( 'const'   type   constant_declarators   ';'
-	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type method_declaration[$attributes.tree, $modifiers.tree, $v1.tree]
-			   | interface_declaration 
-			   | class_declaration 
-			   | struct_declaration)
-
-	| interface_declaration	// 'interface'
-	| class_declaration		// 'class'
-	| v2=void_type method_declaration[$attributes.tree, $modifiers.tree, $v2.tree]
-	| t1=type ( (member_name   type_parameter_list? '(') => method_declaration[$attributes.tree, $modifiers.tree, $t1.tree]
-		   | (member_name   '{') => property_declaration
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
-	       | field_declaration      // qid
-	       | operator_declaration
-	       )
-//	common_modifiers// (method_modifiers | field_modifiers)
-	
-	| struct_declaration	// 'struct'	   
-	| enum_declaration		// 'enum'
-	| delegate_declaration	// 'delegate'
-	| conversion_operator_declaration
-	| constructor_declaration	//	| static_constructor_declaration
-	) 
-	;
+// struct_modifiers:
+// 	struct_modifier+ ;
+// struct_modifier:
+// 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
+// struct_interfaces:
+// 	':'   interface_type_list;
+// struct_body:
+// 	'{'   struct_member_declarations?   '}';
+// struct_member_declarations:
+// 	struct_member_declaration+ ;
+// struct_member_declaration:
+// 	attributes?   m=modifiers?
+// 	( 'const'   type   constant_declarators   ';'
+// 	| event_declaration		// 'event'
+// 	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type method_declaration[$attributes.tree, $modifiers.tree, $v1.tree]
+// 			   | interface_declaration 
+// 			   | class_declaration 
+// 			   | struct_declaration)
+// 
+// 	| interface_declaration	// 'interface'
+// 	| class_declaration		// 'class'
+// 	| v2=void_type method_declaration[$attributes.tree, $modifiers.tree, $v2.tree]
+// 	| t1=type ( (member_name   type_parameter_list? '(') => method_declaration[$attributes.tree, $modifiers.tree, $t1.tree]
+// 		   | (member_name   '{') => property_declaration
+// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+// 		   | indexer_declaration	//this
+// 	       | field_declaration      // qid
+// 	       | operator_declaration
+// 	       )
+// //	common_modifiers// (method_modifiers | field_modifiers)
+// 	
+// 	| struct_declaration	// 'struct'	   
+// 	| enum_declaration		// 'enum'
+// 	| delegate_declaration	// 'delegate'
+// 	| conversion_operator_declaration
+// 	| constructor_declaration	//	| static_constructor_declaration
+// 	) 
+// 	;
 // UNUSED END
 
 ///////////////////////////////////////////////////////
-indexer_declaration:
-	indexer_declarator   '{'   accessor_declarations   '}' ;
+indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
+	indexer_declarator   '{'   accessor_declarations[atts, mods, type, "INDEX", "INDEX"]   '}' ;
 indexer_declarator:
 	//(type_name '.')?   
 	'this'   '['   formal_parameter_list   ']' ;
@@ -1302,3 +1312,31 @@ magicThrowableType:
 
 magicCatchVar:
   -> IDENTIFIER["__dummyCatchVar" + dummyCatchVarCtr++];
+
+magicPropGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken getTok, CommonTree body, String propName, bool mkBody, String varName]
+@init {
+    CommonTree realBody = body;
+}: 
+    ( { mkBody }? => b=magicGetterBody[getTok,varName] { realBody = $b.tree; }| )
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } ) 
+    ;
+magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, String propName, bool mkBody, String varName]
+@init {
+    CommonTree realBody = body;
+}: 
+    ( { mkBody }? => b=magicSetterBody[setTok,varName] { realBody = $b.tree; }| )
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } ) 
+    ;
+
+magicSemi:
+   -> SEMI;
+
+magicMkPropertyVar[CommonTree type, String varText] :
+ -> ^(FIELD[$type.token, "FIELD"] PRIVATE[$type.token, "private"] { dupTree(type) } IDENTIFIER[$type.token, varText])
+    ; 
+
+magicGetterBody[IToken getTok, String varName]:    
+ -> OPEN_BRACE[getTok,"{"] ^(RETURN[getTok, "return"] IDENTIFIER[getTok, varName]) CLOSE_BRACE[getTok,"}"];
+magicSetterBody[IToken setTok, String varName]:    
+ -> OPEN_BRACE[setTok,"{"] IDENTIFIER[setTok, varName] ASSIGN[setTok,"="] IDENTIFIER[setTok, "value"] SEMI[setTok, ";"] CLOSE_BRACE[setTok,"}"] ;
+

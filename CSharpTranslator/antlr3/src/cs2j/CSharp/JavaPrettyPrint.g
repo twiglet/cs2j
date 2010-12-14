@@ -232,7 +232,6 @@ compilation_unit
 
 type_declaration [StringTemplate modifiersST]:
     class_declaration[modifiersST] -> { $class_declaration.st }
-//	| struct_declaration
 	| interface_declaration[modifiersST] -> { $interface_declaration.st }
 	| enum_declaration[modifiersST] -> { $enum_declaration.st }
 	| delegate_declaration ;
@@ -251,20 +250,19 @@ modifier
         -> string(payload={$m.text});
 	
 class_member_declaration returns [List<String> preComments]:
-    ^(CONST attributes? modifiers? type constant_declarators)
-    | ^(EVENT attributes? modifiers? event_declaration)
+    ^(CONST attributes? modifiers? type { $preComments = CollectedComments; } constant_declarators)
+    | ^(EVENT attributes? modifiers? { $preComments = CollectedComments; } event_declaration)
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?
             { $preComments = CollectedComments; } method_body)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
 //    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
-    | ^(PROPERTY attributes? modifiers? type property_declaration)
-    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
-    | ^(FIELD attributes? modifiers? type field_declaration)     -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
-    | ^(OPERATOR attributes? modifiers? type operator_declaration)
-    | ^(ENUM attributes? modifiers? enum_declaration[$modifiers.st])
-    | ^(DELEGATE attributes? modifiers? delegate_declaration)
+    | ^(INDEXER attributes? modifiers? type type_name? { $preComments = CollectedComments; } indexer_declaration)
+    | ^(FIELD attributes? modifiers? type { $preComments = CollectedComments; } field_declaration)  -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
+    | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
+    | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st])
+    | ^(DELEGATE attributes? modifiers? { $preComments = CollectedComments; } delegate_declaration)
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
     | ^(CONSTRUCTOR attributes? modifiers? constructor_declaration)
     | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
@@ -847,7 +845,7 @@ constant_expression:
 
 ///////////////////////////////////////////////////////
 field_declaration:
-	variable_declarators   ';'	-> { $variable_declarators.st };
+	variable_declarators	-> { $variable_declarators.st };
 variable_declarators:
 	vs+=variable_declarator (','   vs+=variable_declarator)* -> variable_declarators(varinits = {$vs});
 variable_declarator:
@@ -870,8 +868,7 @@ member_name:
 //	qid -> { $qid.st };		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-property_declaration:
-	member_name   '{'   accessor_declarations   '}' ;
+
 accessor_declarations:
 	attributes?
 		(get_accessor_declaration   attributes?   set_accessor_declaration?
@@ -996,11 +993,9 @@ interface_member_declaration returns [List<String> preComments]:
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
          { $preComments = CollectedComments; }
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $identifier.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { true })
-    | ^(PROPERTY attributes? modifiers? type property_declaration)
-    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
+    | ^(INDEXER attributes? modifiers? type type_name? { $preComments = CollectedComments; } indexer_declaration)
 		;
-interface_property_declaration: 
-	identifier   '{'   interface_accessor_declarations   '}' ;
+
 interface_method_declaration:
 	identifier   generic_argument_list?
 	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;

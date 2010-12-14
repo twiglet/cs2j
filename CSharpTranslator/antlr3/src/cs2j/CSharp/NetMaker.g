@@ -19,7 +19,6 @@ compilation_unit:
 
 type_declaration:
 	class_declaration
-	| struct_declaration
 	| interface_declaration
 	| enum_declaration
 	| delegate_declaration ;
@@ -41,7 +40,6 @@ class_member_declaration:
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body)
     | ^(INTERFACE attributes? modifiers? interface_declaration)
     | ^(CLASS attributes? modifiers? class_declaration)
-    | ^(PROPERTY attributes? modifiers? type property_declaration)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
     | ^(FIELD attributes? modifiers? type field_declaration)
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
@@ -588,7 +586,7 @@ constant_expression:
 
 ///////////////////////////////////////////////////////
 field_declaration:
-	variable_declarators   ';'	;
+	variable_declarators ;
 variable_declarators:
 	variable_declarator (','   variable_declarator)* ;
 variable_declarator:
@@ -608,22 +606,22 @@ member_name:
 	//identifier ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-property_declaration:
-	member_name   '{'   accessor_declarations   '}' ;
+
 accessor_declarations:
-	attributes?
-		(get_accessor_declaration   attributes?   set_accessor_declaration?
-		| set_accessor_declaration   attributes?   get_accessor_declaration?) ;
+       attributes?
+               (get_accessor_declaration   attributes?   set_accessor_declaration?
+               | set_accessor_declaration   attributes?   get_accessor_declaration?) ;
 get_accessor_declaration:
-	accessor_modifier?   'get'   accessor_body ;
+       accessor_modifier?   'get'   accessor_body ;
 set_accessor_declaration:
-	accessor_modifier?   'set'   accessor_body ;
+       accessor_modifier?   'set'   accessor_body ;
 accessor_modifier:
-	'public' | 'protected' | 'private' | 'internal' ;
+       'public' | 'protected' | 'private' | 'internal' ;
 accessor_body:
-	block ;
+       block ;
 
 ///////////////////////////////////////////////////////
+
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
@@ -718,11 +716,8 @@ interface_member_declarations:
 interface_member_declaration:
     ^(EVENT attributes? modifiers? event_declaration)
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?)
-    | ^(PROPERTY attributes? modifiers? type property_declaration)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
 		;
-interface_property_declaration: 
-	identifier   '{'   interface_accessor_declarations   '}' ;
 interface_method_declaration:
 	identifier   generic_argument_list?
 	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
@@ -744,46 +739,46 @@ method_modifiers:
 	modifier+ ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration:
-	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
-struct_modifiers:
-	struct_modifier+ ;
-struct_modifier:
-	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-struct_interfaces:
-	':'   interface_type_list;
-struct_body:
-	'{'   struct_member_declarations?   '}';
-struct_member_declarations:
-	struct_member_declaration+ ;
-struct_member_declaration:
-	attributes?   m=modifiers?
-	( 'const'   type   constant_declarators   ';'
-	| event_declaration		// 'event'
-	| 'partial' (method_declaration 
-			   | interface_declaration 
-			   | class_declaration 
-			   | struct_declaration)
-
-	| interface_declaration	// 'interface'
-	| class_declaration		// 'class'
-	| 'void'   method_declaration
-	| type ( (member_name   '(') => method_declaration
-		   | (member_name   '{') => property_declaration
-		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-		   | indexer_declaration	//this
-	       | field_declaration      // qid
-	       | operator_declaration
-	       )
-//	common_modifiers// (method_modifiers | field_modifiers)
-	
-	| struct_declaration	// 'struct'	   
-	| enum_declaration		// 'enum'
-	| delegate_declaration	// 'delegate'
-	| conversion_operator_declaration
-	| constructor_declaration	//	| static_constructor_declaration
-	) 
-	;
+// struct_declaration:
+// 	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
+// struct_modifiers:
+// 	struct_modifier+ ;
+// struct_modifier:
+// 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
+// struct_interfaces:
+// 	':'   interface_type_list;
+// struct_body:
+// 	'{'   struct_member_declarations?   '}';
+// struct_member_declarations:
+// 	struct_member_declaration+ ;
+// struct_member_declaration:
+// 	attributes?   m=modifiers?
+// 	( 'const'   type   constant_declarators   ';'
+// 	| event_declaration		// 'event'
+// 	| 'partial' (method_declaration 
+// 			   | interface_declaration 
+// 			   | class_declaration 
+// 			   | struct_declaration)
+// 
+// 	| interface_declaration	// 'interface'
+// 	| class_declaration		// 'class'
+// 	| 'void'   method_declaration
+// 	| type ( (member_name   '(') => method_declaration
+// 		   | (member_name   '{') => property_declaration
+// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
+// 		   | indexer_declaration	//this
+// 	       | field_declaration      // qid
+// 	       | operator_declaration
+// 	       )
+// //	common_modifiers// (method_modifiers | field_modifiers)
+// 	
+// 	| struct_declaration	// 'struct'	   
+// 	| enum_declaration		// 'enum'
+// 	| delegate_declaration	// 'delegate'
+// 	| conversion_operator_declaration
+// 	| constructor_declaration	//	| static_constructor_declaration
+// 	) 
+// 	;
 
 
 ///////////////////////////////////////////////////////
