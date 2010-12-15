@@ -53,10 +53,18 @@ class_member(comments, member) ::= <<
 <member>
 >>
 
+constructor(modifiers, name, params, exception="Throwable", bodyIsSemi, body) ::= <<
+<modifiers(modifiers)><name>(<params; separator=", ">) throws <exception><if(!bodyIsSemi)> {<else>;<endif>
+    <body>
+<if(!bodyIsSemi)>}<endif>
+
+>>
+
 method(modifiers, typeparams, type, name, params, exception="Throwable", bodyIsSemi, body) ::= <<
 <modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">) throws <exception><if(!bodyIsSemi)> {<else>;<endif>
     <body>
 <if(!bodyIsSemi)>}<endif>
+
 >>
 
 field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field>;"

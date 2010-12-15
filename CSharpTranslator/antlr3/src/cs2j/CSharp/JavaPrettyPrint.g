@@ -264,7 +264,8 @@ class_member_declaration returns [List<String> preComments]:
     | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st])
     | ^(DELEGATE attributes? modifiers? { $preComments = CollectedComments; } delegate_declaration)
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
-    | ^(CONSTRUCTOR attributes? modifiers? constructor_declaration)
+    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block)
+       -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
 
@@ -1089,16 +1090,6 @@ conversion_operator_declaration:
 conversion_operator_declarator:
 	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
 operator_body:
-	block ;
-
-///////////////////////////////////////////////////////
-constructor_declaration:
-	constructor_declarator   constructor_body ;
-constructor_declarator:
-	identifier   '('   formal_parameter_list?   ')'   constructor_initializer? ;
-constructor_initializer:
-	':'   ('base' | 'this')   '('   argument_list?   ')' ;
-constructor_body:
 	block ;
 
 ///////////////////////////////////////////////////////

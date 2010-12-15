@@ -1045,13 +1045,16 @@ operator_body:
 
 ///////////////////////////////////////////////////////
 constructor_declaration:
-	constructor_declarator   constructor_body ;
-constructor_declarator:
-	identifier   '('   formal_parameter_list?   ')'   constructor_initializer? ;
+		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] 
+            -> $i $p? $b;
 constructor_initializer:
-	':'   ('base' | 'this')   '('   argument_list?   ')' ;
-constructor_body:
-	block ;
+	':'   (tok='base' { tok.Text = "super"; } | tok='this')   '('   argument_list?   ')' 
+         -> ^(APPLY[$tok.token, "APPLY"] IDENTIFIER[$tok.token, $tok.token.Text] argument_list?) SEMI[$tok.token, ";"] ;
+constructor_body[CommonTree init]:
+	{init == null}?=> s=';' -> $s 
+	| s1=';' -> OPEN_BRACE[$s1.token, "{"] { dupTree(init) } CLOSE_BRACE[$s1.token, "}"]
+    | a='{' ss+=statement* b='}' -> $a { dupTree(init) } $ss* $b
+    ;
 
 ///////////////////////////////////////////////////////
 //static_constructor_declaration:

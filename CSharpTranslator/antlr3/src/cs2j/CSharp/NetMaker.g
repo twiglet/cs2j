@@ -46,7 +46,7 @@ class_member_declaration:
     | ^(ENUM attributes? modifiers? enum_declaration)
     | ^(DELEGATE attributes? modifiers? delegate_declaration)
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
-    | ^(CONSTRUCTOR attributes? modifiers? constructor_declaration)
+    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block)
     | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
 // class_member_declaration:
@@ -811,16 +811,6 @@ conversion_operator_declaration:
 conversion_operator_declarator:
 	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
 operator_body:
-	block ;
-
-///////////////////////////////////////////////////////
-constructor_declaration:
-	constructor_declarator   constructor_body ;
-constructor_declarator:
-	identifier   '('   formal_parameter_list?   ')'   constructor_initializer? ;
-constructor_initializer:
-	':'   ('base' | 'this')   '('   argument_list?   ')' ;
-constructor_body:
 	block ;
 
 ///////////////////////////////////////////////////////
