@@ -49,6 +49,8 @@ tokens {
 
             RETURN = 'return';
             PRIVATE = 'private';
+            STATIC = 'static';
+            PRIVATE = 'private';
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';

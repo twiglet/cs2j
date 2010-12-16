@@ -66,6 +66,21 @@ scope NSContext {
         return stripped;
     }
 
+    protected CommonTree addConstModifiers(IToken tok, List<string> filter) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+
+        if (!filter.Contains("static") )
+        {
+            adaptor.AddChild(root, (CommonTree)adaptor.Create(STATIC, tok, "static"));
+        }
+        if (!filter.Contains("final")) 
+        {
+            adaptor.AddChild(root, (CommonTree)adaptor.Create(FINAL, tok, "final"));
+        }
+        root = (CommonTree)adaptor.RulePostProcessing(root);
+        return root;
+    }
+
     // TODO:  Read reserved words from a file so that they can be extended by customer
     private readonly static string[] javaReserved = new string[] { "int", "protected", "package" };
     
@@ -180,8 +195,11 @@ qualified_identifier returns [string thetext]:
 namespace_name
 	: namespace_or_type_name ;
 
-modifiers:
-	modifier+ ;
+modifiers returns [List<string> modList]
+@init {
+    $modList = new List<string>();
+}:
+	 (modifier { if ($modifier.tree != null) $modList.Add( $modifier.tree.Text); })+ ;
 modifier: 
 	'new' | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
 	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | 'extern' | 'virtual' -> | 'override' -> /* not in Java,maybe convert to override annotation */;
@@ -189,7 +207,7 @@ modifier:
 class_member_declaration:
 	a=attributes?
 	m=modifiers?
-	( c='const'   ct=type   constant_declarators   ';' -> ^(CONST[$c.token, "CONST"] $a? $m? $ct constant_declarators)
+	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m { addConstModifiers($c.token, $modifiers.modList) } $ct constant_declarators)
 	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
 	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $v1.tree] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
 			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
@@ -1343,3 +1361,6 @@ magicGetterBody[IToken getTok, String varName]:
 magicSetterBody[IToken setTok, String varName]:    
  -> OPEN_BRACE[setTok,"{"] IDENTIFIER[setTok, varName] ASSIGN[setTok,"="] IDENTIFIER[setTok, "value"] SEMI[setTok, ";"] CLOSE_BRACE[setTok,"}"] ;
 
+// keving: can't get this to work reasonably
+//magicMkConstModifiers[IToken tok, List<string> filter]: 
+//    ({ !filter.Contains("static") }?=> -> STATIC[tok, "static"] ) ( { !filter.Contains("public") }?=> -> $magicMkConstModifiers FINAL[tok, "final"] ); 
