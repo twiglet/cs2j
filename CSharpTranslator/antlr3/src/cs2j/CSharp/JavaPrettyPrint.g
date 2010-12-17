@@ -431,7 +431,7 @@ primary_or_array_creation_expression returns [int precedence]:
 array_creation_expression returns [int precedence]:
 	^('new'   
 		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   array_initializer?	// new int[4]
+					( rank_specifiers?   array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st })  // new int[4]
 					// | invocation_part*
 					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
 					  | invocation_part)*   arguments
@@ -684,7 +684,7 @@ non_assignment_expression returns [int precedence]
          -> op(pre={ $e1.st }, op = { $op.token.Text }, post = { $e2.st }, space = { " " },
                 preparen={ comparePrecedence($op.token, $e1.precedence) < 0 },
                 postparen={ comparePrecedence($op.token, $e2.precedence) <= 0})
-    | ^(iop=INSTANCEOF ie=non_assignment_expression non_nullable_type) 
+    | ^(iop=INSTANCEOF ie=non_assignment_expression non_nullable_type) { $precedence = precedence[$iop.token.Type]; } 
           -> op(pre = { $ie.st }, op = { "instanceof" }, space = { " " }, post = { $non_nullable_type.st },
                   preparen={ comparePrecedence($iop.token, $ie.precedence) < 0 })
     | unary_expression { $precedence = $unary_expression.precedence; }-> { $unary_expression.st }
@@ -1281,7 +1281,7 @@ yield_statement:
 
 predefined_type:
 	  (t='bool' | t='byte'   | t='char'   | t='decimal' | t='double' | t='float'  | t='int'    | t='long'   | t='object' | t='sbyte'  
-	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') ->  string(payload={$t.text});
+	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') { collectComments($t.TokenStartIndex); } ->  string(payload={$t.text});
 
 identifier:
  	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> string(payload= { $IDENTIFIER.text }) | also_keyword -> string(payload= { $also_keyword.text });
