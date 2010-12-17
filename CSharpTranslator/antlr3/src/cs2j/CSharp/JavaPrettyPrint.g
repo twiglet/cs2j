@@ -244,10 +244,13 @@ namespace_name
 modifiers:
 	ms+=modifier+ -> modifiers(mods={$ms});
 modifier
+@init {
+    String thetext = null;
+}
 : 
         (m='new' | m='public' | m='protected' | m='private' | m='abstract' | m='sealed' | m='static'
-        | m='readonly' | m='volatile' | m='extern' | m='virtual' | m='override' | m=FINAL)
-        -> string(payload={$m.text});
+        | m='readonly' | m='volatile' | m='extern' { thetext = "/* [UNSUPPORTED] 'extern' modifier not supported */"; } | m='virtual' | m='override' | m=FINAL)
+        -> string(payload={ (thetext == null ? $m.text : thetext) });
 	
 class_member_declaration returns [List<String> preComments]:
     ^(CONST attributes? modifiers? type { $preComments = CollectedComments; } constant_declarators)
@@ -431,21 +434,21 @@ primary_or_array_creation_expression returns [int precedence]:
 array_creation_expression returns [int precedence]:
 	^('new'   
 		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st })  // new int[4]
+					( rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
 					// | invocation_part*
 					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
 					  | invocation_part)*   arguments
 					)							// new int[4]()
-				| array_initializer		
+				| ai2=array_initializer	-> 	array_construct(type = { $type.st }, inits = { $ai2.st })
 				)
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
 		)) { $precedence = precedence[NEW]; };
 array_initializer:
-	'{'   variable_initializer_list?   ','?   '}' ;
+	'{'   variable_initializer_list?   ','?   '}' -> array_initializer(init = { $variable_initializer_list.st });
 variable_initializer_list:
-	variable_initializer (',' variable_initializer)* ;
+	vs+=variable_initializer (',' vs+=variable_initializer)* -> seplist(items = { $vs }, sep = {", "});
 variable_initializer:
 	expression	-> { $expression.st } | array_initializer -> { $array_initializer.st };
 sizeof_expression:

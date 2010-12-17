@@ -201,8 +201,8 @@ modifiers returns [List<string> modList]
 }:
 	 (modifier { if ($modifier.tree != null) $modList.Add( $modifier.tree.Text); })+ ;
 modifier: 
-	'new' | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
-	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | 'extern' | 'virtual' -> | 'override' -> /* not in Java,maybe convert to override annotation */;
+	'new' -> /* No new in Java*/ | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
+	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | e='extern'  { Warning($e.line, "[UNSUPPORTED] 'extern' modifier"); }  | 'virtual' -> | 'override' -> /* not in Java, maybe convert to override annotation */;
 
 class_member_declaration:
 	a=attributes?
