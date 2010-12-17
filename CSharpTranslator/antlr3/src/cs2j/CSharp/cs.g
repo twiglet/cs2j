@@ -51,6 +51,9 @@ tokens {
             PRIVATE = 'private';
             STATIC = 'static';
             PRIVATE = 'private';
+            TRY = 'try';
+            CATCH = 'catch';
+            THROW = 'throw';
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
@@ -111,6 +114,8 @@ tokens {
             UNARY_EXPR;
             CAST_EXPR;
             
+            EXCEPTION;
+
             PAYLOAD;   // carries arbitrary text for the output file
             PAYLOAD_LIST;
             SEP;

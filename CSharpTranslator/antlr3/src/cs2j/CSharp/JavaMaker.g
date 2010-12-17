@@ -319,7 +319,7 @@ dim_separators
 
 delegate_creation_expression: 
 	// 'new'   
-	t1=type_name   '('   t2=type_name   ')' -> ^(NEW[$t1.start.Token, "NEW"] ^(TYPE[$t1.start.Token, "TYPE"] $t1) ^(ARGS[$t2.start.Token, "ARGS"] $t2));
+	t1=type_name   '('   t2=type_name   ')' -> ^(NEW[$t1.start.Token, "new"] ^(TYPE[$t1.start.Token, "TYPE"] $t1) ^(ARGS[$t2.start.Token, "ARGS"] $t2));
 anonymous_object_creation_expression: 
 	// 'new'
 	anonymous_object_initializer ;
@@ -378,8 +378,8 @@ anonymous_function_parameter_modifier:
 object_creation_expression: 
 	// 'new'
 	type   
-		( '('   argument_list?   ')'   o1=object_or_collection_initializer?  -> ^(NEW[$type.start.Token, "NEW"] type argument_list? $o1?)
-		  | o2=object_or_collection_initializer -> ^(NEW[$type.start.Token, "NEW"] type $o2)) 
+		( '('   argument_list?   ')'   o1=object_or_collection_initializer?  -> ^(NEW[$type.start.Token, "new"] type argument_list? $o1?)
+		  | o2=object_or_collection_initializer -> ^(NEW[$type.start.Token, "new"] type $o2)) 
 	;
 object_or_collection_initializer: 
 	'{'  (object_initializer 
@@ -756,14 +756,27 @@ variable_declarator:
 	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
-		member_name type_parameter_list? '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    method_body 
+method_declaration [CommonTree atts, CommonTree mods, CommonTree type]
+@init {
+    bool isToString = false;
+    CommonTree exceptions = null;
+}:
+		member_name { isToString = $member_name.text == "ToString"; } (type_parameter_list { isToString = false; })? '('   (formal_parameter_list { isToString = false; })?   ')'  ( type_parameter_constraints_clauses { isToString = false; })?    b=method_body[isToString] 
+    { if (isToString) {
+          $member_name.tree.Token.Text = "toString";
+      }
+      else {
+          exceptions = $b.exceptionList;
+      }
+     }
        -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body);
-//method_header[CommonTree atts, CommonTree mods, CommonTree type]:
+            member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
 
-method_body:
-	block ;
+method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
+	b=block nb=magicSmotherExceptions[ dupTree($b.tree) ] el=magicThrowable { if (!smotherExceptions) $exceptionList=$el.tree; }
+       -> {smotherExceptions}? $nb 
+       -> $b
+         ;
 member_name returns [String rawId]:
     (type_or_generic '.')* i=identifier { $rawId = $i.text; }
    // keving [interface_type.identifier] | type_name '.' identifier 
@@ -986,7 +999,7 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 ///////////////////////////////////////////////////////
 struct_declaration returns [string name]:
 	c='struct'  identifier  type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+    -> ^(CLASS[$c.Token, "class"] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 // UNUSED, HOPEFULLY
 // struct_modifiers:
@@ -1364,3 +1377,21 @@ magicSetterBody[IToken setTok, String varName]:
 // keving: can't get this to work reasonably
 //magicMkConstModifiers[IToken tok, List<string> filter]: 
 //    ({ !filter.Contains("static") }?=> -> STATIC[tok, "static"] ) ( { !filter.Contains("public") }?=> -> $magicMkConstModifiers FINAL[tok, "final"] ); 
+
+magicException:
+ -> EXCEPTION["Throwable"]
+;
+
+magicSmotherExceptions[CommonTree body]:
+  v=magicCatchVar 
+ -> OPEN_BRACE["{"]
+       ^(TRY["try"] 
+            { dupTree(body) }
+         ^(CATCH["catch"] ^(TYPE["TYPE"] IDENTIFIER["Throwable"]) { dupTree($v.tree) } 
+           OPEN_BRACE["{"] ^(THROW["throw"] ^(NEW["new"] ^(TYPE["TYPE"] IDENTIFIER["RuntimeException"]) ^(ARGS["ARGS"] { dupTree($v.tree) }))) CLOSE_BRACE["}"]))
+    CLOSE_BRACE["}"]
+;
+
+magicThrowable:
+ -> EXCEPTION["Throwable"]
+;

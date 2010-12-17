@@ -37,7 +37,7 @@ modifier:
 class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators)
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body)
+    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
     | ^(INTERFACE attributes? modifiers? interface_declaration)
     | ^(CLASS attributes? modifiers? class_declaration)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
@@ -79,6 +79,10 @@ class_member_declaration:
 // 	) 
 // 	;
 // 
+
+exception:
+    EXCEPTION;
+
 primary_expression: 
     ^(INDEX expression expression_list?)
     | ^(APPLY expression argument_list?)

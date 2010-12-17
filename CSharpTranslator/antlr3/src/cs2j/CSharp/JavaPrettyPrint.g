@@ -256,7 +256,7 @@ class_member_declaration returns [List<String> preComments]:
     ^(CONST attributes? modifiers? type { $preComments = CollectedComments; } constant_declarators)
     | ^(EVENT attributes? modifiers? { $preComments = CollectedComments; } event_declaration)
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?
-            { $preComments = CollectedComments; } method_body)
+            { $preComments = CollectedComments; } method_body exception*)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
 //    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
@@ -302,6 +302,10 @@ class_member_declaration returns [List<String> preComments]:
 // 	) 
 // 	;
 // 
+
+exception:
+    EXCEPTION -> string(payload = { $EXCEPTION.text });
+
 primary_expression returns [int precedence]
 @init {
     $precedence = int.MaxValue;

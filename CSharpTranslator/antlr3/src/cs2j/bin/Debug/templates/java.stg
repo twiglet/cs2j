@@ -60,8 +60,8 @@ constructor(modifiers, name, params, exception="Throwable", bodyIsSemi, body) ::
 
 >>
 
-method(modifiers, typeparams, type, name, params, exception="Throwable", bodyIsSemi, body) ::= <<
-<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">) throws <exception><if(!bodyIsSemi)> {<else>;<endif>
+method(modifiers, typeparams, type, name, params, exceptions, bodyIsSemi, body) ::= <<
+<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">)<if(exceptions)> throws <exceptions; separator=", "><endif><if(!bodyIsSemi)> {<else>;<endif>
     <body>
 <if(!bodyIsSemi)>}<endif>
 
