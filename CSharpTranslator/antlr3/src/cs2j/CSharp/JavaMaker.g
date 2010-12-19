@@ -21,6 +21,11 @@ scope NSContext {
     string currentNS;
 }
 
+// A scope to keep track of the current type context
+scope TypeContext {
+    string typeName;
+}
+
 @namespace { RusticiSoftware.Translator.CSharp }
 
 @header
@@ -69,11 +74,11 @@ scope NSContext {
     protected CommonTree addConstModifiers(IToken tok, List<string> filter) {
         CommonTree root = (CommonTree)adaptor.Nil;
 
-        if (!filter.Contains("static") )
+        if (filter == null || !filter.Contains("static") )
         {
             adaptor.AddChild(root, (CommonTree)adaptor.Create(STATIC, tok, "static"));
         }
-        if (!filter.Contains("final")) 
+        if (filter == null || !filter.Contains("final")) 
         {
             adaptor.AddChild(root, (CommonTree)adaptor.Create(FINAL, tok, "final"));
         }
@@ -207,15 +212,15 @@ modifier:
 class_member_declaration:
 	a=attributes?
 	m=modifiers?
-	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m { addConstModifiers($c.token, $modifiers.modList) } $ct constant_declarators)
+	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, $m.modList) } $ct constant_declarators)
 	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $v1.tree] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
 			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
 			   | c1=class_declaration -> ^(CLASS[$c1.start.Token, "CLASS"] $a? $m? $c1)
 			   | s1=struct_declaration) -> ^(CLASS[$s1.start.Token, "CLASS"] $a? $m? $s1)
 	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
-	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $v2.tree] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
-	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $t.tree] -> $m2
+	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
+	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text] -> $m2
 		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
 		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ix1
 		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree]	-> $ix2 //this
@@ -712,8 +717,10 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration returns [string name]:
-	c='class'  identifier  type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+class_declaration returns [string name]
+scope TypeContext;
+:
+	c='class'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
     -> ^(CLASS[$c.Token] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 type_parameter_list returns [List<string> names] 
@@ -756,20 +763,62 @@ variable_declarator:
 	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration [CommonTree atts, CommonTree mods, CommonTree type]
+method_declaration [CommonTree atts, CommonTree mods, List<string> modList, CommonTree type, String typeText]
 @init {
     bool isToString = false;
     CommonTree exceptions = null;
+    CommonTree optMain = null;
+    bool isVoid = $typeText == "void";
+    bool isInt = $typeText == "int"  || $typeText == "System.Int32" || $typeText == "Int32";
+    bool isMain = isVoid || isInt;
+    bool isMainHasArg = false;
 }:
-		member_name { isToString = $member_name.text == "ToString"; } (type_parameter_list { isToString = false; })? '('   (formal_parameter_list { isToString = false; })?   ')'  ( type_parameter_constraints_clauses { isToString = false; })?    b=method_body[isToString] 
-    { if (isToString) {
-          $member_name.tree.Token.Text = "toString";
-      }
-      else {
+        // TODO:  According to the spec the C# Main() method should be static and not public.  We aren't checking for lack of public 
+        // we can check the modifiers in modList if we want to enforce that.
+		member_name { isToString = $member_name.text == "ToString"; isMain &= $member_name.text == "Main"; } 
+        (type_parameter_list { isToString = false; isMain = false; })? 
+        '(' 
+            // We are looking for ToString(), and Main(String[] args), where arg is optional.  
+            (formal_parameter_list 
+              { isToString = false; 
+                if (isMain) {
+                    isMain = false;
+                    // since we have an argument, must check its an array of String
+                    if ($formal_parameter_list.tree != null && $formal_parameter_list.tree.Children != null && $formal_parameter_list.tree.Children.Count == 2) {
+                        // parameter list children size is 2 (type arg)
+                        CommonTree argTy = (CommonTree)$formal_parameter_list.tree.Children[0];
+                        if (argTy != null && argTy.Children != null && argTy.Children.Count == 3) {
+                            // Looking for Children of "String" "[" "]"
+                            if (argTy.Children[0].Text.ToLower() == "string" &&
+                                argTy.Children[1].Text == "[" &&
+                                argTy.Children[2].Text == "]") {
+                                // Bingo!
+                                isMain = true;
+                                isMainHasArg = true;
+                            }
+                        } 
+                    }
+                } 
+              }
+            )?   
+        ')'  
+        ( type_parameter_constraints_clauses { isToString = false; isMain = false; })?   
+        b=method_body[isToString] 
+
+        // build main method if required
+        argParam=magicMainArgs[isMain && isMainHasArg, $member_name.tree.Token]
+        mainApply=magicMainApply[isMain, $member_name.tree.Token, $TypeContext::typeName, $argParam.tree]
+        mainCall=magicMainExit[isMain, isInt, $member_name.tree.Token, $mainApply.tree]
+        mainMethod=magicMainWrapper[isMain, $member_name.tree.Token, $mainCall.tree]
+    
+
+        { if (isToString) {
+              $member_name.tree.Token.Text = "toString";
+          }
           exceptions = $b.exceptionList;
-      }
-     }
-       -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
+       }
+       -> $mainMethod?
+          ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
             member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
 
 method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
@@ -832,8 +881,10 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 //	enum declaration
 ///////////////////////////////////////////////////////
-enum_declaration returns [string name]:
-	'enum'   identifier  { $name = $identifier.text; } enum_base?   enum_body   ';'? ;
+enum_declaration returns [string name]
+scope TypeContext;
+:
+	'enum'   identifier  { $name = $identifier.text; $TypeContext::typeName = $identifier.text; } enum_base?   enum_body   ';'? ;
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -887,8 +938,10 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration returns [string name]:
-	'delegate'   return_type   identifier { $name = $identifier.text; }  variant_generic_parameter_list?   
+delegate_declaration returns [string name]
+scope TypeContext;
+:
+	'delegate'   return_type   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?   
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' -> 
     'delegate'   return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
 		'('   formal_parameter_list?   ')'  ';';
@@ -951,8 +1004,10 @@ parameter_array:
 	'params'   type   identifier ;
 
 ///////////////////////////////////////////////////////
-interface_declaration returns [string name]:
-	c='interface'   identifier { $name = $identifier.text; }  variant_generic_parameter_list? 
+interface_declaration returns [string name]
+scope TypeContext;
+:
+	c='interface'   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list? 
     	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
     -> ^(INTERFACE[$c.Token] identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
@@ -997,8 +1052,10 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
     ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration returns [string name]:
-	c='struct'  identifier  type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+struct_declaration returns [string name]
+scope TypeContext;
+:
+	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
     -> ^(CLASS[$c.Token, "class"] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 // UNUSED, HOPEFULLY
@@ -1394,4 +1451,38 @@ magicSmotherExceptions[CommonTree body]:
 
 magicThrowable:
  -> EXCEPTION["Throwable"]
+;
+
+// METHOD{ public static TYPE{ void } main PARAMS{ TYPE{ String [ ] } args } { APPLY{ .{ System exit } ARGS{ APPLY{ .{ Program Main } } } } ;
+
+magicMainArgs[bool isOn, IToken tok]:
+ -> { isOn }?
+      ^(ARGS[tok, "ARGS"] IDENTIFIER[tok, "args"])
+ -> 
+;
+
+magicMainApply[bool isOn, IToken tok, String klass, CommonTree args]:
+ -> { isOn }?
+     ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,klass] IDENTIFIER[tok,"Main"]) { dupTree(args) } ) 
+ -> 
+; 
+
+magicMainExit[bool isOn, bool retInt, IToken tok, CommonTree body]:
+ -> { isOn && retInt }?
+     ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"System"] IDENTIFIER[tok,"exit"]) ^(ARGS[tok, "ARGS"] { dupTree(body) } ) ) 
+ -> { isOn }?
+      { dupTree(body) }
+ -> 
+;
+    
+
+magicMainWrapper[bool isOn, IToken tok, CommonTree body]:
+ -> { isOn }?
+    ^(METHOD[tok, "METHOD"]
+         PUBLIC[tok, "public"] STATIC[tok,"static"] 
+         ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "void"]) 
+             IDENTIFIER[tok, "main"] ^(PARAMS[tok, "PARAMS"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok,"String"] OPEN_BRACKET[tok, "["] CLOSE_BRACKET[tok, "]"]) IDENTIFIER[tok, "args"]) 
+              OPEN_BRACE[tok, "{"] { dupTree(body) } SEMI[tok, ";"] CLOSE_BRACE[tok, "}"] 
+      EXCEPTION[tok, "Throwable"])
+ -> 
 ;

@@ -49,6 +49,8 @@ tokens {
 
             RETURN = 'return';
             PRIVATE = 'private';
+            PUBLIC = 'public';
+            PROTECTED = 'protected';
             STATIC = 'static';
             PRIVATE = 'private';
             TRY = 'try';
