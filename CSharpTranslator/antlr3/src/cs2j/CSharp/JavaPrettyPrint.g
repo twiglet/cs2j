@@ -193,9 +193,9 @@ options {
  
         precedence[POSTINC] = 15;
         precedence[POSTDEC] = 15;   
-        precedence[APPLY] = 15;   
-        precedence[INDEX] = 15;   
-        precedence[DOT] = 15;   
+        precedence[APPLY] = 16;   
+        precedence[INDEX] = 16;   
+        precedence[DOT] = 16;   
 
         IsPrecedenceInitted = true;
      }
