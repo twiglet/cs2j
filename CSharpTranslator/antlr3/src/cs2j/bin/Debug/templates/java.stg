@@ -248,6 +248,10 @@ op(comments,pre,op,post,preparen,postparen,space) ::= <<
 <comments; separator="\n">
 <if(pre)><if(preparen)>(<endif><pre><if(preparen)>)<endif><space><endif><op><if(post)><space><if(postparen)>(<endif><post><if(postparen)>)<endif><endif>
 >>
+member_access(comments,pre,op,access,access_tyargs,preparen) ::= <<
+<comments; separator="\n">
+<if(preparen)>(<endif><pre><if(preparen)>)<endif><op><access_tyargs><access>
+>>
 assign(lhs,lhsparen,assign,rhs,rhsparen) ::= "<if(lhsparen)>(<endif><lhs><if(lhsparen)>)<endif> <assign> <if(rhsparen)>(<endif><rhs><if(rhsparen)>)<endif>"
 generic_args(args) ::= "\<<args>\>"
 parameter(annotation,param) ::=  "/* <annotation> */ <param>"

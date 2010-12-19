@@ -315,10 +315,12 @@ primary_expression returns [int precedence]
     | ^((op=POSTINC|op=POSTDEC) expression) { $precedence = precedence[$op.token.Type]; } 
          -> op(pre={$expression.st}, op={ $op.token.Text }, preparens= { comparePrecedence($op.token, $expression.precedence) <= 0 })
     | primary_expression_start -> { $primary_expression_start.st }
-    | ^(access_operator expression type_or_generic) { $precedence = $access_operator.precedence; } 
-       -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $type_or_generic.st },
-              preparen = { comparePrecedence($access_operator.precedence, $expression.precedence) < 0 },
-              postparen = { comparePrecedence($access_operator.precedence, $type_or_generic.precedence) <= 0 })
+    | ^(access_operator expression identifier generic_argument_list?) { $precedence = $access_operator.precedence; } 
+       -> member_access(pre={ $expression.st }, op={ $access_operator.st }, access={ $identifier.st }, access_tyargs = { $generic_argument_list.st },
+              preparen = { comparePrecedence($access_operator.precedence, $expression.precedence) < 0 })
+//     | ^(access_operator expression SEP identifier) { $precedence = $access_operator.precedence; } 
+//        -> op(pre={ $expression.st }, op={ $access_operator.st }, post={ $identifier.st },
+//               preparen = { comparePrecedence($access_operator.precedence, $expression.precedence) < 0 })
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
@@ -867,8 +869,29 @@ variable_declarator:
 //	-> method_header(name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st });
 method_body returns [bool isSemi]:
 	block { $isSemi = $block.isSemi; } -> { $block.st };
-member_name:
-    t+=type_or_generic ('.' t+=type_or_generic)* -> dotlist(items = { $t })
+
+member_name
+@init {
+    StringTemplate last_t = null;
+    ArrayList pre_ts = new ArrayList();
+}
+:
+    (type_or_generic '.') => t1=type_or_generic { last_t = $t1.st; } (op='.' tn=type_or_generic { pre_ts.Add(last_t); last_t = $tn.st; })* 
+        { 
+            StringTemplate interfaceText = %dotlist();
+            %{interfaceText}.items = pre_ts;
+            StringTemplate opText = %op();
+            %{opText}.pre = interfaceText;
+            %{opText}.op = $op.token.Text;
+            StringTemplate unsupportedText = %unsupported();
+            %{unsupportedText}.reason = "explicit interface implementation is not supported";
+            %{unsupportedText}.text = opText;
+            $st = %op();
+            %{$st}.pre = unsupportedText;
+            %{$st}.post = last_t;
+            %{$st}.op = " ";
+        }
+    | type_or_generic -> { $type_or_generic.st }
     ;
     // keving: missing interface_type.identifier
 //	identifier -> { $identifier.st };		// IInterface<int>.Method logic added.
