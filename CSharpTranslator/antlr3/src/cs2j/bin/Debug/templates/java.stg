@@ -210,6 +210,12 @@ lock(<exp>)
 <block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
 >>
 
+keyword_block(comments,keyword,block,blocksemi, blockbraces) ::= <<
+<comments; separator="\n">
+<keyword>
+<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+>>
+
 block(statements,issemi,isbraces) ::= <<
 <if(issemi)>
     ;

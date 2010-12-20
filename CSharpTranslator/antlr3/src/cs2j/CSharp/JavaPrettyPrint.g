@@ -332,9 +332,9 @@ primary_expression returns [int precedence]
 				| object_creation_expression
 				| anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
-	| checked_expression            		// checked (...
-	| unchecked_expression          		// unchecked {...}
-	| default_value_expression      		// default
+	| checked_expression      -> { $checked_expression.st }      		// checked (...
+	| unchecked_expression     -> { $unchecked_expression.st }     		// unchecked {...}
+	| default_value_expression  -> { $default_value_expression.st }    		// default
 	| anonymous_method_expression			// delegate (int foo) {}
 	;
 // primary_expression: 
@@ -459,12 +459,39 @@ variable_initializer:
 	expression	-> { $expression.st } | array_initializer -> { $array_initializer.st };
 sizeof_expression:
 	^('sizeof'  unmanaged_type );
-checked_expression: 
-	^('checked' expression ) ;
-unchecked_expression: 
-	^('unchecked' expression ) ;
-default_value_expression: 
-	^('default' type   ) ;
+checked_expression
+@init {
+    StringTemplate someText = null;
+}: 
+	^('checked' expression ) 
+        { someText = %op(); 
+          %{someText}.op = "checked"; 
+          %{someText}.post = $expression.st; 
+          %{someText}.space = " ";
+        } ->  unsupported(reason = {"checked expressions are not supported"}, text = { someText } )
+;
+unchecked_expression
+@init {
+    StringTemplate someText = null;
+}: 
+	^('unchecked' expression ) 
+        { someText = %op(); 
+          %{someText}.op = "unchecked"; 
+          %{someText}.post = $expression.st; 
+          %{someText}.space = " ";
+        } ->  unsupported(reason = {"unchecked expressions are not supported"}, text = { someText } )
+;
+default_value_expression
+@init {
+    StringTemplate someText = null;
+}: 
+	^('default' type   ) 
+        { someText = %op(); 
+          %{someText}.op = "default"; 
+          %{someText}.post = $type.st; 
+          %{someText}.space = " ";
+        } ->  unsupported(reason = {"default expressions are not yet supported"}, text = { someText } )
+;
 anonymous_method_expression:
 	^('delegate'   explicit_anonymous_function_signature?   block);
 explicit_anonymous_function_signature:
@@ -1180,8 +1207,8 @@ embedded_statement returns [bool isSemi, bool isBraces, bool isIf]
 	| ^('try'  { preComments = CollectedComments; } b=block catch_clauses? finally_clause?) 
         -> try(comments = { preComments }, block = {$b.st}, blocksemi = {$b.isSemi}, blockbraces = { !$b.isSemi },
                catches = { $catch_clauses.st }, fin = { $finally_clause.st } )
-	| checked_statement
-	| unchecked_statement
+	| checked_statement -> { $checked_statement.st }
+	| unchecked_statement -> { $unchecked_statement.st }
 	| lock_statement -> { $lock_statement.st }
 	| using_statement 
 	| yield_statement 
@@ -1282,10 +1309,28 @@ catch_clause:
 	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi } );
 finally_clause:
 	^('finally'   block) -> fin(block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi });
-checked_statement:
-	'checked'   block ;
-unchecked_statement:
-	'unchecked'   block ;
+checked_statement
+@init {
+    StringTemplate someText = null;
+}:
+	'checked'   block 
+        { someText = %keyword_block(); 
+          %{someText}.keyword = "checked"; 
+          %{someText}.block = $block.st;
+          %{someText}.blocksemi = $block.isSemi;
+          %{someText}.blockbraces = !$block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
+;
+unchecked_statement
+@init {
+    StringTemplate someText = null;
+}:
+	'unchecked'   block 
+        { someText = %keyword_block(); 
+          %{someText}.keyword = "unchecked"; 
+          %{someText}.block = $block.st;
+          %{someText}.blocksemi = $block.isSemi;
+          %{someText}.blockbraces = !$block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
+;
 lock_statement
 @init {
     StringTemplate someText = null;
@@ -1295,7 +1340,8 @@ lock_statement
           %{someText}.exp = $expression.st; 
           %{someText}.block = $embedded_statement.st;
           %{someText}.blocksemi = $embedded_statement.isSemi;
-          %{someText}.blockbraces = $embedded_statement.isBraces; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } );
+          %{someText}.blockbraces = $embedded_statement.isBraces; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } )
+        ;
 using_statement:
 	'using'   '('    resource_acquisition   ')'    embedded_statement ;
 resource_acquisition:
