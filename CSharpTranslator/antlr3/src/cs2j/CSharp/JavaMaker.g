@@ -339,10 +339,32 @@ primary_or_array_creation_expression:
 	| primary_expression 
 	;
 // new Type[2] { }
-array_creation_expression:
-	'new'^   
+array_creation_expression
+@init {
+    bool removeDimensions = false;
+}
+@after {
+    if (removeDimensions) {
+        if ($array_creation_expression.tree != null && 
+            adaptor.GetChildCount($array_creation_expression.tree) > 3 &&
+            adaptor.GetType(adaptor.GetChild($array_creation_expression.tree, 1)) == OPEN_BRACKET) {
+            // Delete until CLOSE_BRACKET
+            while (adaptor.GetType(adaptor.GetChild($array_creation_expression.tree, 2)) != CLOSE_BRACKET) {
+                adaptor.DeleteChild($array_creation_expression.tree, 2);
+            }
+            // push open / close bracket into type.
+            CommonTree type = (CommonTree)adaptor.GetChild($array_creation_expression.tree, 0);
+            adaptor.AddChild(type, adaptor.DupTree(adaptor.GetChild($array_creation_expression.tree, 1)));
+            adaptor.AddChild(type, adaptor.DupTree(adaptor.GetChild($array_creation_expression.tree, 2)));
+            adaptor.DeleteChild($array_creation_expression.tree, 2);
+            adaptor.DeleteChild($array_creation_expression.tree, 1);
+
+        }
+    }
+}:
+	n='new'^   
 		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   array_initializer?	// new int[4]
+					( rank_specifiers?   (array_initializer { removeDimensions = true; /* If an initializer is provided then drop the dimensions */} )?	// new int[4]
 					// | invocation_part*
 					| ( ((arguments[null]   ('['|'.'|'->')) => arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]   invocation_part)// new object[2].GetEnumerator()
 					  | invocation_part)*   arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]
