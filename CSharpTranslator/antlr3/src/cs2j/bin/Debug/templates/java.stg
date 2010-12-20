@@ -131,8 +131,8 @@ type_parameter_list(items) ::= <<
 \<<items; separator=", ">\>
 >>
 
-extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
-imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
+extends(types) ::= "<if(types)>extends <types; separator=\", \"><endif>"
+imps(types) ::= "<if(types)>implements <types; separator=\", \"><endif>"
 
 // ******* STATEMENTS *******
 if_template(comments, cond, then, thenindent, else, elseindent, elseisif) ::= <<
