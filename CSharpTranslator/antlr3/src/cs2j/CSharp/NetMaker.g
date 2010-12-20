@@ -703,7 +703,7 @@ default_argument:
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
 parameter_array:
-	'params'   type   identifier ;
+	^('params'   type   identifier) ;
 
 ///////////////////////////////////////////////////////
 interface_declaration:

@@ -1001,7 +1001,23 @@ default_argument:
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
 parameter_array:
-	'params'   type   identifier ;
+	p='params'^   t=type   identifier 
+    { 
+       // type will be an array, need to strip the final [] for java
+       int numComponents = adaptor.GetChildCount($t.tree); 
+       // sanity check
+       if (numComponents >= 3 &&
+            adaptor.GetType(adaptor.GetChild($t.tree, numComponents-2)) == OPEN_BRACKET &&
+            adaptor.GetType(adaptor.GetChild($t.tree, numComponents-1)) == CLOSE_BRACKET) 
+       {
+           adaptor.DeleteChild($t.tree, numComponents-1);
+           adaptor.DeleteChild($t.tree, numComponents-2);
+       }
+       else {
+           Error($p.line, "[SOURCE ERROR] params type must be an array");
+       }
+    }
+    ;
 
 ///////////////////////////////////////////////////////
 interface_declaration returns [string name]

@@ -80,6 +80,10 @@ fixed_parameter(mod,type,name,def) ::= <<
 <mod> <type> <name><if(def)> = <def><endif>
 >>
 
+varargs(type,name) ::= <<
+<type>... <name>
+>>
+
 identifier(id, id2) ::= "<id><if(id2)>::<id2><endif>"
 
 statement_list(statements) ::= <<

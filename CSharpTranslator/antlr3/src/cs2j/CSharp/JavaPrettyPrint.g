@@ -987,7 +987,7 @@ return_type:
 formal_parameter_list:
     ^(PARAMS fps+=formal_parameter+) -> list(items= {$fps}, sep={", "});
 formal_parameter:
-	attributes?   (fixed_parameter -> { $fixed_parameter.st }| parameter_array) 
+	attributes?   (fixed_parameter -> { $fixed_parameter.st }| parameter_array -> { $parameter_array.st }) 
 	| '__arglist';	// __arglist is undocumented, see google
 //fixed_parameters:
 //	fps+=fixed_parameter   (','   fps+=fixed_parameter)* -> { $fps };
@@ -1000,7 +1000,7 @@ default_argument:
 parameter_modifier:
 	(m='ref' | m='out' | m='this') -> inline_comment(payload={ $m.text }, explanation={ "parameter modifiers are not yet supported" }) ;
 parameter_array:
-	'params'   type   identifier ;
+	^('params'   type   identifier) -> varargs(type={ $type.st }, name = { $identifier.st }) ;
 
 ///////////////////////////////////////////////////////
 interface_declaration[StringTemplate modifiersST]
