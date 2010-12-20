@@ -719,28 +719,9 @@ interface_member_declarations:
 	interface_member_declaration+ ;
 interface_member_declaration:
     ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?)
+    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
 		;
-interface_method_declaration:
-	identifier   generic_argument_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
-interface_event_declaration: 
-	//attributes?   'new'?   
-	'event'   type   identifier   ';' ; 
-interface_indexer_declaration: 
-	// attributes?    'new'?    type   
-	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' ;
-interface_accessor_declarations:
-	attributes?   
-		(interface_get_accessor_declaration   attributes?   interface_set_accessor_declaration?
-		| interface_set_accessor_declaration   attributes?   interface_get_accessor_declaration?) ;
-interface_get_accessor_declaration:
-	'get'   ';' ;		// no body / modifiers
-interface_set_accessor_declaration:
-	'set'   ';' ;		// no body / modifiers
-method_modifiers:
-	modifier+ ;
 	
 ///////////////////////////////////////////////////////
 // struct_declaration:

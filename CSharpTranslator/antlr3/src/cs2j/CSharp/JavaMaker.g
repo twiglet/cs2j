@@ -622,7 +622,11 @@ conditional_or_expression:
 	conditional_and_expression  ('||'^   conditional_and_expression)* ;
 
 null_coalescing_expression:
-	conditional_or_expression   ('??'^   conditional_or_expression)* ;
+	(e1=conditional_or_expression -> $e1)  (qq='??'   e2=conditional_or_expression -> ^(COND_EXPR[$qq.token, "?:"]
+                                                                                          ^(NOT_EQUAL[$qq.token, "!="] { dupTree($null_coalescing_expression.tree) } NULL[$qq.Token, "null"])
+                                                                                          { dupTree($null_coalescing_expression.tree) }
+                                                                                          { dupTree($e2.tree) })
+                                           )* ;
 conditional_expression:
      (ne=null_coalescing_expression  -> $ne) (q='?'   te=expression   ':'   ee=expression ->  ^(COND_EXPR[$q.token, "?:"] $conditional_expression $te $ee))? ;
 //	(null_coalescing_expression   '?'   expression   ':') => e1=null_coalescing_expression   q='?'   e2=expression   ':'   e3=expression -> ^(COND_EXPR[$q.token, "?:"] $e1 $e2 $e3)
@@ -1072,9 +1076,9 @@ interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 	i=identifier   '{'   iads=interface_accessor_declarations[atts, mods, type, $i.text]   '}' -> $iads ;
 interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	identifier   generic_argument_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
+	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   magicThrowable ';' 
        -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list?);
+            identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list? magicThrowable);
 interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
 	'event'   type   identifier   ';' ; 
@@ -1449,16 +1453,18 @@ magicCatchVar:
 magicPropGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken getTok, CommonTree body, String propName, bool mkBody, String varName]
 @init {
     CommonTree realBody = body;
+    CommonTree exceptionList = null;
 }: 
-    ( { mkBody }? => b=magicGetterBody[getTok,varName] { realBody = $b.tree; }| )
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } ) 
+    ( { mkBody }? => b=magicGetterBody[getTok,varName] { realBody = $b.tree; } | e=magicException { exceptionList = $e.tree; })
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } { exceptionList }) 
     ;
 magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, String propName, bool mkBody, String varName]
 @init {
     CommonTree realBody = body;
+    CommonTree exceptionList = null;
 }: 
-    ( { mkBody }? => b=magicSetterBody[setTok,varName] { realBody = $b.tree; }| )
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } ) 
+    ( { mkBody }? => b=magicSetterBody[setTok,varName] { realBody = $b.tree; }| e=magicException { exceptionList = $e.tree; } )
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } { exceptionList } ) 
     ;
 
 magicSemi:

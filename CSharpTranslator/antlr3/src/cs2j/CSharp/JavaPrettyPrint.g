@@ -257,7 +257,7 @@ class_member_declaration returns [List<String> preComments]:
     | ^(EVENT attributes? modifiers? { $preComments = CollectedComments; } event_declaration)
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?
             { $preComments = CollectedComments; } method_body exception*)
-      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
+      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
 //    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
@@ -1048,32 +1048,12 @@ interface_member_declaration_aux:
 
 interface_member_declaration returns [List<String> preComments]:
     ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
+    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list? exception*)
          { $preComments = CollectedComments; }
-      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $identifier.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { true })
+      -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $identifier.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions= { $exception.st }, bodyIsSemi = { true })
     | ^(INDEXER attributes? modifiers? type type_name? { $preComments = CollectedComments; } indexer_declaration)
 		;
 
-interface_method_declaration:
-	identifier   generic_argument_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' ;
-interface_event_declaration: 
-	//attributes?   'new'?   
-	'event'   type   identifier   ';' ; 
-interface_indexer_declaration: 
-	// attributes?    'new'?    type   
-	'this'   '['   formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' ;
-interface_accessor_declarations:
-	attributes?   
-		(interface_get_accessor_declaration   attributes?   interface_set_accessor_declaration?
-		| interface_set_accessor_declaration   attributes?   interface_get_accessor_declaration?) ;
-interface_get_accessor_declaration:
-	'get'   ';' ;		// no body / modifiers
-interface_set_accessor_declaration:
-	'set'   ';' ;		// no body / modifiers
-method_modifiers:
-	modifier+ ;
-	
 ///////////////////////////////////////////////////////
 // struct_declaration:
 // 	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
