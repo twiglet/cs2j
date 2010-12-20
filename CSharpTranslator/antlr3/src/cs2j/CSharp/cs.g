@@ -104,6 +104,7 @@ tokens {
             UNSIGNED_RIGHT_SHIFT;  /* not in C#: >>> */
             
             SUPER;
+            LONGNUMBER;
 
             PLUS = '+';
             

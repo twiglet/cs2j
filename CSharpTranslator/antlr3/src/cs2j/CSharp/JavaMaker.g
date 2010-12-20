@@ -1426,7 +1426,8 @@ also_keyword:
 
 literal:
 	Real_literal
-	| NUMBER
+	| n=NUMBER -> {UInt64.Parse($n.text) > Int32.MaxValue}? LONGNUMBER[$n.token, $n.text]
+               -> $n
 	| Hex_number
 	| Character_literal
 	| STRINGLITERAL

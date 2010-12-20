@@ -993,6 +993,7 @@ also_keyword:
 literal:
 	Real_literal
 	| NUMBER
+	| LONGNUMBER
 	| Hex_number
 	| Character_literal
 	| STRINGLITERAL

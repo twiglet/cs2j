@@ -1374,6 +1374,7 @@ also_keyword:
 literal:
 	Real_literal -> string(payload={$Real_literal.text}) 
 	| NUMBER -> string(payload={$NUMBER.text}) 
+	| LONGNUMBER -> string(payload={$LONGNUMBER.text + "L"}) 
 	| Hex_number -> string(payload={$Hex_number.text}) 
 	| Character_literal -> string(payload={$Character_literal.text}) 
 	| STRINGLITERAL -> string(payload={ $STRINGLITERAL.text }) 
