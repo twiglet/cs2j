@@ -53,18 +53,20 @@ class_member(comments, member) ::= <<
 <member>
 >>
 
-constructor(modifiers, name, params, exception="Throwable", bodyIsSemi, body) ::= <<
-<modifiers(modifiers)><name>(<params; separator=", ">) throws <exception><if(!bodyIsSemi)> {<else>;<endif>
-    <body>
-<if(!bodyIsSemi)>}<endif>
-
+constructor(modifiers, name, params, exception="Throwable", body, bodyIsSemi) ::= <<
+<modifiers(modifiers)><name>(<params; separator=", ">) throws <exception> <if(bodyIsSemi)>;
+<else>
+<body>
+<endif>
+<\n>
 >>
 
-method(modifiers, typeparams, type, name, params, exceptions, bodyIsSemi, body) ::= <<
-<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">)<if(exceptions)> throws <exceptions; separator=", "><endif><if(!bodyIsSemi)> {<else>;<endif>
-    <body>
-<if(!bodyIsSemi)>}<endif>
-
+method(modifiers, typeparams, type, name, params, exceptions, body, bodyIsSemi) ::= <<
+<modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">)<if(exceptions)> throws <exceptions; separator=", "><endif> <if(bodyIsSemi)>;
+<else>
+<body>
+<endif>
+<\n>
 >>
 
 field(modifiers, type, field, comments, init) ::= "<comments><modifiers(modifiers)><type> <field>;"
@@ -133,52 +135,52 @@ extends(types) ::= "<if(types)>extends <types; separator=\",\"><endif>"
 imps(types) ::= "<if(types)>implements <types; separator=\",\"><endif>"
 
 // ******* STATEMENTS *******
-if_template(comments, cond,then,thensemi, thenbraces,else, elseisif, elsesemi,elsebraces) ::= <<
+if_template(comments, cond, then, thenindent, else, elseindent, elseisif) ::= <<
 <comments; separator="\n">
 if (<cond>)
-<block(statements = then, issemi = thensemi, isbraces = thenbraces)>
+<block(statements = then, indent = thenindent)>
 <if(else)>
-else<if(elseisif)> <block(statements = else, issemi = elsesemi, isbraces = elsebraces)><else>
+else<if(elseisif)> <block(statements = else)><else>
 
-<block(statements = else, issemi = elsesemi, isbraces = elsebraces)>
+<block(statements = else, indent = elseindent)>
 <endif>
 <endif> 
 >>
 
-while(comments,cond,block,blocksemi, blockbraces) ::= <<
+while(comments,cond,block) ::= <<
 <comments; separator="\n">
 while (<cond>)
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block)>
 >>
 
-for(comments,init,cond,iter,block,blocksemi, blockbraces) ::= <<
+for(comments,init,cond,iter,block,blockindent) ::= <<
 <comments; separator="\n">
 for (<init>;<cond>;<iter>)
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block, indent=blockindent)>
 >>
 
-foreach(comments,type,loopid,fromexp,block,blocksemi, blockbraces) ::= <<
+foreach(comments,type,loopid,fromexp,block,blockindent) ::= <<
 <comments; separator="\n">
 for (<type> <loopid> : <fromexp>)
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block,indent=blockindent)>
 >>
 
-try(comments,block,blocksemi, blockbraces, catches, fin) ::= <<
+try(comments,block, blockindent, catches, fin) ::= <<
 <comments; separator="\n">
 try
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block, indent=blockindent)>
 <catches>
 <fin>
 >>
 
-catch_template(type, id, block,blocksemi, blockbraces) ::= <<
+catch_template(type, id, block, blockindent) ::= <<
 catch (<type> <id>)
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block, indent = blockindent)>
 >>
 
-fin(block,blocksemi, blockbraces) ::= <<
+fin(block, blockindent) ::= <<
 finally
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block, indent = blockindent)>
 >>
 
 
@@ -204,31 +206,30 @@ default_template() ::= <<
 default: 
 >>
 
-lock(comments,exp,block,blocksemi, blockbraces) ::= <<
+lock(comments,exp,block, indent) ::= <<
 <comments; separator="\n">
 lock(<exp>)
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block, indent = indent)>
 >>
 
-keyword_block(comments,keyword,block,blocksemi, blockbraces) ::= <<
+keyword_block(comments,keyword,block, indent) ::= <<
 <comments; separator="\n">
 <keyword>
-<block(statements = block, issemi = blocksemi, isbraces = blockbraces)>
+<block(statements = block, indent = indent)>
 >>
 
-block(statements,issemi,isbraces) ::= <<
-<if(issemi)>
-    ;
-<else>
-<if(isbraces)>
-{
-
-<endif>
+block(statements, indent) ::= <<
+<if(indent)>
     <statements>
-<if(isbraces)>
+<else>
+<statements>
+<endif>
+>>
+
+braceblock(statements) ::= <<
+{
+    <statements; separator="\n">
 }
-<endif>
-<endif>
 >>
 
 // ******* EXPRESSIONS *******

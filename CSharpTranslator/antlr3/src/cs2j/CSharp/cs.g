@@ -55,6 +55,7 @@ tokens {
             PRIVATE = 'private';
             TRY = 'try';
             CATCH = 'catch';
+            FINALLY = 'finally';
             THROW = 'throw';
 
             OPEN_BRACKET='[';

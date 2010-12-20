@@ -86,6 +86,72 @@ scope TypeContext {
         return root;
     }
 
+// for ["conn", "conn1", "conn2"] generate:
+//
+//                   if (conn != null)
+//                      ((IDisposable)conn).Dispose();
+// 
+//                   
+//                  if (conn2 != null)
+//                      ((IDisposable)conn2).Dispose();
+// 
+//                   
+//                  if (conn3 != null)
+//                      ((IDisposable)conn3).Dispose();
+// used in the finally block of the using translation
+    protected CommonTree addDisposeVars(IToken tok, List<string> vars) {
+                	
+        CommonTree root = (CommonTree)adaptor.Nil;
+
+        foreach (String var in vars) {
+        
+            CommonTree root_1 = (CommonTree)adaptor.Nil;
+            root_1 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(IF, tok, "if"), root_1);
+
+            CommonTree root_2 = (CommonTree)adaptor.Nil;
+            root_2 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(NOT_EQUAL, tok, "!="), root_2);
+
+            adaptor.AddChild(root_2, (CommonTree)adaptor.Create(IDENTIFIER, tok, var));
+            adaptor.AddChild(root_2, (CommonTree)adaptor.Create(NULL, tok, "null"));
+
+            adaptor.AddChild(root_1, root_2);
+
+            adaptor.AddChild(root_1, (CommonTree)adaptor.Create(SEP, "SEP"));
+
+            root_2 = (CommonTree)adaptor.Nil;
+            root_2 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(APPLY, tok, "APPLY"), root_2);
+
+            CommonTree root_3 = (CommonTree)adaptor.Nil;
+            root_3 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(DOT, tok, "."), root_3);
+
+            CommonTree root_4 = (CommonTree)adaptor.Nil;
+            root_4 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(CAST_EXPR, tok, "CAST"), root_4);
+
+            CommonTree root_5 = (CommonTree)adaptor.Nil;
+            root_5 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), root_5);
+
+            adaptor.AddChild(root_5, (CommonTree)adaptor.Create(IDENTIFIER, tok, "IDisposable"));
+
+            adaptor.AddChild(root_4, root_5);
+
+            adaptor.AddChild(root_4, (CommonTree)adaptor.Create(IDENTIFIER, tok, var));
+
+            adaptor.AddChild(root_3, root_4);
+
+            adaptor.AddChild(root_3, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Dispose"));
+
+            adaptor.AddChild(root_2, root_3);
+
+            adaptor.AddChild(root_1, root_2);
+
+            adaptor.AddChild(root_1, (CommonTree)adaptor.Create(SEMI, tok, ";"));
+
+            adaptor.AddChild(root, root_1);
+        }
+
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
     // TODO:  Read reserved words from a file so that they can be extended by customer
     private readonly static string[] javaReserved = new string[] { "int", "protected", "package" };
     
@@ -120,6 +186,8 @@ scope TypeContext {
 
     // counter to ensure that the catch vars we introduce are unique 
     protected int dummyCatchVarCtr = 0;
+
+    protected int newVarCtr = 0;
 
     protected CommonTree dupTree(CommonTree t) {
         return (CommonTree)adaptor.DupTree(t);
@@ -1255,16 +1323,19 @@ labeled_statement:
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
-local_variable_declaration:
-	local_variable_type   local_variable_declarators ;
+local_variable_declaration returns [List<String> variableNames]:
+	local_variable_type   local_variable_declarators { $variableNames = $local_variable_declarators.variableNames; };
 local_variable_type:
 	('var') => 'var'
 	| ('dynamic') => 'dynamic'
 	| type ;
-local_variable_declarators:
-	local_variable_declarator (',' local_variable_declarator)* ;
-local_variable_declarator:
-	identifier ('='   local_variable_initializer)? ; 
+local_variable_declarators returns [List<String> variableNames]
+@init {
+    $variableNames = new List<String>(); 
+}:
+	i1=local_variable_declarator { $variableNames.Add($i1.variableName); } (',' ip=local_variable_declarator { $variableNames.Add($ip.variableName); })* ;
+local_variable_declarator returns [String variableName]:
+	identifier { $variableName = $identifier.text; } ('='   local_variable_initializer)? ; 
 local_variable_initializer:
 	expression
 	| array_initializer 
@@ -1375,11 +1446,28 @@ unchecked_statement:
 	'unchecked'   block ;
 lock_statement:
 	'lock'   '('  expression   ')'   embedded_statement ;
-using_statement:
-	'using'   '('    resource_acquisition   ')'    embedded_statement ;
-resource_acquisition:
-	(local_variable_declaration) => local_variable_declaration
-	| expression ;
+using_statement
+@init {
+    CommonTree disposers = null;
+}:
+// see http://msdn.microsoft.com/en-us/library/yh598w02.aspx for translation
+	u='using'   '('    resource_acquisition   c=')'    embedded_statement
+     { disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames); } 
+     f=magicFinally[$c.token, disposers]
+     magicTry[$u.token, $embedded_statement.tree, null, $f.tree] 
+     -> OPEN_BRACE[$u.token, "{"] 
+            resource_acquisition SEMI[$c.token, ";"] 
+            magicTry
+        CLOSE_BRACE[$u.token, "}"] 
+     ;
+resource_acquisition returns [List<String> resourceNames]
+@init {
+    $resourceNames = new List<String>();
+}:
+	(local_variable_declaration) => local_variable_declaration { $resourceNames = $local_variable_declaration.variableNames; } 
+	| expression { $resourceNames.Add("__newVar"+newVarCtr); } -> ^(TYPE[$expression.tree.Token, "TYPE"] IDENTIFIER[$expression.tree.Token, "IDisposable"]) 
+                         IDENTIFIER[$expression.tree.Token, "__newVar"+newVarCtr++] ASSIGN[$expression.tree.Token, "="] expression //SEMI[$expression.tree.Token, ";"]
+    ;
 yield_statement:
 	'yield'   ('return'   expression   ';'
 	          | 'break'   ';') ;
@@ -1534,3 +1622,19 @@ magicMainWrapper[bool isOn, IToken tok, CommonTree body]:
       EXCEPTION[tok, "Throwable"])
  -> 
 ;
+
+magicTry[IToken tok, CommonTree body, CommonTree catches, CommonTree fin]:
+->
+   ^(TRY[tok, "try"] { dupTree(body) } { dupTree(catches) } { dupTree(fin) })
+;
+
+magicDispose[IToken tok, String var]:
+-> ^(IF[tok, "if"] ^(NOT_EQUAL[tok, "!="] IDENTIFIER[tok, var] NULL[tok, "null"]) SEP 
+         ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(CAST_EXPR[tok, "CAST"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IDisposable"]) IDENTIFIER[tok, var]) IDENTIFIER[tok, "Dispose"])) SEMI[tok, ";"])
+;
+
+magicFinally[IToken tok, CommonTree statement_list]:
+->
+   ^(FINALLY[tok, "finally"] OPEN_BRACE[tok, "{"] { dupTree(statement_list) } CLOSE_BRACE[tok, "}"])
+;
+

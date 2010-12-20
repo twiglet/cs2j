@@ -400,10 +400,19 @@ argument_name:
 	argument_name_unsupported -> unsupported(reason={ "named parameters are not yet supported"}, text = { $argument_name_unsupported.st } );
 argument_name_unsupported:
 	identifier   ':' -> op(pre={$identifier.st}, op={":"});
-argument_value: 
+argument_value
+@init {
+    StringTemplate someText = null;
+}: 
 	expression -> { $expression.st }
 	| ref_variable_reference 
-	| 'out'   variable_reference ;
+	| 'out'   variable_reference 
+        { someText = %op(); 
+          %{someText}.op = "out"; 
+          %{someText}.post = $variable_reference.st; 
+          %{someText}.space = " ";
+        } ->  unsupported(reason = {"out arguments are not yet supported"}, text = { someText } )
+     ;
 ref_variable_reference:
 	'ref' 
 		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference)   // SomeFunc(ref (int) ref foo)
@@ -411,7 +420,7 @@ ref_variable_reference:
 		| variable_reference);	// SomeFunc(ref foo)
 // lvalue
 variable_reference:
-	expression;
+	expression -> { $expression.st };
 rank_specifiers: 
 	rs+=rank_specifier+ -> rank_specifiers(rs={$rs});        
 rank_specifier: 
@@ -630,8 +639,8 @@ block returns [bool isSemi]
 @init {
     $isSemi = false;
 }:
-	';' { $isSemi = true; } -> 
-	| '{'   s+=statement*   '}' -> statement_list(statements = { $s });
+	';' { $isSemi = true; } -> string(payload = { "    ;" }) 
+	| '{'   s+=statement*   '}' -> braceblock(statements = { $s });
 
 ///////////////////////////////////////////////////////
 //	Expression Section
@@ -1169,28 +1178,28 @@ statement_plus:
 	(identifier   ':') => labeled_statement -> statement(statement = { $labeled_statement.st })
 	| embedded_statement  -> statement(statement = { $embedded_statement.st })
 	;
-embedded_statement returns [bool isSemi, bool isBraces, bool isIf]
+embedded_statement returns [bool isSemi, bool isIf, bool indent]
 @init {
     StringTemplate someText = null;
-    $isBraces = false;
+    $isSemi = false;
     $isIf = false;
+    $indent = true;
     List<String> preComments = null;
 }:
-	block { $isSemi = $block.isSemi; $isBraces = !$block.isSemi;} -> { $block.st }
+	block { $isSemi = $block.isSemi; $indent = false; } -> { $block.st }
 	| ^(IF boolean_expression { preComments = CollectedComments; } SEP  t=embedded_statement e=else_statement?) { $isIf = true; }
         -> if_template(comments = { preComments }, cond= { $boolean_expression.st }, 
-              then = { $t.st }, thensemi = { $t.isSemi }, thenbraces = { $t.isBraces },  
-              else = { $e.st }, elsesemi = { $e.isSemi }, elsebraces = { $e.isBraces }, elseisif = { $e.isIf })
+              then = { $t.st }, thenindent = { $t.indent }, 
+              else = { $e.st }, elseisif = { $e.isIf }, elseindent = { $e.indent})
     | ^('switch' expression  { preComments = CollectedComments; } s+=switch_section*) -> switch(comments = { preComments }, scrutinee = { $expression.st }, sections = { $s }) 
 	| iteration_statement -> { $iteration_statement.st }	// while, do, for, foreach
 	| jump_statement	-> { $jump_statement.st }	// break, continue, goto, return, throw
 	| ^('try'  { preComments = CollectedComments; } b=block catch_clauses? finally_clause?) 
-        -> try(comments = { preComments }, block = {$b.st}, blocksemi = {$b.isSemi}, blockbraces = { !$b.isSemi },
+        -> try(comments = { preComments }, block = {$b.st}, blockindent = { $b.isSemi }, 
                catches = { $catch_clauses.st }, fin = { $finally_clause.st } )
 	| checked_statement -> { $checked_statement.st }
 	| unchecked_statement -> { $unchecked_statement.st }
 	| lock_statement -> { $lock_statement.st }
-	| using_statement 
 	| yield_statement 
     | ^('unsafe'  { preComments = CollectedComments; }   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
       -> unsupported(comments = { preComments }, reason = {"unsafe blocks are not supported"}, text = { someText } )
@@ -1246,8 +1255,8 @@ if_statement:
 	// else goes with closest if
 	
 	;
-else_statement returns [bool isSemi, bool isBraces, bool isIf]:
-	'else'   s=embedded_statement	{ $isSemi = $s.isSemi; $isBraces = $s.isBraces; $isIf = $s.isIf; } -> { $embedded_statement.st } ;
+else_statement returns [bool isSemi, bool isIf, bool indent]:
+	'else'   s=embedded_statement	{ $isSemi = $s.isSemi; $isIf = $s.isIf; $indent = $s.indent; } -> { $embedded_statement.st } ;
 switch_section:
     ^(SWITCH_SECTION lab+=switch_label+ stat+=statement+) -> switch_section(labels = { $lab }, statements = { $stat });
 switch_label:
@@ -1255,14 +1264,14 @@ switch_label:
 	| 'default' -> default_template() ;
 iteration_statement:
 	^('while' boolean_expression  SEP embedded_statement) 
-          -> while(cond = { $boolean_expression.st }, block = { $embedded_statement.st }, blocksemi = { $embedded_statement.isSemi }, blockbraces = { $embedded_statement.isBraces })
+          -> while(cond = { $boolean_expression.st }, block = { $embedded_statement.st }, blockindent = { $embedded_statement.indent })
 	| do_statement -> { $do_statement.st }
 	| ^('for' for_initializer? SEP expression? SEP for_iterator? SEP embedded_statement)
          -> for(init = { $for_initializer.st }, cond = { $expression.st }, iter = { $for_iterator.st },
-                      block = { $embedded_statement.st }, blocksemi = { $embedded_statement.isSemi }, blockbraces = { $embedded_statement.isBraces })
+                      block = { $embedded_statement.st }, blockindent = { $embedded_statement.indent })
 	| ^('foreach' local_variable_type   identifier  expression SEP  embedded_statement) 
           -> foreach(type = { $local_variable_type.st }, loopid = { $identifier.st }, fromexp = { $expression.st },
-                      block = { $embedded_statement.st }, blocksemi = { $embedded_statement.isSemi }, blockbraces = { $embedded_statement.isBraces });
+                      block = { $embedded_statement.st }, blockindent = { $embedded_statement.indent });
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
 for_initializer:
@@ -1286,9 +1295,9 @@ goto_statement:
 catch_clauses:
     c+=catch_clause+ -> seplist(items={ $c }, sep = { "\n" }) ;
 catch_clause:
-	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi } );
+	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blockindent = { $block.isSemi } );
 finally_clause:
-	^('finally'   block) -> fin(block = {$block.st}, blocksemi = { $block.isSemi }, blockbraces = { !$block.isSemi });
+	^('finally'   block) -> fin(block = {$block.st}, blockindent = { $block.isSemi });
 checked_statement
 @init {
     StringTemplate someText = null;
@@ -1297,8 +1306,7 @@ checked_statement
         { someText = %keyword_block(); 
           %{someText}.keyword = "checked"; 
           %{someText}.block = $block.st;
-          %{someText}.blocksemi = $block.isSemi;
-          %{someText}.blockbraces = !$block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
+          %{someText}.indent = $block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
 ;
 unchecked_statement
 @init {
@@ -1308,8 +1316,7 @@ unchecked_statement
         { someText = %keyword_block(); 
           %{someText}.keyword = "unchecked"; 
           %{someText}.block = $block.st;
-          %{someText}.blocksemi = $block.isSemi;
-          %{someText}.blockbraces = !$block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
+          %{someText}.indent = $block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
 ;
 lock_statement
 @init {
@@ -1319,14 +1326,8 @@ lock_statement
         { someText = %lock(); 
           %{someText}.exp = $expression.st; 
           %{someText}.block = $embedded_statement.st;
-          %{someText}.blocksemi = $embedded_statement.isSemi;
-          %{someText}.blockbraces = $embedded_statement.isBraces; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } )
+          %{someText}.indent = $embedded_statement.indent; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } )
         ;
-using_statement:
-	'using'   '('    resource_acquisition   ')'    embedded_statement ;
-resource_acquisition:
-	(local_variable_declaration) => local_variable_declaration
-	| expression ;
 yield_statement:
 	'yield'   ('return'   expression   ';'
 	          | 'break'   ';') ;

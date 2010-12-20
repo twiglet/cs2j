@@ -847,7 +847,6 @@ block
 	| checked_statement
 	| unchecked_statement
 	| lock_statement
-	| using_statement 
 	| yield_statement 
     | ^('unsafe'   block)
 	| fixed_statement
@@ -942,11 +941,6 @@ unchecked_statement:
 	'unchecked'   block ;
 lock_statement:
 	'lock'   '('  expression   ')'   embedded_statement ;
-using_statement:
-	'using'   '('    resource_acquisition   ')'    embedded_statement ;
-resource_acquisition:
-	(local_variable_declaration) => local_variable_declaration
-	| expression ;
 yield_statement:
 	'yield'   ('return'   expression   ';'
 	          | 'break'   ';') ;
