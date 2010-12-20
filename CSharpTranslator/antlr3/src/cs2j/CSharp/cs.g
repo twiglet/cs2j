@@ -102,6 +102,8 @@ tokens {
             LEFT_SHIFT = '<<';
             RIGHT_SHIFT;
             UNSIGNED_RIGHT_SHIFT;  /* not in C#: >>> */
+            
+            SUPER;
 
             PLUS = '+';
             

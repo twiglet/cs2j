@@ -241,7 +241,7 @@ class_member_declaration:
 
 primary_expression: 
 	('this'    brackets[null]) => (t='this' -> $t)  (b1=brackets[$primary_expression.tree] -> $b1) (pp1=primary_expression_part[$primary_expression.tree] -> $pp1) *
-	| ('base'   brackets[null]) => (b='this' -> $b)  (b2=brackets[$primary_expression.tree] -> $b2) (pp2=primary_expression_part[$primary_expression.tree] -> $pp2) *
+	| ('base'   brackets[null]) => (b='base' -> SUPER[$b.token, "super"])  (b2=brackets[$primary_expression.tree] -> $b2) (pp2=primary_expression_part[$primary_expression.tree] -> $pp2) *
 	| (primary_expression_start -> primary_expression_start)   (pp3=primary_expression_part[$primary_expression.tree] -> $pp3 )*
 // keving:TODO fixup
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
@@ -263,7 +263,7 @@ primary_expression_start:
 	| (identifier    generic_argument_list) => identifier   generic_argument_list
 	| identifier ((c='::'^   identifier { Warning($c.line, "[UNSUPPORTED] external aliases are not yet supported"); })?)!
 	| 'this' 
-	| 'base'
+	| b='base' -> SUPER[$b.token, "super"]
 	| paren_expression
 	| typeof_expression             // typeof(Foo).Name
 	| literal
@@ -1151,9 +1151,12 @@ operator_body:
 constructor_declaration:
 		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] 
             -> $i $p? $b;
-constructor_initializer:
-	':'   (tok='base' { tok.Text = "super"; } | tok='this')   '('   argument_list?   ')' 
-         -> ^(APPLY[$tok.token, "APPLY"] IDENTIFIER[$tok.token, $tok.token.Text] argument_list?) SEMI[$tok.token, ";"] ;
+constructor_initializer: 
+	':' tok='this' '('   argument_list?   ')' 
+         -> ^(APPLY[$tok.token, "APPLY"] $tok argument_list?) SEMI[$tok.token, ";"]
+	| ':' tok='base' '('   argument_list?   ')' 
+         -> ^(APPLY[$tok.token, "APPLY"] SUPER[$tok.token, "super"] argument_list?) SEMI[$tok.token, ";"] 
+    ;
 constructor_body[CommonTree init]:
 	{init == null}?=> s=';' -> $s 
 	| s1=';' -> OPEN_BRACE[$s1.token, "{"] { dupTree(init) } CLOSE_BRACE[$s1.token, "}"]
@@ -1180,7 +1183,7 @@ invocation_start:
 	predefined_type 
 	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
 	| 'this' 
-	| 'base'
+	| b='base' -> SUPER[$b.token, "super"]
 	| identifier   ('::'   identifier)?
 	| typeof_expression             // typeof(Foo).Name
 	;

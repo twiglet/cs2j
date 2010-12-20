@@ -361,7 +361,7 @@ primary_expression_start:
 	| i1=identifier -> { $i1.st } 
 	| primary_expression_extalias -> unsupported(reason = {"external aliases are not yet supported"}, text= { $primary_expression_extalias.st } ) 
 	| 'this' -> string(payload = { "this" }) 
-	| 'base'-> string(payload = { "super" }) 
+	| SUPER-> string(payload = { "super" }) 
     // keving: needs fixing in javamaker - > type.class
 	| ^('typeof'  unbound_type_name ) -> typeof(type= { $unbound_type_name.st })
 	| ^('typeof'  type ) -> typeof(type= { $type.st })

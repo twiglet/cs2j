@@ -113,7 +113,7 @@ primary_expression_start:
     | identifier
 	| ^('::' identifier identifier)
 	| 'this' 
-	| 'base'
+	| SUPER
 	| typeof_expression             // typeof(Foo).Name
 	| literal
 	;
@@ -837,7 +837,7 @@ invocation_start:
 	predefined_type 
 	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
 	| 'this' 
-	| 'base'
+	| SUPER
 	| identifier   ('::'   identifier)?
 	| typeof_expression             // typeof(Foo).Name
 	;
