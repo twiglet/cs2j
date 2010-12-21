@@ -303,7 +303,7 @@ class_member_declaration:
 	| d3=delegate_declaration	-> ^(DELEGATE[$d3.start.Token, "DELEGATE"] $a? $m? $d3)
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
 	| con3=constructor_declaration[$a.tree, $m.tree, $m.modList]	-> $con3
-	| de3=destructor_declaration -> ^(DESTRUCTOR[$de3.start.Token, "DESTRUCTOR"] $a? $m? $de3)
+	| de3=destructor_declaration -> $de3
 	) 
 	;
 
@@ -1258,7 +1258,7 @@ operator_body:
 
 ///////////////////////////////////////////////////////
 constructor_declaration[CommonTree atts, CommonTree mods, List<String> modList]:
-		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptions[$b.tree] 
+		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptionsThrow[$b.tree, "ExceptionInInitializerError"] 
             -> {modList.Contains("static")}? ^(STATIC_CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $sb)
             ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b);
 constructor_initializer: 
@@ -1281,7 +1281,7 @@ constructor_body[CommonTree init]:
 
 ///////////////////////////////////////////////////////
 destructor_declaration:
-	'~'  identifier   '('   ')'    destructor_body ;
+	t='~'  identifier   '('   ')'    destructor_body f=magicFinalize[$t.token, $destructor_body.tree] -> $f;
 destructor_body:
 	block ;
 
@@ -1606,12 +1606,16 @@ magicException:
 ;
 
 magicSmotherExceptions[CommonTree body]:
+  magicSmotherExceptionsThrow[body, "RuntimeException"] 
+;
+
+magicSmotherExceptionsThrow[CommonTree body, String exception]:
   v=magicCatchVar 
  -> OPEN_BRACE["{"]
        ^(TRY["try"] 
             { dupTree(body) }
          ^(CATCH["catch"] ^(TYPE["TYPE"] IDENTIFIER["Throwable"]) { dupTree($v.tree) } 
-           OPEN_BRACE["{"] ^(THROW["throw"] ^(NEW["new"] ^(TYPE["TYPE"] IDENTIFIER["RuntimeException"]) ^(ARGS["ARGS"] { dupTree($v.tree) }))) CLOSE_BRACE["}"]))
+           OPEN_BRACE["{"] ^(THROW["throw"] ^(NEW["new"] ^(TYPE["TYPE"] IDENTIFIER[exception]) ^(ARGS["ARGS"] { dupTree($v.tree) }))) CLOSE_BRACE["}"]))
     CLOSE_BRACE["}"]
 ;
 
@@ -1666,5 +1670,17 @@ magicDispose[IToken tok, String var]:
 magicFinally[IToken tok, CommonTree statement_list]:
 ->
    ^(FINALLY[tok, "finally"] OPEN_BRACE[tok, "{"] { dupTree(statement_list) } CLOSE_BRACE[tok, "}"])
+;
+
+magicFinalize[IToken tok, CommonTree body]:
+->
+    ^(METHOD[tok, "METHOD"]
+         PUBLIC[tok, "protected"] 
+         ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "void"]) IDENTIFIER[tok, "finalize"] 
+              OPEN_BRACE[tok, "{"] 
+                    ^(TRY[tok, "try"] { dupTree(body) } 
+                         ^(FINALLY[tok, "finally"] OPEN_BRACE[tok, "{"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] SUPER[tok,"super"] IDENTIFIER[tok,"finalize"])) SEMI[tok, ";"] CLOSE_BRACE[tok, "}"]))
+              CLOSE_BRACE[tok, "}"] 
+      EXCEPTION[tok, "Throwable"])
 ;
 
