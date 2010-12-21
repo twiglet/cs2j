@@ -32,8 +32,12 @@ namespace RusticiSoftware.Translator.CSharp
             
             public bool Warnings { get; set; }
 
-            private bool translatorKeepParens = true;
             public bool TranslatorKeepParens
+            {
+                get; set;
+            }
+
+            public bool TranslatorAddTimeStamp
             {
                 get; set;
             }
@@ -65,6 +69,7 @@ namespace RusticiSoftware.Translator.CSharp
 	        Warnings = false;		
 
                 TranslatorKeepParens = true;
+                TranslatorAddTimeStamp = true;
             }
 	}
 }

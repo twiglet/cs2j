@@ -46,6 +46,7 @@ tokens {
             APPLY;
             ARGS;
             NEW;
+            STATIC_CONSTRUCTOR;
 
             RETURN = 'return';
             PRIVATE = 'private';

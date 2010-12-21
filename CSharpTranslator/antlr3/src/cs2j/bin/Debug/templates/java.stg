@@ -61,6 +61,14 @@ constructor(modifiers, name, params, exception="Throwable", body, bodyIsSemi) ::
 <\n>
 >>
 
+static_constructor(modifiers, body, bodyIsSemi) ::= <<
+<modifiers(modifiers)><if(bodyIsSemi)>;
+<else>
+<body>
+<endif>
+<\n>
+>>
+
 method(modifiers, typeparams, type, name, params, exceptions, body, bodyIsSemi) ::= <<
 <modifiers(modifiers)><typeparams> <type> <name>(<params; separator=", ">)<if(exceptions)> throws <exceptions; separator=", "><endif> <if(bodyIsSemi)>;
 <else>

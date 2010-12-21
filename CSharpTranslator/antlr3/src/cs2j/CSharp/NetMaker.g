@@ -47,6 +47,7 @@ class_member_declaration:
     | ^(DELEGATE attributes? modifiers? delegate_declaration)
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block)
+    | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
     | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
 // class_member_declaration:

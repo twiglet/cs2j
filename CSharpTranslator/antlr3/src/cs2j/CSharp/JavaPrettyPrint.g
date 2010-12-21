@@ -226,7 +226,7 @@ compilation_unit
 }
 :
     ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
-        package(now = {DateTime.Now}, includeDate = {true}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)}, 
+        package(now = {DateTime.Now}, includeDate = {Cfg.TranslatorAddTimeStamp}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)}, 
             type = {$type_declaration.st},
             endComments = { CollectedComments });
 
@@ -269,6 +269,8 @@ class_member_declaration returns [List<String> preComments]:
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block)
        -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $block.isSemi }, body={ $block.st })
+    | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
+       -> static_constructor(modifiers={$modifiers.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
 
