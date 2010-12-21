@@ -267,11 +267,10 @@ class_member_declaration returns [List<String> preComments]:
     | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st])
     | ^(DELEGATE attributes? modifiers? { $preComments = CollectedComments; } delegate_declaration)
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
-    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block)
-       -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, bodyIsSemi = { $block.isSemi }, body={ $block.st })
+    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block exception*)
+       -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
        -> static_constructor(modifiers={$modifiers.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
-    | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
 
 // class_member_declaration:
@@ -1145,12 +1144,6 @@ operator_body:
 //	identifier   '('   ')'  static_constructor_body ;
 //static_constructor_body:
 //	block ;
-
-///////////////////////////////////////////////////////
-destructor_declaration:
-	'~'  identifier   '('   ')'    destructor_body ;
-destructor_body:
-	block ;
 
 ///////////////////////////////////////////////////////
 invocation_expression:

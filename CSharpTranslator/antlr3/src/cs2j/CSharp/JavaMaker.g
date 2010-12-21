@@ -282,12 +282,12 @@ class_member_declaration:
 	m=modifiers?
 	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, $m.modList) } $ct constant_declarators)
 	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 //-> ^(METHOD[$v1.token, "METHOD"] $a? $m? ^(TYPE $v1) $m3)
+	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 
 			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
 			   | c1=class_declaration -> ^(CLASS[$c1.start.Token, "CLASS"] $a? $m? $c1)
 			   | s1=struct_declaration) -> ^(CLASS[$s1.start.Token, "CLASS"] $a? $m? $s1)
 	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
-	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 //-> ^(METHOD[$v.token, "METHOD"] $a? $m? ^(TYPE[$v.token, "TYPE"] $v) $m1)
+	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text] -> $m2
 		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
 		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ix1
@@ -1165,8 +1165,11 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 struct_declaration returns [string name]
 scope TypeContext;
 :
-	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token, "class"] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.text]   ';'? 
+    -> ^(CLASS[$c.Token, "class"] identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
+
+struct_body [String structName]:
+	o='{'  magicDefaultConstructor[$o.token, structName] class_member_declarations? '}' ;
 
 // UNUSED, HOPEFULLY
 // struct_modifiers:
@@ -1258,9 +1261,9 @@ operator_body:
 
 ///////////////////////////////////////////////////////
 constructor_declaration[CommonTree atts, CommonTree mods, List<String> modList]:
-		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptionsThrow[$b.tree, "ExceptionInInitializerError"] 
+		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptionsThrow[$b.tree, "ExceptionInInitializerError"] magicThrowable
             -> {modList.Contains("static")}? ^(STATIC_CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $sb)
-            ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b);
+            ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b magicThrowable);
 constructor_initializer: 
 	':' tok='this' '('   argument_list?   ')' 
          -> ^(APPLY[$tok.token, "APPLY"] $tok argument_list?) SEMI[$tok.token, ";"]
@@ -1675,12 +1678,22 @@ magicFinally[IToken tok, CommonTree statement_list]:
 magicFinalize[IToken tok, CommonTree body]:
 ->
     ^(METHOD[tok, "METHOD"]
-         PUBLIC[tok, "protected"] 
+         PROTECTED[tok, "protected"] 
          ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "void"]) IDENTIFIER[tok, "finalize"] 
               OPEN_BRACE[tok, "{"] 
                     ^(TRY[tok, "try"] { dupTree(body) } 
                          ^(FINALLY[tok, "finally"] OPEN_BRACE[tok, "{"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] SUPER[tok,"super"] IDENTIFIER[tok,"finalize"])) SEMI[tok, ";"] CLOSE_BRACE[tok, "}"]))
               CLOSE_BRACE[tok, "}"] 
       EXCEPTION[tok, "Throwable"])
+;
+
+magicDefaultConstructor[IToken tok, String name]:
+->
+    ^(CONSTRUCTOR[tok, "CONSTRUCTOR"]
+         PUBLIC[tok, "public"] 
+         IDENTIFIER[tok, name]
+              OPEN_BRACE[tok, "{"] 
+              CLOSE_BRACE[tok, "}"] 
+      )
 ;
 

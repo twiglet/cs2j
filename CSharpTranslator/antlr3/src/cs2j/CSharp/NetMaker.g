@@ -46,9 +46,8 @@ class_member_declaration:
     | ^(ENUM attributes? modifiers? enum_declaration)
     | ^(DELEGATE attributes? modifiers? delegate_declaration)
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
-    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block)
+    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block exception*)
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
-    | ^(DESTRUCTOR attributes? modifiers? destructor_declaration)
     ;
 // class_member_declaration:
 // 	attributes?
@@ -804,12 +803,6 @@ operator_body:
 //	identifier   '('   ')'  static_constructor_body ;
 //static_constructor_body:
 //	block ;
-
-///////////////////////////////////////////////////////
-destructor_declaration:
-	'~'  identifier   '('   ')'    destructor_body ;
-destructor_body:
-	block ;
 
 ///////////////////////////////////////////////////////
 invocation_expression:

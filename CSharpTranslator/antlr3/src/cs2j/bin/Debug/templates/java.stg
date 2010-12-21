@@ -53,8 +53,8 @@ class_member(comments, member) ::= <<
 <member>
 >>
 
-constructor(modifiers, name, params, exception="Throwable", body, bodyIsSemi) ::= <<
-<modifiers(modifiers)><name>(<params; separator=", ">) throws <exception> <if(bodyIsSemi)>;
+constructor(modifiers, name, params, exceptions, body, bodyIsSemi) ::= <<
+<modifiers(modifiers)><name>(<params; separator=", ">)<if(exceptions)> throws <exceptions; separator=", "><endif> <if(bodyIsSemi)>;
 <else>
 <body>
 <endif>
