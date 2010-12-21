@@ -219,10 +219,6 @@ options {
 compilation_unit
 @init{
     initPrecedence();
-    // Print all tokens
-    //for (int i = 0; i < TokenNames.Length; i++) {
-    //    Console.Out.WriteLine("{0}  ->  {1}", TokenNames[i], i);
-    //}
 }
 :
     ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
@@ -258,7 +254,6 @@ class_member_declaration returns [List<String> preComments]:
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?
             { $preComments = CollectedComments; } method_body exception*)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
-//    | ^(METHOD attributes? modifiers? type method_declaration)     -> method(modifiers={$modifiers.st}, type={$type.st}, method={$method_declaration.st}) 
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
     | ^(INDEXER attributes? modifiers? type type_name? { $preComments = CollectedComments; } indexer_declaration)
@@ -272,37 +267,6 @@ class_member_declaration returns [List<String> preComments]:
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
        -> static_constructor(modifiers={$modifiers.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     ;
-
-// class_member_declaration:
-// 	attributes?
-// 	m=modifiers?
-// 	( 'const'   t1=type   constant_declarators   ';'
-// 	| event_declaration		// 'event'
-// 	| 'partial' (method_declaration 
-// 			   | interface_declaration[$m.st] 
-// 			   | class_declaration[$m.st] 
-// 			   | struct_declaration)
-// 	| interface_declaration[$m.st]	// 'interface'
-// //	| 'void'   method_declaration
-// 	| t2=type ( (member_name   '(') => method_declaration
-// 		   | (member_name   '{') => property_declaration
-// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-// 		   | indexer_declaration	//this
-// 	       | field_declaration     -> field(modifiers={$m.st}, type={$t2.st}, field={$field_declaration.st}) // qid
-// 	       | operator_declaration
-// 	       )
-// //	common_modifiers// (method_modifiers | field_modifiers)
-// 	
-// 	| c2=class_declaration[$m.st] -> { $c2.st }		// 'class'
-// 	| s2=struct_declaration	-> { $s2.st }// 'struct'	   
-// 	| e2=enum_declaration[$m.st]	-> { $e2.st }	// 'enum'
-// 	| delegate_declaration	// 'delegate'
-// 	| conversion_operator_declaration
-// 	| constructor_declaration	//	| static_constructor_declaration
-// 	| destructor_declaration
-// 	) 
-// 	;
-// 
 
 exception:
     EXCEPTION -> string(payload = { $EXCEPTION.text });
@@ -899,11 +863,7 @@ variable_declarator:
 	type_name ('='   variable_initializer)? -> variable_declarator(typename = { $type_name.st }, init = { $variable_initializer.st}) ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-//method_declaration:
-//	method_header   method_body -> method_declaration(header={$method_header.st}, body={$method_body.st}) ;
-//method_header:
-//    ^(METHOD_HEADER member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?)
-//	-> method_header(name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st });
+
 method_body returns [bool isSemi]:
 	block { $isSemi = $block.isSemi; } -> { $block.st };
 
@@ -1065,49 +1025,6 @@ interface_member_declaration returns [List<String> preComments]:
 		;
 
 ///////////////////////////////////////////////////////
-// struct_declaration:
-// 	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
-// struct_modifiers:
-// 	struct_modifier+ ;
-// struct_modifier:
-// 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-// struct_interfaces:
-// 	':'   interface_type_list;
-// struct_body:
-// 	'{'   struct_member_declarations?   '}';
-// struct_member_declarations:
-// 	struct_member_declaration+ ;
-// struct_member_declaration:
-// 	attributes?   m=modifiers?
-// 	( 'const'   type   constant_declarators   ';'
-// 	| event_declaration		// 'event'
-// 	| 'partial' (method_declaration 
-// 			   | interface_declaration[$m.st] 
-// 			   | class_declaration[$m.st] 
-// 			   | struct_declaration)
-// 
-// 	| interface_declaration[$m.st]	// 'interface'
-// 	| class_declaration[$m.st]		// 'class'
-// 	| 'void'   method_declaration
-// 	| type ( (member_name   '(') => method_declaration
-// 		   | (member_name   '{') => property_declaration
-// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-// 		   | indexer_declaration	//this
-// 	       | field_declaration      // qid
-// 	       | operator_declaration
-// 	       )
-// //	common_modifiers// (method_modifiers | field_modifiers)
-// 	
-// 	| struct_declaration	// 'struct'	   
-// 	| enum_declaration[$m.st]		// 'enum'
-// 	| delegate_declaration	// 'delegate'
-// 	| conversion_operator_declaration
-// 	| constructor_declaration	//	| static_constructor_declaration
-// 	) 
-// 	;
-// 
-
-///////////////////////////////////////////////////////
 indexer_declaration:
 	indexer_declarator   '{'   accessor_declarations   '}' ;
 indexer_declarator:
@@ -1138,12 +1055,6 @@ conversion_operator_declarator:
 	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
 operator_body:
 	block ;
-
-///////////////////////////////////////////////////////
-//static_constructor_declaration:
-//	identifier   '('   ')'  static_constructor_body ;
-//static_constructor_body:
-//	block ;
 
 ///////////////////////////////////////////////////////
 invocation_expression:

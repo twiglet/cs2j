@@ -49,36 +49,6 @@ class_member_declaration:
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block exception*)
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
     ;
-// class_member_declaration:
-// 	attributes?
-// 	m=modifiers?
-// 	( 'const'   type   constant_declarators   ';'
-// 	| event_declaration		// 'event'
-// 	| 'partial' (method_declaration 
-// 			   | interface_declaration 
-// 			   | class_declaration 
-// 			   | struct_declaration)
-// 	| interface_declaration	// 'interface'
-// //	| 'void'   method_declaration
-// 	| type ( (member_name   '(') => method_declaration
-// 		   | (member_name   '{') => property_declaration
-// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-// 		   | indexer_declaration	//this
-// 	       | field_declaration      // qid
-// 	       | operator_declaration
-// 	       )
-// //	common_modifiers// (method_modifiers | field_modifiers)
-// 	
-// 	| class_declaration		// 'class'
-// 	| struct_declaration	// 'struct'	   
-// 	| enum_declaration		// 'enum'
-// 	| delegate_declaration	// 'delegate'
-// 	| conversion_operator_declaration
-// 	| constructor_declaration	//	| static_constructor_declaration
-// 	| destructor_declaration
-// 	) 
-// 	;
-// 
 
 exception:
     EXCEPTION;
@@ -722,49 +692,6 @@ interface_member_declaration:
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
 		;
-	
-///////////////////////////////////////////////////////
-// struct_declaration:
-// 	'struct'   type_or_generic   struct_interfaces?   type_parameter_constraints_clauses?   struct_body   ';'? ;
-// struct_modifiers:
-// 	struct_modifier+ ;
-// struct_modifier:
-// 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-// struct_interfaces:
-// 	':'   interface_type_list;
-// struct_body:
-// 	'{'   struct_member_declarations?   '}';
-// struct_member_declarations:
-// 	struct_member_declaration+ ;
-// struct_member_declaration:
-// 	attributes?   m=modifiers?
-// 	( 'const'   type   constant_declarators   ';'
-// 	| event_declaration		// 'event'
-// 	| 'partial' (method_declaration 
-// 			   | interface_declaration 
-// 			   | class_declaration 
-// 			   | struct_declaration)
-// 
-// 	| interface_declaration	// 'interface'
-// 	| class_declaration		// 'class'
-// 	| 'void'   method_declaration
-// 	| type ( (member_name   '(') => method_declaration
-// 		   | (member_name   '{') => property_declaration
-// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-// 		   | indexer_declaration	//this
-// 	       | field_declaration      // qid
-// 	       | operator_declaration
-// 	       )
-// //	common_modifiers// (method_modifiers | field_modifiers)
-// 	
-// 	| struct_declaration	// 'struct'	   
-// 	| enum_declaration		// 'enum'
-// 	| delegate_declaration	// 'delegate'
-// 	| conversion_operator_declaration
-// 	| constructor_declaration	//	| static_constructor_declaration
-// 	) 
-// 	;
-
 
 ///////////////////////////////////////////////////////
 indexer_declaration:
@@ -797,12 +724,6 @@ conversion_operator_declarator:
 	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
 operator_body:
 	block ;
-
-///////////////////////////////////////////////////////
-//static_constructor_declaration:
-//	identifier   '('   ')'  static_constructor_body ;
-//static_constructor_body:
-//	block ;
 
 ///////////////////////////////////////////////////////
 invocation_expression:
