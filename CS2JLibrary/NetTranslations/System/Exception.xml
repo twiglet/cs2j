@@ -65,5 +65,10 @@
        <Type>System.String</Type>
        <Get>${this}.getStackTrace().toString()</Get>
     </Property>
+    <Property>
+    	<Name>InnerException</Name>
+    	<Type>System.Exception</Type>
+    	<Get>((Exception)${this}.getCause())</Get>
+    </Property>
  </Properties>
 </Class>

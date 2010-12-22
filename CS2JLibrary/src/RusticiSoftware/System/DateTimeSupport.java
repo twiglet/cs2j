@@ -75,14 +75,31 @@ public class DateTimeSupport {
 			"MM/dd/yyyy HH:mm:ss a", 
 			"yyyy-MM-dd HH:mm:ss'Z'", 
 			"yyyy-MM-dd'T'HH:mm:ss'.'SSSZ",
-			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", 
+			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
 			"yyyy-MM-dd'T'HH:mm:ss", 
 			"yyyy-MM-dd"};
 	
 	public static Date parse(String s) throws ParseException
 	{
-		return parse(s, DATE_FORMATS, Locale.getDefault());
-		
+		String val = trimMilliSecondsToThreeDigits(s);
+		return parse(val, DATE_FORMATS, Locale.getDefault());
+	}
+	
+	protected static String trimMilliSecondsToThreeDigits(String dateString){
+		String val = dateString;
+		if(val != null){
+			int milliStart = val.lastIndexOf(".");
+			if(milliStart != -1){
+				milliStart = milliStart + 1;
+				int milliEnd = val.lastIndexOf("Z");
+				milliEnd = (milliEnd == -1) ? val.length() : milliEnd;
+				if((milliEnd - milliStart) > 3){
+					String newMillis = val.substring(milliStart).substring(0, 3);
+					val = val.substring(0, milliStart) + newMillis + val.substring(milliEnd, val.length());
+				}
+			}
+		}
+		return val;
 	}
 	
     public static Date parse(String s, String f) throws ParseException

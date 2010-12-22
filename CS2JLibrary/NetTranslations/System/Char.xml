@@ -115,5 +115,27 @@
       </Params>
       <Java>Character.toLowerCase(${ch})</Java>
     </Method>
+    <Method>
+      <Return>System.Char</Return>
+      <Name>ToUpperInvariant</Name>
+      <Params>
+         <Param>
+            <Type>System.Char</Type>
+            <Name>ch</Name>
+         </Param>
+      </Params>
+      <Java>Character.toUpperCase(${ch})</Java>
+    </Method>
+    <Method>
+      <Return>System.Char</Return>
+      <Name>ToLowerInvariant</Name>
+      <Params>
+         <Param>
+            <Type>System.Char</Type>
+            <Name>ch</Name>
+         </Param>
+      </Params>
+      <Java>Character.toLowerCase(${ch})</Java>
+    </Method>
  </Methods>
 </Class>

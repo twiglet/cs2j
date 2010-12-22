@@ -258,6 +258,20 @@
       	<Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MONTH,${amount})</Java>
+    </Method>
+    <Method>
+    	<Return>System.TimeSpan</Return>
+    	<Name>Subtract</Name>
+    	<Params>
+    		<Param>
+    			<Type>System.DateTime</Type>
+    			<Name>date2</Name>
+    		</Param>
+    	</Params>
+    	<Imports>
+    		<Import>RusticiSoftware.System.DateTimeSupport</Import>
+    	</Imports>
+    	<Java>(new TimeSpan(Math.abs(${this}.getTime() - ${date2}.getTime())))</Java>
     </Method>	 
     </Methods>
 </Class>

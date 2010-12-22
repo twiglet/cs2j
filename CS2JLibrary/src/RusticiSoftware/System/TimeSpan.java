@@ -31,7 +31,7 @@ public class TimeSpan {
     private static final int MSECS_PER_HOUR = 60*MSECS_PER_MINUTE;
     private static final int MSECS_PER_DAY = 24*MSECS_PER_HOUR;
 
-	private TimeSpan(long ms)
+	public TimeSpan(long ms)
 	{
 		milliSeconds = ms;
 	}

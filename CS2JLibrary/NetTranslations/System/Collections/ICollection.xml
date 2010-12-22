@@ -11,4 +11,11 @@
       <Java>${this}.iterator()</Java>
     </Method>
   </Methods>
+  <Properties>
+    <Property>
+       <Type>System.Int32</Type>
+       <Name>Count</Name>
+       <Get>${this}.size()</Get>
+    </Property>
+  </Properties>
 </Interface>

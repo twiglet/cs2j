@@ -45,7 +45,12 @@ public class XmlText extends XmlNode {
 	{
 		// I think the XML standard says that newlines in text are converted from their
 		// local encoding to "\n".  Java does that, but .Net does not, so here we put 'em back.
-		sb.append(StringSupport.encodeHTML(getText().getNodeValue().replace("\n", System.getProperty("line.separator"))));
+		Text txt = getText();
+		String nodeValue = txt.getNodeValue();
+		if(nodeValue != null){
+			nodeValue = nodeValue.replace("\n", System.getProperty("line.separator"));
+			sb.append(StringSupport.encodeHTML(nodeValue));
+		}
 	}
 
 }

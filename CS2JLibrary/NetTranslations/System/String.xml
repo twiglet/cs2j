@@ -502,6 +502,16 @@
       <Return>System.String</Return>
       <Name>ToUpper</Name>
       <Java>${this}.toUpperCase()</Java>
+    </Method>
+    <Method>
+      <Return>System.String</Return>
+      <Name>ToLowerInvariant</Name>
+      <Java>${this}.toLowerCase()</Java>
+    </Method>   
+    <Method>
+      <Return>System.String</Return>
+      <Name>ToUpperInvariant</Name>
+      <Java>${this}.toUpperCase()</Java>
     </Method>   
     <Method>
       <Return>System.String</Return>
