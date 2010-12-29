@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs2j", "src\cs2j\cs2j.csproj", "{CE961AC5-C8D4-41B3-AAF3-23FA8FAEE8AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antlr3.Runtime", "src\Antlr.Runtime\Antlr3.Runtime.csproj", "{CF15D0D5-BE72-4F98-B70F-229ABA1DF0E8}"
@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDesk.Options", "src\NDesk.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs2jTemplateGen", "src\cs2jTemplateGen\cs2jTemplateGen.csproj", "{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateTxFiles", "UpdateTxFiles\UpdateTxFiles.csproj", "{4B69CC57-FAC3-464F-9103-5187421DB85F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +24,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CE961AC5-C8D4-41B3-AAF3-23FA8FAEE8AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CE961AC5-C8D4-41B3-AAF3-23FA8FAEE8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE961AC5-C8D4-41B3-AAF3-23FA8FAEE8AD}.Default|Any CPU.ActiveCfg = Debug|Any CPU
@@ -38,19 +52,13 @@ Global
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Default|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Default|Any CPU.Build.0 = Debug|Any CPU
-		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC80B16E-0700-4AA5-ABA0-ADBCD9316952}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = src\cs2j\cs2j.csproj
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
