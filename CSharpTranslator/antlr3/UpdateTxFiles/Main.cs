@@ -5,6 +5,8 @@ using NDesk.Options;
 using RusticiSoftware.Translator.CLR;
 using RusticiSoftware.Translator.Utils;
 using System.Xml.Serialization;
+using RusticiSoftware.Translator;
+using OldT = RusticiSoftware.Translator.TypeRepTemplate;
 
 namespace UpdateTxFiles
 {
@@ -13,8 +15,8 @@ namespace UpdateTxFiles
 		
         private const string VERSION = "2010.1.1";
 		private static int Verbosity = 0;
-		private static DirectoryHT<TypeRepTemplate> oldAppEnv = new DirectoryHT<TypeRepTemplate>(null);
-		private static DirectoryHT<TypeRepTemplate> newAppEnv = new DirectoryHT<TypeRepTemplate>(null);
+		private static DirectoryHT<OldT> oldAppEnv = new DirectoryHT<OldT>(null);
+		private static DirectoryHT<OldT> newAppEnv = new DirectoryHT<OldT>(null);
 		
         public delegate void FileProcessor(string fName);
 
@@ -60,19 +62,20 @@ namespace UpdateTxFiles
                     foreach (string r in inDirs)
                         doFile(r, ".xml", addOldNetTranslation, null);
 
-					foreach (KeyValuePair<string,TypeRepTemplate> de in oldAppEnv)
+					foreach (KeyValuePair<string,OldT> de in oldAppEnv)
                     {     
 						String xmlFName = Path.Combine(outDir,
                                                            ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");       
 						String xmlFDir = Path.GetDirectoryName(xmlFName);
-						if (!Directory.Exists(xmlFDir))
-						{
-							Directory.CreateDirectory(xmlFDir);
-						}
-						XmlSerializer s = new XmlSerializer(de.Value.GetType());
-						TextWriter w = new StreamWriter(xmlFName);
-						s.Serialize(w, de.Value);
-						w.Close();
+						Console.WriteLine (xmlFName + ": " + de.Value.Java);
+//						if (!Directory.Exists(xmlFDir))
+//						{
+//							Directory.CreateDirectory(xmlFDir);
+//						}
+//						XmlSerializer s = new XmlSerializer(de.Value.GetType());
+//						TextWriter w = new StreamWriter(xmlFName);
+//						s.Serialize(w, de.Value);
+//						w.Close();
 					}
                 }
                 else
@@ -127,7 +130,7 @@ namespace UpdateTxFiles
         public static void addOldNetTranslation(string fullName)
         {
             Stream s = new FileStream(fullName, FileMode.Open, FileAccess.Read);
-            TypeRepTemplate t = TypeRepTemplate.newInstance(s);
+            OldT t = OldT.newInstance(s);
             oldAppEnv[t.TypeName] = t;
         }
 	}
