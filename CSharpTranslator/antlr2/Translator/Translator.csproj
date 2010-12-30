@@ -93,15 +93,15 @@
     </Antlr>
     <Antlr Include="CSharpLexer.g">
       <OutputFiles>CSharpLexer.cs;;CSharpLexerTokenTypes.cs</OutputFiles>
-      <IncludeFiles>-glib UnicodeLexerBase.g;CSharpLexerBase.g</IncludeFiles>
+      <IncludeFiles>-glib "UnicodeLexerBase.g;CSharpLexerBase.g"</IncludeFiles>
     </Antlr>
     <Antlr Include="CSharpPreprocessorLexer.g">
       <OutputFiles>CSharpPreprocessorLexer.cs;CSharpPreprocessTokenTypes.cs</OutputFiles>
-      <IncludeFiles>-glib UnicodeLexerBase.g;CSharpLexerBase.g</IncludeFiles>
+      <IncludeFiles>-glib "UnicodeLexerBase.g;CSharpLexerBase.g"</IncludeFiles>
     </Antlr>
     <Antlr Include="CSharpPreprocessorHooverLexer.g">
       <OutputFiles>CSharpPreprocessorHooverLexer.cs;CSharpHooverTokenTypes.cs</OutputFiles>
-      <IncludeFiles>-glib UnicodeLexerBase.g;CSharpLexerBase.g</IncludeFiles>
+      <IncludeFiles>-glib "UnicodeLexerBase.g;CSharpLexerBase.g"</IncludeFiles>
     </Antlr>
     <Antlr Include="CSharpParser.g">
       <OutputFiles>CSharpParser.cs;CSharpJavaTokenTypes.cs</OutputFiles>
