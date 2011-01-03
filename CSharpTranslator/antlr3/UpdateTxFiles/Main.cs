@@ -7,6 +7,7 @@ using RusticiSoftware.Translator.Utils;
 using System.Xml.Serialization;
 using RusticiSoftware.Translator;
 using OldT = RusticiSoftware.Translator.TypeRepTemplate;
+using NewT = RusticiSoftware.Translator.CLR.TypeRepTemplate;
 
 namespace UpdateTxFiles
 {
@@ -62,19 +63,25 @@ namespace UpdateTxFiles
                     foreach (string r in inDirs)
                         doFile(r, ".xml", addOldNetTranslation, null);
 
+					UpdateTranslationTemplate tx = new UpdateTranslationTemplate();
+					
 					foreach (KeyValuePair<string,OldT> de in oldAppEnv)
-                    {     
+                    {   
+						// update translation template
+						NewT txTemplate = tx.upgrade(de.Value);
+						
 						String xmlFName = Path.Combine(outDir,
                                                            ((string)de.Key).Replace('.', Path.DirectorySeparatorChar) + ".xml");       
 						String xmlFDir = Path.GetDirectoryName(xmlFName);
 						Console.WriteLine (xmlFName + ": " + de.Value.Java);
+						
 //						if (!Directory.Exists(xmlFDir))
 //						{
 //							Directory.CreateDirectory(xmlFDir);
 //						}
-//						XmlSerializer s = new XmlSerializer(de.Value.GetType());
+//						XmlSerializer s = new XmlSerializer(txTemplate.GetType());
 //						TextWriter w = new StreamWriter(xmlFName);
-//						s.Serialize(w, de.Value);
+//						s.Serialize(w, txTemplate);
 //						w.Close();
 					}
                 }
