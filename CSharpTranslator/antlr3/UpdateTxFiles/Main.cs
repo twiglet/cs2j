@@ -75,14 +75,14 @@ namespace UpdateTxFiles
 						String xmlFDir = Path.GetDirectoryName(xmlFName);
 						Console.WriteLine (xmlFName + ": " + de.Value.Java);
 						
-//						if (!Directory.Exists(xmlFDir))
-//						{
-//							Directory.CreateDirectory(xmlFDir);
-//						}
-//						XmlSerializer s = new XmlSerializer(txTemplate.GetType());
-//						TextWriter w = new StreamWriter(xmlFName);
-//						s.Serialize(w, txTemplate);
-//						w.Close();
+						if (!Directory.Exists(xmlFDir))
+						{
+							Directory.CreateDirectory(xmlFDir);
+						}
+						XmlSerializer s = new XmlSerializer(txTemplate.GetType());
+						TextWriter w = new StreamWriter(xmlFName);
+						s.Serialize(w, txTemplate);
+						w.Close();
 					}
                 }
                 else

@@ -106,7 +106,7 @@ namespace UpdateTxFiles
 		
 		public void upgrade(OldTSpace.TypeRepTemplate inV, NewTSpace.InterfaceRepTemplate outV) {
 			
-			upgrade(inV as OldTSpace.TranslationBase, outV as NewTSpace.TranslationBase);
+			upgrade(inV as OldTSpace.TypeRepTemplate, outV as NewTSpace.TypeRepTemplate);
 	
 			outV.Inherits = inV.Inherits;
 			if (!String.IsNullOrEmpty(inV.Java))
