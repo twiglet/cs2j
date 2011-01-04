@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XmlElement</Java>
+  <Name>System.Xml.XmlElement</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Xml.XmlLinkedNode</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.getAttribute(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>GetAttribute</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.getElementsByTagName(${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>GetElementsByTagName</Name>
+      <Return>System.Xml.XmlNodeList</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.hasAttribute(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>HasAttribute</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.removeAttribute(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>RemoveAttribute</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.setAttribute(${name}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>SetAttribute</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.setAttributeNS(${namespaceURI}, ${localName}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>namespaceURI</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>SetAttribute</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.setAttributeNode(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlAttribute</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>SetAttributeNode</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.hasAttributes()</Java>
+      <Type>System.Boolean</Type>
+      <Name>HasAttributes</Name>
+      <Get>${this}.hasAttributes()</Get>
+      <Set>${this}.setHasAttributes(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

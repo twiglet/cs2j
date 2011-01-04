@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>SoapHttpClientProtocol</Java>
+  <Name>System.Web.Services.Protocols.SoapHttpClientProtocol</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.invoke(${methodName}, ${parameters})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>methodName</Name>
+        </Param>
+        <Param>
+          <Type>System.Object[]</Type>
+          <Name>parameters</Name>
+        </Param>
+      </Params>
+      <Name>Invoke</Name>
+      <Return>System.Object[]</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getUrl()</Java>
+      <Type>System.String</Type>
+      <Name>Url</Name>
+      <Get>${this}.getUrl()</Get>
+      <Set>${this}.setUrl(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getCookieContainer()</Java>
+      <Type>System.String</Type>
+      <Name>CookieContainer</Name>
+      <Get>${this}.getCookieContainer()</Get>
+      <Set>${this}.setCookieContainer(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

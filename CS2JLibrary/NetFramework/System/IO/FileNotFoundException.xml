@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>FileNotFoundException</Java>
+  <Name>System.IO.FileNotFoundException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.IOException</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.IO.FileNotFoundException</string>
+      </Imports>
+      <Java>new FileNotFoundException(${message})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.IO.FileNotFoundException</string>
+      </Imports>
+      <Java>new FileNotFoundException(${message}, ${fileName})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fileName</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

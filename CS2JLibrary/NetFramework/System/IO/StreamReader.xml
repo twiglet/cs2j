@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>BufferedReader</Java>
+  <Name>System.IO.StreamReader</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.TextReader</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.IO.StreamReader</string>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(new FileInputStream(${path}))))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.IO.StreamReader</string>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(new FileInputStream(${path}), ${encoding})))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.Text.Encoding</Type>
+          <Name>encoding</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.IO.StreamReader</string>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), ${encoding}))</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.Stream</Type>
+          <Name>stream</Name>
+        </Param>
+        <Param>
+          <Type>System.Text.Encoding</Type>
+          <Name>encoding</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.IO.StreamReader</string>
+        <string>RusticiSoftware.System.Text.EncodingSupport</string>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), new EncodingSupport("UTF-8")))</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.Stream</Type>
+          <Name>stream</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

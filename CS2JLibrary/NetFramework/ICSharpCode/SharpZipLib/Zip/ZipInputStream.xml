@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>ZipInputStream</Java>
+  <Name>ICSharpCode.SharpZipLib.Zip.ZipInputStream</Name>
+  <Uses />
+  <Inherits>
+    <Type>ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream</Type>
+    <Type>System.IO.Stream</Type>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.getNextEntry()</Java>
+      <Params />
+      <Name>GetNextEntry</Name>
+      <Return>ICSharpCode.SharpZipLib.Zip.ZipEntry</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>java.io.InputStream</string>
+      </Imports>
+      <Java>new ZipInputStream(${baseInputStream})</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.Stream</Type>
+          <Name>baseInputStream</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

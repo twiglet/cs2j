@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Exception</Java>
+  <Name>System.Xml.XmlException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.SystemException</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

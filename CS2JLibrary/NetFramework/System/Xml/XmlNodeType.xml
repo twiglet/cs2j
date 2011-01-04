@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>short</Java>
+  <Name>System.Xml.XmlNodeType</Name>
+  <Uses />
+  <Inherits />
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>org.w3c.dom.Node.ELEMENT_NODE</Java>
+      <Type>short</Type>
+      <Name>Element</Name>
+      <Get>org.w3c.dom.Node.ELEMENT_NODE</Get>
+      <Set>${this}.setElement(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>org.w3c.dom.Node.ATTRIBUTE_NODE</Java>
+      <Type>short</Type>
+      <Name>Attribute</Name>
+      <Get>org.w3c.dom.Node.ATTRIBUTE_NODE</Get>
+      <Set>${this}.setAttribute(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>org.w3c.dom.Node.TEXT_NODE</Java>
+      <Type>short</Type>
+      <Name>Text</Name>
+      <Get>org.w3c.dom.Node.TEXT_NODE</Get>
+      <Set>${this}.setText(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

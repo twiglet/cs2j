@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Globalization.NumberStyles</string>
+  </Imports>
+  <Java>NumberStyles</Java>
+  <Name>System.Globalization.NumberStyles</Name>
+  <Uses />
+  <Inherits />
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Globalization.NumberStyles</string>
+      </Imports>
+      <Java>NumberStyles.getInteger()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>Integer</Name>
+      <Get>NumberStyles.getInteger()</Get>
+      <Set>${this}.setInteger(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Globalization.NumberStyles</string>
+      </Imports>
+      <Java>NumberStyles.getHexNumber()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>HexNumber</Name>
+      <Get>NumberStyles.getHexNumber()</Get>
+      <Set>${this}.setHexNumber(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Globalization.NumberStyles</string>
+      </Imports>
+      <Java>NumberStyles.getAny()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>Any</Name>
+      <Get>NumberStyles.getAny()</Get>
+      <Set>${this}.setAny(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

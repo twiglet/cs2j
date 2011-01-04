@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>String</Java>
+  <Name>System.String</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IComparable</Type>
+    <Type>System.ICloneable</Type>
+    <Type>System.IConvertible</Type>
+    <Type>System.Collections.IEnumerable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Compare(${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>Compare</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Compare(${arg1}, ${arg2}, ${isCaseSensitive})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg2</Name>
+        </Param>
+        <Param>
+          <Type>System.Bool</Type>
+          <Name>isCaseSensitive</Name>
+        </Param>
+      </Params>
+      <Name>Compare</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${arg1}.toString().concat(${arg2}.toString())</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>Concat</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.contains(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.endsWith(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>EndsWith</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.indexOf(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>IndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.indexOf(${arg}, ${start})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>arg</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+      </Params>
+      <Name>IndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.indexOf(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>IndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.indexOf(${arg}, ${start})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+      </Params>
+      <Name>IndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.isNullOrEmpty(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>IsNullOrEmpty</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.lastIndexOfAny(${this},${anyOf})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>anyOf</Name>
+        </Param>
+      </Params>
+      <Name>LastIndexOfAny</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.lastIndexOf(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>LastIndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.lastIndexOf(${arg},${start})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>arg</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+      </Params>
+      <Name>LastIndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.lastIndexOf(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>LastIndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.lastIndexOf(${arg},${start})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+      </Params>
+      <Name>LastIndexOf</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.PadLeft(${this}, ${totalWidth})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>totalWidth</Name>
+        </Param>
+      </Params>
+      <Name>PadLeft</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.PadLeft(${this}, ${totalWidth}, ${paddingChar})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>totalWidth</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>paddingChar</Name>
+        </Param>
+      </Params>
+      <Name>PadLeft</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.PadRight(${this}, ${totalWidth})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>totalWidth</Name>
+        </Param>
+      </Params>
+      <Name>PadRight</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.PadRight(${this}, ${totalWidth}, ${paddingChar})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>totalWidth</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>paddingChar</Name>
+        </Param>
+      </Params>
+      <Name>PadRight</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.replace(${old}, ${new})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>old</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>new</Name>
+        </Param>
+      </Params>
+      <Name>Replace</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.replace(${old}, ${new})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>old</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>new</Name>
+        </Param>
+      </Params>
+      <Name>Replace</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Split(${this}, ${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>Split</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Split(${this}, ${ch1}, ${ch2})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch1</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch2</Name>
+        </Param>
+      </Params>
+      <Name>Split</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>${this}.split(StringSupport.charAltsToRegex(${cs}))</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>cs</Name>
+        </Param>
+      </Params>
+      <Name>Split</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>${this}.split(StringSupport.charAltsToRegex(${cs}), ${count})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>cs</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>count</Name>
+        </Param>
+      </Params>
+      <Name>Split</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Split(${this}, ${cs}, ${options})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>cs</Name>
+        </Param>
+        <Param>
+          <Type>System.StringSplitOptions</Type>
+          <Name>options</Name>
+        </Param>
+      </Params>
+      <Name>Split</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.startsWith(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>StartsWith</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.substring(${start})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+      </Params>
+      <Name>Substring</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.substring(${start}, (${start}) + (${length}))</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+      <Name>Substring</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toCharArray()</Java>
+      <Params />
+      <Name>ToCharArray</Name>
+      <Return>System.Char[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.substring(${start}, ${end}).toCharArray()</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>start</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>end</Name>
+        </Param>
+      </Params>
+      <Name>ToCharArray</Name>
+      <Return>System.Char[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toLowerCase()</Java>
+      <Params />
+      <Name>ToLower</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toUpperCase()</Java>
+      <Params />
+      <Name>ToUpper</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toLowerCase()</Java>
+      <Params />
+      <Name>ToLowerInvariant</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toUpperCase()</Java>
+      <Params />
+      <Name>ToUpperInvariant</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Trim(${this})</Java>
+      <Params />
+      <Name>Trim</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Trim(${this}, ${trimChars})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>trimChars</Name>
+        </Param>
+      </Params>
+      <Name>Trim</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Trim(${this}, new char[] {${trimChar1}})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar1</Name>
+        </Param>
+      </Params>
+      <Name>Trim</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.Trim(${this}, new char[] {${trimChar1}, ${trimChar2}})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar1</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar2</Name>
+        </Param>
+      </Params>
+      <Name>Trim</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimStart(${this}, null)</Java>
+      <Params />
+      <Name>TrimStart</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimStart(${this}, ${trimChars})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>trimChars</Name>
+        </Param>
+      </Params>
+      <Name>TrimStart</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimStart(${this}, new char[] {${trimChar1}})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar1</Name>
+        </Param>
+      </Params>
+      <Name>TrimStart</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimStart(${this}, new char[] {${trimChar1}, ${trimChar2}})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar1</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar2</Name>
+        </Param>
+      </Params>
+      <Name>TrimStart</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimEnd(${this}, null)</Java>
+      <Params />
+      <Name>TrimEnd</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimEnd(${this}, ${trimChars})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>trimChars</Name>
+        </Param>
+      </Params>
+      <Name>TrimEnd</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimEnd(${this}, new char[] {${trimChar1}})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar1</Name>
+        </Param>
+      </Params>
+      <Name>TrimEnd</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.TrimEnd(${this}, new char[] {${trimChar1}, ${trimChar2}})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar1</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>trimChar2</Name>
+        </Param>
+      </Params>
+      <Name>TrimEnd</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.charAt(${i})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Name>get___idx</Name>
+      <Return>System.Char</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.length()</Java>
+      <Type>System.Int32</Type>
+      <Name>Length</Name>
+      <Get>${this}.length()</Get>
+      <Set>${this}.setLength(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>""</Java>
+      <Type>System.String</Type>
+      <Name>Empty</Name>
+      <Get>""</Get>
+      <Set>${this}.setEmpty(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.StringSupport</string>
+      </Imports>
+      <Java>StringSupport.mkString(${char}, ${length})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>char</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new String(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char[]</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

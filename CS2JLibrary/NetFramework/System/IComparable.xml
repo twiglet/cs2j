@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.IComparable</string>
+  </Imports>
+  <Java>IComparable</Java>
+  <Name>System.IComparable</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.Compare(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>CompareTo</Name>
+      <Return>System.Int32</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+</Interface>

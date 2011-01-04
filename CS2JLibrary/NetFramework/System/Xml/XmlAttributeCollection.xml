@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XmlAttributeCollection</Java>
+  <Name>System.Xml.XmlAttributeCollection</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.get(${idx})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>idx</Name>
+        </Param>
+      </Params>
+      <Name>get___idx</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.add(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlAttribute</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>Append</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this}.size()</Get>
+      <Set>${this}.setCount(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Reflection.BindingFlags</string>
+  </Imports>
+  <Java>BindingFlags</Java>
+  <Name>System.Reflection.BindingFlags</Name>
+  <Uses />
+  <Inherits />
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Reflection.BindingFlags</string>
+      </Imports>
+      <Java>BindingFlags.getInstance()</Java>
+      <Type>System.Reflection.BindingFlags</Type>
+      <Name>Instance</Name>
+      <Get>BindingFlags.getInstance()</Get>
+      <Set>${this}.setInstance(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Reflection.BindingFlags</string>
+      </Imports>
+      <Java>BindingFlags.getPublic()</Java>
+      <Type>System.Reflection.BindingFlags</Type>
+      <Name>Public</Name>
+      <Get>BindingFlags.getPublic()</Get>
+      <Set>${this}.setPublic(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Reflection.BindingFlags</string>
+      </Imports>
+      <Java>BindingFlags.getFlattenHierarchy()</Java>
+      <Type>System.Reflection.BindingFlags</Type>
+      <Name>FlattenHierarchy</Name>
+      <Get>BindingFlags.getFlattenHierarchy()</Get>
+      <Set>${this}.setFlattenHierarchy(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.System.Reflection.BindingFlags</string>
+      </Imports>
+      <Java>BindingFlags.getStatic()</Java>
+      <Type>System.Reflection.BindingFlags</Type>
+      <Name>Static</Name>
+      <Get>BindingFlags.getStatic()</Get>
+      <Set>${this}.setStatic(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

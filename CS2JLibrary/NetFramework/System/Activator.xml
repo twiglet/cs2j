@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Activator</string>
+  </Imports>
+  <Java>Activator</Java>
+  <Name>System.Activator</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${type}.newInstance()</Java>
+      <Params>
+        <Param>
+          <Type>System.Type</Type>
+          <Name>type</Name>
+        </Param>
+      </Params>
+      <Name>CreateInstance</Name>
+      <Return>System.Object</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

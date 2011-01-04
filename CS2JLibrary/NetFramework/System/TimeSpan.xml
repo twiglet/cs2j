@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>TimeSpan</Java>
+  <Name>System.TimeSpan</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.TimeSpan</string>
+      </Imports>
+      <Java>TimeSpan.parse(${s})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.TimeSpan</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getTotalSeconds()</Java>
+      <Type>System.Double</Type>
+      <Name>TotalSeconds</Name>
+      <Get>${this}.getTotalSeconds()</Get>
+      <Set>${this}.setTotalSeconds(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Convert</string>
+  </Imports>
+  <Java>Convert</Java>
+  <Name>System.Convert</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>org.apache.commons.codec.binary.Base64</string>
+      </Imports>
+      <Java>Base64.decodeBase64(${s})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+      <Name>FromBase64String</Name>
+      <Return>System.Byte[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>org.apache.commons.codec.binary.Base64</string>
+      </Imports>
+      <Java>Base64.encodeBase64String(${inArray})</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>inArray</Name>
+        </Param>
+      </Params>
+      <Name>ToBase64String</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>((${value}) &gt; 0)</Java>
+      <Params>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToBoolean</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${value}</Java>
+      <Params>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToBoolean</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Integer.valueOf(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToInt32</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>(int)Math.round(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToInt32</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Long.valueOf(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToInt64</Name>
+      <Return>System.Int64</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>(long)Math.round(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToInt64</Name>
+      <Return>System.Int64</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.DateTimeSupport</string>
+      </Imports>
+      <Java>DateTimeSupport.parse(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToDateTime</Name>
+      <Return>System.Int64</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Integer.toString(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>null</Java>
+      <Type>System.Object</Type>
+      <Name>DBNull</Name>
+      <Get>null</Get>
+      <Set>${this}.setDBNull(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

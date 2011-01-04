@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XmlTextReader</Java>
+  <Name>System.Xml.XmlTextReader</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new XmlTextReader(${stringReader})</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.StringReader</Type>
+          <Name>stringReader</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

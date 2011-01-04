@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.DBNull</string>
+  </Imports>
+  <Java>DBNull</Java>
+  <Name>System.DBNull</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>null</Java>
+      <Type>System.DBNull</Type>
+      <Name>Value</Name>
+      <Get>null</Get>
+      <Set>${this}.setValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

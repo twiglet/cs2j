@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Node</Java>
+  <Name>System.Xml.XmlLinkedNode</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Xml.XmlNode</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.Load(${p})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>p</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Xml.XmlDocument</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isDigit(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsDigit</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

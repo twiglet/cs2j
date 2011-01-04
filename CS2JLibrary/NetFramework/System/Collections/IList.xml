@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>List</Java>
+  <Name>System.Collections.IList</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.add(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.contains(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.get(${i})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Name>get___idx</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.set___idx(${i}, ${v})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>v</Name>
+        </Param>
+      </Params>
+      <Name>set___idx</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this}.size()</Get>
+      <Set>${this}.setCount(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

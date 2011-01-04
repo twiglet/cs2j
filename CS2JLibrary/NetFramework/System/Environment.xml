@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Environment</string>
+  </Imports>
+  <Java>Environment</Java>
+  <Name>System.Environment</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>System.getProperty("line.separator")</Java>
+      <Type>System.String</Type>
+      <Name>NewLine</Name>
+      <Get>System.getProperty("line.separator")</Get>
+      <Set>${this}.setNewLine(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>java.net.InetAddress</string>
+      </Imports>
+      <Java>InetAddress.getLocalHost().getHostName()</Java>
+      <Type>System.String</Type>
+      <Name>MachineName</Name>
+      <Get>InetAddress.getLocalHost().getHostName()</Get>
+      <Set>${this}.setMachineName(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

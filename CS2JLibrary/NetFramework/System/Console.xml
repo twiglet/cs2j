@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Console</string>
+  </Imports>
+  <Java>Console</Java>
+  <Name>System.Console</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>System.out.print(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.*</string>
+      </Imports>
+      <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}), ${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.*</string>
+      </Imports>
+      <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}), ${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>System.out.println()</Java>
+      <Params />
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>System.out.println(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.*</string>
+      </Imports>
+      <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}) + "\\n", ${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.*</string>
+      </Imports>
+      <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}) + "\\n", ${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>System.out</Java>
+      <Type>System.IO.TextWriter</Type>
+      <Name>Out</Name>
+      <Get>System.out</Get>
+      <Set>${this}.setOut(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

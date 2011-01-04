@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>File</Java>
+  <Name>System.IO.Directory</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path})).exists()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Exists</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path})).mkdirs()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>CreateDirectory</Name>
+      <Return>System.IO.DirectoryInfo</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+      </Imports>
+      <Java>DirectorySupport.delete(${path}, false)</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Delete</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+      </Imports>
+      <Java>DirectorySupport.delete(${path}, ${recursive})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>recursive</Name>
+        </Param>
+      </Params>
+      <Name>Delete</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${sourceFileName})).renameTo(new File(${destFileName}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>destFileName</Name>
+        </Param>
+      </Params>
+      <Name>Move</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path})).list()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetFileSystemEntries</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+      </Imports>
+      <Java>DirectorySupport.getFiles(${path}, ${searchpattern})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>searchpattern</Name>
+        </Param>
+      </Params>
+      <Name>GetFiles</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+      </Imports>
+      <Java>DirectorySupport.getDirectories(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetDirectories</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+      </Imports>
+      <Java>DirectorySupport.getFiles(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetFiles</Name>
+      <Return>System.String[]</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

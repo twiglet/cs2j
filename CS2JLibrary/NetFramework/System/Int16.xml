@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>int</Java>
+  <Name>System.Int16</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Short.valueOf(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Int16</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>Short.MIN_VALUE</Java>
+      <Type>System.Int16</Type>
+      <Name>MinValue</Name>
+      <Get>Short.MIN_VALUE</Get>
+      <Set>${this}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Short.MAX_VALUE</Java>
+      <Type>System.Int16</Type>
+      <Name>MaxValue</Name>
+      <Get>Short.MAX_VALUE</Get>
+      <Set>${this}.setMaxValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+    <Cast>
+      <Imports />
+      <Java>((Short) ${expr})</Java>
+      <From>System.Object</From>
+      <To>System.Int16</To>
+    </Cast>
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+</Class>

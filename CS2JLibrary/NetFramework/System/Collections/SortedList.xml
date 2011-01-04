@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>TreeMap</Java>
+  <Name>System.Collections.SortedList</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDictionary</Type>
+    <Type>System.ICollection</Type>
+    <Type>System.IEnumerable</Type>
+    <Type>System.ICloneable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>ContainsKey</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.get(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>get___idx</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>set___idx</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this}.size()</Get>
+      <Set>${this}.setCount(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.keySet()</Java>
+      <Type>System.ICollection</Type>
+      <Name>Keys</Name>
+      <Get>${this}.keySet()</Get>
+      <Set>${this}.setKeys(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.values()</Java>
+      <Type>System.ICollection</Type>
+      <Name>Values</Name>
+      <Get>${this}.values()</Get>
+      <Set>${this}.setValues(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>java.util.TreeMap</string>
+      </Imports>
+      <Java>new TreeMap()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>java.util.TreeMap</string>
+      </Imports>
+      <Java>new TreeMap()</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>java.util.TreeMap</string>
+      </Imports>
+      <Java>new TreeMap(${collection})</Java>
+      <Params>
+        <Param>
+          <Type>System.IDictionary</Type>
+          <Name>collection</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

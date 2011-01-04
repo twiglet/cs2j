@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Assembly</Java>
+  <Name>System.Reflection.Assembly</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.Reflection.Assembly</string>
+      </Imports>
+      <Java>new Assembly(${assemblyString})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>assemblyString</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Reflection.Assembly</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.getClass(${name}, ${throwOnError})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>throwOnError</Name>
+        </Param>
+      </Params>
+      <Name>GetType</Name>
+      <Return>System.Type</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>null /* getExecutingAssembly() */</Java>
+      <Params />
+      <Name>GetExecutingAssembly</Name>
+      <Return>System.Assembly</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

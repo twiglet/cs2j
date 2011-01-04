@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>NotImplementedException</Java>
+  <Name>System.NotImplementedException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.SystemException</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.NotImplementedException</string>
+      </Imports>
+      <Java>new NotImplementedException()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.NotImplementedException</string>
+      </Imports>
+      <Java>new NotImplementedException(${message})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.System.NotImplementedException</string>
+      </Imports>
+      <Java>new NotImplementedException(${message}, ${inner})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+        <Param>
+          <Type>System.Exception</Type>
+          <Name>inner</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

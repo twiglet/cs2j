@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.IO.TextWriter</string>
+  </Imports>
+  <Java>TextWriter</Java>
+  <Name>System.IO.TextWriter</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.close()</Java>
+      <Params />
+      <Name>Close</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.write(${arg} + System.getProperty("line.separator"))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.write(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

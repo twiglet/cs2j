@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Map.Entry</Java>
+  <Name>System.Collections.DictionaryEntry</Name>
+  <Uses />
+  <Inherits />
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getKey()</Java>
+      <Type>System.Object</Type>
+      <Name>Key</Name>
+      <Get>${this}.getKey()</Get>
+      <Set>${this}.setKey(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getValue()</Java>
+      <Type>System.Object</Type>
+      <Name>Value</Name>
+      <Get>${this}.getValue()</Get>
+      <Set>${this}.setValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

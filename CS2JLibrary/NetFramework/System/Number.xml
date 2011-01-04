@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Number</string>
+  </Imports>
+  <Java>Number</Java>
+  <Name>System.Number</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>java.text.NumberFormat</string>
+      </Imports>
+      <Java>NumberFormat.getInstance(${provider}).format(${this})</Java>
+      <Params>
+        <Param>
+          <Type>System.Globalization.CultureInfo</Type>
+          <Name>provider</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.NumberSupport</string>
+      </Imports>
+      <Java>NumberSupport.format(${this}, ${format})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>format</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

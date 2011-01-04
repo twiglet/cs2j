@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>IDisposable</Java>
+  <Name>System.IDisposable</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.close()</Java>
+      <Params />
+      <Name>Dispose</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+</Interface>

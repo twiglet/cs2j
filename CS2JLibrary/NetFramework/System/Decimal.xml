@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>double</Java>
+  <Name>System.Decimal</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Double.valueOf(${dStr})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Double</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>Double.MIN_VALUE</Java>
+      <Type>System.Decimal</Type>
+      <Name>MinValue</Name>
+      <Get>Double.MIN_VALUE</Get>
+      <Set>${this}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Double.MAX_VALUE</Java>
+      <Type>System.Decimal</Type>
+      <Name>MaxValue</Name>
+      <Get>Double.MAX_VALUE</Get>
+      <Set>${this}.setMaxValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>-1.0</Java>
+      <Type>System.Decimal</Type>
+      <Name>MinusOne</Name>
+      <Get>-1.0</Get>
+      <Set>${this}.setMinusOne(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>0.0</Java>
+      <Type>System.Decimal</Type>
+      <Name>Zero</Name>
+      <Get>0.0</Get>
+      <Set>${this}.setZero(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>1.0</Java>
+      <Type>System.Decimal</Type>
+      <Name>One</Name>
+      <Get>1.0</Get>
+      <Set>${this}.setOne(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

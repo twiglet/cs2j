@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Globalization.NumberFormatInfo</string>
+  </Imports>
+  <Java>NumberFormatInfo</Java>
+  <Name>System.Globalization.NumberFormatInfo</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.ICloneable</Type>
+    <Type>System.IFormatProvider</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.JavaSupport.util.LocaleSupport</string>
+      </Imports>
+      <Java>LocaleSupport.INVARIANT</Java>
+      <Type>System.Globalization.NumberFormatInfo</Type>
+      <Name>InvariantInfo</Name>
+      <Get>LocaleSupport.INVARIANT</Get>
+      <Set>${this}.setInvariantInfo(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>RusticiSoftware.JavaSupport.util.LocaleSupport</string>
+      </Imports>
+      <Java>LocaleSupport.INVARIANT</Java>
+      <Params />
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

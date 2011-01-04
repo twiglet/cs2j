@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Field</Java>
+  <Name>System.Reflection.FieldInfo</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.JavaSupport.reflect.FieldSupport</string>
+      </Imports>
+      <Java>FieldSupport.getAnnotations(${this}, ${attributeType}, ${inherits})</Java>
+      <Params>
+        <Param>
+          <Type>System.Type</Type>
+          <Name>attributeType</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>inherits</Name>
+        </Param>
+      </Params>
+      <Name>GetCustomAttributes</Name>
+      <Return>System.Object[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.get(${obj})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>obj</Name>
+        </Param>
+      </Params>
+      <Name>GetValue</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.set(${obj}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>obj</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>SetValue</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getName()</Java>
+      <Type>System.String</Type>
+      <Name>Name</Name>
+      <Get>${this}.getName()</Get>
+      <Set>${this}.setName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getType()</Java>
+      <Type>System.Type</Type>
+      <Name>FieldType</Name>
+      <Get>${this}.getType()</Get>
+      <Set>${this}.setFieldType(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

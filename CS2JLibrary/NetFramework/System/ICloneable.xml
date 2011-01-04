@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>ICloneable</Java>
+  <Name>System.ICloneable</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.Clone()</Java>
+      <Params />
+      <Name>Clone</Name>
+      <Return>System.Object</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+</Interface>

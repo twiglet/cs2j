@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>HttpURLConnection</Java>
+  <Name>System.Net.HttpWebResponse</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Net.WebResponse</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.getInputStream()</Java>
+      <Params />
+      <Name>GetResponseStream</Name>
+      <Return>System.IO.Stream</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getResponseCode()</Java>
+      <Type>System.Int32</Type>
+      <Name>StatusCode</Name>
+      <Get>${this}.getResponseCode()</Get>
+      <Set>${this}.setStatusCode(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

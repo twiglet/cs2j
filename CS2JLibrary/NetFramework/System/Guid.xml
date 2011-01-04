@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>UUID</Java>
+  <Name>System.Guid</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <string>java.util.UUID</string>
+      </Imports>
+      <Java>UUID.randomUUID()</Java>
+      <Params />
+      <Name>NewGuid</Name>
+      <Return>System.Guid</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

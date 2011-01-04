@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>URLEncoder</Java>
+  <Name>System.Web.HttpUtility</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.Web.HttpUtilSupport</string>
+      </Imports>
+      <Java>HttpUtilSupport.HtmlEncode(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>HtmlEncode</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</string>
+      </Imports>
+      <Java>HttpUtil.UrlEncode(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>UrlEncode</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</string>
+      </Imports>
+      <Java>HttpUtil.UrlDecode(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>UrlDecode</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>boolean</Java>
+  <Name>System.Boolean</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>Boolean.valueOf(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>"False"</Java>
+      <Type>System.String</Type>
+      <Name>FalseString</Name>
+      <Get>"False"</Get>
+      <Set>${this}.setFalseString(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>"True"</Java>
+      <Type>System.String</Type>
+      <Name>TrueString</Name>
+      <Get>"True"</Get>
+      <Set>${this}.setTrueString(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this} != null</Java>
+      <Type>System.Boolean</Type>
+      <Name>HasValue</Name>
+      <Get>${this} != null</Get>
+      <Set>${this}.setHasValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}</Java>
+      <Type>System.Boolean</Type>
+      <Name>Value</Name>
+      <Get>${this}</Get>
+      <Set>${this}.setValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

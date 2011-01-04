@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>BufferedWriter</Java>
+  <Name>System.IO.StreamWriter</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.TextWriter</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new BufferedWriter(new FileWriter(${path}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new BufferedWriter(new FileWriter(${path},${append}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>append</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

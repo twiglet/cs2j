@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Map</Java>
+  <Name>System.Collections.IDictionary</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>ContainsKey</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.get(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>get___idx</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>set___idx</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.remove(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this}.size()</Get>
+      <Set>${this}.setCount(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.keySet()</Java>
+      <Type>System.Collections.ICollection</Type>
+      <Name>Keys</Name>
+      <Get>${this}.keySet()</Get>
+      <Set>${this}.setKeys(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.values()</Java>
+      <Type>System.Collections.ICollection</Type>
+      <Name>Values</Name>
+      <Get>${this}.values()</Get>
+      <Set>${this}.setValues(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+</Interface>

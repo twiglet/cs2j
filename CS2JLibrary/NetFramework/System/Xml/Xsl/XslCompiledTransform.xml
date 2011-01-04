@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XslTransform</Java>
+  <Name>System.Xml.Xsl.XslCompiledTransform</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.load(${xmlReader}, ${ignore}, ${ignore2})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlTextReader</Type>
+          <Name>xmlReader</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>ignore</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>ignore2</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.transform(${xmlDocument}, ${ignore}, ${stringWriter})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlDocument</Type>
+          <Name>xmlDocument</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>ignore</Name>
+        </Param>
+        <Param>
+          <Type>System.IO.StringWriter</Type>
+          <Name>stringWriter</Name>
+        </Param>
+      </Params>
+      <Name>Transform</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

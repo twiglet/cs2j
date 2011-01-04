@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>** NONE System.Net.WebRequest **</Java>
+  <Name>System.Net.WebRequest</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${requestUri}.toURL().openConnection()</Java>
+      <Params>
+        <Param>
+          <Type>System.Uri</Type>
+          <Name>requestUri</Name>
+        </Param>
+      </Params>
+      <Name>Create</Name>
+      <Return>System.Net.WebRequest</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

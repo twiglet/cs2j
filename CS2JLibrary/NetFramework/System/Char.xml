@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>char</Java>
+  <Name>System.Char</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isDigit(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsDigit</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isLetter(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsLetter</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isLetterOrDigit(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsLetterOrDigit</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isUpperCase(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsUpper</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isLowerCase(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsLower</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isWhitespace(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsWhiteSpace</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.toUpperCase(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>ToUpper</Name>
+      <Return>System.Char</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.toLowerCase(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>ToLower</Name>
+      <Return>System.Char</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.toUpperCase(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>ToUpperInvariant</Name>
+      <Return>System.Char</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.toLowerCase(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>ToLowerInvariant</Name>
+      <Return>System.Char</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>Character.MIN_VALUE</Java>
+      <Type>System.Char</Type>
+      <Name>MinValue</Name>
+      <Get>Character.MIN_VALUE</Get>
+      <Set>${this}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Character.MAX_VALUE</Java>
+      <Type>System.Char</Type>
+      <Name>MaxValue</Name>
+      <Get>Character.MAX_VALUE</Get>
+      <Set>${this}.setMaxValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

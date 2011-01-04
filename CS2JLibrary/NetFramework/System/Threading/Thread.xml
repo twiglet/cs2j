@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Thread</Java>
+  <Name>System.Threading.Thread</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>Thread.sleep(${sleepTime})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>sleepTime</Name>
+        </Param>
+      </Params>
+      <Name>Sleep</Name>
+      <Return />
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.start()</Java>
+      <Params />
+      <Name>Start</Name>
+      <Return />
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.isAlive()</Java>
+      <Type>System.Boolean</Type>
+      <Name>IsAlive</Name>
+      <Get>${this}.isAlive()</Get>
+      <Set>${this}.setIsAlive(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

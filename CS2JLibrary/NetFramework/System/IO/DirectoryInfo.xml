@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>File</Java>
+  <Name>System.IO.DirectoryInfo</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.FileSystemInfo</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.JavaSupport.io.*</string>
+      </Imports>
+      <Java>${this}.listFiles(new FilterOnlyFiles())</Java>
+      <Params />
+      <Name>GetFiles</Name>
+      <Return>System.IO.FileInfo[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.JavaSupport.io.*</string>
+      </Imports>
+      <Java>${this}.listFiles(new FilterOnlyDirs())</Java>
+      <Params />
+      <Name>GetDirectories</Name>
+      <Return>System.IO.FileInfo[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.listFiles()</Java>
+      <Params />
+      <Name>GetFileSystemInfos</Name>
+      <Return>System.IO.FileSystemInfo[]</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>new File(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

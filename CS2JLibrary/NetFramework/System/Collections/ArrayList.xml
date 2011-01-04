@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>ArrayListSupport</Java>
+  <Name>System.Collections.ArrayList</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Collections.IEnumerable</Type>
+    <Type>System.Collections.ICollection</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.addS(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.addAllS(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Collections.ICollection</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>AddRange</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.addAll(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Array</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>AddRange</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.clear()</Java>
+      <Params />
+      <Name>Clear</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.contains(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.get(${i})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Name>get___idx</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.set___idx(${i}, ${v})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>v</Name>
+        </Param>
+      </Params>
+      <Name>set___idx</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.add(${index}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Insert</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.removeS(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.remove(${index})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+      </Params>
+      <Name>RemoveAt</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toArrayS(new ${TYPEOF_TYPE}[0])</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>TYPEOF_expr</Name>
+        </Param>
+      </Params>
+      <Name>ToArray</Name>
+      <Return>System.Object[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.sort()</Java>
+      <Params />
+      <Name>Sort</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this}.size()</Get>
+      <Set>${this}.setCount(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new ArrayListSupport()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new ArrayListSupport(${length})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new ArrayListSupport(${collection})</Java>
+      <Params>
+        <Param>
+          <Type>System.ICollection</Type>
+          <Name>collection</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

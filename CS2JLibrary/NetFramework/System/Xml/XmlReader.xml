@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XmlReader</Java>
+  <Name>System.Xml.XmlReader</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.readStartElement()</Java>
+      <Params />
+      <Name>ReadStartElement</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.moveToContent()</Java>
+      <Params />
+      <Name>MoveToContent</Name>
+      <Return>System.Xml.XmlNodeType</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.getAttribute(${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>GetAttribute</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.readElementString()</Java>
+      <Params />
+      <Name>ReadElementString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.skip()</Java>
+      <Params />
+      <Name>Skip</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.readEndElement()</Java>
+      <Params />
+      <Name>ReadEndElement</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

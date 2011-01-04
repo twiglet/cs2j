@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>StringWriter</Java>
+  <Name>System.IO.StringWriter</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.TextWriter</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>java.io.StringWriter</string>
+      </Imports>
+      <Java>new StringWriter(${s})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

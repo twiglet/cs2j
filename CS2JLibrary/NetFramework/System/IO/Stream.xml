@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>InputStream</Java>
+  <Name>System.IO.Stream</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.close()</Java>
+      <Params />
+      <Name>Close</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.read(${buffer},${offset},${count})</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>offset</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>count</Name>
+        </Param>
+      </Params>
+      <Name>Read</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.write(${buffer},${offset},${count})</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>offset</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>count</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports>
+        <string>RusticiSoftware.JavaSupport.Unsupported</string>
+      </Imports>
+      <Java>Unsupported.throwUnsupported("${this}.Position")</Java>
+      <Type>System.Int64</Type>
+      <Name>Position</Name>
+      <Get>Unsupported.throwUnsupported("${this}.Position")</Get>
+      <Set>Unsupported.throwUnsupported("${this}.Position = ${value}")</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <string>java.io.*</string>
+      </Imports>
+      <Java>new FileInputStream(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

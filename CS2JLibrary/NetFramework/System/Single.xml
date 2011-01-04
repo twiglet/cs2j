@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>float</Java>
+  <Name>System.Single</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Class</Java>
+  <Name>System.Type</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.TypeSupport</string>
+      </Imports>
+      <Java>TypeSupport.GetFields(${this})</Java>
+      <Params />
+      <Name>GetFields</Name>
+      <Return>System.Reflection.FieldInfo[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.TypeSupport</string>
+      </Imports>
+      <Java>TypeSupport.GetFields(${this},${flags})</Java>
+      <Params>
+        <Param>
+          <Type>System.Reflection.BindingFlags</Type>
+          <Name>flags</Name>
+        </Param>
+      </Params>
+      <Name>GetFields</Name>
+      <Return>System.Reflection.FieldInfo[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.TypeSupport</string>
+      </Imports>
+      <Java>TypeSupport.GetField(${this},${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>GetField</Name>
+      <Return>System.Reflection.FieldInfo</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.TypeSupport</string>
+      </Imports>
+      <Java>TypeSupport.GetField(${this},${name},${flags})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.Reflection.BindingFlags</Type>
+          <Name>flags</Name>
+        </Param>
+      </Params>
+      <Name>GetField</Name>
+      <Return>System.Reflection.FieldInfo</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.TypeSupport</string>
+      </Imports>
+      <Java>TypeSupport.InvokeMember(${this}, ${name}, ${target}, ${args})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>invokeAttr</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>binder</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>target</Name>
+        </Param>
+        <Param>
+          <Type>System.Object[]</Type>
+          <Name>args</Name>
+        </Param>
+      </Params>
+      <Name>InvokeMember</Name>
+      <Return>System.Object</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.isEnum()</Java>
+      <Type>System.Boolean</Type>
+      <Name>IsEnum</Name>
+      <Get>${this}.isEnum()</Get>
+      <Set>${this}.setIsEnum(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getName()</Java>
+      <Type>System.String</Type>
+      <Name>Name</Name>
+      <Get>${this}.getName()</Get>
+      <Set>${this}.setName(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

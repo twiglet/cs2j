@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Xml.Schema.XmlSchemaObject</string>
+  </Imports>
+  <Java>XmlSchemaObject</Java>
+  <Name>System.Xml.Schema.XmlSchemaObject</Name>
+  <Uses />
+  <Inherits />
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

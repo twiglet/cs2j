@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>Object</Java>
+  <Name>System.Object</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.equals(${obj})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>obj</Name>
+        </Param>
+      </Params>
+      <Name>Equals</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.toString()</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params>
+        <Param>
+          <Type>System.IFormatProvider</Type>
+          <Name>provider</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.getClass()</Java>
+      <Params />
+      <Name>GetType</Name>
+      <Return>System.Type</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+    <Cast>
+      <Imports />
+      <Java>(Boolean)(${expr})</Java>
+      <From>System.Object</From>
+      <To>System.Boolean</To>
+    </Cast>
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+</Class>

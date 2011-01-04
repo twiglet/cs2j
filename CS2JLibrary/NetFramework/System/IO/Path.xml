@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.IO.Path</string>
+  </Imports>
+  <Java>Path</Java>
+  <Name>System.IO.Path</Name>
+  <Uses />
+  <Inherits />
+  <Methods>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path})).getParent()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetDirectoryName</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path})).getName()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetFileName</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path})).getCanonicalPath()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetFullPath</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.PathSupport</string>
+      </Imports>
+      <Java>PathSupport.getExtension(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetExtension</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>(new File(${path1}, ${path2})).toString()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path1</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path2</Name>
+        </Param>
+      </Params>
+      <Name>Combine</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports>
+        <string>java.io.File</string>
+      </Imports>
+      <Java>File.separatorChar</Java>
+      <Type>System.Char</Type>
+      <Name>DirectorySeparatorChar</Name>
+      <Get>File.separatorChar</Get>
+      <Set>${this}.setDirectorySeparatorChar(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

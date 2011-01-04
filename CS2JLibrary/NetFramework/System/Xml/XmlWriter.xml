@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XmlWriter</Java>
+  <Name>System.Xml.XmlWriter</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.writeStartElement(${localName})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+      </Params>
+      <Name>WriteStartElement</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.writeAttributeString(${localName}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>WriteAttributeString</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.writeString(${text})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>text</Name>
+        </Param>
+      </Params>
+      <Name>WriteString</Name>
+      <Return>System.void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.writeEndElement()</Java>
+      <Params />
+      <Name>WriteEndElement</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

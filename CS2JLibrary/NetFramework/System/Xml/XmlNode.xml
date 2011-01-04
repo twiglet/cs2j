@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>XmlNode</Java>
+  <Name>System.Xml.XmlNode</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.appendChild(${child})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>child</Name>
+        </Param>
+      </Params>
+      <Name>AppendChild</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.insertBefore(${newChild}, ${refChild})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>newChild</Name>
+        </Param>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>refChild</Name>
+        </Param>
+      </Params>
+      <Name>InsertBefore</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.removeChild(${child})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>child</Name>
+        </Param>
+      </Params>
+      <Name>RemoveChild</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.removeAll()</Java>
+      <Params />
+      <Name>RemoveAll</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.selectNodes(${xpath})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>xpath</Name>
+        </Param>
+      </Params>
+      <Name>SelectNodes</Name>
+      <Return>System.Xml.XmlNodeList</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.selectSingleNode(${xpath})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>xpath</Name>
+        </Param>
+      </Params>
+      <Name>SelectSingleNode</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getAttributes()</Java>
+      <Type>System.Xml.XmlAttributeCollection</Type>
+      <Name>Attributes</Name>
+      <Get>${this}.getAttributes()</Get>
+      <Set>${this}.setAttributes(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getChildNodes()</Java>
+      <Type>System.Xml.XmlNodeList</Type>
+      <Name>ChildNodes</Name>
+      <Get>${this}.getChildNodes()</Get>
+      <Set>${this}.setChildNodes(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getFirstChild()</Java>
+      <Type>System.Xml.XmlNode</Type>
+      <Name>FirstChild</Name>
+      <Get>${this}.getFirstChild()</Get>
+      <Set>${this}.setFirstChild(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getInnerText()</Java>
+      <Type>System.String</Type>
+      <Name>InnerText</Name>
+      <Get>${this}.getInnerText()</Get>
+      <Set>${this}.setInnerText(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getInnerXml()</Java>
+      <Type>System.String</Type>
+      <Name>InnerXml</Name>
+      <Get>${this}.getInnerXml()</Get>
+      <Set>${this}.setInnerXml(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getLocalName()</Java>
+      <Type>System.String</Type>
+      <Name>LocalName</Name>
+      <Get>${this}.getLocalName()</Get>
+      <Set>${this}.setLocalName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getName()</Java>
+      <Type>System.String</Type>
+      <Name>Name</Name>
+      <Get>${this}.getName()</Get>
+      <Set>${this}.setName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getNamespaceURI()</Java>
+      <Type>System.String</Type>
+      <Name>NamespaceURI</Name>
+      <Get>${this}.getNamespaceURI()</Get>
+      <Set>${this}.setNamespaceURI(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getNextSibling()</Java>
+      <Type>System.Xml.XmlNode</Type>
+      <Name>NextSibling</Name>
+      <Get>${this}.getNextSibling()</Get>
+      <Set>${this}.setNextSibling(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getOuterXml()</Java>
+      <Type>System.String</Type>
+      <Name>OuterXml</Name>
+      <Get>${this}.getOuterXml()</Get>
+      <Set>${this}.setOuterXml(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getOwnerDocument()</Java>
+      <Type>System.Xml.XmlDocument</Type>
+      <Name>OwnerDocument</Name>
+      <Get>${this}.getOwnerDocument()</Get>
+      <Set>${this}.setOwnerDocument(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getParentNode()</Java>
+      <Type>System.Xml.XmlNode</Type>
+      <Name>ParentNode</Name>
+      <Get>${this}.getParentNode()</Get>
+      <Set>${this}.setParentNode(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getNodeType()</Java>
+      <Type>System.Xml.XmlNodeType</Type>
+      <Name>NodeType</Name>
+      <Get>${this}.getNodeType()</Get>
+      <Set>${this}.setNodeType(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new XmlNode()</Java>
+      <Params />
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

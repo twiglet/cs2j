@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>MailMessage</Java>
+  <Name>System.Net.Mail.MailMessage</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.getBody()</Java>
+      <Type>System.String</Type>
+      <Name>Body</Name>
+      <Get>${this}.getBody()</Get>
+      <Set>${this}.setBody(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getSubject()</Java>
+      <Type>System.String</Type>
+      <Name>Subject</Name>
+      <Get>${this}.getSubject()</Get>
+      <Set>${this}.setSubject(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}.getFrom()</Java>
+      <Type>System.Net.Mail.MailAddress</Type>
+      <Name>From</Name>
+      <Get>${this}.getFrom()</Get>
+      <Set>${this}.setFrom(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>javax.mail.internet.MimeMessage</string>
+        <string>javax.mail.internet.MimeMessage.RecipientType</string>
+      </Imports>
+      <Java>${this}.getTo()</Java>
+      <Type>System.Net.Mail.MailAddressCollection</Type>
+      <Name>To</Name>
+      <Get>${this}.getTo()</Get>
+      <Set>${this}.setTo(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <string>javax.mail.internet.MimeMessage</string>
+        <string>javax.mail.internet.MimeMessage.RecipientType</string>
+      </Imports>
+      <Java>${this}.getCC()</Java>
+      <Type>System.Net.Mail.MailAddressCollection</Type>
+      <Name>CC</Name>
+      <Get>${this}.getCC()</Get>
+      <Set>${this}.setCC(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

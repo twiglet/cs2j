@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Java>BufferedReader</Java>
+  <Name>System.IO.TextReader</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.close()</Java>
+      <Params />
+      <Name>Close</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.readLine()</Java>
+      <Params />
+      <Name>ReadLine</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>RusticiSoftware.System.IO.TextReaderSupport</string>
+      </Imports>
+      <Java>TextReaderSupport.readToEnd(${this})</Java>
+      <Params />
+      <Name>ReadToEnd</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

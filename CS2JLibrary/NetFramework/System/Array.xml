@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Imports>
+    <string>CS2JNet.System.Array</string>
+  </Imports>
+  <Java>Array</Java>
+  <Name>System.Array</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Collections.ICollection</Type>
+    <Type>System.IEnumerable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <string>java.util.Arrays</string>
+      </Imports>
+      <Java>Array.get(${this}, ${index})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+      </Params>
+      <Name>GetValue</Name>
+      <Return>${TYPE}</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <string>java.util.Arrays</string>
+      </Imports>
+      <Java>Arrays.sort(${array})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object[]</Type>
+          <Name>array</Name>
+        </Param>
+      </Params>
+      <Name>Sort</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}.length</Java>
+      <Type>System.Int32</Type>
+      <Name>Length</Name>
+      <Get>${this}.length</Get>
+      <Set>${this}.setLength(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>
