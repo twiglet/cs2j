@@ -15,11 +15,13 @@ using RusticiSoftware.Translator.Utils;
 using RusticiSoftware.Translator.AntlrUtils;
 using RusticiSoftware.Translator.CLR;
 
+using CS2JConstants = RusticiSoftware.Translator.Utils.Constants;
+
 namespace RusticiSoftware.Translator.CSharp
 {
     class CS2J
     {
-        private const string VERSION = "2009.1.1.x";
+        private const string VERSION = "2011.1.1.x";
         private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
         private static CS2JSettings cfg = new CS2JSettings();
  		private static StringTemplateGroup templates = null;
@@ -56,7 +58,7 @@ namespace RusticiSoftware.Translator.CSharp
         private static void addDirectories(IList<string> strs, string rawStr) {
             string[] argDirs = rawStr.Split(';');
             for (int i = 0; i < argDirs.Length; i++)
-                strs.Add(Path.GetFullPath(argDirs[i]).ToLower());
+                strs.Add(Path.GetFullPath(argDirs[i]));
         }
 		
         public static void CS2JMain(string[] args)
@@ -131,7 +133,7 @@ namespace RusticiSoftware.Translator.CSharp
                             {
                                 Directory.CreateDirectory(xmlFDir);
                             }
-                            XmlSerializer s = new XmlSerializer(de.Value.GetType());
+                            XmlSerializer s = new XmlSerializer(de.Value.GetType(), CS2JConstants.TranslationTemplateNamespace);
                             TextWriter w = new StreamWriter(xmlFName);
                             s.Serialize(w, de.Value);
                             w.Close();

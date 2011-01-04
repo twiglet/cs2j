@@ -9,6 +9,8 @@ using RusticiSoftware.Translator;
 using OldT = RusticiSoftware.Translator.TypeRepTemplate;
 using NewT = RusticiSoftware.Translator.CLR.TypeRepTemplate;
 
+using CS2JConstants = RusticiSoftware.Translator.Utils.Constants;
+
 namespace UpdateTxFiles
 {
 	class MainClass
@@ -79,7 +81,7 @@ namespace UpdateTxFiles
 						{
 							Directory.CreateDirectory(xmlFDir);
 						}
-						XmlSerializer s = new XmlSerializer(txTemplate.GetType());
+						XmlSerializer s = new XmlSerializer(txTemplate.GetType(), CS2JConstants.TranslationTemplateNamespace);
 						TextWriter w = new StreamWriter(xmlFName);
 						s.Serialize(w, txTemplate);
 						w.Close();
