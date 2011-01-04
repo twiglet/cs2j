@@ -168,6 +168,12 @@ namespace UpdateTxFiles
 				upgrade(klass, res);
 				return res;
 			}
+			OldTSpace.InterfaceRepTemplate iface = inTemplate as OldTSpace.InterfaceRepTemplate;
+			if (iface != null) {
+			    NewTSpace.InterfaceRepTemplate res = new NewTSpace.InterfaceRepTemplate();
+				upgrade(iface, res);
+				return res;
+			}
 
 			throw new System.NotImplementedException(inTemplate.GetType().ToString());
 		}
