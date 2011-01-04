@@ -19,8 +19,8 @@
     <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Commandlineparameters>-inxmldir /Users/keving/gitrepos/cs2j/CS2JLibrary/NetTranslations/  -outxmldir /tmp/ntx</Commandlineparameters>
     <ConsolePause>false</ConsolePause>
-    <Commandlineparameters>-inxmldir=/home/keving/gitrepos/cs2j/CS2JLibrary/NetTranslations/</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
