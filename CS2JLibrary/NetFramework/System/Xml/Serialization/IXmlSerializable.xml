@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Java>IXmlSerializable</Java>
   <Name>System.Xml.Serialization.IXmlSerializable</Name>
   <Uses />

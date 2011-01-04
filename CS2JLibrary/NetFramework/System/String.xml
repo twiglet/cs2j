@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Java>String</Java>
   <Name>System.String</Name>
   <Uses />
-  <Inherits>
-    <Type>System.IComparable</Type>
-    <Type>System.ICloneable</Type>
-    <Type>System.IConvertible</Type>
-    <Type>System.Collections.IEnumerable</Type>
-  </Inherits>
+  <Inherits />
   <Methods>
     <Method>
       <Imports>
