@@ -72,8 +72,11 @@ namespace UpdateTxFiles
 			upgrade(inV as OldTSpace.TranslationBase, outV as NewTSpace.TranslationBase);
 	
 			outV.Imports = inV.Imports;	
-			outV.From = inV.From;
-			outV.To = inV.To;
+			if (!String.IsNullOrEmpty(inV.From))
+				outV.From = inV.From;
+
+			if (!String.IsNullOrEmpty(inV.To))
+				outV.To = inV.To;
 			
 			if (!String.IsNullOrEmpty(inV.Java))
 				outV.Java = inV.Java;			
@@ -84,6 +87,7 @@ namespace UpdateTxFiles
 			upgrade(inV as OldTSpace.ConstructorRepTemplate, outV as NewTSpace.ConstructorRepTemplate);
 	
 			outV.Name = inV.Name;
+			// Methods should have a return type, but in at least one case don't ... 
 			outV.Return = inV.Return ?? "System.Void";
 			
 		}
