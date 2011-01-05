@@ -19,6 +19,12 @@ options {
 scope NSContext {
     int filler;
     string currentNS;
+
+    // all namespaces in scope, these two lists are actually a map from alias to namespace
+    // so aliases[i] -> namespaces[i]
+    // for namespaces without an alias we just map them to themselves
+    List<string> aliases;
+    List<string> namespaces;
 }
 
 // A scope to keep track of the current type context
@@ -35,11 +41,12 @@ scope TypeContext {
 
 @members
 {
+
     // Since a CS file may comtain multiple top level types (and so generate multiple Java
     // files) we build a map from type name to AST for each top level type
     // We also build a lit of type names so that we can maintain the order (so comments
     // at the end of the file will get included when we emit the java for the last type)
-    public IDictionary<string, CommonTree> CUMap { get; set; }
+    public IDictionary<string, CUnit> CUMap { get; set; }
     public IList<string> CUKeys { get; set; }
 
     protected string ParentNameSpace {
@@ -48,6 +55,31 @@ scope TypeContext {
         }
     }
 
+    protected List<string> CollectAliases {
+        get {
+            List<string> ret = new List<string>();
+            Object[] nsCtxtArr = $NSContext.ToArray();
+            for (int i = nsCtxtArr.Length - 1; i >= 0; i--) {
+                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).aliases) {
+                    ret.Add(v);
+                }
+            }
+            return ret;
+        }
+    }
+
+    protected List<string> CollectNamespaces {
+        get {
+            List<string> ret = new List<string>();
+            Object[] nsCtxtArr = $NSContext.ToArray();
+            for (int i = nsCtxtArr.Length - 1; i >= 0; i--) {
+                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).namespaces) {
+                    ret.Add(v);
+                }
+            }
+            return ret;
+        }
+    }
 
     // TREE CONSTRUCTION
     protected CommonTree mkPayloadList(List<string> payloads) {
@@ -204,17 +236,25 @@ compilation_unit
 scope NSContext;
 @init {
     $NSContext::currentNS = "";
+    $NSContext::aliases = new List<string>();
+    $NSContext::namespaces = new List<string>();
 }
 :
 	namespace_body;
 
 namespace_declaration
 scope NSContext;
-:
+@init {
+    $NSContext::currentNS = "";
+    $NSContext::aliases = new List<string>();
+    $NSContext::namespaces = new List<string>();
+}:
 	'namespace'   qi=qualified_identifier
     {     
         // extend parent namespace
         $NSContext::currentNS = this.ParentNameSpace + $qi.thetext;
+        $NSContext::aliases.Add($NSContext::currentNS);
+        $NSContext::namespaces.Add($NSContext::currentNS);
     }
     namespace_block   ';'? ;
 namespace_block:
@@ -231,17 +271,18 @@ using_directive:
 	(using_alias_directive
 	| using_namespace_directive) ;
 using_alias_directive:
-	'using'	  identifier   '='   namespace_or_type_name   ';' ;
+	'using'	  identifier   '='   namespace_or_type_name   ';' {$NSContext::aliases.Add($identifier.text);$NSContext::namespaces.Add($namespace_or_type_name.thetext); } ;
 using_namespace_directive:
-	'using'   namespace_name   ';' ;
+	'using'   namespace_name   ';' {$NSContext::aliases.Add($namespace_name.thetext);$NSContext::namespaces.Add($namespace_name.thetext); };
 namespace_member_declarations:
 	namespace_member_declaration+ ;
 namespace_member_declaration
 @init { string ns = $NSContext::currentNS; 
-        bool isCompUnit = false;}
+        bool isCompUnit = false;
+}
 @after {
     if (isCompUnit) {
-        CUMap.Add(ns+"."+$ty.name, $namespace_member_declaration.tree); 
+        CUMap.Add(ns+"."+$ty.name, new CUnit($namespace_member_declaration.tree,CollectAliases,CollectNamespaces)); 
         CUKeys.Add(ns+"."+$ty.name);
     }; 
 }
@@ -265,8 +306,8 @@ type_declaration returns [string name]
 // Identifiers
 qualified_identifier returns [string thetext]:
 	i1=identifier { $thetext = $i1.text; } ('.' ip=identifier { $thetext += "." + $ip.text; } )*;
-namespace_name
-	: namespace_or_type_name ;
+namespace_name returns [string thetext]
+	: namespace_or_type_name { $thetext = $namespace_or_type_name.thetext; };
 
 modifiers returns [List<string> modList]
 @init {

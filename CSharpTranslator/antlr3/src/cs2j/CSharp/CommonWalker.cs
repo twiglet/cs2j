@@ -76,4 +76,18 @@ namespace RusticiSoftware.Translator.CSharp
             return buf.ToString();
         }
     }
+
+    // Wraps a compilation unit with its imports search path
+    public class CUnit {
+
+        public CUnit(CommonTree inTree, List<string> inSearchKeys, List<string> inSearchValues) {
+            Tree = inTree;
+            SearchPathKeys = inSearchKeys;
+            SearchPathValues = inSearchValues;
+        }
+        public CommonTree Tree {get; set;}
+        public List<string> SearchPathKeys {get; set;}
+        public List<string> SearchPathValues {get; set;}
+    }
+
 }

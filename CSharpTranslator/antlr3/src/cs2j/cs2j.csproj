@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-warnings -debug 10 -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/tmp/xml/se -odir=/tmp/java/se /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core/DataHelp/Db2OleDataHelper.cs</Commandlineparameters>
+    <Commandlineparameters> -translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/se -odir=/Users/keving/tmp/java/se/src /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core/Logic/Integration/ExternalId.cs</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

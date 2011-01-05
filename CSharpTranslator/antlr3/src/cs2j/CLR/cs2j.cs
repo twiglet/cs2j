@@ -290,16 +290,23 @@ namespace RusticiSoftware.Translator.CSharp
                 javaMaker.TraceDestination = Console.Error;
 
                 javaMaker.Cfg = cfg;
-                javaMaker.CUMap = new Dictionary<string, CommonTree>();
+                javaMaker.CUMap = new Dictionary<string, CUnit>();
                 javaMaker.CUKeys = new List<string>();
 	    
                 if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} to Java", fullName);
-                JavaMaker.compilation_unit_return java = javaMaker.compilation_unit();
-                int saveEmittedCommentTokenIdx = 0;
+                
+				javaMaker.compilation_unit();
+                
+				int saveEmittedCommentTokenIdx = 0;
                 for (int i = 0; i < javaMaker.CUKeys.Count; i++)
                 {
                     string typeName = javaMaker.CUKeys[i];
-                    CommonTree typeAST = javaMaker.CUMap[typeName];
+                    CommonTree typeAST = javaMaker.CUMap[typeName].Tree;
+
+                    for (int j = 0; j < javaMaker.CUMap[typeName].SearchPathKeys.Count; j++)
+                    {
+                        Console.Out.WriteLine("{0} => {1}", javaMaker.CUMap[typeName].SearchPathKeys[j], javaMaker.CUMap[typeName].SearchPathValues[j]);    
+                    }
 
                     string claName = typeName.Substring(typeName.LastIndexOf('.')+1); 
                     string nsDir = typeName.Substring(0,typeName.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
