@@ -95,7 +95,7 @@ scope NSContext;
         { Debug("namespace: " + $qi.thetext); 
           $NSContext::nss.Add(new UseRepTemplate($qi.thetext));
           // extend parent namespace
-          $NSContext::currentNS = this.ParentNameSpace + $qi.thetext;
+          $NSContext::currentNS = ParentNameSpace + (String.IsNullOrEmpty(ParentNameSpace) ? "" : ".") + $qi.thetext;
         }  
         namespace_block   ';'? ;
 namespace_block:
@@ -112,11 +112,11 @@ using_directive:
 	(using_alias_directive
 	| using_namespace_directive) ;
 using_alias_directive
-@after{ $NSContext::nss.Add(new UseRepTemplate($i.text, $ns.text));}
+@after{ $NSContext::nss.Add(new UseRepTemplate($i.thetext, $ns.thetext));}
     :
 	'using'	  i=identifier   '='   ns=namespace_or_type_name   ';' ;
 using_namespace_directive
-@after{ $NSContext::nss.Add(new UseRepTemplate($ns.text));}
+@after{ $NSContext::nss.Add(new UseRepTemplate($ns.thetext)); }
     :
 	'using'   ns=namespace_name   ';' ;
 namespace_member_declarations:
@@ -136,8 +136,8 @@ type_declaration:
 // Identifiers
 qualified_identifier returns [string thetext]:
 	i1=identifier { $thetext = $i1.text; } ('.' ip=identifier { $thetext += "." + $ip.text; } )*;
-namespace_name
-	: namespace_or_type_name ;
+namespace_name returns [string thetext]
+	: namespace_or_type_name { $thetext = $namespace_or_type_name.thetext; };
 
 modifiers:
 	modifier+ ;
@@ -1319,8 +1319,8 @@ predefined_type returns [string thetext]:
     | 'ushort'  { $thetext = "System.UInt16"; } 
     ;
 
-identifier:
- 	IDENTIFIER | also_keyword; 
+identifier returns [string thetext]:
+ 	IDENTIFIER { $thetext = $IDENTIFIER.text; } | also_keyword { $thetext = $also_keyword.text; }; 
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;

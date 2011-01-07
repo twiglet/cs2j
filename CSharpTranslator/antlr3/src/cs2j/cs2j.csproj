@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters> -translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/se -odir=/Users/keving/tmp/java/se/src /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core/Logic/Integration/ExternalConfiguration.cs</Commandlineparameters>
+    <Commandlineparameters>-translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/se -odir=/Users/keving/tmp/java/se/src -appdir=/Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core/Logic/Integration/DefaultIntegration.cs</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

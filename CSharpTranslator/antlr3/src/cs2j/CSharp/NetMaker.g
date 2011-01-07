@@ -75,8 +75,8 @@ scope NSContext {
         if (ret == null && AppEnv.ContainsKey(name)) {
             ret = AppEnv[name];
         }
-        if (ret != null)
-            Console.Out.WriteLine("findType: found {0}", ret.TypeName);
+//        if (ret != null)
+//            Console.Out.WriteLine("findType: found {0}", ret.TypeName);
         return ret;
     }
 
@@ -337,8 +337,8 @@ namespace_or_type_name returns [String name, List<string> tyargs]:
     | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
     | ^(d='.'   n1=namespace_or_type_name type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; } ;
 type_or_generic returns [String name, List<String> tyargs]: 
-	(identifier   generic_argument_list) => identifier { $name = $identifier.text; }  generic_argument_list { $tyargs = $generic_argument_list.argTexts; }
-	| identifier { $name = $identifier.text; };
+	(identifier   generic_argument_list) => identifier { $name = $identifier.thetext; }  generic_argument_list { $tyargs = $generic_argument_list.argTexts; }
+	| identifier { $name = $identifier.thetext; };
 
 qid:		// qualified_identifier v2
     ^(access_operator qid type_or_generic) 
@@ -619,7 +619,7 @@ scope NSContext;
     $NSContext::namespaces = new List<string>();
 }
 :
-   ^(CLASS identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.text; } type_parameter_constraints_clauses? type_parameter_list?
+   ^(CLASS identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
          class_implements? 
          { 
             $NSContext::aliases.Add($NSContext::currentNS); 
@@ -995,8 +995,10 @@ predefined_type returns [TypeRepTemplate dotNetType]
     | 'ushort'  { ns = "System.UInt16"; }
     ;
 
-identifier:
- 	IDENTIFIER | also_keyword; 
+// Don't trust identifier.text in tree grammars: Doesn't work for our magic additions because the text function goes back to the 
+// original token stream to make up the text for a tree node 
+identifier returns [String thetext]:
+ 	IDENTIFIER { $thetext = $IDENTIFIER.text; } | also_keyword { $thetext = $also_keyword.text; };  // might need to return text from also_keyword too if we start manufacturing those  
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;
