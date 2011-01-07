@@ -331,14 +331,14 @@ commas:
 ///////////////////////////////////////////////////////
 
 type_name returns [TypeRepTemplate dotNetType]: 
-	namespace_or_type_name { $dotNetType = findType("ExternalId" /*$namespace_or_type_name.name*/); } ;
+	namespace_or_type_name { $dotNetType = findType($namespace_or_type_name.name); } ;
 namespace_or_type_name returns [String name, List<string> tyargs]: 
-	 type_or_generic
-    | ^('::' namespace_or_type_name type_or_generic) 
-    | ^('.'   namespace_or_type_name type_or_generic) ;
-type_or_generic returns [TypeRepTemplate dotNetType]: 
-	(identifier   generic_argument_list) => identifier   generic_argument_list
-	| identifier ;
+	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
+    | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
+    | ^(d='.'   n1=namespace_or_type_name type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; } ;
+type_or_generic returns [String name, List<String> tyargs]: 
+	(identifier   generic_argument_list) => identifier { $name = $identifier.text; }  generic_argument_list { $tyargs = $generic_argument_list.argTexts; }
+	| identifier { $name = $identifier.text; };
 
 qid:		// qualified_identifier v2
     ^(access_operator qid type_or_generic) 
@@ -355,12 +355,15 @@ qid_start:
 
 
 qid_part:
-	access_identifier ;
+	access_identifier;
 
-generic_argument_list: 
-	'<'   type_arguments   '>' ;
-type_arguments: 
-	type (',' type)* ;
+generic_argument_list returns [List<string> argTexts]: 
+	'<'   type_arguments   '>' { $argTexts = $type_arguments.tyTexts; };
+type_arguments  returns [List<string> tyTexts]
+@init {
+    $tyTexts = new List<String>();
+}: 
+	t1=type { $tyTexts.Add($t1.dotNetType.TypeName); } (',' tn=type { $tyTexts.Add($tn.dotNetType.TypeName); })* ;
 
 // TODO add arrays
 type returns [TypeRepTemplate dotNetType]
@@ -638,7 +641,8 @@ class_implements:
 	class_implement_or_extend class_implement* ;
 
 class_implement_or_extend:
-	^(i=IMPLEMENTS type) -> ^(EXTENDS[$i.token, "extends"] type);
+	^(i=IMPLEMENTS t=type) -> { $t.dotNetType is ClassRepTemplate }? ^(EXTENDS[$i.token, "extends"] type)
+                           -> ^($i $t);
 	
 class_implement:
 	^(IMPLEMENTS type) ;
