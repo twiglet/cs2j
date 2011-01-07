@@ -8,14 +8,92 @@ options {
     superClass='RusticiSoftware.Translator.CSharp.CommonWalker';
 }
 
+// A scope to keep track of the namespace search path available at any point in the program
+scope NSContext {
+
+    string currentNS;
+
+    // all namespaces in scope, these two lists are actually a map from alias to namespace
+    // so aliases[i] -> namespaces[i]
+    // for namespaces without an alias we just map them to themselves
+    List<string> aliases;
+    List<string> namespaces;
+}
+
 @namespace { RusticiSoftware.Translator.CSharp }
+
+@header
+{
+    using RusticiSoftware.Translator.Utils;
+    using RusticiSoftware.Translator.CLR;
+}
 
 @members
 {
+    // Initial namespace search path gathered in JavaMaker
+    public List<string> SearchPathKeys { get; set; }
+    public List<string> SearchPathValues { get; set; }
+
+    private Set<string> Imports { get; set; }
+
+    protected CommonTree mkImports() {
+    
+        CommonTree root = (CommonTree)adaptor.Nil;
+        
+        if (Imports != null) {
+            String[] sortedImports = Imports.AsArray();
+            Array.Sort(sortedImports);
+            foreach (string imp in sortedImports) {
+                adaptor.AddChild(root, (CommonTree)adaptor.Create(IMPORT, "import"));
+                adaptor.AddChild(root, (CommonTree)adaptor.Create(PAYLOAD, imp));
+            }
+        }
+        return root;
+
+    }
+
+    protected string ParentNameSpace {
+        get {
+            return ((NSContext_scope)$NSContext.ToArray()[1]).currentNS;
+        }
+    }
+
+    protected TypeRepTemplate findType(string name) {
+        TypeRepTemplate ret = null;
+        object[] ctxts = $NSContext.ToArray();
+        foreach (NSContext_scope ctxt in ctxts) {
+            for (int i = ctxt.namespaces.Count - 1; i >= 0; i--) {
+                String ns = ctxt.namespaces[i];
+                String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
+                if (AppEnv.ContainsKey(fullName)) {
+                    ret = AppEnv[fullName];
+                    break;
+                }
+            }
+        }
+        // Check if name is fully qualified
+        if (ret == null && AppEnv.ContainsKey(name)) {
+            ret = AppEnv[name];
+        }
+        if (ret != null)
+            Console.Out.WriteLine("findType: found {0}", ret.TypeName);
+        return ret;
+    }
+
 }
 
-compilation_unit:
-	^(PACKAGE PAYLOAD modifiers? type_declaration);
+compilation_unit
+scope NSContext;
+@init {
+
+    Imports = new Set<string>();
+
+    // TODO: Do we need to ensure we have access to System? If so, can add it here.
+    $NSContext::aliases = SearchPathKeys;
+    $NSContext::namespaces = SearchPathValues;
+}:
+	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } m=modifiers? dec=type_declaration  )
+    -> ^($pkg $ns  { mkImports() } $m? $dec);
 
 type_declaration:
 	class_declaration
@@ -77,8 +155,8 @@ primary_expression:
 	| anonymous_method_expression			// delegate (int foo) {}
 	;
 
-primary_expression_start:
-	predefined_type            
+primary_expression_start returns [TypeRepTemplate dotNetType]:
+	predefined_type   { $dotNetType = $predefined_type.dotNetType; }         
 	| (identifier    generic_argument_list) => identifier   generic_argument_list
     | identifier
 	| ^('::' identifier identifier)
@@ -252,13 +330,13 @@ commas:
 //	Type Section
 ///////////////////////////////////////////////////////
 
-type_name: 
-	namespace_or_type_name ;
-namespace_or_type_name:
+type_name returns [TypeRepTemplate dotNetType]: 
+	namespace_or_type_name { $dotNetType = findType("ExternalId" /*$namespace_or_type_name.name*/); } ;
+namespace_or_type_name returns [String name, List<string> tyargs]: 
 	 type_or_generic
     | ^('::' namespace_or_type_name type_or_generic) 
     | ^('.'   namespace_or_type_name type_or_generic) ;
-type_or_generic:
+type_or_generic returns [TypeRepTemplate dotNetType]: 
 	(identifier   generic_argument_list) => identifier   generic_argument_list
 	| identifier ;
 
@@ -284,20 +362,26 @@ generic_argument_list:
 type_arguments: 
 	type (',' type)* ;
 
-type:
-    ^(TYPE (predefined_type | type_name | 'void')  rank_specifiers? '*'* '?'?);
-non_nullable_type:
-    type;
-non_array_type:
-	type;
-array_type:
-	type;
-unmanaged_type:
-	type;
-class_type:
-	type;
-pointer_type:
-	type;
+// TODO add arrays
+type returns [TypeRepTemplate dotNetType]
+:
+    ^(TYPE (predefined_type { $dotNetType = $predefined_type.dotNetType; } 
+           | type_name { $dotNetType = $type_name.dotNetType; } 
+           | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
+        rank_specifiers? '*'* '?'?);
+
+non_nullable_type returns [TypeRepTemplate dotNetType]:
+    type { $dotNetType = $type.dotNetType; } ;
+non_array_type returns [TypeRepTemplate dotNetType]:
+	type { $dotNetType = $type.dotNetType; } ;
+array_type returns [TypeRepTemplate dotNetType]:
+	type { $dotNetType = $type.dotNetType; } ;
+unmanaged_type returns [TypeRepTemplate dotNetType]:
+	type { $dotNetType = $type.dotNetType; } ;
+class_type returns [TypeRepTemplate dotNetType]:
+	type { $dotNetType = $type.dotNetType; } ;
+pointer_type returns [TypeRepTemplate dotNetType]:
+	type { $dotNetType = $type.dotNetType; } ;
 
 
 ///////////////////////////////////////////////////////
@@ -525,9 +609,20 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration:
-   ^(CLASS identifier type_parameter_constraints_clauses? type_parameter_list?
-         class_implements? class_body ) ;
+class_declaration
+scope NSContext;
+@init {
+    $NSContext::aliases = new List<string>();
+    $NSContext::namespaces = new List<string>();
+}
+:
+   ^(CLASS identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.text; } type_parameter_constraints_clauses? type_parameter_list?
+         class_implements? 
+         { 
+            $NSContext::aliases.Add($NSContext::currentNS); 
+            $NSContext::namespaces.Add($NSContext::currentNS); 
+         }
+         class_body ) ;
 
 type_parameter_list:
     (attributes? type_parameter)+ ;
@@ -737,8 +832,8 @@ operator_body:
 invocation_expression:
 	invocation_start   (((arguments   ('['|'.'|'->')) => arguments   invocation_part)
 						| invocation_part)*   arguments ;
-invocation_start:
-	predefined_type 
+invocation_start returns [TypeRepTemplate dotNetType]:
+	predefined_type { $dotNetType = $predefined_type.dotNetType; }
 	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
 	| 'this' 
 	| SUPER
@@ -872,9 +967,29 @@ yield_statement:
 //	Lexar Section
 ///////////////////////////////////////////////////////
 
-predefined_type:
-	  'bool' | 'byte'   | 'char'   | 'decimal' | 'double' | 'float'  | 'int'    | 'long'   | 'object' | 'sbyte'  
-	| 'short'  | 'string' | 'uint'   | 'ulong'  | 'ushort' ;
+predefined_type returns [TypeRepTemplate dotNetType]
+@init {
+    string ns = "";
+}
+@after {
+    $dotNetType = AppEnv[ns]; 
+}:
+	  'bool'    { ns = "System.Boolean"; }
+    | 'byte'    { ns = "System.Byte"; }
+    | 'char'    { ns = "System.Char"; }
+    | 'decimal' { ns = "System.Decimal"; }
+    | 'double'  { ns = "System.Double"; }
+    | 'float'   { ns = "System.Single"; }
+    | 'int'     { ns = "System.Int32"; }
+    | 'long'    { ns = "System.Int64"; }
+    | 'object'  { ns = "System.Object"; }
+    | 'sbyte'   { ns = "System.SByte"; }
+	| 'short'   { ns = "System.Int16"; }
+    | 'string'  { ns = "System.String"; }
+    | 'uint'    { ns = "System.UInt32"; }
+    | 'ulong'   { ns = "System.UInt64"; }
+    | 'ushort'  { ns = "System.UInt16"; }
+    ;
 
 identifier:
  	IDENTIFIER | also_keyword; 
