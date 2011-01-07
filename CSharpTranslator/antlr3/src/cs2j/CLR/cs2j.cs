@@ -295,17 +295,21 @@ namespace RusticiSoftware.Translator.CSharp
 	    
                 if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} to Java", fullName);
                 
-				javaMaker.compilation_unit();
+                javaMaker.compilation_unit();
                 
-				int saveEmittedCommentTokenIdx = 0;
+                int saveEmittedCommentTokenIdx = 0;
                 for (int i = 0; i < javaMaker.CUKeys.Count; i++)
                 {
                     string typeName = javaMaker.CUKeys[i];
                     CommonTree typeAST = javaMaker.CUMap[typeName].Tree;
 
-                    for (int j = 0; j < javaMaker.CUMap[typeName].SearchPathKeys.Count; j++)
+                    if (cfg.DebugLevel >= 10)
                     {
-                        Console.Out.WriteLine("{0} => {1}", javaMaker.CUMap[typeName].SearchPathKeys[j], javaMaker.CUMap[typeName].SearchPathValues[j]);    
+                        Console.Out.WriteLine("Search Path:");    
+                        for (int j = 0; j < javaMaker.CUMap[typeName].SearchPathKeys.Count; j++)
+                        {
+                            Console.Out.WriteLine("{0} => {1}", javaMaker.CUMap[typeName].SearchPathKeys[j], javaMaker.CUMap[typeName].SearchPathValues[j]);    
+                        }
                     }
 
                     string claName = typeName.Substring(typeName.LastIndexOf('.')+1); 
@@ -352,7 +356,11 @@ namespace RusticiSoftware.Translator.CSharp
                     netMaker.TraceDestination = Console.Error;
 
                     netMaker.Cfg = cfg;
-                    
+                    netMaker.AppEnv = AppEnv;
+
+                    netMaker.SearchPathKeys = javaMaker.CUMap[typeName].SearchPathKeys;
+                    netMaker.SearchPathValues = javaMaker.CUMap[typeName].SearchPathValues;
+
                     if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} Net Calls to Java", javaFName);
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();
 
