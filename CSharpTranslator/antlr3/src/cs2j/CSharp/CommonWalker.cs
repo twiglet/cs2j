@@ -46,6 +46,18 @@ namespace RusticiSoftware.Translator.CSharp
                 Console.Out.WriteLine("{0} warning: {1}", Filename, s);
         }
 
+        protected void WarningAssert(bool assertion, int line, String s)
+        {
+            if (Cfg.Warnings && !assertion)
+                Console.Out.WriteLine("{0}({1}) failed assertion: {2}", Filename, line, s);
+        }
+
+        protected void WarningAssert(bool assertion, String s)
+        {
+            if (Cfg.Warnings && !assertion)
+                Console.Out.WriteLine("{0} failed assertion: {1}", Filename, s);
+        }
+
         protected void Debug(String s)
         {
             Debug(1, s);
