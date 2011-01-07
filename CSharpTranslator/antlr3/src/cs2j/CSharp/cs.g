@@ -11,6 +11,7 @@ tokens {
             CLASS;
             EXTENDS;
             IMPLEMENTS;
+            IMPORT;
             INTERFACE;
             FINAL; /* final modifier */
             IN;
