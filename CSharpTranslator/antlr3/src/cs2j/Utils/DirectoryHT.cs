@@ -56,7 +56,14 @@ namespace RusticiSoftware.Translator.Utils
             }
             else
             {
-                return children[components[0]].ContainsKey(components[1]);
+                if (children.ContainsKey(components[0]))
+                {
+                    return children[components[0]].ContainsKey(components[1]);
+                }
+                else
+                {
+                    return false;        
+                }
             }
         }
 
