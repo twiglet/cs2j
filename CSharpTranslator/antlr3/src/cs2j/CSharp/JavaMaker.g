@@ -1163,7 +1163,7 @@ scope TypeContext;
     -> ^(INTERFACE[$c.Token] identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
 interface_base:
-	':'   ts+=type (','   ts+=type)* -> ^(IMPLEMENTS $ts)*;
+	c=':'   ts+=type (','   ts+=type)* -> ^(EXTENDS[$c.token,"extends"] $ts)*;
 
 interface_modifiers: 
 	modifier+ ;

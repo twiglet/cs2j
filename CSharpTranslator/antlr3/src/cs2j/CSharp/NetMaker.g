@@ -633,8 +633,10 @@ type_parameter_list:
 type_parameter:
     identifier ;
 
-//class_extends:
-//	^(EXTENDS type*) ;
+class_extends:
+	class_extend+ ;
+class_extend:
+	^(EXTENDS type) ;
 
 // If first implements type is a class then convert to extends
 class_implements:
@@ -785,7 +787,7 @@ parameter_array:
 ///////////////////////////////////////////////////////
 interface_declaration:
    ^(INTERFACE identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
-    	class_implements?    interface_body ) ;
+    	class_extends?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;
 interface_base: 

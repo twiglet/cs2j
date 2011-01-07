@@ -837,11 +837,13 @@ type_parameter [Dictionary<string,StringTemplate> tpConstraints]
     identifier {if (tpConstraints == null || !tpConstraints.TryGetValue($identifier.text, out mySt)) {mySt = $identifier.st;}; } -> { mySt } ;
 
 class_extends:
-	^(EXTENDS ts=type) -> extends(types = { $ts.st }) ;
+	ts+=class_extend+ -> extends(types = { $ts }) ;
+class_extend:
+	^(EXTENDS ts=type) -> { $ts.st } ;
 class_implements:
 	ts+=class_implement+ -> imps(types = { $ts }) ;
 class_implement:
-	^(IMPLEMENTS ts=type) -> seplist(items = { $ts.st }, sep={", "}) ;
+	^(IMPLEMENTS ts=type) -> { $ts.st };
 	
 interface_type_list:
 	ts+=type (','   ts+=type)* -> commalist(items={ $ts });
