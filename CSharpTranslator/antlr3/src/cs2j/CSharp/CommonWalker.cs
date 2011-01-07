@@ -5,12 +5,20 @@ using System.Text;
 using Antlr.Runtime.Tree;
 using Antlr.Runtime;
 
+using RusticiSoftware.Translator.Utils;
+using RusticiSoftware.Translator.CLR;
+
 namespace RusticiSoftware.Translator.CSharp
 {
     public class CommonWalker : TreeParser
     {
-		public CS2JSettings Cfg { get; set; }
-		public string Filename { get; set; }
+        public CS2JSettings Cfg { get; set; }
+        public string Filename { get; set; }
+
+        // AppEnv contains a summary of the environment within which we are translating, it maps fully qualified type names to their
+        // translation templates (i.e. a description of their public features)
+        public DirectoryHT<TypeRepTemplate> AppEnv {get; set;}
+
 
         protected CommonWalker(ITreeNodeStream input, RecognizerSharedState state)
             : base(input, state)

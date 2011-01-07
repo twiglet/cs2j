@@ -29,15 +29,10 @@ scope NSContext {
 	using System.Text;
 	using System.Linq;
 	using RusticiSoftware.Translator.CLR;
-	using RusticiSoftware.Translator.Utils;
 }
 
 @members 
 {
-
-    // This is the environment that we are building, it maps fully qualified type names to their
-    // translation templates
-    public DirectoryHT<TypeRepTemplate> AppEnv {get; set;}
 
     protected UseRepTemplate[] NameSpaceContext {
         get {
