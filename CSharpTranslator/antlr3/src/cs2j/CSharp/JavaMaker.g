@@ -51,7 +51,7 @@ scope TypeContext {
 
     protected string ParentNameSpace {
         get {
-            return ((NSContext_scope)$NSContext.ToArray()[$NSContext.Count-2]).currentNS;
+            return ((NSContext_scope)$NSContext.ToArray()[1]).currentNS;
         }
     }
 
