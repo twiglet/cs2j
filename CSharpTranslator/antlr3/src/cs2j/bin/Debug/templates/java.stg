@@ -16,15 +16,19 @@ itsmine(now, includeDate) ::= <<
 
 >>
 
-package(now, includeDate, packageName, comments, modifiers, type, endComments) ::= <<
+package(now, includeDate, packageName, imports, comments, modifiers, type, endComments) ::= <<
 <itsmine(now=now,includeDate=includeDate)>
 <if(packageName)>package <packageName>;<endif>
 
 <comments; separator="\n">
+<imports>
+
 <type>
 
 <endComments; separator="\n">
 >>
+
+import_template(ns) ::= "import <ns>;"
 
 // ******* CLASSES ***********
 
