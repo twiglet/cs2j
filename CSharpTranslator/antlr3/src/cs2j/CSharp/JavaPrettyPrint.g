@@ -221,8 +221,9 @@ compilation_unit
     initPrecedence();
 }
 :
-    ^(PACKAGE nm=PAYLOAD modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
-        package(now = {DateTime.Now}, includeDate = {Cfg.TranslatorAddTimeStamp}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)}, 
+    ^(PACKAGE nm=PAYLOAD imports? modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
+        package(now = {DateTime.Now}, includeDate = {Cfg.TranslatorAddTimeStamp}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)},
+            imports = {$imports.st},
             type = {$type_declaration.st},
             endComments = { CollectedComments });
 
@@ -247,6 +248,11 @@ modifier
         (m='new' | m='public' | m='protected' | m='private' | m='abstract' | m='sealed' | m='static'
         | m='readonly' | m='volatile' | m='extern' { thetext = "/* [UNSUPPORTED] 'extern' modifier not supported */"; } | m='virtual' | m='override' | m=FINAL)
         -> string(payload={ (thetext == null ? $m.text : thetext) });
+
+imports:
+   imps+=importns+ -> seplist(items = { $imps }, sep= { "\n" });
+importns:
+   IMPORT PAYLOAD -> import_template(ns = { $PAYLOAD.text });
 	
 class_member_declaration returns [List<String> preComments]:
     ^(CONST attributes? modifiers? type { $preComments = CollectedComments; } constant_declarators)
@@ -831,9 +837,11 @@ type_parameter [Dictionary<string,StringTemplate> tpConstraints]
     identifier {if (tpConstraints == null || !tpConstraints.TryGetValue($identifier.text, out mySt)) {mySt = $identifier.st;}; } -> { mySt } ;
 
 class_extends:
-	^(EXTENDS ts+=type*) -> extends(types = { $ts }) ;
+	^(EXTENDS ts=type) -> extends(types = { $ts.st }) ;
 class_implements:
-	^(IMPLEMENTS ts+=type*) -> imps(types = { $ts }) ;
+	ts+=class_implement+ -> imps(types = { $ts }) ;
+class_implement:
+	^(IMPLEMENTS ts=type) -> seplist(items = { $ts.st }, sep={", "}) ;
 	
 interface_type_list:
 	ts+=type (','   ts+=type)* -> commalist(items={ $ts });

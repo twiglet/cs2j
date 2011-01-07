@@ -535,10 +535,18 @@ type_parameter_list:
 type_parameter:
     identifier ;
 
-class_extends:
-	^(EXTENDS type*) ;
+//class_extends:
+//	^(EXTENDS type*) ;
+
+// If first implements type is a class then convert to extends
 class_implements:
-	^(IMPLEMENTS type*) ;
+	class_implement_or_extend class_implement* ;
+
+class_implement_or_extend:
+	^(i=IMPLEMENTS type) -> ^(EXTENDS[$i.token, "extends"] type);
+	
+class_implement:
+	^(IMPLEMENTS type) ;
 	
 interface_type_list:
 	type (','   type)* ;
@@ -678,7 +686,7 @@ parameter_array:
 ///////////////////////////////////////////////////////
 interface_declaration:
    ^(INTERFACE identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
-    	class_extends?    interface_body ) ;
+    	class_implements?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;
 interface_base: 

@@ -869,10 +869,10 @@ type_parameter returns [string name]:
 
 class_base:
 	// just put all types in a single list.  In NetMaker we will extract the base class if necessary
-	':'   interface_type_list -> ^(IMPLEMENTS interface_type_list);
+	':'   ts+=type (','   ts+=type)* -> ^(IMPLEMENTS $ts)*;
 	
-interface_type_list:
-	ts+=type (','   ts+=type)* -> $ts+;
+//interface_type_list:
+//	ts+=type (','   ts+=type)* -> $ts+;
 
 class_body:
 	'{'   class_member_declarations?   '}' ;
@@ -1163,7 +1163,7 @@ scope TypeContext;
     -> ^(INTERFACE[$c.Token] identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
 interface_base:
-	':'   interface_type_list -> ^(EXTENDS interface_type_list);
+	':'   ts+=type (','   ts+=type)* -> ^(IMPLEMENTS $ts)*;
 
 interface_modifiers: 
 	modifier+ ;
