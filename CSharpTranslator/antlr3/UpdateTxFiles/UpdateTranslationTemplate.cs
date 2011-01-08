@@ -24,10 +24,6 @@ namespace UpdateTxFiles
 			outV.Name = inV.Name;
 		}
 
-		public void upgrade(string inV, NewTSpace.UseRepTemplate outV) {
-			outV.Namespace = inV;
-		}
-
 		public void upgrade(OldTSpace.ConstructorRepTemplate inV, NewTSpace.ConstructorRepTemplate outV) {
 			
 			upgrade(inV as OldTSpace.TranslationBase, outV as NewTSpace.TranslationBase);
@@ -98,14 +94,7 @@ namespace UpdateTxFiles
 	
 			outV.TypeName = inV.TypeName;
 			
-			List<NewTSpace.UseRepTemplate> uses = new List<NewTSpace.UseRepTemplate>();
-			foreach (string inU in inV.NamespacePath) {			
-				NewTSpace.UseRepTemplate outU = new NewTSpace.UseRepTemplate();
-				upgrade(inU, outU);
-				uses.Add(outU);
-			}		
-
-			outV.Uses = uses.ToArray();
+			outV.Uses = inV.NamespacePath;
 		}
 		
 		public void upgrade(OldTSpace.TypeRepTemplate inV, NewTSpace.InterfaceRepTemplate outV) {
