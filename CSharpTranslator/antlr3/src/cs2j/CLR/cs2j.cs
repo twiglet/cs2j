@@ -305,10 +305,15 @@ namespace RusticiSoftware.Translator.CSharp
 
                     if (cfg.DebugLevel >= 10)
                     {
-                        Console.Out.WriteLine("Search Path:");    
-                        for (int j = 0; j < javaMaker.CUMap[typeName].SearchPathKeys.Count; j++)
+                        Console.Out.WriteLine("Namepace Search Path:");    
+                        foreach (String ns in javaMaker.CUMap[typeName].SearchPath)
                         {
-                            Console.Out.WriteLine("{0} => {1}", javaMaker.CUMap[typeName].SearchPathKeys[j], javaMaker.CUMap[typeName].SearchPathValues[j]);    
+                            Console.Out.WriteLine(ns);    
+                        }
+                        Console.Out.WriteLine("Namepace Alias Map:");    
+                        for (int j = 0; j < javaMaker.CUMap[typeName].NameSpaceAliasKeys.Count; j++)
+                        {
+                            Console.Out.WriteLine("{0} => {1}", javaMaker.CUMap[typeName].NameSpaceAliasKeys[j], javaMaker.CUMap[typeName].NameSpaceAliasValues[j]);    
                         }
                     }
 
@@ -358,8 +363,9 @@ namespace RusticiSoftware.Translator.CSharp
                     netMaker.Cfg = cfg;
                     netMaker.AppEnv = AppEnv;
 
-                    netMaker.SearchPathKeys = javaMaker.CUMap[typeName].SearchPathKeys;
-                    netMaker.SearchPathValues = javaMaker.CUMap[typeName].SearchPathValues;
+                    netMaker.SearchPath = javaMaker.CUMap[typeName].SearchPath;
+                    netMaker.AliasKeys = javaMaker.CUMap[typeName].NameSpaceAliasKeys;
+                    netMaker.AliasNamespaces = javaMaker.CUMap[typeName].NameSpaceAliasValues;
 
                     if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} Net Calls to Java", javaFName);
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();

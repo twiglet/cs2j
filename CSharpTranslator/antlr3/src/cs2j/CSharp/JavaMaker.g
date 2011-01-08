@@ -20,11 +20,13 @@ scope NSContext {
     int filler;
     string currentNS;
 
-    // all namespaces in scope, these two lists are actually a map from alias to namespace
-    // so aliases[i] -> namespaces[i]
-    // for namespaces without an alias we just map them to themselves
-    List<string> aliases;
+    // namespaces in scope
     List<string> namespaces;
+
+    // Alias map: these two lists are actually a map from alias to namespace
+    // so aliases[i] -> namespaces[i]
+    List<string> aliasKeys;
+    List<string> aliasNamespaces;
 }
 
 // A scope to keep track of the current type context
@@ -55,12 +57,12 @@ scope TypeContext {
         }
     }
 
-    protected List<string> CollectAliases {
+    protected List<string> CollectSearchPath {
         get {
             List<string> ret = new List<string>();
             Object[] nsCtxtArr = $NSContext.ToArray();
             for (int i = nsCtxtArr.Length - 1; i >= 0; i--) {
-                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).aliases) {
+                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).namespaces) {
                     ret.Add(v);
                 }
             }
@@ -68,12 +70,25 @@ scope TypeContext {
         }
     }
 
-    protected List<string> CollectNamespaces {
+    protected List<string> CollectAliasKeys {
         get {
             List<string> ret = new List<string>();
             Object[] nsCtxtArr = $NSContext.ToArray();
             for (int i = nsCtxtArr.Length - 1; i >= 0; i--) {
-                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).namespaces) {
+                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).aliasKeys) {
+                    ret.Add(v);
+                }
+            }
+            return ret;
+        }
+    }
+
+    protected List<string> CollectAliasNamespaces {
+        get {
+            List<string> ret = new List<string>();
+            Object[] nsCtxtArr = $NSContext.ToArray();
+            for (int i = nsCtxtArr.Length - 1; i >= 0; i--) {
+                foreach (string v in ((NSContext_scope)nsCtxtArr[i]).aliasNamespaces) {
                     ret.Add(v);
                 }
             }
@@ -236,8 +251,9 @@ compilation_unit
 scope NSContext;
 @init {
     $NSContext::currentNS = "";
-    $NSContext::aliases = new List<string>();
     $NSContext::namespaces = new List<string>();
+    $NSContext::aliasKeys = new List<string>();
+    $NSContext::aliasNamespaces = new List<string>();
 }
 :
 	namespace_body;
@@ -246,14 +262,14 @@ namespace_declaration
 scope NSContext;
 @init {
     $NSContext::currentNS = "";
-    $NSContext::aliases = new List<string>();
     $NSContext::namespaces = new List<string>();
+    $NSContext::aliasKeys = new List<string>();
+    $NSContext::aliasNamespaces = new List<string>();
 }:
 	'namespace'   qi=qualified_identifier
     {     
         // extend parent namespace
         $NSContext::currentNS = this.ParentNameSpace + $qi.thetext;
-        $NSContext::aliases.Add($NSContext::currentNS);
         $NSContext::namespaces.Add($NSContext::currentNS);
     }
     namespace_block   ';'? ;
@@ -271,9 +287,10 @@ using_directive:
 	(using_alias_directive
 	| using_namespace_directive) ;
 using_alias_directive:
-	'using'	  identifier   '='   namespace_or_type_name   ';' {$NSContext::aliases.Add($identifier.text);$NSContext::namespaces.Add($namespace_or_type_name.thetext); } ;
+	'using'	  identifier   '='   namespace_or_type_name   ';' 
+        {$NSContext::aliasKeys.Add($identifier.text);$NSContext::aliasNamespaces.Add($namespace_or_type_name.thetext); } ;
 using_namespace_directive:
-	'using'   namespace_name   ';' {$NSContext::aliases.Add($namespace_name.thetext);$NSContext::namespaces.Add($namespace_name.thetext); };
+	'using'   namespace_name   ';' {$NSContext::namespaces.Add($namespace_name.thetext); };
 namespace_member_declarations:
 	namespace_member_declaration+ ;
 namespace_member_declaration
@@ -282,7 +299,7 @@ namespace_member_declaration
 }
 @after {
     if (isCompUnit) {
-        CUMap.Add(ns+"."+$ty.name, new CUnit($namespace_member_declaration.tree,CollectAliases,CollectNamespaces)); 
+        CUMap.Add(ns+"."+$ty.name, new CUnit($namespace_member_declaration.tree,CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
         CUKeys.Add(ns+"."+$ty.name);
     }; 
 }

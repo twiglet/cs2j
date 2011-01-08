@@ -13,11 +13,15 @@ scope NSContext {
 
     string currentNS;
 
-    // all namespaces in scope, these two lists are actually a map from alias to namespace
-    // so aliases[i] -> namespaces[i]
-    // for namespaces without an alias we just map them to themselves
-    List<string> aliases;
+    // all namespaces in scope
     List<string> namespaces;
+    // all namespaces in all scopes
+    List<string> globalNamespaces;
+}
+
+// A scope to keep track of the mapping from variables to types
+scope SymTab {
+    Dictionary<string,TypeRepTemplate> symtab;
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
@@ -31,8 +35,9 @@ scope NSContext {
 @members
 {
     // Initial namespace search path gathered in JavaMaker
-    public List<string> SearchPathKeys { get; set; }
-    public List<string> SearchPathValues { get; set; }
+    public List<string> SearchPath { get; set; }
+    public List<string> AliasKeys { get; set; }
+    public List<string> AliasNamespaces { get; set; }
 
     private Set<string> Imports { get; set; }
 
@@ -59,27 +64,19 @@ scope NSContext {
     }
 
     protected TypeRepTemplate findType(string name) {
-        TypeRepTemplate ret = null;
-        object[] ctxts = $NSContext.ToArray();
-        foreach (NSContext_scope ctxt in ctxts) {
-            for (int i = ctxt.namespaces.Count - 1; i >= 0; i--) {
-                String ns = ctxt.namespaces[i];
-                String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
-                if (AppEnv.ContainsKey(fullName)) {
-                    ret = AppEnv[fullName];
-                    break;
-                }
-            }
-        }
-        // Check if name is fully qualified
-        if (ret == null && AppEnv.ContainsKey(name)) {
-            ret = AppEnv[name];
-        }
-//        if (ret != null)
-//            Console.Out.WriteLine("findType: found {0}", ret.TypeName);
-        return ret;
+        return AppEnv.Search($NSContext::globalNamespaces, name);
     }
 
+    private TypeRepTemplate objectType = null;
+
+    protected TypeRepTemplate ObjectType {
+        get {
+            if (objectType == null) {
+                objectType = findType("System.Object");
+            }
+            return objectType;
+        }
+    }
 }
 
 compilation_unit
@@ -89,8 +86,8 @@ scope NSContext;
     Imports = new Set<string>();
 
     // TODO: Do we need to ensure we have access to System? If so, can add it here.
-    $NSContext::aliases = SearchPathKeys;
-    $NSContext::namespaces = SearchPathValues;
+    $NSContext::namespaces = SearchPath ?? new List<string>();
+    $NSContext::globalNamespaces = SearchPath ?? new List<string>();
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } m=modifiers? dec=type_declaration  )
     -> ^($pkg $ns  { mkImports() } $m? $dec);
@@ -119,7 +116,7 @@ class_member_declaration:
     | ^(INTERFACE attributes? modifiers? interface_declaration)
     | ^(CLASS attributes? modifiers? class_declaration)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
-    | ^(FIELD attributes? modifiers? type field_declaration)
+    | ^(FIELD attributes? modifiers? type field_declaration[$type.dotNetType])
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | ^(ENUM attributes? modifiers? enum_declaration)
     | ^(DELEGATE attributes? modifiers? delegate_declaration)
@@ -390,7 +387,9 @@ pointer_type returns [TypeRepTemplate dotNetType]:
 ///////////////////////////////////////////////////////
 //	Statement Section
 ///////////////////////////////////////////////////////
-block:
+block
+scope SymTab;
+:
 	';'
 	| '{'   statement_list?   '}';
 statement_list:
@@ -399,7 +398,7 @@ statement_list:
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
-expression: 
+expression returns [TypeRepTemplate dotNetType]: 
 	(unary_expression   assignment_operator) => assignment	
 	| non_assignment_expression
 	;
@@ -407,21 +406,21 @@ expression_list:
 	expression  (','   expression)* ;
 assignment:
 	unary_expression   assignment_operator   expression ;
-unary_expression: 
+unary_expression returns [TypeRepTemplate dotNetType]: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
     //(cast_expression) => cast_expression
-	^(CAST_EXPR type unary_expression) 
+	^(CAST_EXPR type unary_expression)          { $dotNetType = $type.dotNetType; }
 	| primary_or_array_creation_expression
-	| ^(MONOPLUS unary_expression)
-	| ^(MONOMINUS unary_expression)
-	| ^(MONONOT unary_expression)
-	| ^(MONOTWIDDLE unary_expression)
-	| ^(PREINC unary_expression)
-	| ^(PREDEC unary_expression)
-	| ^(MONOSTAR unary_expression)
-	| ^(ADDRESSOF unary_expression)
-	| ^(PARENS expression) 
+	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
+	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
+	| ^(MONONOT u3=unary_expression)            { $dotNetType = $u3.dotNetType; }
+	| ^(MONOTWIDDLE u4=unary_expression)        { $dotNetType = $u4.dotNetType; }
+	| ^(PREINC u5=unary_expression)             { $dotNetType = $u5.dotNetType; }
+	| ^(PREDEC u6=unary_expression)             { $dotNetType = $u6.dotNetType; }
+	| ^(MONOSTAR unary_expression)              { $dotNetType = ObjectType; }
+	| ^(ADDRESSOF unary_expression)             { $dotNetType = ObjectType; }
+	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; }
 	;
 //cast_expression:
 //	'('   type   ')'   non_assignment_expression ;
@@ -613,17 +612,20 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration
-scope NSContext;
+scope NSContext,SymTab;
 @init {
-    $NSContext::aliases = new List<string>();
     $NSContext::namespaces = new List<string>();
+    $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
+    $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
    ^(CLASS identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
          class_implements? 
          { 
-            $NSContext::aliases.Add($NSContext::currentNS); 
-            $NSContext::namespaces.Add($NSContext::currentNS); 
+            $NSContext::namespaces.Add($NSContext::currentNS);
+            $NSContext::globalNamespaces.Add($NSContext::currentNS);
+            // TODO: base to map to parent type
+            $SymTab::symtab["this"] = AppEnv.Search($NSContext::currentNS);
          }
          class_body ) ;
 
@@ -668,15 +670,17 @@ constant_expression:
 	expression;
 
 ///////////////////////////////////////////////////////
-field_declaration:
-	variable_declarators ;
-variable_declarators:
-	variable_declarator (','   variable_declarator)* ;
-variable_declarator:
+field_declaration[TypeRepTemplate fieldType]:
+	variable_declarators[$fieldType] ;
+variable_declarators[TypeRepTemplate varType]:
+	variable_declarator[varType] (','   variable_declarator[varType])* ;
+variable_declarator[TypeRepTemplate varType]:
 	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration:
+method_declaration
+scope SymTab;
+:
 	method_header   method_body ;
 method_header:
     ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
@@ -708,7 +712,7 @@ accessor_body:
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators   ';')	// typename=foo;
+		| variable_declarators[$type.dotNetType]   ';')	// typename=foo;
 		;
 event_modifiers:
 	modifier+ ;
@@ -862,7 +866,7 @@ statement_plus:
     | embedded_statement 
 	;
 embedded_statement:
-block
+      block
 	| ^(IF boolean_expression SEP embedded_statement else_statement?)
     | ^('switch' expression switch_section*)
 	| iteration_statement	// while, do, for, foreach
@@ -978,7 +982,7 @@ predefined_type returns [TypeRepTemplate dotNetType]
     string ns = "";
 }
 @after {
-    $dotNetType = AppEnv[ns]; 
+    $dotNetType = AppEnv.Search(ns); 
 }:
 	  'bool'    { ns = "System.Boolean"; }
     | 'byte'    { ns = "System.Byte"; }
@@ -1011,16 +1015,22 @@ also_keyword:
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
 	| 'endif' | 'define' | 'undef';
 
-literal:
-	Real_literal
-	| NUMBER
-	| LONGNUMBER
+literal returns [TypeRepTemplate dotNetType]
+@init {
+    string ns = "System.Object";
+}
+@after {
+    $dotNetType = AppEnv.Search(ns); 
+}:
+	Real_literal 
+	| NUMBER                    { ns = "System.Int32"; }
+	| LONGNUMBER                { ns = "System.Int64"; }
 	| Hex_number
-	| Character_literal
-	| STRINGLITERAL
-	| Verbatim_string_literal
-	| TRUE
-	| FALSE
-	| NULL 
+	| Character_literal         { ns = "System.Char"; }
+	| STRINGLITERAL             { ns = "System.String"; }
+	| Verbatim_string_literal   { ns = "System.String"; }
+	| TRUE                      { ns = "System.Bool"; }
+	| FALSE                     { ns = "System.Bool"; }
+	| NULL                      { ns = "System.Object"; }
 	;
 

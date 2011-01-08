@@ -17,7 +17,8 @@ options {
 
 // A scope to keep track of the namespaces available at any point in the program
 scope NSContext {
-   IList<UseRepTemplate> nss;
+   IList<string> searchpath;
+   IList<AliasRepTemplate> aliases;
    string currentNS;
    TypeRepTemplate currentTypeRep;
 }
@@ -34,20 +35,41 @@ scope NSContext {
 @members 
 {
 
-    protected UseRepTemplate[] NameSpaceContext {
+    protected string[] CollectUses {
         get {
             // We return the elements in source order (hopefully less confusing)
             // so when looking for types we search from last element to first.
             // here we are getting scopes in the opposite order so we need some
             // jiggery pokery to restore desired order.
-             List<UseRepTemplate> rets = new List<UseRepTemplate>();
+             List<string> rets = new List<string>();
              // returns in LIFO order, like you would expect from a stack
              // sigh,  in C# we can't index into the scopes like you can in Java
              // so we resort to a bit of low level hackery to get the ns lists
              foreach (NSContext_scope nscontext in $NSContext) {
-                 IList<UseRepTemplate> nss = nscontext.nss;
-                 for (int i = nss.Count - 1; i >= 0; i--) {
-                     rets.Add(nss[i]);
+                 IList<string> uses = nscontext.searchpath;
+                 for (int i = uses.Count - 1; i >= 0; i--) {
+                     rets.Add(uses[i]);
+                 }
+             }
+             // And now return reversed list
+			rets.Reverse();        
+            return rets.ToArray();
+        }
+    }
+    protected AliasRepTemplate[] CollectAliases {
+        get {
+            // We return the elements in source order (hopefully less confusing)
+            // so when looking for types we search from last element to first.
+            // here we are getting scopes in the opposite order so we need some
+            // jiggery pokery to restore desired order.
+             List<AliasRepTemplate> rets = new List<AliasRepTemplate>();
+             // returns in LIFO order, like you would expect from a stack
+             // sigh,  in C# we can't index into the scopes like you can in Java
+             // so we resort to a bit of low level hackery to get the ns lists
+             foreach (NSContext_scope nscontext in $NSContext) {
+                 IList<AliasRepTemplate> aliases = nscontext.aliases;
+                 for (int i = aliases.Count - 1; i >= 0; i--) {
+                     rets.Add(aliases[i]);
                  }
              }
              // And now return reversed list
@@ -74,7 +96,8 @@ compilation_unit
 scope NSContext;
 @init{
     // For initial, file level scope
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     $NSContext::currentNS = "";
     $NSContext::currentTypeRep = null;
 }
@@ -87,13 +110,14 @@ scope NSContext;
 namespace_declaration
 scope NSContext;
 @init{
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     $NSContext::currentTypeRep = null;
 }
 :
 	'namespace'   qi=qualified_identifier  
         { Debug("namespace: " + $qi.thetext); 
-          $NSContext::nss.Add(new UseRepTemplate($qi.thetext));
+          $NSContext::searchpath.Add($qi.thetext);
           // extend parent namespace
           $NSContext::currentNS = ParentNameSpace + (String.IsNullOrEmpty(ParentNameSpace) ? "" : ".") + $qi.thetext;
         }  
@@ -112,11 +136,11 @@ using_directive:
 	(using_alias_directive
 	| using_namespace_directive) ;
 using_alias_directive
-@after{ $NSContext::nss.Add(new UseRepTemplate($i.thetext, $ns.thetext));}
+@after{ $NSContext::aliases.Add(new AliasRepTemplate($i.thetext, $ns.thetext));}
     :
 	'using'	  i=identifier   '='   ns=namespace_or_type_name   ';' ;
 using_namespace_directive
-@after{ $NSContext::nss.Add(new UseRepTemplate($ns.thetext)); }
+@after{ $NSContext::searchpath.Add($ns.thetext); }
     :
 	'using'   ns=namespace_name   ';' ;
 namespace_member_declarations:
@@ -641,20 +665,22 @@ attribute_argument_expression:
 class_declaration
 scope NSContext;
 @init {
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     ClassRepTemplate klass = new ClassRepTemplate();
 }
 :
 	'class'  type_or_generic   
         { 
             Debug("Processing class: " + $type_or_generic.type);
-            klass.Uses = this.NameSpaceContext;
+            klass.Uses = this.CollectUses;
+            klass.Aliases = this.CollectAliases;
             klass.TypeName = this.ParentNameSpace + "." + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
             if ($type_or_generic.generic_arguments.Count > 0) {
                 klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
             // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(klass.TypeName));
+            $NSContext::searchpath.Add(klass.TypeName);
             $NSContext::currentNS = klass.TypeName;
             $NSContext::currentTypeRep = klass;
             AppEnv[klass.TypeName] = klass;
@@ -776,17 +802,19 @@ remove_accessor_declaration:
 enum_declaration
 scope NSContext;
 @init {
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     EnumRepTemplate eenum = new EnumRepTemplate();
 }
 :
 	'enum'   identifier   enum_base? 
         { 
             Debug("Processing enum: " + $identifier.text);
-            eenum.Uses = this.NameSpaceContext;
+            eenum.Uses = this.CollectUses;
+            eenum.Aliases = this.CollectAliases;
             eenum.TypeName = this.ParentNameSpace + "." + $identifier.text;
             // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(eenum.TypeName));
+            $NSContext::searchpath.Add(eenum.TypeName);
             $NSContext::currentNS = eenum.TypeName;
             $NSContext::currentTypeRep = eenum;
             AppEnv[eenum.TypeName] = eenum;
@@ -814,7 +842,8 @@ integral_type:
 delegate_declaration
 scope NSContext;
 @init {
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     DelegateRepTemplate dlegate = new DelegateRepTemplate();
 }
 :
@@ -822,7 +851,8 @@ scope NSContext;
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
         { 
             Debug("Processing delegate: " + $identifier.text);
-            dlegate.Uses = this.NameSpaceContext;
+            dlegate.Uses = this.CollectUses;
+            dlegate.Aliases = this.CollectAliases;
             dlegate.TypeName = this.ParentNameSpace + "." + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
@@ -903,20 +933,22 @@ parameter_array returns [ParamRepTemplate param]:
 interface_declaration 
 scope NSContext;
 @init {
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     InterfaceRepTemplate iface = new InterfaceRepTemplate();
 }
 :
 	'interface'   identifier   variant_generic_parameter_list?
         { 
             Debug("Processing interface: " + $identifier.text);
-            iface.Uses = this.NameSpaceContext;
+            iface.Uses = this.CollectUses;
+            iface.Aliases = this.CollectAliases;
             iface.TypeName = this.ParentNameSpace + "." + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
             // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(iface.TypeName));
+            $NSContext::searchpath.Add(iface.TypeName);
             $NSContext::currentNS = iface.TypeName;
             $NSContext::currentTypeRep = iface;
             AppEnv[iface.TypeName] = iface;
@@ -987,20 +1019,22 @@ method_modifiers:
 struct_declaration
 scope NSContext;
 @init {
-    $NSContext::nss = new List<UseRepTemplate>();
+    $NSContext::searchpath = new List<string>();
+    $NSContext::aliases = new List<AliasRepTemplate>();
     StructRepTemplate strukt = new StructRepTemplate();
 }
     :
 	'struct'   type_or_generic   
         { 
             Debug("Processing struct: " + $type_or_generic.type);
-            strukt.Uses = this.NameSpaceContext;
+            strukt.Uses = this.CollectUses;
+            strukt.Aliases = this.CollectAliases;
             strukt.TypeName = this.ParentNameSpace + "." + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
             if ($type_or_generic.generic_arguments.Count > 0) {
                 strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
             // Nested types can see things in this space
-            $NSContext::nss.Add(new UseRepTemplate(strukt.TypeName));
+            $NSContext::searchpath.Add(strukt.TypeName);
             $NSContext::currentNS = strukt.TypeName;
             $NSContext::currentTypeRep = strukt;
             AppEnv[strukt.TypeName] = strukt;

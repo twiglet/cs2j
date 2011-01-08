@@ -171,6 +171,33 @@ namespace RusticiSoftware.Translator.Utils
             }
         }
 
+        // search for name, given searchPath
+        // searchPath is searched in reverse order
+        public TValue Search(List<string> searchPath, string name) {
+            TValue ret = default(TValue);
+            bool found = false;
+            for (int i = searchPath.Count-1; i >= 0; i--) {
+                String ns = searchPath[i];
+                String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
+                if (this.ContainsKey(fullName)) {
+                    ret = this[fullName];
+                    found = true;
+                    break;
+                }
+            }
+            // Check if name is fully qualified
+            if (!found && this.ContainsKey(name)) {
+                ret = this[name];
+            }
+            //        if (ret != null)
+            //            Console.Out.WriteLine("findType: found {0}", ret.TypeName);
+            return ret;
+        }
+
+        public TValue Search(string name) {
+            return Search(new List<string>(), name);
+        }
+
         public void Add(KeyValuePair<string, TValue> item)
         {
             this.Add(item.Key, item.Value);

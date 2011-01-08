@@ -100,14 +100,20 @@ namespace RusticiSoftware.Translator.CSharp
     // Wraps a compilation unit with its imports search path
     public class CUnit {
 
-        public CUnit(CommonTree inTree, List<string> inSearchKeys, List<string> inSearchValues) {
+        public CUnit(CommonTree inTree, List<string> inSearchPath, List<string> inAliasKeys, List<string> inAliasValues) {
             Tree = inTree;
-            SearchPathKeys = inSearchKeys;
-            SearchPathValues = inSearchValues;
+            SearchPath = inSearchPath;
+            NameSpaceAliasKeys = inAliasKeys;
+            NameSpaceAliasValues = inAliasValues;
         }
         public CommonTree Tree {get; set;}
-        public List<string> SearchPathKeys {get; set;}
-        public List<string> SearchPathValues {get; set;}
+
+        // namespaces in scope
+        public List<string> SearchPath {get; set;}
+
+        //  aliases for namespaces
+        public List<string> NameSpaceAliasKeys {get; set;}
+        public List<string> NameSpaceAliasValues {get; set;}
     }
 
 }
