@@ -84,6 +84,10 @@ scope NSContext {
         }
     }
 
+    protected string NSPrefix(string ns) {
+        return (String.IsNullOrEmpty(ns) ? "" : ns + ".");
+    }
+
 }
 
 /********************************************************************************************
@@ -119,7 +123,7 @@ scope NSContext;
         { Debug("namespace: " + $qi.thetext); 
           $NSContext::searchpath.Add($qi.thetext);
           // extend parent namespace
-          $NSContext::currentNS = ParentNameSpace + (String.IsNullOrEmpty(ParentNameSpace) ? "" : ".") + $qi.thetext;
+          $NSContext::currentNS = NSPrefix(ParentNameSpace) + $qi.thetext;
         }  
         namespace_block   ';'? ;
 namespace_block:
@@ -675,7 +679,8 @@ scope NSContext;
             Debug("Processing class: " + $type_or_generic.type);
             klass.Uses = this.CollectUses;
             klass.Aliases = this.CollectAliases;
-            klass.TypeName = this.ParentNameSpace + "." + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
+            klass.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
+            klass.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
             if ($type_or_generic.generic_arguments.Count > 0) {
                 klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
@@ -812,7 +817,8 @@ scope NSContext;
             Debug("Processing enum: " + $identifier.text);
             eenum.Uses = this.CollectUses;
             eenum.Aliases = this.CollectAliases;
-            eenum.TypeName = this.ParentNameSpace + "." + $identifier.text;
+            eenum.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
+            eenum.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             // Nested types can see things in this space
             $NSContext::searchpath.Add(eenum.TypeName);
             $NSContext::currentNS = eenum.TypeName;
@@ -853,7 +859,8 @@ scope NSContext;
             Debug("Processing delegate: " + $identifier.text);
             dlegate.Uses = this.CollectUses;
             dlegate.Aliases = this.CollectAliases;
-            dlegate.TypeName = this.ParentNameSpace + "." + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
+            dlegate.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
+            dlegate.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
@@ -943,7 +950,8 @@ scope NSContext;
             Debug("Processing interface: " + $identifier.text);
             iface.Uses = this.CollectUses;
             iface.Aliases = this.CollectAliases;
-            iface.TypeName = this.ParentNameSpace + "." + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
+            iface.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
+            iface.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
@@ -1029,7 +1037,8 @@ scope NSContext;
             Debug("Processing struct: " + $type_or_generic.type);
             strukt.Uses = this.CollectUses;
             strukt.Aliases = this.CollectAliases;
-            strukt.TypeName = this.ParentNameSpace + "." + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
+            strukt.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
+            strukt.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
             if ($type_or_generic.generic_arguments.Count > 0) {
                 strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
