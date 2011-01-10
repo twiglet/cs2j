@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
   <Java>Exception</Java>
   <Name>System.Exception</Name>
   <Uses />
@@ -62,9 +63,7 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports>
-        <string>CS2JNet.System.Exception</string>
-      </Imports>
+      <Imports />
       <Java>new Exception(${info},${ctxt})</Java>
       <Params>
         <Param>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
   <Java>ArithmeticException</Java>
   <Name>System.OverflowException</Name>
   <Uses />
@@ -27,9 +28,7 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports>
-        <string>CS2JNet.System.OverflowException</string>
-      </Imports>
+      <Imports />
       <Java>new OverflowException(${info},${ctxt})</Java>
       <Params>
         <Param>
