@@ -163,7 +163,7 @@ namespace RusticiSoftware.Translator.CLR
 			get {
 				// if _java is not set then see if we have default imports, otherwise
 				// assume imports is already correctly (un)set
-				if (_java == null) {
+				if (_imports == null && _java == null) {
 					return mkImports();
 				}
 				return _imports;
