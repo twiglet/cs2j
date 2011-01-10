@@ -54,6 +54,21 @@ namespace RusticiSoftware.Translator.Utils
             }
         }
 
+        ///
+        /// Adds the specified element to this set if it is not already present.
+        /// o: The object to add to the set.
+        /// returns true if the object was added, false if it was already present.
+        public void Add(IList<T> els)
+        {
+            if (els != null)
+            {
+                foreach (T s in els)
+                {
+                    Add(s);
+                }
+            }
+        }
+
         public T[] AsArray()
         {
             ICollection keys = setD.Keys;
