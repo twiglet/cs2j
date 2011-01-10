@@ -72,7 +72,7 @@ scope SymTab {
     protected TypeRepTemplate ObjectType {
         get {
             if (objectType == null) {
-                objectType = findType("System.Object");
+                objectType = AppEnv.Search("System.Object");
             }
             return objectType;
         }
@@ -333,9 +333,22 @@ namespace_or_type_name returns [String name, List<string> tyargs]:
 	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
     | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
     | ^(d='.'   n1=namespace_or_type_name type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; } ;
-type_or_generic returns [String name, List<String> tyargs]: 
-	(identifier   generic_argument_list) => identifier { $name = $identifier.thetext; }  generic_argument_list { $tyargs = $generic_argument_list.argTexts; }
-	| identifier { $name = $identifier.thetext; };
+
+type_or_generic returns [String name, List<String> tyargs]
+:
+	(identifier_type   generic_argument_list) => t=identifier_type { $name = $identifier_type.thetext; }  generic_argument_list { $tyargs = $generic_argument_list.argTexts; }
+	| t=identifier_type { $name = $identifier_type.thetext; } ;
+
+identifier_type returns [string thetext]
+@init {
+    TypeRepTemplate tyRep = null;
+}
+@after{
+    $thetext = $t.thetext;
+}:
+    t=identifier { tyRep = findType($t.thetext); if (tyRep != null)  Imports.Add(tyRep.Imports); } 
+        -> { tyRep != null }? IDENTIFIER[$t.tree.Token, tyRep.Java]
+        -> $t;
 
 qid:		// qualified_identifier v2
     ^(access_operator qid type_or_generic) 
