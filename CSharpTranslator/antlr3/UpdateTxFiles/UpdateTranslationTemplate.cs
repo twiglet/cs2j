@@ -55,6 +55,7 @@ namespace UpdateTxFiles
 			
 			upgrade(inV as OldTSpace.FieldRepTemplate, outV as NewTSpace.FieldRepTemplate);
 	
+			outV.Imports = inV.Imports;	
 			if (!String.IsNullOrEmpty(inV.Get))
 				outV.JavaGet = inV.Get;			
 		
@@ -102,6 +103,7 @@ namespace UpdateTxFiles
 			upgrade(inV as OldTSpace.TypeRepTemplate, outV as NewTSpace.TypeRepTemplate);
 	
 			outV.Inherits = inV.Inherits;
+			outV.Imports = inV.Imports;	
 			if (!String.IsNullOrEmpty(inV.Java))
 				outV.Java = inV.Java;			
 			
