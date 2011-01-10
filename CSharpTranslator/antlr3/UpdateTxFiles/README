@@ -1,0 +1,3 @@
+To upgrade translation files:
+
+mono "/Users/keving/gitrepos/cs2j/CSharpTranslator/antlr3/UpdateTxFiles/bin/Debug/UpdateTxFiles.exe" -inxmldir /Users/keving/gitrepos/cs2j/CS2JLibrary/NetTranslations/ -outxmldir /Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework
