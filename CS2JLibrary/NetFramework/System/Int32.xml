@@ -44,7 +44,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>IntegerSupport.parse(${str}, ${style})</Java>
       <Params>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>RusticiSoftware.System.Xml.XmlDocument</string>
+    <Import>RusticiSoftware.System.Xml.XmlDocument</Import>
   </Imports>
   <Java>XmlDocument</Java>
   <Name>System.Xml.XmlDocument</Name>
@@ -192,7 +192,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.Xml.XmlDeclaration</string>
+        <Import>RusticiSoftware.System.Xml.XmlDeclaration</Import>
       </Imports>
       <Java>new XmlDeclaration(${version},${encoding},${standalone})</Java>
       <Params>

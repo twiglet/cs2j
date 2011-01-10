@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.net.*</string>
+    <Import>java.net.*</Import>
   </Imports>
   <Java>URLEncoder</Java>
   <Name>System.Web.HttpUtility</Name>
@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.Web.HttpUtilSupport</string>
+        <Import>RusticiSoftware.System.Web.HttpUtilSupport</Import>
       </Imports>
       <Java>HttpUtilSupport.HtmlEncode(${str})</Java>
       <Params>
@@ -26,7 +26,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</string>
+        <Import>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</Import>
       </Imports>
       <Java>HttpUtil.UrlEncode(${str})</Java>
       <Params>
@@ -40,7 +40,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</string>
+        <Import>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</Import>
       </Imports>
       <Java>HttpUtil.UrlDecode(${str})</Java>
       <Params>

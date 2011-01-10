@@ -9,7 +9,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>RusticiSoftware.System.StringSplitOptions</string>
+        <Import>RusticiSoftware.System.StringSplitOptions</Import>
       </Imports>
       <Java>StringSplitOptions.None</Java>
       <Type>System.StringSplitOptions</Type>
@@ -19,7 +19,7 @@
     </Property>
     <Property>
       <Imports>
-        <string>RusticiSoftware.System.StringSplitOptions</string>
+        <Import>RusticiSoftware.System.StringSplitOptions</Import>
       </Imports>
       <Java>StringSplitOptions.RemoveEmptyEntries</Java>
       <Type>System.StringSplitOptions</Type>

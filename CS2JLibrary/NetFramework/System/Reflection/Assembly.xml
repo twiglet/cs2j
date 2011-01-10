@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>RusticiSoftware.System.Reflection.Assembly</string>
+    <Import>RusticiSoftware.System.Reflection.Assembly</Import>
   </Imports>
   <Java>Assembly</Java>
   <Name>System.Reflection.Assembly</Name>
@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.Reflection.Assembly</string>
+        <Import>RusticiSoftware.System.Reflection.Assembly</Import>
       </Imports>
       <Java>new Assembly(${assemblyString})</Java>
       <Params>

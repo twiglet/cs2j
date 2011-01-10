@@ -156,9 +156,9 @@ namespace RusticiSoftware.Translator.CLR
 	// Never directly create a TranslationBase. Its a common root for translatable language entities
 	public abstract class TranslationBase : IEquatable<TranslationBase>
 	{
-		[XmlArrayItem("Import")]
 		// Java imports required to make Java translation run
 		private string[] _imports = null;
+		[XmlArrayItem("Import")]
 		public string[] Imports { 
 			get {
 				// if _java is not set then see if we have default imports, otherwise

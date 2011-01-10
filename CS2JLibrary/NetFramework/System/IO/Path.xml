@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).getParent()</Java>
       <Params>
@@ -22,7 +22,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).getName()</Java>
       <Params>
@@ -36,7 +36,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).getCanonicalPath()</Java>
       <Params>
@@ -50,7 +50,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.PathSupport</string>
+        <Import>RusticiSoftware.System.IO.PathSupport</Import>
       </Imports>
       <Java>PathSupport.getExtension(${path})</Java>
       <Params>
@@ -64,7 +64,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path1}, ${path2})).toString()</Java>
       <Params>
@@ -84,7 +84,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>File.separatorChar</Java>
       <Type>System.Char</Type>

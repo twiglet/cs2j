@@ -37,7 +37,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.text.NumberFormat</string>
+        <Import>java.text.NumberFormat</Import>
       </Imports>
       <Java>NumberFormat.getInstance(${provider}).parse(${dStr}).doubleValue()</Java>
       <Params>
@@ -55,7 +55,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>DoubleSupport.parse(${dStr}, ${style}, ${provider})</Java>
       <Params>
@@ -77,7 +77,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>DoubleSupport.ToString(${this}, ${format})</Java>
       <Params>
@@ -98,7 +98,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DoubleSupport</string>
+        <Import>RusticiSoftware.System.DoubleSupport</Import>
       </Imports>
       <Java>DoubleSupport.ToString(${this}, ${provider})</Java>
       <Params>

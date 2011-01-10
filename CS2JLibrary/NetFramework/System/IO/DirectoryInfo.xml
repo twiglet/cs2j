@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.io.File</string>
+    <Import>java.io.File</Import>
   </Imports>
   <Java>File</Java>
   <Name>System.IO.DirectoryInfo</Name>
@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>RusticiSoftware.JavaSupport.io.*</string>
+        <Import>RusticiSoftware.JavaSupport.io.*</Import>
       </Imports>
       <Java>${this}.listFiles(new FilterOnlyFiles())</Java>
       <Params />
@@ -21,7 +21,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.JavaSupport.io.*</string>
+        <Import>RusticiSoftware.JavaSupport.io.*</Import>
       </Imports>
       <Java>${this}.listFiles(new FilterOnlyDirs())</Java>
       <Params />
@@ -42,7 +42,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>new File(${path})</Java>
       <Params>

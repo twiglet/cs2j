@@ -11,7 +11,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>java.util.Arrays</string>
+        <Import>java.util.Arrays</Import>
       </Imports>
       <Java>Array.get(${this}, ${index})</Java>
       <Params>
@@ -25,7 +25,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.util.Arrays</string>
+        <Import>java.util.Arrays</Import>
       </Imports>
       <Java>Arrays.sort(${array})</Java>
       <Params>

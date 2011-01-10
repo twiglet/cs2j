@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>java.text.NumberFormat</string>
+        <Import>java.text.NumberFormat</Import>
       </Imports>
       <Java>NumberFormat.getInstance(${provider}).format(${this})</Java>
       <Params>
@@ -22,7 +22,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.NumberSupport</string>
+        <Import>RusticiSoftware.System.NumberSupport</Import>
       </Imports>
       <Java>NumberSupport.format(${this}, ${format})</Java>
       <Params>

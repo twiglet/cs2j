@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.io.File</string>
+    <Import>java.io.File</Import>
   </Imports>
   <Java>File</Java>
   <Name>System.IO.Directory</Name>
@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).exists()</Java>
       <Params>
@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).mkdirs()</Java>
       <Params>
@@ -38,7 +38,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+        <Import>RusticiSoftware.System.IO.DirectorySupport</Import>
       </Imports>
       <Java>DirectorySupport.delete(${path}, false)</Java>
       <Params>
@@ -52,7 +52,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+        <Import>RusticiSoftware.System.IO.DirectorySupport</Import>
       </Imports>
       <Java>DirectorySupport.delete(${path}, ${recursive})</Java>
       <Params>
@@ -70,7 +70,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${sourceFileName})).renameTo(new File(${destFileName}))</Java>
       <Params>
@@ -88,7 +88,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).list()</Java>
       <Params>
@@ -102,7 +102,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+        <Import>RusticiSoftware.System.IO.DirectorySupport</Import>
       </Imports>
       <Java>DirectorySupport.getFiles(${path}, ${searchpattern})</Java>
       <Params>
@@ -120,7 +120,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+        <Import>RusticiSoftware.System.IO.DirectorySupport</Import>
       </Imports>
       <Java>DirectorySupport.getDirectories(${path})</Java>
       <Params>
@@ -134,7 +134,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.DirectorySupport</string>
+        <Import>RusticiSoftware.System.IO.DirectorySupport</Import>
       </Imports>
       <Java>DirectorySupport.getFiles(${path})</Java>
       <Params>

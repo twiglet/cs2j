@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.util.TreeMap</string>
+    <Import>java.util.TreeMap</Import>
   </Imports>
   <Java>TreeMap</Java>
   <Name>System.Collections.SortedList</Name>
@@ -113,14 +113,14 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>java.util.TreeMap</string>
+        <Import>java.util.TreeMap</Import>
       </Imports>
       <Java>new TreeMap()</Java>
       <Params />
     </Constructor>
     <Constructor>
       <Imports>
-        <string>java.util.TreeMap</string>
+        <Import>java.util.TreeMap</Import>
       </Imports>
       <Java>new TreeMap()</Java>
       <Params>
@@ -132,7 +132,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <string>java.util.TreeMap</string>
+        <Import>java.util.TreeMap</Import>
       </Imports>
       <Java>new TreeMap(${collection})</Java>
       <Params>

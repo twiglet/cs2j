@@ -19,7 +19,7 @@
     </Property>
     <Property>
       <Imports>
-        <string>java.net.InetAddress</string>
+        <Import>java.net.InetAddress</Import>
       </Imports>
       <Java>InetAddress.getLocalHost().getHostName()</Java>
       <Type>System.String</Type>

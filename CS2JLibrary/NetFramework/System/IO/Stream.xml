@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.io.*</string>
+    <Import>java.io.*</Import>
   </Imports>
   <Java>InputStream</Java>
   <Name>System.IO.Stream</Name>
@@ -61,7 +61,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>RusticiSoftware.JavaSupport.Unsupported</string>
+        <Import>RusticiSoftware.JavaSupport.Unsupported</Import>
       </Imports>
       <Java>Unsupported.throwUnsupported("${this}.Position")</Java>
       <Type>System.Int64</Type>
@@ -75,7 +75,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>java.io.*</string>
+        <Import>java.io.*</Import>
       </Imports>
       <Java>new FileInputStream(${path})</Java>
       <Params>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.io.*</string>
+    <Import>java.io.*</Import>
   </Imports>
   <Java>BufferedReader</Java>
   <Name>System.IO.StreamReader</Name>
@@ -16,8 +16,8 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>RusticiSoftware.System.IO.StreamReader</string>
-        <string>java.io.*</string>
+        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(new FileInputStream(${path}))))</Java>
       <Params>
@@ -29,8 +29,8 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <string>RusticiSoftware.System.IO.StreamReader</string>
-        <string>java.io.*</string>
+        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(new FileInputStream(${path}), ${encoding})))</Java>
       <Params>
@@ -46,8 +46,8 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <string>RusticiSoftware.System.IO.StreamReader</string>
-        <string>java.io.*</string>
+        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), ${encoding}))</Java>
       <Params>
@@ -63,9 +63,9 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <string>RusticiSoftware.System.IO.StreamReader</string>
-        <string>RusticiSoftware.System.Text.EncodingSupport</string>
-        <string>java.io.*</string>
+        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>RusticiSoftware.System.Text.EncodingSupport</Import>
+        <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), new EncodingSupport("UTF-8")))</Java>
       <Params>

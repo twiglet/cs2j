@@ -12,7 +12,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>RusticiSoftware.JavaSupport.util.LocaleSupport</string>
+        <Import>RusticiSoftware.JavaSupport.util.LocaleSupport</Import>
       </Imports>
       <Java>LocaleSupport.INVARIANT</Java>
       <Type>System.Globalization.CultureInfo</Type>

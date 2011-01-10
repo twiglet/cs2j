@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.util.regex.*</string>
+    <Import>java.util.regex.*</Import>
   </Imports>
   <Java>Pattern</Java>
   <Name>System.Text.RegularExpressions.Regex</Name>
@@ -34,7 +34,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.util.regex.*</string>
+        <Import>java.util.regex.*</Import>
       </Imports>
       <Java>Pattern.compile(${pattern}).matcher(${input}).matches()</Java>
       <Params>
@@ -52,7 +52,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.util.regex.*</string>
+        <Import>java.util.regex.*</Import>
       </Imports>
       <Java>Pattern.compile(${pattern}).matcher(${input}).replaceAll(${replacement})</Java>
       <Params>
@@ -79,14 +79,14 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>java.util.regex.*</string>
+        <Import>java.util.regex.*</Import>
       </Imports>
       <Java>new Pattern()</Java>
       <Params />
     </Constructor>
     <Constructor>
       <Imports>
-        <string>java.util.regex.*</string>
+        <Import>java.util.regex.*</Import>
       </Imports>
       <Java>Pattern.compile(${pattern})</Java>
       <Params>

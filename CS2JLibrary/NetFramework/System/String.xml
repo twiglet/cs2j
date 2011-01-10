@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Compare(${arg1}, ${arg2})</Java>
       <Params>
@@ -26,7 +26,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Compare(${arg1}, ${arg2}, ${isCaseSensitive})</Java>
       <Params>
@@ -144,7 +144,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.isNullOrEmpty(${arg})</Java>
       <Params>
@@ -158,7 +158,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.lastIndexOfAny(${this},${anyOf})</Java>
       <Params>
@@ -228,7 +228,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.PadLeft(${this}, ${totalWidth})</Java>
       <Params>
@@ -242,7 +242,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.PadLeft(${this}, ${totalWidth}, ${paddingChar})</Java>
       <Params>
@@ -260,7 +260,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.PadRight(${this}, ${totalWidth})</Java>
       <Params>
@@ -274,7 +274,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.PadRight(${this}, ${totalWidth}, ${paddingChar})</Java>
       <Params>
@@ -324,7 +324,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Split(${this}, ${ch})</Java>
       <Params>
@@ -338,7 +338,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Split(${this}, ${ch1}, ${ch2})</Java>
       <Params>
@@ -356,7 +356,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>${this}.split(StringSupport.charAltsToRegex(${cs}))</Java>
       <Params>
@@ -370,7 +370,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>${this}.split(StringSupport.charAltsToRegex(${cs}), ${count})</Java>
       <Params>
@@ -388,7 +388,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Split(${this}, ${cs}, ${options})</Java>
       <Params>
@@ -497,7 +497,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Trim(${this})</Java>
       <Params />
@@ -506,7 +506,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Trim(${this}, ${trimChars})</Java>
       <Params>
@@ -520,7 +520,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Trim(${this}, new char[] {${trimChar1}})</Java>
       <Params>
@@ -534,7 +534,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Trim(${this}, new char[] {${trimChar1}, ${trimChar2}})</Java>
       <Params>
@@ -552,7 +552,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimStart(${this}, null)</Java>
       <Params />
@@ -561,7 +561,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimStart(${this}, ${trimChars})</Java>
       <Params>
@@ -575,7 +575,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimStart(${this}, new char[] {${trimChar1}})</Java>
       <Params>
@@ -589,7 +589,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimStart(${this}, new char[] {${trimChar1}, ${trimChar2}})</Java>
       <Params>
@@ -607,7 +607,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimEnd(${this}, null)</Java>
       <Params />
@@ -616,7 +616,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimEnd(${this}, ${trimChars})</Java>
       <Params>
@@ -630,7 +630,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimEnd(${this}, new char[] {${trimChar1}})</Java>
       <Params>
@@ -644,7 +644,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimEnd(${this}, new char[] {${trimChar1}, ${trimChar2}})</Java>
       <Params>
@@ -696,7 +696,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>RusticiSoftware.System.StringSupport</string>
+        <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.mkString(${char}, ${length})</Java>
       <Params>

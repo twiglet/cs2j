@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.io.*</string>
+    <Import>java.io.*</Import>
   </Imports>
   <Java>BufferedReader</Java>
   <Name>System.IO.TextReader</Name>
@@ -26,7 +26,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.TextReaderSupport</string>
+        <Import>RusticiSoftware.System.IO.TextReaderSupport</Import>
       </Imports>
       <Java>TextReaderSupport.readToEnd(${this})</Java>
       <Params />

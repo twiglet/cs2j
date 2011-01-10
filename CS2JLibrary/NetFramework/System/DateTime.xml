@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.util.Date</string>
+    <Import>java.util.Date</Import>
   </Imports>
   <Java>Date</Java>
   <Name>System.DateTime</Name>
@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.parse(${s})</Java>
       <Params>
@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.parse(${s}, ${provider})</Java>
       <Params>
@@ -42,7 +42,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>DateTimeSupport.ToString(${this}, ${format})</Java>
       <Params>
@@ -56,7 +56,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.ToString(${this}, ${format}, ${provider})</Java>
       <Params>
@@ -74,7 +74,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.text.SimpleDateFormat</string>
+        <Import>java.text.SimpleDateFormat</Import>
       </Imports>
       <Java>(new SimpleDateFormat("MM/dd/yyyy HH:mm:ss a")).format(${this})</Java>
       <Params />
@@ -83,7 +83,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.text.SimpleDateFormat</string>
+        <Import>java.text.SimpleDateFormat</Import>
       </Imports>
       <Java>(new SimpleDateFormat("MM/dd/yy")).format(${this})</Java>
       <Params />
@@ -120,8 +120,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTZ</string>
-        <string>java.util.TimeZone</string>
+        <Import>RusticiSoftware.System.DateTZ</Import>
+        <Import>java.util.TimeZone</Import>
       </Imports>
       <Java>(new DateTZ(${this}.getTime(), TimeZone.getTimeZone("UTC")))</Java>
       <Params />
@@ -130,8 +130,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
-        <string>java.util.Calendar</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MINUTE,${amount})</Java>
       <Params>
@@ -145,8 +145,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
-        <string>java.util.Calendar</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.HOUR,${amount})</Java>
       <Params>
@@ -160,8 +160,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
-        <string>java.util.Calendar</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MILLISECOND,${amount})</Java>
       <Params>
@@ -175,8 +175,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
-        <string>java.util.Calendar</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.SECOND,${amount})</Java>
       <Params>
@@ -190,8 +190,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
-        <string>java.util.Calendar</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.DAY_OF_YEAR,${amount})</Java>
       <Params>
@@ -205,8 +205,8 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
-        <string>java.util.Calendar</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MONTH,${amount})</Java>
       <Params>
@@ -220,7 +220,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
       </Imports>
       <Java>(new TimeSpan(Math.abs(${this}.getTime() - ${date2}.getTime())))</Java>
       <Params>
@@ -236,7 +236,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>java.util.Calendar</string>
+        <Import>java.util.Calendar</Import>
       </Imports>
       <Java>Calendar.getInstance().getTime()</Java>
       <Type>System.DateTime</Type>
@@ -246,7 +246,7 @@
     </Property>
     <Property>
       <Imports>
-        <string>java.util.Date</string>
+        <Import>java.util.Date</Import>
       </Imports>
       <Java>new Date()</Java>
       <Type>System.DateTime</Type>
@@ -260,7 +260,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <string>java.util.GregorianCalendar</string>
+        <Import>java.util.GregorianCalendar</Import>
       </Imports>
       <Java>new GregorianCalendar(${year}, ${month}-1, ${day}).getTime()</Java>
       <Params>

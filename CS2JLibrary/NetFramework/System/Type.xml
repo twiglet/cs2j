@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.TypeSupport</string>
+        <Import>RusticiSoftware.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetFields(${this})</Java>
       <Params />
@@ -17,7 +17,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.TypeSupport</string>
+        <Import>RusticiSoftware.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetFields(${this},${flags})</Java>
       <Params>
@@ -31,7 +31,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.TypeSupport</string>
+        <Import>RusticiSoftware.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetField(${this},${name})</Java>
       <Params>
@@ -45,7 +45,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.TypeSupport</string>
+        <Import>RusticiSoftware.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetField(${this},${name},${flags})</Java>
       <Params>
@@ -63,7 +63,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.TypeSupport</string>
+        <Import>RusticiSoftware.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.InvokeMember(${this}, ${name}, ${target}, ${args})</Java>
       <Params>

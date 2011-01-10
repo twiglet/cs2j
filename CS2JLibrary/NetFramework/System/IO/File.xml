@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.io.File</string>
+    <Import>java.io.File</Import>
   </Imports>
   <Java>File</Java>
   <Name>System.IO.File</Name>
@@ -10,8 +10,8 @@
   <Methods>
     <Method>
       <Imports>
-        <string>java.io.*</string>
-        <string>java.nio.charset.Charset</string>
+        <Import>java.io.*</Import>
+        <Import>java.nio.charset.Charset</Import>
       </Imports>
       <Java>new BufferedWriter(new OutputStreamWriter(new FileOutputStream(${path}), Charset.forName("UTF-8")))</Java>
       <Params>
@@ -25,7 +25,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.*</string>
+        <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedOutputStream(new FileOutputStream(${path}))</Java>
       <Params>
@@ -39,7 +39,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.FileInputStream</string>
+        <Import>java.io.FileInputStream</Import>
       </Imports>
       <Java>new FileInputStream(${path})</Java>
       <Params>
@@ -53,7 +53,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).delete()</Java>
       <Params>
@@ -67,7 +67,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${path})).exists()</Java>
       <Params>
@@ -81,7 +81,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.FileSupport</string>
+        <Import>RusticiSoftware.System.IO.FileSupport</Import>
       </Imports>
       <Java>FileSupport.copyFile(${sourceFileName}, ${destFileName}, true)</Java>
       <Params>
@@ -99,7 +99,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.IO.FileSupport</string>
+        <Import>RusticiSoftware.System.IO.FileSupport</Import>
       </Imports>
       <Java>FileSupport.copyFile(${sourceFileName}, ${destFileName}, ${overwrite})</Java>
       <Params>
@@ -121,7 +121,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>java.io.File</string>
+        <Import>java.io.File</Import>
       </Imports>
       <Java>(new File(${sourceFileName})).renameTo(new File(${destFileName}))</Java>
       <Params>

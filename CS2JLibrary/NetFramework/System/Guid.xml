@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <string>java.util.UUID</string>
+    <Import>java.util.UUID</Import>
   </Imports>
   <Java>UUID</Java>
   <Name>System.Guid</Name>
@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>java.util.UUID</string>
+        <Import>java.util.UUID</Import>
       </Imports>
       <Java>UUID.randomUUID()</Java>
       <Params />

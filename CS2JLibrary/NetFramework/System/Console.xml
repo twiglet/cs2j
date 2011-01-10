@@ -20,7 +20,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}), ${arg})</Java>
       <Params>
@@ -38,7 +38,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}), ${arg1}, ${arg2})</Java>
       <Params>
@@ -79,7 +79,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}) + "\\n", ${arg})</Java>
       <Params>
@@ -97,7 +97,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.*</string>
+        <Import>RusticiSoftware.System.*</Import>
       </Imports>
       <Java>System.out.printf(ConsoleSupport.CSFmtStrToJFmtStr(${fmt}) + "\\n", ${arg1}, ${arg2})</Java>
       <Params>

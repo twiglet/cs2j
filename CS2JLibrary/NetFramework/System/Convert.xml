@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports>
-        <string>org.apache.commons.codec.binary.Base64</string>
+        <Import>org.apache.commons.codec.binary.Base64</Import>
       </Imports>
       <Java>Base64.decodeBase64(${s})</Java>
       <Params>
@@ -22,7 +22,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>org.apache.commons.codec.binary.Base64</string>
+        <Import>org.apache.commons.codec.binary.Base64</Import>
       </Imports>
       <Java>Base64.encodeBase64String(${inArray})</Java>
       <Params>
@@ -108,7 +108,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.DateTimeSupport</string>
+        <Import>RusticiSoftware.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.parse(${value})</Java>
       <Params>

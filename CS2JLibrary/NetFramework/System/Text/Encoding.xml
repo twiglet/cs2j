@@ -22,7 +22,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>RusticiSoftware.System.Text.EncodingSupport</string>
+        <Import>RusticiSoftware.System.Text.EncodingSupport</Import>
       </Imports>
       <Java>(new EncodingSupport("UTF-8"))</Java>
       <Type>System.Text.Encoding</Type>

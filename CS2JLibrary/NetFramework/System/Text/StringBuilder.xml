@@ -32,7 +32,7 @@
     </Method>
     <Method>
       <Imports>
-        <string>RusticiSoftware.System.Text.StringBuilderSupport</string>
+        <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
       </Imports>
       <Java>StringBuilderSupport.ensureCapacity(${this}, ${arg})</Java>
       <Params>
@@ -112,7 +112,7 @@
   <Properties>
     <Property>
       <Imports>
-        <string>RusticiSoftware.System.Text.StringBuilderSupport</string>
+        <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
       </Imports>
       <Java>${this}.length()</Java>
       <Type>System.Int32</Type>
