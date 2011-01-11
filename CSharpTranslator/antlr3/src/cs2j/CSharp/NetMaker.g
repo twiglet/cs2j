@@ -77,6 +77,20 @@ scope SymTab {
             return objectType;
         }
     }
+
+    protected TypeRepTemplate SymTabLookup(string name) {
+        return SymTabLookup(name, null);
+    }
+
+    protected TypeRepTemplate SymTabLookup(string name, TypeRepTemplate def) {
+        object[] stabs = $SymTab.ToArray();
+        foreach(SymTab_scope stabScope in stabs) {
+            if (stabScope.symtab.ContainsKey(name)) {
+                return stabScope.symtab[name];
+            }
+        }
+        return def;
+    }
 }
 
 compilation_unit
@@ -128,15 +142,19 @@ class_member_declaration:
 exception:
     EXCEPTION;
 
-primary_expression: 
+primary_expression returns [TypeRepTemplate dotNetType]:
     ^(INDEX expression expression_list?)
     | ^(APPLY identifier argument_list?)
     | ^(APPLY ^('.' expression identifier) argument_list?)
    // | ^(APPLY expression argument_list?)
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
-    | primary_expression_start
     | ^(access_operator expression type_or_generic)
+	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
+	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
+	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
+    | identifier                                                     { $dotNetType = SymTabLookup($identifier.thetext); }         
+    | primary_expression_start
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
@@ -152,16 +170,12 @@ primary_expression:
 	| unchecked_expression          		// unchecked {...}
 	| default_value_expression      		// default
 	| anonymous_method_expression			// delegate (int foo) {}
+	| typeof_expression             // typeof(Foo).Name
 	;
 
 primary_expression_start returns [TypeRepTemplate dotNetType]:
-	predefined_type   { $dotNetType = $predefined_type.dotNetType; }         
-	| (identifier    generic_argument_list) => identifier   generic_argument_list
-    | identifier
+	 (identifier    generic_argument_list) => identifier   generic_argument_list
 	| ^('::' identifier identifier)
-	| 'this' 
-	| SUPER
-	| typeof_expression             // typeof(Foo).Name
 	| literal
 	;
 
@@ -404,7 +418,9 @@ pointer_type returns [TypeRepTemplate dotNetType]:
 ///////////////////////////////////////////////////////
 block
 scope SymTab;
-:
+@init {
+    $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+}:
 	';'
 	| '{'   statement_list?   '}';
 statement_list:
@@ -639,14 +655,16 @@ scope NSContext,SymTab;
          { 
             $NSContext::namespaces.Add($NSContext::currentNS);
             $NSContext::globalNamespaces.Add($NSContext::currentNS);
-            // TODO: base to map to parent type
             ClassRepTemplate classTypeRep = (ClassRepTemplate)AppEnv.Search($NSContext::currentNS);
             $SymTab::symtab["this"] = classTypeRep;
-            ClassRepTemplate parent = ObjectType;
-            if (classTypeRep.Inherits.Length > 0) {
-                parent = (ClassRepTemplate)AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
+            ClassRepTemplate baseType = ObjectType;
+            if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
+                // if Inherits[0] is a class tyhen it is parent, else system.object
+                ClassRepTemplate parent = (ClassRepTemplate)AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
+                if (parent != null)
+                    baseType = parent;
             }
-            $SymTab::symtab["super"] = parent;
+            $SymTab::symtab["super"] = baseType;
          }
          class_body ) ;
 
@@ -701,7 +719,9 @@ variable_declarator[TypeRepTemplate varType]:
 ///////////////////////////////////////////////////////
 method_declaration
 scope SymTab;
-:
+@init {
+    $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+}:
 	method_header   method_body ;
 method_header:
     ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
