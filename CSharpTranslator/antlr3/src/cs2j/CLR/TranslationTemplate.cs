@@ -1687,5 +1687,61 @@ namespace RusticiSoftware.Translator.CLR
 		#endregion
 		
 		
+		
+	}
+	
+	[XmlType("UnknownType")]
+	// For now, making as compatible as we can so inheriting from struct
+	public class UnknownRepTemplate : StructRepTemplate, IEquatable<UnknownRepTemplate>
+	{
+
+		public UnknownRepTemplate ()
+		{
+		}
+
+		public UnknownRepTemplate (string typeName) : base(typeName)
+		{
+		}
+
+
+		public override TypeRep mkEmptyRep ()
+		{
+			// hmm, nothing appropriate, and this should be going away ....
+			return new InterfaceRep ();
+		}
+		
+		#region Equality
+		public bool Equals (UnknownRepTemplate other)
+		{
+			return base.Equals(other);
+		}
+
+		public override bool Equals (object obj)
+		{
+			
+			UnknownRepTemplate temp = obj as UnknownRepTemplate;
+			
+			if (!Object.ReferenceEquals (temp, null))
+				return this.Equals (temp);
+			return false;
+		}
+
+		public static bool operator == (UnknownRepTemplate a1, UnknownRepTemplate a2)
+		{
+			return Object.Equals (a1, a2);
+		}
+
+		public static bool operator != (UnknownRepTemplate a1, UnknownRepTemplate a2)
+		{
+			return !(a1 == a2);
+		}
+
+		public override int GetHashCode ()
+		{
+			return base.GetHashCode ();
+		}
+		#endregion
+		
+		
 	}
 }
