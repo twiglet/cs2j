@@ -173,8 +173,8 @@ namespace RusticiSoftware.Translator.Utils
 
         // search for name, given searchPath
         // searchPath is searched in reverse order
-        public TValue Search(List<string> searchPath, string name) {
-            TValue ret = default(TValue);
+        public TValue Search(IList<string> searchPath, string name, TValue def) {
+            TValue ret = def;
             bool found = false;
             for (int i = searchPath.Count-1; i >= 0; i--) {
                 String ns = searchPath[i];
@@ -194,8 +194,18 @@ namespace RusticiSoftware.Translator.Utils
             return ret;
         }
 
+        // search for name, given searchPath
+        // searchPath is searched in reverse order
+        public TValue Search(IList<string> searchPath, string name) {
+            return Search(searchPath, name, default(TValue));
+        }
+
         public TValue Search(string name) {
             return Search(new List<string>(), name);
+        }
+
+        public TValue Search(string name, TValue def) {
+            return Search(new List<string>(), name, def);
         }
 
         public void Add(KeyValuePair<string, TValue> item)
