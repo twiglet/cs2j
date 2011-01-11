@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>RusticiSoftware.System.Collections.ArrayListSupport</Import>
+    <Import>java.util.ArrayList</Import>
   </Imports>
-  <Java>ArrayListSupport</Java>
+  <Java>ArrayList</Java>
   <Name>System.Collections.ArrayList</Name>
   <Uses />
   <Inherits>
@@ -13,7 +13,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.addS(${arg})</Java>
+      <Java>${this}.add(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
