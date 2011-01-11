@@ -67,12 +67,12 @@ scope SymTab {
         return AppEnv.Search($NSContext::globalNamespaces, name);
     }
 
-    private TypeRepTemplate objectType = null;
+    private ClassRepTemplate objectType = null;
 
-    protected TypeRepTemplate ObjectType {
+    protected ClassRepTemplate ObjectType {
         get {
             if (objectType == null) {
-                objectType = AppEnv.Search("System.Object");
+                objectType = (ClassRepTemplate)AppEnv.Search("System.Object", new UnknownRepTemplate("System.Object"));
             }
             return objectType;
         }
@@ -130,7 +130,9 @@ exception:
 
 primary_expression: 
     ^(INDEX expression expression_list?)
-    | ^(APPLY expression argument_list?)
+    | ^(APPLY identifier argument_list?)
+    | ^(APPLY ^('.' expression identifier) argument_list?)
+   // | ^(APPLY expression argument_list?)
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
     | primary_expression_start
@@ -638,7 +640,13 @@ scope NSContext,SymTab;
             $NSContext::namespaces.Add($NSContext::currentNS);
             $NSContext::globalNamespaces.Add($NSContext::currentNS);
             // TODO: base to map to parent type
-            $SymTab::symtab["this"] = AppEnv.Search($NSContext::currentNS);
+            ClassRepTemplate classTypeRep = (ClassRepTemplate)AppEnv.Search($NSContext::currentNS);
+            $SymTab::symtab["this"] = classTypeRep;
+            ClassRepTemplate parent = ObjectType;
+            if (classTypeRep.Inherits.Length > 0) {
+                parent = (ClassRepTemplate)AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
+            }
+            $SymTab::symtab["super"] = parent;
          }
          class_body ) ;
 
