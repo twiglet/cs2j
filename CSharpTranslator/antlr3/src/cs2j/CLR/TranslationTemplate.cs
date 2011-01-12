@@ -1069,6 +1069,10 @@ namespace RusticiSoftware.Translator.CLR
 		}
 		#endregion		
 		
+                public override String ToString()
+                {
+                    return this.TypeName;
+                }
 	}
 
 	[XmlType("Enum")]
