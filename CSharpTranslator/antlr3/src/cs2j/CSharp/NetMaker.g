@@ -164,18 +164,38 @@ class_member_declaration:
 exception:
     EXCEPTION;
 
-primary_expression returns [TypeRepTemplate dotNetType]:
+primary_expression returns [TypeRepTemplate dotNetType]
+scope {
+    bool parentIsApply;
+}
+@init {
+    $primary_expression::parentIsApply = false;
+}:
     ^(INDEX expression expression_list?)
 //    | ^(APPLY identifier argument_list?)
 //    | ^(APPLY ^('.' expression identifier) argument_list?)
-    | ^(APPLY expression argument_list?)
+    | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
     | ^(access_operator expression identifier generic_argument_list?)
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
-    | identifier                                                     { $dotNetType = SymTabLookup($identifier.thetext); }         
+    | identifier                                                     
+        { 
+            TypeRepTemplate idType = SymTabLookup($identifier.thetext);
+            if (idType == null) {
+                // Not a variable
+                // Is it a property? Enusre we are not being applied to arguments or about to be assigned
+                if (($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
+                    ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
+                    
+                    Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
+                }
+                
+            }
+            $dotNetType = idType;
+        }         
     | primary_expression_start
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
@@ -457,8 +477,14 @@ expression returns [TypeRepTemplate dotNetType]:
 	;
 expression_list:
 	expression  (','   expression)* ;
-assignment:
-	unary_expression   assignment_operator   expression ;
+assignment
+scope {
+    bool parentIsSetter;
+}
+@init {
+    $assignment::parentIsSetter = true;
+}:
+	unary_expression   assignment_operator {$assignment::parentIsSetter = false; }  expression ;
 unary_expression returns [TypeRepTemplate dotNetType]: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
@@ -994,11 +1020,15 @@ switch_section:
 switch_label:
 	^('case'   constant_expression)
 	| 'default';
-iteration_statement:
+iteration_statement
+scope SymTab;
+@init {
+    $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+}:
 	^('while' boolean_expression SEP embedded_statement)
 	| do_statement
 	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement)
-	| ^('foreach' local_variable_type   identifier  expression SEP  embedded_statement);
+	| ^('foreach' local_variable_type   identifier { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; } expression SEP  embedded_statement);
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
 for_initializer:
