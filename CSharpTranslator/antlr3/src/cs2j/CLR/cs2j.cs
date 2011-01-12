@@ -51,6 +51,9 @@ namespace RusticiSoftware.Translator.CSharp
             Console.Out.WriteLine(" [-exappdir <directories/files to be excluded from translation repository>+] (can be multiple directories/files, separated by semi-colons)");
             Console.Out.WriteLine(" [-exclude <directories/files to be excluded from translation>+]             (can be multiple directories/files, separated by semi-colons)");
             Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
+            Console.Out.WriteLine(" [-debug <level>]                                                            (set debug level, default 0)");
+            Console.Out.WriteLine(" [-debug-template-extraction <true/false>]                                   (show debug messages during template extraction, default true)");
+            Console.Out.WriteLine(" [-warnings <true/false>]                                                    (show warnings, default true)");
             Console.Out.WriteLine(" <directory or file name to be translated>");
             Environment.Exit(0);
         }
@@ -80,7 +83,8 @@ namespace RusticiSoftware.Translator.CSharp
                     OptionSet p = new OptionSet ()
                         .Add ("v", v => cfg.Verbosity++)
                         .Add ("debug=", v => cfg.DebugLevel = Int32.Parse(v))
-                        .Add ("warnings", v => cfg.Warnings = true)
+                        .Add ("debug-template-extraction=", v => cfg.DebugTemplateExtraction = Boolean.Parse(v))
+                        .Add ("warnings=", v => cfg.Warnings = Boolean.Parse(v))
                         .Add ("version", v => showVersion())
                         .Add ("help|h|?", v => showUsage())
                         .Add ("dumpcsharp", v => cfg.DumpCSharp = true)
@@ -253,6 +257,11 @@ namespace RusticiSoftware.Translator.CSharp
         public static void addAppSigTranslation(string fullName)
         {
                 
+            int saveDebugLevel = cfg.DebugLevel;
+            if (!cfg.DebugTemplateExtraction)
+            {
+                cfg.DebugLevel = 0; 
+            }
             if (cfg.DebugLevel > 3) Console.Out.WriteLine("Extracting type info from file {0}", fullName);
             ITreeNodeStream csTree = parseFile(fullName);
             if (csTree != null)
@@ -267,6 +276,7 @@ namespace RusticiSoftware.Translator.CSharp
 
                 templateWalker.compilation_unit();
             }
+            cfg.DebugLevel = saveDebugLevel;
         }
 
         // Here's where we do the real work...		

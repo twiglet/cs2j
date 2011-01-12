@@ -28,6 +28,7 @@ namespace RusticiSoftware.Translator.CSharp
             public string EnumDir { get; set; }
             public int Verbosity { get; set; }
             
+            public bool DebugTemplateExtraction { get; set; }
             public int DebugLevel { get; set; }
             
             public bool Warnings { get; set; }
@@ -64,7 +65,8 @@ namespace RusticiSoftware.Translator.CSharp
 	        MacroDefines = new List<string>();
 	        XmlDir = Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs");
                 EnumDir = Path.Combine(Directory.GetCurrentDirectory(), "enums");
-	        Verbosity = 0;		
+	        Verbosity = 0;	
+                DebugTemplateExtraction = true;	
 	        DebugLevel = 0;		
 	        Warnings = false;		
 
