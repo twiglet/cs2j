@@ -80,7 +80,7 @@ scope NSContext {
 
     protected string ParentNameSpace {
         get {
-            return ((NSContext_scope)$NSContext.ToArray()[$NSContext.Count-2]).currentNS;
+            return ((NSContext_scope)$NSContext.ToArray()[1]).currentNS;
         }
     }
 
@@ -175,7 +175,7 @@ modifier:
 	
 class_member_declaration:
 	attributes?
-    // TODO:  Don't emit private
+    // TODO:  Don't emit private ?????
 	m=modifiers?
 	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
