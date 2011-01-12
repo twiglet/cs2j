@@ -78,6 +78,28 @@ scope SymTab {
         }
     }
 
+    private ClassRepTemplate boolType = null;
+
+    protected ClassRepTemplate BoolType {
+        get {
+            if (boolType == null) {
+                boolType = (ClassRepTemplate)AppEnv.Search("System.Boolean", new UnknownRepTemplate("System.Boolean"));
+            }
+            return boolType;
+        }
+    }
+
+    private ClassRepTemplate voidType = null;
+
+    protected ClassRepTemplate VoidType {
+        get {
+            if (voidType == null) {
+                voidType = (ClassRepTemplate)AppEnv.Search("System.Void", new UnknownRepTemplate("System.Void"));
+            }
+            return voidType;
+        }
+    }
+
     protected TypeRepTemplate SymTabLookup(string name) {
         return SymTabLookup(name, null);
     }
@@ -124,7 +146,7 @@ modifier:
 	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override' | FINAL ;
 	
 class_member_declaration:
-    ^(CONST attributes? modifiers? type constant_declarators)
+    ^(CONST attributes? modifiers? type constant_declarators[$type.dotNetType])
     | ^(EVENT attributes? modifiers? event_declaration)
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
     | ^(INTERFACE attributes? modifiers? interface_declaration)
@@ -144,12 +166,12 @@ exception:
 
 primary_expression returns [TypeRepTemplate dotNetType]:
     ^(INDEX expression expression_list?)
-    | ^(APPLY identifier argument_list?)
-    | ^(APPLY ^('.' expression identifier) argument_list?)
-   // | ^(APPLY expression argument_list?)
+//    | ^(APPLY identifier argument_list?)
+//    | ^(APPLY ^('.' expression identifier) argument_list?)
+    | ^(APPLY expression argument_list?)
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
-    | ^(access_operator expression type_or_generic)
+    | ^(access_operator expression identifier generic_argument_list?)
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
@@ -236,9 +258,9 @@ member_declarator_list:
 	member_declarator  (',' member_declarator)* ; 
 member_declarator: 
 	qid   ('='   expression)? ;
-primary_or_array_creation_expression:
+primary_or_array_creation_expression returns [TypeRepTemplate dotNetType]:
 	(array_creation_expression) => array_creation_expression
-	| primary_expression 
+	| primary_expression { $dotNetType = $primary_expression.dotNetType; }
 	;
 // new Type[2] { }
 array_creation_expression:
@@ -343,8 +365,8 @@ commas:
 //	Type Section
 ///////////////////////////////////////////////////////
 
-type_name returns [TypeRepTemplate dotNetType]: 
-	namespace_or_type_name { $dotNetType = findType($namespace_or_type_name.name); } ;
+type_name returns [string name, TypeRepTemplate dotNetType]: 
+	namespace_or_type_name { $name = $namespace_or_type_name.name; $dotNetType = findType($namespace_or_type_name.name); } ;
 namespace_or_type_name returns [String name, List<string> tyargs]: 
 	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
     | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
@@ -430,8 +452,8 @@ statement_list:
 //	Expression Section
 ///////////////////////////////////////////////////////	
 expression returns [TypeRepTemplate dotNetType]: 
-	(unary_expression   assignment_operator) => assignment	
-	| non_assignment_expression
+	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; }
+	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; }
 	;
 expression_list:
 	expression  (','   expression)* ;
@@ -442,7 +464,7 @@ unary_expression returns [TypeRepTemplate dotNetType]:
 
     //(cast_expression) => cast_expression
 	^(CAST_EXPR type unary_expression)          { $dotNetType = $type.dotNetType; }
-	| primary_or_array_creation_expression
+	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; }
 	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
 	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
 	| ^(MONONOT u3=unary_expression)            { $dotNetType = $u3.dotNetType; }
@@ -466,33 +488,34 @@ assignment_operator:
 //addressof_expression:
 //	'&'   unary_expression ;
 
-non_assignment_expression:
+non_assignment_expression returns [TypeRepTemplate dotNetType]:
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
-	|     ^(COND_EXPR non_assignment_expression expression expression) 
-        | ^('??' non_assignment_expression non_assignment_expression)
-        | ^('||' non_assignment_expression non_assignment_expression)
-        | ^('&&' non_assignment_expression non_assignment_expression)
-        | ^('|' non_assignment_expression non_assignment_expression)
-        | ^('^' non_assignment_expression non_assignment_expression)
-        | ^('&' non_assignment_expression non_assignment_expression)
-        | ^('==' non_assignment_expression non_assignment_expression)
-        | ^('!=' non_assignment_expression non_assignment_expression)
-        | ^('>' non_assignment_expression non_assignment_expression)
-        | ^('<' non_assignment_expression non_assignment_expression)
-        | ^('>=' non_assignment_expression non_assignment_expression)
-        | ^('<=' non_assignment_expression non_assignment_expression)
-        | ^(INSTANCEOF non_assignment_expression non_nullable_type)
-        | ^('<<' non_assignment_expression non_assignment_expression)
-        | ^('>>' non_assignment_expression non_assignment_expression)
-        | ^('+' non_assignment_expression non_assignment_expression)
-        | ^('-' non_assignment_expression non_assignment_expression)
-        | ^('*' non_assignment_expression non_assignment_expression)
-        | ^('/' non_assignment_expression non_assignment_expression)
-        | ^('%' non_assignment_expression non_assignment_expression) 
+	|     ^(COND_EXPR non_assignment_expression e1=expression e2=expression)  {$dotNetType = $e1.dotNetType; }
+        | ^('??' n1=non_assignment_expression non_assignment_expression)      {$dotNetType = $n1.dotNetType; }
+        | ^('||' n2=non_assignment_expression non_assignment_expression)      {$dotNetType = $n2.dotNetType; }
+        | ^('&&' n3=non_assignment_expression non_assignment_expression)      {$dotNetType = $n3.dotNetType; }
+        | ^('|' n4=non_assignment_expression non_assignment_expression)       {$dotNetType = $n4.dotNetType; }
+        | ^('^' n5=non_assignment_expression non_assignment_expression)       {$dotNetType = $n5.dotNetType; }
+        | ^('&' n6=non_assignment_expression non_assignment_expression)       {$dotNetType = $n6.dotNetType; }
+        | ^('==' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
+        | ^('!=' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
+        | ^('>' non_assignment_expression non_assignment_expression)          {$dotNetType = BoolType; }
+        | ^('<' non_assignment_expression non_assignment_expression)          {$dotNetType = BoolType; }
+        | ^('>=' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
+        | ^('<=' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
+        | ^(INSTANCEOF non_assignment_expression non_nullable_type)           {$dotNetType = BoolType; }
+        | ^('<<' n7=non_assignment_expression non_assignment_expression)      {$dotNetType = $n7.dotNetType; }
+        | ^('>>' n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
+// TODO: need to munge these numeric types
+        | ^('+' n9=non_assignment_expression non_assignment_expression)       {$dotNetType = $n9.dotNetType; }
+        | ^('-' n10=non_assignment_expression non_assignment_expression)      {$dotNetType = $n10.dotNetType; }
+        | ^('*' n11=non_assignment_expression non_assignment_expression)      {$dotNetType = $n11.dotNetType; }
+        | ^('/' n12=non_assignment_expression non_assignment_expression)      {$dotNetType = $n12.dotNetType; }
+        | ^('%' n13=non_assignment_expression non_assignment_expression)      {$dotNetType = $n13.dotNetType; }
  //       | ^(UNARY_EXPRESSION unary_expression)
-        | unary_expression
+        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; }
 	;
 
 // ///////////////////////////////////////////////////////
@@ -660,7 +683,7 @@ scope NSContext,SymTab;
             ClassRepTemplate baseType = ObjectType;
             if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
                 // if Inherits[0] is a class tyhen it is parent, else system.object
-                ClassRepTemplate parent = (ClassRepTemplate)AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
+                ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
                 if (parent != null)
                     baseType = parent;
             }
@@ -700,21 +723,21 @@ class_member_declarations:
 
 ///////////////////////////////////////////////////////
 constant_declaration:
-	'const'   type   constant_declarators   ';' ;
-constant_declarators:
-	constant_declarator (',' constant_declarator)* ;
-constant_declarator:
-	identifier   ('='   constant_expression)? ;
+	'const'   type   constant_declarators[$type.dotNetType]   ';' ;
+constant_declarators[TypeRepTemplate ty]:
+	constant_declarator[$ty] (',' constant_declarator[$ty])* ;
+constant_declarator[TypeRepTemplate ty]:
+	identifier  { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   constant_expression)? ;
 constant_expression:
 	expression;
 
 ///////////////////////////////////////////////////////
-field_declaration[TypeRepTemplate fieldType]:
-	variable_declarators[$fieldType] ;
-variable_declarators[TypeRepTemplate varType]:
-	variable_declarator[varType] (','   variable_declarator[varType])* ;
-variable_declarator[TypeRepTemplate varType]:
-	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
+field_declaration[TypeRepTemplate ty]:
+	variable_declarators[$ty] ;
+variable_declarators[TypeRepTemplate ty]:
+	variable_declarator[ty] (','   variable_declarator[ty])* ;
+variable_declarator[TypeRepTemplate ty]:
+	type_name { $SymTab::symtab[$type_name.name] = $ty; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
 method_declaration
@@ -820,7 +843,7 @@ fixed_parameters:
 	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
 fixed_parameter:
-	parameter_modifier?   type   identifier   default_argument? ;
+	parameter_modifier?   type   identifier  { $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  default_argument? ;
 // 4.0
 default_argument:
 	'=' expression;
@@ -841,7 +864,11 @@ interface_body:
 	'{'   interface_member_declarations?   '}' ;
 interface_member_declarations:
 	interface_member_declaration+ ;
-interface_member_declaration:
+interface_member_declaration
+scope SymTab;
+@init {
+    $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+}:
     ^(EVENT attributes? modifiers? event_declaration)
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
     | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
@@ -936,15 +963,15 @@ declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
 local_variable_declaration:
-	local_variable_type   local_variable_declarators ;
-local_variable_type:
-	('var') => 'var'
-	| ('dynamic') => 'dynamic'
-	| type ;
-local_variable_declarators:
-	local_variable_declarator (',' local_variable_declarator)* ;
-local_variable_declarator:
-	identifier ('='   local_variable_initializer)? ; 
+	local_variable_type   local_variable_declarators[$local_variable_type.dotNetType] ;
+local_variable_type returns [TypeRepTemplate dotNetType]:
+	('var') => 'var'             { $dotNetType = new UnknownRepTemplate("System.Object"); }
+	| ('dynamic') => 'dynamic'   { $dotNetType = new UnknownRepTemplate("System.Object"); }
+	| type                       { $dotNetType = $type.dotNetType; };
+local_variable_declarators[TypeRepTemplate ty]:
+	local_variable_declarator[$ty] (',' local_variable_declarator[$ty])* ;
+local_variable_declarator[TypeRepTemplate ty]:
+	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   local_variable_initializer)? ; 
 local_variable_initializer:
 	expression
 	| array_initializer 
@@ -952,7 +979,7 @@ local_variable_initializer:
 stackalloc_initializer:
 	'stackalloc'   unmanaged_type   '['   expression   ']' ;
 local_constant_declaration:
-	'const'   type   constant_declarators ;
+	'const'   type   constant_declarators[$type.dotNetType] ;
 expression_statement:
 	expression   ';' ;
 
@@ -1000,8 +1027,12 @@ goto_statement:
 			 | 'default')   ';' ;
 catch_clauses:
     catch_clause+ ;
-catch_clause:
-	^('catch' class_type   identifier block) ;
+catch_clause
+scope SymTab;
+@init {
+    $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+}:
+	^('catch' class_type   identifier { $SymTab::symtab[$identifier.thetext] = $class_type.dotNetType; } block) ;
 finally_clause:
 	^('finally'   block) ;
 checked_statement:
