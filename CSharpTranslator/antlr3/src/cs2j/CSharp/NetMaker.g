@@ -240,9 +240,14 @@ scope {
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
     | i=identifier                                                     
         { 
+            bool found = false;
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
-            if (idType == null) {
-                // Not a variable
+            if (idType != null) {
+                $dotNetType = idType;
+                found = true;
+            }
+            if (!found) {
+                // Not a variable, is it a property?
                 InterfaceRepTemplate thisType = SymTabLookup("this") as InterfaceRepTemplate;
 
                 // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
@@ -256,11 +261,17 @@ scope {
                         Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
                         ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
                         $dotNetType = fieldResult.ResultType; 
+                        found = true;
                     }
                 }
             }
-            else {
-                $dotNetType = idType;
+            if (!found) {
+                // Not a variable, not a property read, is it a type name?
+                TypeRepTemplate staticType = findType($i.thetext);
+                if (staticType != null) {
+                    $dotNetType = staticType;
+                    found = true;
+                }
             }
         }         
     | primary_expression_start
@@ -551,7 +562,10 @@ scope {
 @init {
     $assignment::parentIsSetter = true;
 }:
-	unary_expression   assignment_operator {$assignment::parentIsSetter = false; }  expression ;
+    (^('.' expression identifier generic_argument_list?) | identifier)  => (^('.' expression identifier generic_argument_list?) | identifier)  assignment_operator {$assignment::parentIsSetter = false; }  expression 
+    | unary_expression   assignment_operator {$assignment::parentIsSetter = false; }  expression ;
+
+
 unary_expression returns [TypeRepTemplate dotNetType]: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
