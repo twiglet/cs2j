@@ -576,8 +576,29 @@ scope {
 }
 @init {
     $assignment::parentIsSetter = true;
+    CommonTree ret = null;
+    bool isThis = false;
+}
+@after {
+    if (ret != null)
+        $assignment.tree = ret;
 }:
-    (^('.' expression identifier generic_argument_list?) | identifier)  => (^('.' expression identifier generic_argument_list?) | identifier)  assignment_operator {$assignment::parentIsSetter = false; }  expression 
+    ((^('.' expression identifier generic_argument_list?) | identifier) '=')  => 
+        (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a='=' {$assignment::parentIsSetter = false; }  rhs=expression 
+        {
+            InterfaceRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType) as InterfaceRepTemplate;
+            if (seType != null) {
+                ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
+                if (fieldResult != null && fieldResult.Result is PropRepTemplate) {
+                    Debug($i.tree.Token.Line + ": Found '" + $i.thetext + "'");
+                    Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
+                    if (!isThis)
+                        valMap["this"] = $se.tree;
+                    valMap["value"] = $rhs.tree;
+                    ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.token);
+                }
+            }
+        }
     | unary_expression   assignment_operator {$assignment::parentIsSetter = false; }  expression ;
 
 
