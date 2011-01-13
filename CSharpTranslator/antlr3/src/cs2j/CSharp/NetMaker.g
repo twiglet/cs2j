@@ -132,14 +132,14 @@ scope SymTab {
     }
 
     // Resolve Routines
-    protected String ResolveGetter(InterfaceRepTemplate thisType, CommonTree thisExp, String name) {
-        String ret = null;
-        PropRepTemplate entity = thisType.Resolve(name, AppEnv) as PropRepTemplate;
-        if (entity != null) {
-            ret = entity.JavaGet;
-        }
-        return ret;
-    }
+//     protected ResolveResult ResolveGetter(InterfaceRepTemplate thisType, String name) {
+//         ResolveResult ret = null;
+//         PropRepTemplate entity = thisType.Resolve(name, AppEnv) as PropRepTemplate;
+//         if (entity != null) {
+//             ret = entity.JavaGet;
+//         }
+//         return ret;
+//     }
 
     protected CommonTree dupTree(CommonTree t) {
         return (CommonTree)adaptor.DupTree(t);
@@ -214,7 +214,27 @@ scope {
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
-    | ^(access_operator expression identifier generic_argument_list?)
+    | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
+        { 
+            InterfaceRepTemplate expType = $e1.dotNetType as InterfaceRepTemplate;
+
+            // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
+            if (expType != null &&
+                ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
+                ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
+                    
+                Debug($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
+                ResolveResult fieldResult = expType.Resolve($i1.thetext, AppEnv);
+                if (fieldResult != null) {
+                    Debug($d1.token.Line + ": Found '" + $i1.thetext + "'");
+                    Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                    myMap["this"] = $e1.tree;
+                    ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
+                    $dotNetType = fieldResult.ResultType; 
+                }
+            }
+        }         
+    | ^('->' expression identifier generic_argument_list?)
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
@@ -223,23 +243,25 @@ scope {
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
             if (idType == null) {
                 // Not a variable
-                // Is it a property? Ensure we are not being applied to arguments or about to be assigned
                 InterfaceRepTemplate thisType = SymTabLookup("this") as InterfaceRepTemplate;
+
+                // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
                 if (thisType != null &&
                     ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
                     ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
                     
                     Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
-                    String template = ResolveGetter(thisType, null, $identifier.thetext);
-                    if (template != null) {
+                    ResolveResult fieldResult = thisType.Resolve($identifier.thetext, AppEnv);
+                    if (fieldResult != null) {
                         Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
-                        // Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                        // myMap["this"] = null;
-                        ret = mkJavaWrapper(template, null, $i.tree.Token);
+                        ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
+                        $dotNetType = fieldResult.ResultType; 
                     }
                 }
             }
-            $dotNetType = idType;
+            else {
+                $dotNetType = idType;
+            }
         }         
     | primary_expression_start
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*

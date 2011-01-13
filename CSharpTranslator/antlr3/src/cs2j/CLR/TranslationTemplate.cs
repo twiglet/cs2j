@@ -173,7 +173,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 		// The Java translation for this C# entity
 		protected string _java = null; 		
-		public string Java { 
+		public virtual string Java { 
 			get { 
 				if (_java == null) {
 					return mkJava();
@@ -640,7 +640,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 				
 		public override string mkJava() {
-			return Name;
+			return "${this}." + Name;
 		}
 
 		#region Equality
@@ -707,6 +707,14 @@ namespace RusticiSoftware.Translator.CLR
 			set { _javaGet = value; }
 		}
 		
+                public override string Java
+                {
+                    get
+                    {
+                        return JavaGet;
+                    }
+                }
+
 		private string _javaSet = null;
 		[XmlElementAttribute("Set")]
 		public string JavaSet { 
@@ -1334,7 +1342,7 @@ namespace RusticiSoftware.Translator.CLR
 			return new InterfaceRep ();
 		}
 
-                public virtual TranslationBase Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                public virtual ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
         
                     if (Properties != null)
@@ -1342,16 +1350,25 @@ namespace RusticiSoftware.Translator.CLR
                         foreach (PropRepTemplate p in Properties)
                         {
                             if (p.Name == name)
-                                return p;
+                            {
+                                ResolveResult res = new ResolveResult();
+                                res.Result = p;
+                                res.ResultType = AppEnv.Search(Uses, p.Type);
+                                return res;
+                            }
                         }
                     }
                     if (Inherits != null)
                     {
                         foreach (String b in Inherits)
                         {
-                            TranslationBase ret = ((InterfaceRepTemplate)AppEnv.Search(Uses, b)).Resolve(name,AppEnv);
-                            if (ret != null)
-                                return ret;
+                            InterfaceRepTemplate baseType = AppEnv.Search(Uses, b) as InterfaceRepTemplate;
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.Resolve(name,AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
                         }
                     }
                     return null;
@@ -1550,7 +1567,7 @@ namespace RusticiSoftware.Translator.CLR
 			return new ClassRep ();
 		}
 
-                public override TranslationBase Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
         
                     if (Fields != null)
@@ -1558,7 +1575,12 @@ namespace RusticiSoftware.Translator.CLR
                         foreach (FieldRepTemplate f in Fields)
                         {
                             if (f.Name == name)
-                                return f;
+                            {
+                                ResolveResult res = new ResolveResult();
+                                res.Result = f;
+                                res.ResultType = AppEnv.Search(Uses, f.Type);
+                                return res;
+                            }
                         }
                     }
                     return base.Resolve(name, AppEnv);
@@ -1697,7 +1719,7 @@ namespace RusticiSoftware.Translator.CLR
 			return new StructRep ();
 		}
 		
-                public override TranslationBase Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
                     return base.Resolve(name, AppEnv);
                 }
@@ -1793,7 +1815,19 @@ namespace RusticiSoftware.Translator.CLR
 		
 	}
 
+    
+        public class ResolveResult
+        {
+            public TranslationBase Result
+            {
+                get; set;
+            }
+            public TypeRepTemplate ResultType
+            {
+                get; set;
+            }
 
+        }
 
 
 
