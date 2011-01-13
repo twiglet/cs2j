@@ -95,6 +95,7 @@ namespace RusticiSoftware.Translator.CSharp
             buf.Append(">");
             return buf.ToString();
         }
+
     }
 
     // Wraps a compilation unit with its imports search path

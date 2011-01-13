@@ -1334,6 +1334,30 @@ namespace RusticiSoftware.Translator.CLR
 			return new InterfaceRep ();
 		}
 
+                public virtual TranslationBase Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+        
+                    if (Properties != null)
+                    {
+                        foreach (PropRepTemplate p in Properties)
+                        {
+                            if (p.Name == name)
+                                return p;
+                        }
+                    }
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            TranslationBase ret = ((InterfaceRepTemplate)AppEnv.Search(Uses, b)).Resolve(name,AppEnv);
+                            if (ret != null)
+                                return ret;
+                        }
+                    }
+                    return null;
+                }
+
+
 		#region Equality
 		public bool Equals (InterfaceRepTemplate other)
 		{
@@ -1526,6 +1550,21 @@ namespace RusticiSoftware.Translator.CLR
 			return new ClassRep ();
 		}
 
+                public override TranslationBase Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+        
+                    if (Fields != null)
+                    {
+                        foreach (FieldRepTemplate f in Fields)
+                        {
+                            if (f.Name == name)
+                                return f;
+                        }
+                    }
+                    return base.Resolve(name, AppEnv);
+                }
+
+
 		#region Equality
 		public bool Equals (ClassRepTemplate other)
 		{
@@ -1658,6 +1697,11 @@ namespace RusticiSoftware.Translator.CLR
 			return new StructRep ();
 		}
 		
+                public override TranslationBase Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    return base.Resolve(name, AppEnv);
+                }
+
 		#region Equality
 		public bool Equals (StructRepTemplate other)
 		{
@@ -1748,4 +1792,9 @@ namespace RusticiSoftware.Translator.CLR
 		
 		
 	}
+
+
+
+
+
 }

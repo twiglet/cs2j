@@ -113,6 +113,38 @@ scope SymTab {
         }
         return def;
     }
+
+    protected CommonTree mkJavaWrapper(string template, Dictionary<string,CommonTree> varMap, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPER, tok, "JAVAWRAPPER"), root);
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(IDENTIFIER, tok, template));
+
+        if (varMap != null) {
+            foreach (String var in varMap.Keys) {
+                if (varMap[var] != null) {
+                    adaptor.AddChild(root, (CommonTree)adaptor.Create(IDENTIFIER, tok, var));
+                    adaptor.AddChild(root, dupTree(varMap[var]));
+                }
+            }
+        }
+
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    // Resolve Routines
+    protected String ResolveGetter(InterfaceRepTemplate thisType, CommonTree thisExp, String name) {
+        String ret = null;
+        PropRepTemplate entity = thisType.Resolve(name, AppEnv) as PropRepTemplate;
+        if (entity != null) {
+            ret = entity.JavaGet;
+        }
+        return ret;
+    }
+
+    protected CommonTree dupTree(CommonTree t) {
+        return (CommonTree)adaptor.DupTree(t);
+    }
+
 }
 
 compilation_unit
@@ -170,6 +202,11 @@ scope {
 }
 @init {
     $primary_expression::parentIsApply = false;
+    CommonTree ret = null;
+}
+@after {
+    if (ret != null)
+        $primary_expression.tree = ret;
 }:
     ^(INDEX expression expression_list?)
 //    | ^(APPLY identifier argument_list?)
@@ -181,18 +218,26 @@ scope {
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
-    | identifier                                                     
+    | i=identifier                                                     
         { 
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
             if (idType == null) {
                 // Not a variable
-                // Is it a property? Enusre we are not being applied to arguments or about to be assigned
-                if (($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
+                // Is it a property? Ensure we are not being applied to arguments or about to be assigned
+                InterfaceRepTemplate thisType = SymTabLookup("this") as InterfaceRepTemplate;
+                if (thisType != null &&
+                    ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
                     ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
                     
                     Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
+                    String template = ResolveGetter(thisType, null, $identifier.thetext);
+                    if (template != null) {
+                        Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
+                        // Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                        // myMap["this"] = null;
+                        ret = mkJavaWrapper(template, null, $i.tree.Token);
+                    }
                 }
-                
             }
             $dotNetType = idType;
         }         

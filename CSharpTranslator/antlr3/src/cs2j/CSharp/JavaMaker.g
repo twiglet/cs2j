@@ -239,6 +239,7 @@ scope TypeContext {
     protected CommonTree dupTree(CommonTree t) {
         return (CommonTree)adaptor.DupTree(t);
     }
+
 }
 
 /********************************************************************************************

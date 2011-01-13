@@ -214,6 +214,30 @@ options {
     public int comparePrecedence(int parentPrec, int childPrec) {
         return Math.Sign(childPrec-parentPrec);
     }
+    // cleverly remove any remaining ${..} tokens
+    public string cleanTemplate(string template) {
+        // Are there any markers in the template? Mostly, the answer will be no and we can return tout-de-suite
+        String ret = template;
+        if (Regex.IsMatch(ret, "\\$\\{.*\\}")) {
+            // ${this}.fred -> fred
+            ret = Regex.Replace(ret, "\\$\\{.*\\}\\.", String.Empty);
+            // (a,${var},b) -> (a,b)
+            ret = Regex.Replace(ret, "\\$\\{.*\\},", String.Empty);
+            // (a,${var}) -> (a)
+            ret = Regex.Replace(ret, ",\\$\\{.*\\}", String.Empty);
+            // (${var}) -> ()
+            ret = Regex.Replace(ret, "\\$\\{.*\\}", String.Empty);
+        }
+        return ret;
+    }
+    public string fillTemplate(string template, Dictionary<string,string> templateMap) {
+        String ret = template;
+        foreach (string v in templateMap.Keys) {
+            ret = ret.Replace("${" + v + "}", templateMap[v]);
+        }
+        ret = cleanTemplate(ret);
+        return ret;
+    }
 }
 
 compilation_unit
@@ -280,8 +304,10 @@ exception:
 primary_expression returns [int precedence]
 @init {
     $precedence = int.MaxValue;
+    Dictionary<string,string> templateMap = new Dictionary<string,string>();
 }: 
-    ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(precedence[INDEX], $expression.precedence) < 0 }, args = { $expression_list.st } )
+      ^(JAVAWRAPPER t=identifier (k=identifier v=expression { templateMap[$k.st.ToString()] = $v.st.ToString(); })*) -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
+    | ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(precedence[INDEX], $expression.precedence) < 0 }, args = { $expression_list.st } )
     | ^(APPLY expression argument_list?) { $precedence = precedence[APPLY]; } -> application(func= { $expression.st }, funcparens = { comparePrecedence(precedence[APPLY], $expression.precedence) < 0 }, args = { $argument_list.st } )
     | ^((op=POSTINC|op=POSTDEC) expression) { $precedence = precedence[$op.token.Type]; } 
          -> op(pre={$expression.st}, op={ $op.token.Text }, preparens= { comparePrecedence($op.token, $expression.precedence) <= 0 })
