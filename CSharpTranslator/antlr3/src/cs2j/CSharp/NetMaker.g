@@ -217,13 +217,14 @@ scope {
     | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
         { 
             InterfaceRepTemplate expType = $e1.dotNetType as InterfaceRepTemplate;
-
+            
             // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
             if (expType != null &&
                 ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
                 ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
                     
                 Debug($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
+
                 ResolveResult fieldResult = expType.Resolve($i1.thetext, AppEnv);
                 if (fieldResult != null) {
                     Debug($d1.token.Line + ": Found '" + $i1.thetext + "'");
@@ -231,6 +232,16 @@ scope {
                     myMap["this"] = $e1.tree;
                     ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
                     $dotNetType = fieldResult.ResultType; 
+                }
+                else if ($e1.dotNetType is UnknownRepTemplate) {
+                    string staticType = $e1.dotNetType + "." + $i1.thetext;
+                    TypeRepTemplate type = findType(staticType);
+                    if (type != null) {
+                        $dotNetType = type;
+                    }
+                    else {
+                        $dotNetType = new UnknownRepTemplate(staticType);
+                    }
                 }
             }
         }         
@@ -272,6 +283,10 @@ scope {
                     $dotNetType = staticType;
                     found = true;
                 }
+            }
+            if (!found) {
+                // Not a variable, not a property read, not a type, is it part of a type name?
+                $dotNetType = new UnknownRepTemplate($identifier.thetext);
             }
         }         
     | primary_expression_start
