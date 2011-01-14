@@ -159,7 +159,7 @@ namespace RusticiSoftware.Translator.CLR
 		// Java imports required to make Java translation run
 		private string[] _imports = null;
 		[XmlArrayItem("Import")]
-		public string[] Imports { 
+		public virtual string[] Imports { 
 			get {
 				// if _java is not set then see if we have default imports, otherwise
 				// assume imports is already correctly (un)set
@@ -1773,6 +1773,11 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
+		public override string[] Imports { 
+                    get {
+                        return new string[0];
+                    }
+		}
 
 		public override TypeRep mkEmptyRep ()
 		{
