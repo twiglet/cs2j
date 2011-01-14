@@ -209,13 +209,46 @@ scope {
         $primary_expression.tree = ret;
 }:
     ^(INDEX expression expression_list?)
-//    | ^(APPLY identifier argument_list?)
-//    | ^(APPLY ^('.' expression identifier) argument_list?)
+    | (^(APPLY identifier argument_list?)) =>  ^(APPLY identifier argument_list?)
+        {
+            InterfaceRepTemplate thisType = SymTabLookup("this") as InterfaceRepTemplate;
+            ResolveResult methodResult = thisType.Resolve($identifier.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            if (methodResult != null) {
+                Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
+                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
+                for (int idx = 0; idx < methodRep.Params.Count; idx++) {
+                    myMap[methodRep.Params[idx].Name] = $argument_list.argTrees[idx];
+                }
+                ret = mkJavaWrapper(methodResult.Result.Java, myMap, $identifier.tree.Token);
+                $dotNetType = methodResult.ResultType; 
+            }
+        }
+    | (^(APPLY ^('.' expression identifier) argument_list?)) => ^(APPLY ^('.' e2=expression identifier) argument_list?)
+        {
+            InterfaceRepTemplate expType = $e2.dotNetType as InterfaceRepTemplate;
+            ResolveResult methodResult = expType.Resolve($identifier.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            if (methodResult != null) {
+                Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
+                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
+                myMap["this"] = $e2.tree;
+                for (int idx = 0; idx < methodRep.Params.Count; idx++) {
+                    myMap[methodRep.Params[idx].Name] = $argument_list.argTrees[idx];
+                }
+                ret = mkJavaWrapper(methodResult.Result.Java, myMap, $identifier.tree.Token);
+                $dotNetType = methodResult.ResultType; 
+            }
+        }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
     | ^(POSTINC expression)
     | ^(POSTDEC expression)
     | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
         { 
+            // Possibilities:
+            // - accessing a property/field of some object
+            // - a qualified type name
+            // - part of a qualified type name
             InterfaceRepTemplate expType = $e1.dotNetType as InterfaceRepTemplate;
             
             // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
@@ -250,8 +283,14 @@ scope {
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
+	| (identifier    generic_argument_list) => identifier   generic_argument_list
     | i=identifier                                                     
         { 
+            // Possibilities:
+            // - a variable in scope.
+            // - a property/field of current object
+            // - a type name
+            // - part of a type name
             bool found = false;
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
             if (idType != null) {
@@ -311,8 +350,7 @@ scope {
 	;
 
 primary_expression_start returns [TypeRepTemplate dotNetType]:
-	 (identifier    generic_argument_list) => identifier   generic_argument_list
-	| ^('::' identifier identifier)
+	 ^('::' identifier identifier)
 	| literal
 	;
 
@@ -333,26 +371,31 @@ paren_expression:
 	'('   expression   ')' ;
 arguments: 
 	'('   argument_list?   ')' ;
-argument_list: 
-	^(ARGS argument+);
+argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees]
+@init {
+    $argTypes = new List<TypeRepTemplate>();
+    $argTrees = new List<CommonTree>();
+}: 
+	^(ARGS (argument { $argTypes.Add($argument.dotNetType); $argTrees.Add($argument.tree); })+);
 // 4.0
-argument:
-	argument_name   argument_value
-	| argument_value;
+argument returns [TypeRepTemplate dotNetType]:
+	argument_name   argument_value { $dotNetType = $argument_value.dotNetType; }
+	| argument_value { $dotNetType = $argument_value.dotNetType; }
+    ;
 argument_name:
 	identifier   ':';
-argument_value: 
-	expression 
-	| ref_variable_reference 
-	| 'out'   variable_reference ;
-ref_variable_reference:
+argument_value returns [TypeRepTemplate dotNetType]:
+	expression { $dotNetType = $expression.dotNetType; } 
+	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; } 
+	| 'out'   variable_reference { $dotNetType = $variable_reference.dotNetType; } ;
+ref_variable_reference returns [TypeRepTemplate dotNetType]:
 	'ref' 
-		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference)   // SomeFunc(ref (int) ref foo)
+		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference) { $dotNetType = $type.dotNetType; }   // SomeFunc(ref (int) ref foo)
 																									// SomeFunc(ref (int) foo)
-		| variable_reference);	// SomeFunc(ref foo)
+		| v1=variable_reference { $dotNetType = $v1.dotNetType; });	// SomeFunc(ref foo)
 // lvalue
-variable_reference:
-	expression;
+variable_reference returns [TypeRepTemplate dotNetType]:
+	expression { $dotNetType = $expression.dotNetType; };
 rank_specifiers: 
 	rank_specifier+ ;        
 rank_specifier: 

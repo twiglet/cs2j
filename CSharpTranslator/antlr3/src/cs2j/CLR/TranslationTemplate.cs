@@ -1374,6 +1374,65 @@ namespace RusticiSoftware.Translator.CLR
                     return null;
                 }
 
+                public virtual ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+        
+                    if (Methods != null)
+                    {
+                        foreach (MethodRepTemplate m in Methods)
+                        {
+                            if (m.Name == name)
+                            {
+                                // same number of arguments?
+                                bool matchingArgs = true;
+                                if (m.Params == null || args == null)
+                                {
+                                    // Are they both zero length?
+                                    matchingArgs = (m.Params == null || m.Params.Count == 0) && (args == null || args.Count == 0);
+                                }
+                                else
+                                {
+                                    if (m.Params.Count != args.Count)
+                                    {
+                                        matchingArgs = false;
+                                    }
+                                    else
+                                    {
+                                        for (int idx = 0; idx < m.Params.Count; idx++) {
+                                            if (args[idx] == null || m.Params[idx].Type != args[idx].TypeName)
+                                            {
+                                                matchingArgs = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (matchingArgs)
+                                {
+                                    ResolveResult res = new ResolveResult();
+                                    res.Result = m;
+                                    res.ResultType = AppEnv.Search(Uses, m.Return);
+                                    return res;
+                                }
+                            }
+                        }
+                    }
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            InterfaceRepTemplate baseType = AppEnv.Search(Uses, b) as InterfaceRepTemplate;
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.Resolve(name,args,AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
 
 		#region Equality
 		public bool Equals (InterfaceRepTemplate other)
