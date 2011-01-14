@@ -237,6 +237,7 @@ scope {
                     string staticType = $e1.dotNetType + "." + $i1.thetext;
                     TypeRepTemplate type = findType(staticType);
                     if (type != null) {
+                        Imports.Add(type.Imports);
                         $dotNetType = type;
                     }
                     else {
@@ -280,6 +281,7 @@ scope {
                 // Not a variable, not a property read, is it a type name?
                 TypeRepTemplate staticType = findType($i.thetext);
                 if (staticType != null) {
+                    Imports.Add(staticType.Imports);
                     $dotNetType = staticType;
                     found = true;
                 }
