@@ -4,15 +4,15 @@ set -e
 
 cd src/cs2j/CSharp
 #  echo cs.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -verbose cs.g
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose cs.g
 #  echo TemplateExtracer.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -verbose TemplateExtracter.g 
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose TemplateExtracter.g 
 #  echo JavaMaker.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -verbose JavaMaker.g 
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose JavaMaker.g 
 #  echo NetMaker.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 5000 -make -verbose NetMaker.g 
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose NetMaker.g 
 #  echo JavaPrettyPrint.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 10000 -make -verbose JavaPrettyPrint.g 
+java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose JavaPrettyPrint.g 
 cd ../../../
 xbuild
 echo 'All Done'
