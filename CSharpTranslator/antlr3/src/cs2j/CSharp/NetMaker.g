@@ -64,7 +64,7 @@ scope SymTab {
     }
 
     protected TypeRepTemplate findType(string name) {
-        return AppEnv.Search($NSContext::globalNamespaces, name);
+        return AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name));
     }
 
     private ClassRepTemplate objectType = null;
@@ -880,7 +880,7 @@ field_declaration[TypeRepTemplate ty]:
 variable_declarators[TypeRepTemplate ty]:
 	variable_declarator[ty] (','   variable_declarator[ty])* ;
 variable_declarator[TypeRepTemplate ty]:
-	type_name { $SymTab::symtab[$type_name.name] = $ty; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
+	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
 method_declaration
@@ -895,6 +895,8 @@ method_body:
 	block ;
 member_name:
     type_or_generic ('.' type_or_generic)*
+    //(type '.') => type '.' identifier 
+    //| identifier
     ;
     // keving: missing interface_type.identifier
 	//identifier ;		// IInterface<int>.Method logic added.
