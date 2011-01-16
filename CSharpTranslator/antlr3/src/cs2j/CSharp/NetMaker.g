@@ -203,41 +203,33 @@ scope {
 @init {
     $primary_expression::parentIsApply = false;
     CommonTree ret = null;
+    InterfaceRepTemplate expType = SymTabLookup("this") as InterfaceRepTemplate;
+    bool implicitThis = true;
 }
 @after {
     if (ret != null)
         $primary_expression.tree = ret;
 }:
     ^(INDEX expression expression_list?)
-    | (^(APPLY identifier argument_list?)) =>  ^(APPLY identifier argument_list?)
+    | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
+           ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType as InterfaceRepTemplate; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
-            InterfaceRepTemplate thisType = SymTabLookup("this") as InterfaceRepTemplate;
-            ResolveResult methodResult = thisType.Resolve($identifier.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
-            if (methodResult != null) {
-                Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
-                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
-                for (int idx = 0; idx < methodRep.Params.Count; idx++) {
-                    myMap[methodRep.Params[idx].Name] = $argument_list.argTrees[idx];
+            if (expType != null) {
+                ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
+                if (methodResult != null) {
+                    Debug($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
+                    MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
+                    Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                    if (!implicitThis) {
+                        myMap["this"] = $e2.tree;
+                    }
+                    for (int idx = 0; idx < methodRep.Params.Count; idx++) {
+                        myMap[methodRep.Params[idx].Name] = $argument_list.argTrees[idx];
+                    }
+                    ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
+                    Imports.Add(methodResult.Result.Imports);
+                    $dotNetType = methodResult.ResultType; 
                 }
-                ret = mkJavaWrapper(methodResult.Result.Java, myMap, $identifier.tree.Token);
-                $dotNetType = methodResult.ResultType; 
-            }
-        }
-    | (^(APPLY ^('.' expression identifier) argument_list?)) => ^(APPLY ^('.' e2=expression identifier) argument_list?)
-        {
-            InterfaceRepTemplate expType = $e2.dotNetType as InterfaceRepTemplate;
-            ResolveResult methodResult = expType.Resolve($identifier.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
-            if (methodResult != null) {
-                Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
-                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
-                myMap["this"] = $e2.tree;
-                for (int idx = 0; idx < methodRep.Params.Count; idx++) {
-                    myMap[methodRep.Params[idx].Name] = $argument_list.argTrees[idx];
-                }
-                ret = mkJavaWrapper(methodResult.Result.Java, myMap, $identifier.tree.Token);
-                $dotNetType = methodResult.ResultType; 
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
@@ -249,7 +241,7 @@ scope {
             // - accessing a property/field of some object
             // - a qualified type name
             // - part of a qualified type name
-            InterfaceRepTemplate expType = $e1.dotNetType as InterfaceRepTemplate;
+            expType = $e1.dotNetType as InterfaceRepTemplate;
             
             // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
             if (expType != null &&
@@ -264,6 +256,7 @@ scope {
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["this"] = $e1.tree;
                     ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
+                    Imports.Add(fieldResult.Result.Imports);
                     $dotNetType = fieldResult.ResultType; 
                 }
                 else if ($e1.dotNetType is UnknownRepTemplate) {
@@ -311,6 +304,7 @@ scope {
                     if (fieldResult != null) {
                         Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
                         ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
+                        Imports.Add(fieldResult.Result.Imports);
                         $dotNetType = fieldResult.ResultType; 
                         found = true;
                     }
@@ -641,6 +635,7 @@ scope {
                         valMap["this"] = $se.tree;
                     valMap["value"] = $rhs.tree;
                     ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.token);
+                    Imports.Add(fieldResult.Result.Imports);
                 }
             }
         }

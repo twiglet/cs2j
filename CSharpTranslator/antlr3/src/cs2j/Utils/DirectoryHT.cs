@@ -176,13 +176,16 @@ namespace RusticiSoftware.Translator.Utils
         public TValue Search(IList<string> searchPath, string name, TValue def) {
             TValue ret = def;
             bool found = false;
-            for (int i = searchPath.Count-1; i >= 0; i--) {
-                String ns = searchPath[i];
-                String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
-                if (this.ContainsKey(fullName)) {
-                    ret = this[fullName];
-                    found = true;
-                    break;
+            if (searchPath != null)
+            {
+                for (int i = searchPath.Count-1; i >= 0; i--) {
+                    String ns = searchPath[i];
+                    String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
+                    if (this.ContainsKey(fullName)) {
+                        ret = this[fullName];
+                        found = true;
+                        break;
+                    }
                 }
             }
             // Check if name is fully qualified

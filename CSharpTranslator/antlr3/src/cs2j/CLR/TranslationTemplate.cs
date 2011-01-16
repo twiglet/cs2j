@@ -929,6 +929,11 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
+                // Returns true if other is a subclass, or implements our interface
+		public virtual bool IsA (TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv) {
+                    return false;
+		}
+		
 		#region deserialization
 		
 		private static object Deserialize (Stream fs, System.Type t)
@@ -1264,7 +1269,13 @@ namespace RusticiSoftware.Translator.CLR
 		private string[] _inherits;
 		[XmlArrayItem("Type")]
 		public string[] Inherits { 
-			get { return _inherits; }
+			get { 
+                            if (_inherits == null)
+                            {
+                                _inherits = new string[] { "System.Object" };
+                            }
+                            return _inherits; 
+                        }
 			set {
 				if (value != null) {
 					_inherits= new string[value.Length];
@@ -1337,6 +1348,32 @@ namespace RusticiSoftware.Translator.CLR
 			_indexers = ixs;
 		}
 
+		
+                // Returns true if we are a subclass of other, or implements its interface
+		public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv) {
+                    InterfaceRepTemplate i = other as InterfaceRepTemplate;
+                    if (i == null)
+                    {
+                        return false;                         
+                    }
+                    if (i.TypeName == this.TypeName)
+                    {
+                        return true;
+                    }
+                    if (Inherits != null)
+                    {
+                        foreach (String ibase in Inherits)
+                        {
+                            TypeRepTemplate tbase = AppEnv.Search(ibase, new UnknownRepTemplate(ibase));
+                            if (tbase.IsA(other,AppEnv))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+		}
+
 		public override TypeRep mkEmptyRep ()
 		{
 			return new InterfaceRep ();
@@ -1383,8 +1420,8 @@ namespace RusticiSoftware.Translator.CLR
                         {
                             if (m.Name == name)
                             {
-                                // same number of arguments?
                                 bool matchingArgs = true;
+                                // If either params are null then make sure both represent zero length args
                                 if (m.Params == null || args == null)
                                 {
                                     // Are they both zero length?
@@ -1392,14 +1429,16 @@ namespace RusticiSoftware.Translator.CLR
                                 }
                                 else
                                 {
+                                    // Are num args the same?
                                     if (m.Params.Count != args.Count)
                                     {
                                         matchingArgs = false;
                                     }
                                     else
                                     {
+                                        // check that for each argument in the caller its type 'IsA' the type of the formal argument
                                         for (int idx = 0; idx < m.Params.Count; idx++) {
-                                            if (args[idx] == null || m.Params[idx].Type != args[idx].TypeName)
+                                            if (args[idx] == null || !args[idx].IsA(AppEnv.Search(Uses, m.Params[idx].Type, new UnknownRepTemplate(m.Params[idx].Type)),AppEnv))
                                             {
                                                 matchingArgs = false;
                                                 break;
@@ -1830,6 +1869,7 @@ namespace RusticiSoftware.Translator.CLR
 
 		public UnknownRepTemplate (string typeName) : base(typeName)
 		{
+                    Inherits = new String[] { "System.Object" };
 		}
 
 		public override string[] Imports { 
