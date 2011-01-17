@@ -261,8 +261,7 @@ scope {
             
             // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
             if (expType != null &&
-                ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
-                ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
+                ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
                 Debug($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
 
@@ -312,8 +311,7 @@ scope {
 
                 // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
                 if (thisType != null &&
-                    ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply) &&
-                    ($assignment.Count == 0 || !$assignment::parentIsSetter)) {
+                    ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
                     Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
                     ResolveResult fieldResult = thisType.Resolve($identifier.thetext, AppEnv);
@@ -625,12 +623,9 @@ expression returns [TypeRepTemplate dotNetType]:
 	;
 expression_list:
 	expression  (','   expression)* ;
+
 assignment
-scope {
-    bool parentIsSetter;
-}
 @init {
-    $assignment::parentIsSetter = true;
     CommonTree ret = null;
     bool isThis = false;
 }
@@ -639,7 +634,7 @@ scope {
         $assignment.tree = ret;
 }:
     ((^('.' expression identifier generic_argument_list?) | identifier) '=')  => 
-        (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a='=' {$assignment::parentIsSetter = false; }  rhs=expression 
+        (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a='=' rhs=expression 
         {
             InterfaceRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType) as InterfaceRepTemplate;
             if (seType != null) {
@@ -655,7 +650,7 @@ scope {
                 }
             }
         }
-    | unary_expression   assignment_operator {$assignment::parentIsSetter = false; }  expression ;
+    | unary_expression   assignment_operator expression ;
 
 
 unary_expression returns [TypeRepTemplate dotNetType]: 
@@ -1203,7 +1198,7 @@ scope SymTab;
 	^('while' boolean_expression SEP embedded_statement)
 	| do_statement
 	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement)
-	| ^('foreach' local_variable_type   identifier { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; } expression SEP  embedded_statement);
+	| ^('foreach' local_variable_type   identifier expression SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement);
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
 for_initializer:
