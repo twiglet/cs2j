@@ -329,7 +329,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 		public override string[] mkImports() {
 			if (SurroundingTypeName != null) {
-				return new string[] {"CS2JNet." + SurroundingTypeName};
+				return new string[] {SurroundingTypeName};
 			}
 			else {
 				return null;
@@ -444,7 +444,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 		public override string[] mkImports() {
 			if (IsStatic && SurroundingTypeName != null) {
-				return new string[] {"CS2JNet." + SurroundingTypeName};
+				return new string[] {SurroundingTypeName};
 			}
 			else {
 				return null;
@@ -930,7 +930,7 @@ namespace RusticiSoftware.Translator.CLR
 
 		public override string[] mkImports() {
 			if (TypeName !=  null) {
-				return new string[] {"CS2JNet." + TypeName};
+				return new string[] {TypeName};
 			}
 			else {
 				return null;
