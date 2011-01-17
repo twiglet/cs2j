@@ -343,7 +343,21 @@ scope {
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
-    | ^(NEW type argument_list? object_or_collection_initializer?)
+    | ^(n=NEW type argument_list? object_or_collection_initializer?)
+        {
+            ClassRepTemplate conType = $type.dotNetType as ClassRepTemplate;
+            ResolveResult conResult = conType.Resolve($argument_list.argTypes, AppEnv);
+            if (conResult != null) {
+                ConstructorRepTemplate conRep = conResult.Result as ConstructorRepTemplate;
+                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                for (int idx = 0; idx < conRep.Params.Count; idx++) {
+                    myMap[conRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $n.token);
+                }
+                ret = mkJavaWrapper(conResult.Result.Java, myMap, $n.token);
+                Imports.Add(conResult.Result.Imports);
+                $dotNetType = conResult.ResultType; 
+            }
+        }
 	| 'new' (   
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation

@@ -1692,6 +1692,52 @@ namespace RusticiSoftware.Translator.CLR
                     return base.Resolve(name, AppEnv);
                 }
 
+                public virtual ResolveResult Resolve(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+        
+                    if (Constructors != null)
+                    {
+                        foreach (ConstructorRepTemplate c in Constructors)
+                        {
+                            bool matchingArgs = true;
+                            // If either params are null then make sure both represent zero length args
+                            if (c.Params == null || args == null)
+                            {
+                                // Are they both zero length?
+                                matchingArgs = (c.Params == null || c.Params.Count == 0) && (args == null || args.Count == 0);
+                            }
+                            else
+                            {
+                                // Are num args the same?
+                                if (c.Params.Count != args.Count)
+                                {
+                                    matchingArgs = false;
+                                }
+                                else
+                                {
+                                    // check that for each argument in the caller its type 'IsA' the type of the formal argument
+                                    for (int idx = 0; idx < c.Params.Count; idx++) {
+                                        if (args[idx] == null || !args[idx].IsA(AppEnv.Search(Uses, c.Params[idx].Type, new UnknownRepTemplate(c.Params[idx].Type)),AppEnv))
+                                        {
+                                            matchingArgs = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (matchingArgs)
+                                {
+                                    ResolveResult res = new ResolveResult();
+                                    res.Result = c;
+                                    res.ResultType = AppEnv.Search(Uses, TypeName);
+                                    return res;
+                                }
+                            }
+                        }
+                    }
+                    // We don't search base,  constructors aren't inherited
+                    return null;
+                }
+
 
 		#region Equality
 		public bool Equals (ClassRepTemplate other)

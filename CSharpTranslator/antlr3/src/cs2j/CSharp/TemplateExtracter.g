@@ -1148,8 +1148,11 @@ constructor_declaration:
 	constructor_declarator   constructor_body ;
 constructor_declarator:
 	identifier   '('   fpl=formal_parameter_list?   ')'   constructor_initializer? 
-         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(new ConstructorRepTemplate($fpl.paramlist));
-        Debug("Processing constructor declaration");
+         {  
+              ConstructorRepTemplate cRep = new ConstructorRepTemplate($fpl.paramlist);
+              cRep.SurroundingTypeName = $NSContext::currentTypeRep.TypeName;
+              ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(cRep);
+              Debug("Processing constructor declaration");
  }
 ;
 constructor_initializer:
