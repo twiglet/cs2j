@@ -4,7 +4,9 @@
   <Java>StringBuilder</Java>
   <Name>System.Text.StringBuilder</Name>
   <Uses />
-  <Inherits />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
   <Methods>
     <Method>
       <Imports />
