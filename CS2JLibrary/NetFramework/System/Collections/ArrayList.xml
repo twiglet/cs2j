@@ -169,12 +169,12 @@
   <Constructors>
     <Constructor>
       <Imports />
-      <Java>new ArrayListSupport()</Java>
+      <Java>new ArrayList()</Java>
       <Params />
     </Constructor>
     <Constructor>
       <Imports />
-      <Java>new ArrayListSupport(${length})</Java>
+      <Java>new ArrayList(${length})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -184,7 +184,7 @@
     </Constructor>
     <Constructor>
       <Imports />
-      <Java>new ArrayListSupport(${collection})</Java>
+      <Java>new ArrayList(${collection})</Java>
       <Params>
         <Param>
           <Type>System.ICollection</Type>
