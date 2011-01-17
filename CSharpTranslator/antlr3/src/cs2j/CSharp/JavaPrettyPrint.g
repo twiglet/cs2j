@@ -306,7 +306,7 @@ primary_expression returns [int precedence]
     $precedence = int.MaxValue;
     Dictionary<string,string> templateMap = new Dictionary<string,string>();
 }: 
-      ^(JAVAWRAPPER t=identifier (k=identifier v=expression { templateMap[$k.st.ToString()] = $v.st.ToString(); })*) -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
+      ^(JAVAWRAPPER t=identifier (k=identifier v=wrapped { templateMap[$k.st.ToString()] = $v.st.ToString(); })*) -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
     | ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(precedence[INDEX], $expression.precedence) < 0 }, args = { $expression_list.st } )
     | ^(APPLY expression argument_list?) { $precedence = precedence[APPLY]; } -> application(func= { $expression.st }, funcparens = { comparePrecedence(precedence[APPLY], $expression.precedence) < 0 }, args = { $argument_list.st } )
     | ^((op=POSTINC|op=POSTDEC) expression) { $precedence = precedence[$op.token.Type]; } 
@@ -425,6 +425,11 @@ rank_specifier:
 // keving
 // dim_separators: 
 //	','+ ;
+
+wrapped:
+    ^(JAVAWRAPPEREXPRESSION expression) -> { $expression.st } 
+    | ^(JAVAWRAPPERARGUMENT argument_value) -> { $argument_value.st } 
+    ;
 
 delegate_creation_expression: 
 	// 'new'   

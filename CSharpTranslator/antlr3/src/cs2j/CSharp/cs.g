@@ -127,6 +127,8 @@ tokens {
             PAYLOAD;   // carries arbitrary text for the output file
             PAYLOAD_LIST;
             JAVAWRAPPER;
+            JAVAWRAPPEREXPRESSION;
+            JAVAWRAPPERARGUMENT;
             SEP;
             KGHOLE;
 }

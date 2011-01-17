@@ -464,7 +464,15 @@ namespace RusticiSoftware.Translator.CLR
 			else {
 				methStr.Append("${this}.");
 			}
-			methStr.Append(Name);
+                        // special for ToString -> tostring
+                        if (Name == "ToString" && Params.Count == 0)
+                        {
+                            methStr.Append("toString");
+                        }  
+                        else
+                        {
+                            methStr.Append(Name);
+                        }
 			return methStr.ToString() + mkJavaParams(Params);
 		}
 		

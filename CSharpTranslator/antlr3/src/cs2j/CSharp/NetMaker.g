@@ -131,6 +131,22 @@ scope SymTab {
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
 
+    protected CommonTree wrapExpression(CommonTree e, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "EXPRESSION"), root);
+        adaptor.AddChild(root, dupTree(e));
+
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    protected CommonTree wrapArgument(CommonTree e, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERARGUMENT, tok, "ARGUMENT"), root);
+        adaptor.AddChild(root, dupTree(e));
+
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
     // Resolve Routines
 //     protected ResolveResult ResolveGetter(InterfaceRepTemplate thisType, String name) {
 //         ResolveResult ret = null;
@@ -221,10 +237,10 @@ scope {
                     MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     if (!implicitThis) {
-                        myMap["this"] = $e2.tree;
+                        myMap["this"] = wrapExpression($e2.tree, $i2.tree.Token);
                     }
                     for (int idx = 0; idx < methodRep.Params.Count; idx++) {
-                        myMap[methodRep.Params[idx].Name] = $argument_list.argTrees[idx];
+                        myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
                     }
                     ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
                     Imports.Add(methodResult.Result.Imports);
@@ -254,7 +270,7 @@ scope {
                 if (fieldResult != null) {
                     Debug($d1.token.Line + ": Found '" + $i1.thetext + "'");
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                    myMap["this"] = $e1.tree;
+                    myMap["this"] = wrapExpression($e1.tree, $i1.tree.Token);
                     ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
                     Imports.Add(fieldResult.Result.Imports);
                     $dotNetType = fieldResult.ResultType; 
@@ -324,7 +340,8 @@ scope {
                 $dotNetType = new UnknownRepTemplate($identifier.thetext);
             }
         }         
-    | primary_expression_start
+    | primary_expression_start                        { $dotNetType = $primary_expression_start.dotNetType; }  
+    | literal                                         { $dotNetType = $literal.dotNetType; }  
 //	('this'    brackets) => 'this'   brackets   primary_expression_part*
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
@@ -345,7 +362,6 @@ scope {
 
 primary_expression_start returns [TypeRepTemplate dotNetType]:
 	 ^('::' identifier identifier)
-	| literal
 	;
 
 primary_expression_part:
@@ -370,7 +386,7 @@ argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees
     $argTypes = new List<TypeRepTemplate>();
     $argTrees = new List<CommonTree>();
 }: 
-	^(ARGS (argument { $argTypes.Add($argument.dotNetType); $argTrees.Add($argument.tree); })+);
+	^(ARGS (argument { $argTypes.Add($argument.dotNetType); $argTrees.Add(dupTree($argument.tree)); })+);
 // 4.0
 argument returns [TypeRepTemplate dotNetType]:
 	argument_name   argument_value { $dotNetType = $argument_value.dotNetType; }
@@ -632,8 +648,8 @@ scope {
                     Debug($i.tree.Token.Line + ": Found '" + $i.thetext + "'");
                     Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
                     if (!isThis)
-                        valMap["this"] = $se.tree;
-                    valMap["value"] = $rhs.tree;
+                        valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                    valMap["value"] = wrapExpression($rhs.tree, $i.tree.Token);
                     ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.token);
                     Imports.Add(fieldResult.Result.Imports);
                 }
