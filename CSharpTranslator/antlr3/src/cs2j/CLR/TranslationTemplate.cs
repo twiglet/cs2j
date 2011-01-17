@@ -838,7 +838,7 @@ namespace RusticiSoftware.Translator.CLR
 		}		
 		
 		public override string mkJava() {
-			return Name;
+			return "${this}." + Name;
 		}
 
 
@@ -908,6 +908,29 @@ namespace RusticiSoftware.Translator.CLR
 			
 		}
 
+		private string[] _inherits;
+		[XmlArrayItem("Type")]
+		public string[] Inherits { 
+			get { 
+                            if (_inherits == null)
+                            {
+                                _inherits = new string[] { "System.Object" };
+                            }
+                            return _inherits; 
+                        }
+			set {
+				if (value != null) {
+					_inherits= new string[value.Length];
+					for (int i = 0; i < value.Length; i++) {
+						_inherits[i] = value[i].Replace('<','[').Replace('>',']');
+					}
+				}
+				else {
+					_inherits = null;
+				}
+			}
+		}		
+
 		protected TypeRepTemplate (string typeName) : this()
 		{
 			TypeName = typeName;
@@ -937,8 +960,59 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
+                public virtual ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            TypeRepTemplate baseType = AppEnv.Search(Uses, b);
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.Resolve(name,args,AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
+                public virtual ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            TypeRepTemplate baseType = AppEnv.Search(Uses, b);
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.Resolve(name,AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
                 // Returns true if other is a subclass, or implements our interface
 		public virtual bool IsA (TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv) {
+                    if (other.TypeName == this.TypeName)
+                    {
+                        return true;
+                    }
+                    if (Inherits != null)
+                    {
+                        foreach (String ibase in Inherits)
+                        {
+                            TypeRepTemplate tbase = AppEnv.Search(ibase, new UnknownRepTemplate(ibase));
+                            if (tbase.IsA(other,AppEnv))
+                            {
+                                return true;
+                            }
+                        }
+                    }
                     return false;
 		}
 		
@@ -1123,6 +1197,24 @@ namespace RusticiSoftware.Translator.CLR
 			return new EnumRep ();
 		}
 
+                public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Members != null)
+                    {
+                        foreach (EnumMemberRepTemplate m in Members)
+                        {
+                            if (m.Name == name)
+                            {
+                                ResolveResult res = new ResolveResult();
+                                res.Result = m;
+                                res.ResultType = this;
+                                return res;
+                            }
+                        }
+                    }
+                    return base.Resolve(name, AppEnv);
+                }
+
 		#region Equality
 		public bool Equals (EnumRepTemplate other)
 		{
@@ -1273,30 +1365,6 @@ namespace RusticiSoftware.Translator.CLR
 	[XmlType("Interface")]
 	public class InterfaceRepTemplate : TypeRepTemplate, IEquatable<InterfaceRepTemplate>
 	{
-
-		private string[] _inherits;
-		[XmlArrayItem("Type")]
-		public string[] Inherits { 
-			get { 
-                            if (_inherits == null)
-                            {
-                                _inherits = new string[] { "System.Object" };
-                            }
-                            return _inherits; 
-                        }
-			set {
-				if (value != null) {
-					_inherits= new string[value.Length];
-					for (int i = 0; i < value.Length; i++) {
-						_inherits[i] = value[i].Replace('<','[').Replace('>',']');
-					}
-				}
-				else {
-					_inherits = null;
-				}
-			}
-		}		
-
 		private List<MethodRepTemplate> _methods = null;
 		[XmlArrayItem("Method")]
 		public List<MethodRepTemplate> Methods {
@@ -1368,18 +1436,7 @@ namespace RusticiSoftware.Translator.CLR
                     {
                         return true;
                     }
-                    if (Inherits != null)
-                    {
-                        foreach (String ibase in Inherits)
-                        {
-                            TypeRepTemplate tbase = AppEnv.Search(ibase, new UnknownRepTemplate(ibase));
-                            if (tbase.IsA(other,AppEnv))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
+                    return base.IsA(other,AppEnv);
 		}
 
 		public override TypeRep mkEmptyRep ()
@@ -1387,7 +1444,7 @@ namespace RusticiSoftware.Translator.CLR
 			return new InterfaceRep ();
 		}
 
-                public virtual ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+                public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
         
                     if (Properties != null)
@@ -1403,23 +1460,10 @@ namespace RusticiSoftware.Translator.CLR
                             }
                         }
                     }
-                    if (Inherits != null)
-                    {
-                        foreach (String b in Inherits)
-                        {
-                            InterfaceRepTemplate baseType = AppEnv.Search(Uses, b) as InterfaceRepTemplate;
-                            if (baseType != null)
-                            {
-                                ResolveResult ret = baseType.Resolve(name,AppEnv);
-                                if (ret != null)
-                                    return ret;
-                            }
-                        }
-                    }
-                    return null;
+                    return base.Resolve(name,AppEnv);
                 }
 
-                public virtual ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                public override ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
         
                     if (Methods != null)
@@ -1464,20 +1508,7 @@ namespace RusticiSoftware.Translator.CLR
                             }
                         }
                     }
-                    if (Inherits != null)
-                    {
-                        foreach (String b in Inherits)
-                        {
-                            InterfaceRepTemplate baseType = AppEnv.Search(Uses, b) as InterfaceRepTemplate;
-                            if (baseType != null)
-                            {
-                                ResolveResult ret = baseType.Resolve(name,args,AppEnv);
-                                if (ret != null)
-                                    return ret;
-                            }
-                        }
-                    }
-                    return null;
+                    return base.Resolve(name, args, AppEnv);
                 }
 
 
@@ -1553,7 +1584,7 @@ namespace RusticiSoftware.Translator.CLR
 		public static bool operator != (InterfaceRepTemplate a1, InterfaceRepTemplate a2)
 		{
 			return !(a1 == a2);
-		}
+ 		}
 
 		public override int GetHashCode ()
 		{

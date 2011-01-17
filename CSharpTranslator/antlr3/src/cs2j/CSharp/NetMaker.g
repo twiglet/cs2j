@@ -147,16 +147,6 @@ scope SymTab {
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
 
-    // Resolve Routines
-//     protected ResolveResult ResolveGetter(InterfaceRepTemplate thisType, String name) {
-//         ResolveResult ret = null;
-//         PropRepTemplate entity = thisType.Resolve(name, AppEnv) as PropRepTemplate;
-//         if (entity != null) {
-//             ret = entity.JavaGet;
-//         }
-//         return ret;
-//     }
-
     protected CommonTree dupTree(CommonTree t) {
         return (CommonTree)adaptor.DupTree(t);
     }
@@ -219,7 +209,7 @@ scope {
 @init {
     $primary_expression::parentIsApply = false;
     CommonTree ret = null;
-    InterfaceRepTemplate expType = SymTabLookup("this") as InterfaceRepTemplate;
+    TypeRepTemplate expType = SymTabLookup("this");
     bool implicitThis = true;
 }
 @after {
@@ -228,7 +218,7 @@ scope {
 }:
     ^(INDEX expression expression_list?)
     | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
-           ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType as InterfaceRepTemplate; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
+           ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
             if (expType != null) {
                 ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
@@ -257,7 +247,7 @@ scope {
             // - accessing a property/field of some object
             // - a qualified type name
             // - part of a qualified type name
-            expType = $e1.dotNetType as InterfaceRepTemplate;
+            expType = $e1.dotNetType;
             
             // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
             if (expType != null &&
@@ -307,7 +297,7 @@ scope {
             }
             if (!found) {
                 // Not a variable, is it a property?
-                InterfaceRepTemplate thisType = SymTabLookup("this") as InterfaceRepTemplate;
+                TypeRepTemplate thisType = SymTabLookup("this");
 
                 // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
                 if (thisType != null &&
@@ -650,7 +640,7 @@ assignment
     ((^('.' expression identifier generic_argument_list?) | identifier) '=')  => 
         (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a='=' rhs=expression 
         {
-            InterfaceRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType) as InterfaceRepTemplate;
+            TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
             if (seType != null) {
                 ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
                 if (fieldResult != null && fieldResult.Result is PropRepTemplate) {
@@ -890,7 +880,7 @@ scope NSContext,SymTab;
             $SymTab::symtab["this"] = classTypeRep;
             ClassRepTemplate baseType = ObjectType;
             if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
-                // if Inherits[0] is a class tyhen it is parent, else system.object
+                // if Inherits[0] is a class then it is parent, else system.object
                 ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
                 if (parent != null)
                     baseType = parent;
