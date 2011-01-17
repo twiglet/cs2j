@@ -111,7 +111,10 @@ namespace RusticiSoftware.Translator.CSharp
                     // Final argument is translation target
                     remArgs = p.Parse (args);
 
-                            
+                    if (remArgs == null || remArgs.Count == 0)
+                        // No work
+                        Environment.Exit(0);
+ 
                     // Load .Net templates
                     foreach (string r in cfg.NetRoot)
                         doFile(r, ".xml", addNetTranslation, cfg.ExNetRoot);
