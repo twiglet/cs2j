@@ -137,7 +137,7 @@ tokens {
 
 @lexer::header       
 {
-	using System.Collections.Generic;
+	//using System.Collections.Generic;
 	using Debug = System.Diagnostics.Debug;
 }
 
