@@ -25,7 +25,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.addAllS(${arg})</Java>
+      <Java>${this}.addAll(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Collections.ICollection</Type>
@@ -112,7 +112,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.removeS(${value})</Java>
+      <Java>${this}.remove(${value})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -136,7 +136,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toArrayS(new ${TYPEOF_TYPE}[0])</Java>
+      <Java>${this}.toArray(new ${TYPEOF_TYPE}[0])</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
