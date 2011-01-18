@@ -4,7 +4,9 @@
   <Java>Enum</Java>
   <Name>System.Enum</Name>
   <Uses />
-  <Inherits />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
   <Methods>
     <Method>
       <Imports>
