@@ -202,7 +202,9 @@ class_member_declaration:
 exception:
     EXCEPTION;
 
-primary_expression returns [TypeRepTemplate dotNetType]
+// rmId is the rightmost ID in an expression like fdfd.dfdsf.returnme, otherwise it is null
+// used in switch labels to strip down qualified types, which Java doesn't grok
+primary_expression returns [TypeRepTemplate dotNetType, String rmId]
 scope {
     bool parentIsApply;
 }
@@ -276,6 +278,7 @@ scope {
                     }
                 }
             }
+            $rmId = $identifier.thetext;
         }         
     | ^('->' expression identifier generic_argument_list?)
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
@@ -428,9 +431,9 @@ member_declarator_list:
 	member_declarator  (',' member_declarator)* ; 
 member_declarator: 
 	qid   ('='   expression)? ;
-primary_or_array_creation_expression returns [TypeRepTemplate dotNetType]:
+primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, String rmId]:
 	(array_creation_expression) => array_creation_expression
-	| primary_expression { $dotNetType = $primary_expression.dotNetType; }
+	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; }
 	;
 // new Type[2] { }
 array_creation_expression:
@@ -621,9 +624,9 @@ statement_list:
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
-expression returns [TypeRepTemplate dotNetType]: 
+expression returns [TypeRepTemplate dotNetType, String rmId]: 
 	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; }
-	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; }
+	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; }
 	;
 expression_list:
 	expression  (','   expression)* ;
@@ -657,12 +660,12 @@ assignment
     | unary_expression   assignment_operator expression ;
 
 
-unary_expression returns [TypeRepTemplate dotNetType]: 
+unary_expression returns [TypeRepTemplate dotNetType, String rmId]: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
     //(cast_expression) => cast_expression
 	^(CAST_EXPR type unary_expression)          { $dotNetType = $type.dotNetType; }
-	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; }
+	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; }
 	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
 	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
 	| ^(MONONOT u3=unary_expression)            { $dotNetType = $u3.dotNetType; }
@@ -671,7 +674,7 @@ unary_expression returns [TypeRepTemplate dotNetType]:
 	| ^(PREDEC u6=unary_expression)             { $dotNetType = $u6.dotNetType; }
 	| ^(MONOSTAR unary_expression)              { $dotNetType = ObjectType; }
 	| ^(ADDRESSOF unary_expression)             { $dotNetType = ObjectType; }
-	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; }
+	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; $rmId = $expression.rmId; }
 	;
 //cast_expression:
 //	'('   type   ')'   non_assignment_expression ;
@@ -686,7 +689,7 @@ assignment_operator:
 //addressof_expression:
 //	'&'   unary_expression ;
 
-non_assignment_expression returns [TypeRepTemplate dotNetType]:
+non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId]:
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
@@ -713,7 +716,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType]:
         | ^('/' n12=non_assignment_expression non_assignment_expression)      {$dotNetType = $n12.dotNetType; }
         | ^('%' n13=non_assignment_expression non_assignment_expression)      {$dotNetType = $n13.dotNetType; }
  //       | ^(UNARY_EXPRESSION unary_expression)
-        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; }
+        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; $rmId = $unary_expression.rmId; }
 	;
 
 // ///////////////////////////////////////////////////////
@@ -926,8 +929,8 @@ constant_declarators[TypeRepTemplate ty]:
 	constant_declarator[$ty] (',' constant_declarator[$ty])* ;
 constant_declarator[TypeRepTemplate ty]:
 	identifier  { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   constant_expression)? ;
-constant_expression:
-	expression;
+constant_expression returns [String rmId]:
+	expression {$rmId = $expression.rmId; };
 
 ///////////////////////////////////////////////////////
 field_declaration[TypeRepTemplate ty]:
@@ -1136,7 +1139,7 @@ statement_plus:
 embedded_statement:
       block
 	| ^(IF boolean_expression SEP embedded_statement else_statement?)
-    | ^('switch' expression switch_section*)
+    | switch_statement
 	| iteration_statement	// while, do, for, foreach
 	| jump_statement		// break, continue, goto, return, throw
 	| ^('try' block catch_clauses? finally_clause?)
@@ -1148,6 +1151,12 @@ embedded_statement:
 	| fixed_statement
 	| expression_statement	// expression!
 	;
+switch_statement
+scope {
+    bool isEnum;
+}:
+    ^('switch' expression { $switch_statement::isEnum = $expression.dotNetType != null && $expression.dotNetType.IsA(AppEnv.Search("System.Enum"), AppEnv); } switch_section*)
+    ;
 fixed_statement:
 	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
 fixed_pointer_declarators:
@@ -1192,7 +1201,8 @@ else_statement:
 switch_section:
 	^(SWITCH_SECTION switch_label+ statement_list) ;
 switch_label:
-	^('case'   constant_expression)
+    ^(c='case'  ce=constant_expression ) -> { $switch_statement::isEnum && $constant_expression.rmId != null}? ^($c IDENTIFIER[$c.token, $constant_expression.rmId])
+                                         -> ^($c $ce)
 	| 'default';
 iteration_statement
 scope SymTab;

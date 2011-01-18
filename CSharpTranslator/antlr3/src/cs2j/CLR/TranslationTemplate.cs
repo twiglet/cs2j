@@ -1185,6 +1185,7 @@ namespace RusticiSoftware.Translator.CLR
 
 		public EnumRepTemplate () : base()
 		{
+                        Inherits = new string[] { "System.Enum" };
 		}
 
 		public EnumRepTemplate (List<EnumMemberRepTemplate> ms) : base()
