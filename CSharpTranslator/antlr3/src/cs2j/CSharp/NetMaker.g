@@ -239,8 +239,8 @@ scope {
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
-    | ^(POSTINC expression)
-    | ^(POSTDEC expression)
+    | ^(POSTINC expression)    { $dotNetType = $expression.dotNetType; }
+    | ^(POSTDEC expression)    { $dotNetType = $expression.dotNetType; }
     | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
         { 
             // Possibilities:
