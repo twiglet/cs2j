@@ -1084,9 +1084,6 @@ namespace RusticiSoftware.Translator.CLR
 		}
 		
 		#endregion deserialization
-
-		// Useful because it builds either an empty ClassRep or InterfaceRep or ...
-		public abstract TypeRep mkEmptyRep ();
 		
 		#region Equality
 		public bool Equals (TypeRepTemplate other)
@@ -1191,11 +1188,6 @@ namespace RusticiSoftware.Translator.CLR
 		public EnumRepTemplate (List<EnumMemberRepTemplate> ms) : base()
 		{
 			_members = ms;
-		}
-
-		public override TypeRep mkEmptyRep ()
-		{
-			return new EnumRep ();
 		}
 
                 public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
@@ -1304,12 +1296,6 @@ namespace RusticiSoftware.Translator.CLR
 		public override string mkJava() {
 			return "${delegate}.Invoke" + mkJavaParams(Params);
 		}
-
-		public override TypeRep mkEmptyRep ()
-		{
-			return new DelegateRep ();
-		}
-
 
 		#region Equality
 		public bool Equals (DelegateRepTemplate other)
@@ -1438,11 +1424,6 @@ namespace RusticiSoftware.Translator.CLR
                         return true;
                     }
                     return base.IsA(other,AppEnv);
-		}
-
-		public override TypeRep mkEmptyRep ()
-		{
-			return new InterfaceRep ();
 		}
 
                 public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
@@ -1700,11 +1681,6 @@ namespace RusticiSoftware.Translator.CLR
 			_casts = cts;
 		}
 
-		public override TypeRep mkEmptyRep ()
-		{
-			return new ClassRep ();
-		}
-
                 public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
         
@@ -1897,11 +1873,6 @@ namespace RusticiSoftware.Translator.CLR
                     : base(tName, tParams, usePath, aliases, inherits, cs, ms, ps, fs, es, ixs, cts,	null, null)
 		{
 		}
-
-		public override TypeRep mkEmptyRep ()
-		{
-			return new StructRep ();
-		}
 		
                 public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
@@ -1962,12 +1933,6 @@ namespace RusticiSoftware.Translator.CLR
                     get {
                         return new string[0];
                     }
-		}
-
-		public override TypeRep mkEmptyRep ()
-		{
-			// hmm, nothing appropriate, and this should be going away ....
-			return new InterfaceRep ();
 		}
 		
 		#region Equality
