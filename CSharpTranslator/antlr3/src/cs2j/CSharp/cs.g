@@ -59,6 +59,8 @@ tokens {
             CATCH = 'catch';
             FINALLY = 'finally';
             THROW = 'throw';
+            ELSE = 'else';
+            BREAK = 'break';
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';

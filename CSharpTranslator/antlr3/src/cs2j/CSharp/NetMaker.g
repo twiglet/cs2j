@@ -151,6 +151,76 @@ scope SymTab {
         return (CommonTree)adaptor.DupTree(t);
     }
 
+    protected static readonly string[] ScruTypeStrs = new string[] { "System.Int32",
+                                                                     "System.Int64",
+                                                                     "System.Char",
+                                                                     "System.Enum", 
+                                                                    };
+
+    protected bool typeIsInvalidForScrutinee(TypeRepTemplate sType) {
+        bool ret = true;
+
+        foreach (string t in ScruTypeStrs)
+        {
+            if (sType.IsA(AppEnv.Search(t), AppEnv))
+            {
+                ret = false;
+                break;
+            }
+        }
+
+        return ret;
+        
+    }
+
+    // counter to ensure that the catch vars we introduce are unique 
+    protected int dummyScrutVarCtr = 0;
+
+    protected CommonTree convertSectionsToITE(List sections) {
+        CommonTree ret = null;
+        if (sections != null && sections.Count > 0) {
+            ret = dupTree((CommonTree)sections[sections.Count - 1]);
+            for(int i = sections.Count - 2; i >= 0; i--) {
+                CommonTree section = dupTree((CommonTree)sections[i]);
+                // section is either ^(IF ...) or "else ^(IF ....)" we need to insert ret into the IF
+                if (section.IsNil) {
+                    section.Children[section.Children.Count-1].AddChild(ret);
+                }
+                else {
+                    section.AddChild(ret);
+                }
+                ret = section;
+            } 
+        }
+        return ret;
+    }
+
+    // In switch sections we want to remove final break statements if we have converted to if-then-else 
+    protected CommonTree stripFinalBreak(CommonTree stats) {
+    
+        CommonTree ret = stats;
+        if (stats.IsNil) {
+            // A list of statements
+            // look for an ending of "break [;]"
+            int len = stats.Children.Count;
+            int breakPos = len - 1;
+            if ( len > 1 && stats.Children[len-1].Type == SEMI ) {
+                breakPos = len -2;
+            }
+            if (stats.Children[breakPos].Type != BREAK) {
+                // not found
+                breakPos = -1;
+            }
+            if (breakPos > 0) {
+                // delete from break to end
+                for (int i = len-1; i >= breakPos; i--) {
+                    stats.DeleteChild(i);
+                }
+            }
+        }
+        return ret;
+    }
+
 }
 
 compilation_unit
@@ -1154,8 +1224,31 @@ embedded_statement:
 switch_statement
 scope {
     bool isEnum;
+    bool convertToIfThenElse;
+    string scrutVar;
+    bool isFirstCase;
+}
+@init {
+    $switch_statement::isEnum = false;
+    $switch_statement::convertToIfThenElse = false;
+    $switch_statement::scrutVar = "WHOOPS";
+    $switch_statement::isFirstCase = true;
 }:
-    ^('switch' expression { $switch_statement::isEnum = $expression.dotNetType != null && $expression.dotNetType.IsA(AppEnv.Search("System.Enum"), AppEnv); } switch_section*)
+    ^(s='switch' se=expression sv=magicScrutineeVar[$s.token]
+                { 
+                    if ($expression.dotNetType != null) {
+                        $switch_statement::isEnum = $expression.dotNetType.IsA(AppEnv.Search("System.Enum"), AppEnv); 
+                        $switch_statement::convertToIfThenElse = typeIsInvalidForScrutinee($expression.dotNetType);
+                        $switch_statement::scrutVar = $sv.thetext;
+                    }
+                } 
+            ss+=switch_section*) 
+        -> { $switch_statement::convertToIfThenElse }?
+                // TODO: down the line, check if scrutinee is already a var and reuse that.
+                // TYPE{ String } ret ;
+                ^(TYPE[$s.token, "TYPE"] IDENTIFIER[$s.token,$expression.dotNetType.Java]) $sv ASSIGN[$s.token, "="] { dupTree($se.tree) } SEMI[$s.token, ";"]
+        { convertSectionsToITE($ss) } 
+        -> ^($s expression $ss*) 
     ;
 fixed_statement:
 	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
@@ -1198,12 +1291,49 @@ statement_expression:
 	;
 else_statement:
 	'else'   embedded_statement	;
-switch_section:
-	^(SWITCH_SECTION switch_label+ statement_list) ;
-switch_label:
-    ^(c='case'  ce=constant_expression ) -> { $switch_statement::isEnum && $constant_expression.rmId != null}? ^($c IDENTIFIER[$c.token, $constant_expression.rmId])
-                                         -> ^($c $ce)
-	| 'default';
+switch_section
+@init {
+    bool defaultSection = false;
+}
+@after{
+    $switch_statement::isFirstCase = false;
+}:
+	^(s=SWITCH_SECTION ({$switch_statement::convertToIfThenElse}? ite_switch_labels | switch_labels) sl=statement_list) 
+      {
+            
+        }  
+    -> {$switch_statement::convertToIfThenElse && $switch_statement::isFirstCase && $ite_switch_labels.isDefault}? { stripFinalBreak($sl.tree) }
+    -> {$switch_statement::convertToIfThenElse && $ite_switch_labels.isDefault}? ELSE[$s.token, "else"]  OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"] 
+    -> {$switch_statement::convertToIfThenElse && $switch_statement::isFirstCase}? ^(IF[$s.token, "if"]  ite_switch_labels SEP OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"])
+    -> {$switch_statement::convertToIfThenElse}? ELSE[$s.token, "else"] ^(IF[$s.token, "if"]  ite_switch_labels SEP OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"])
+    -> ^($s switch_labels statement_list)
+    ;
+
+ite_switch_labels returns [bool isDefault]
+@init {
+    $isDefault = false;
+}:
+        (l1=switch_label { if($l1.isDefault) $isDefault = true; } -> $l1)
+        (ln=switch_label { if($ln.isDefault) $isDefault = true; } -> ^(LOG_OR[$ln.tree.Token, "||"] { dupTree($ite_switch_labels.tree) }  { dupTree($ln.tree) }) )*
+    ;
+switch_labels returns [bool isDefault]
+@init {
+    $isDefault = false;
+}:
+        switch_label+
+    ;
+
+switch_label returns [bool isDefault]
+@init {
+    $isDefault = false;
+}:
+    ^(c='case'  ce=constant_expression ) 
+        -> { $switch_statement::convertToIfThenElse }? 
+               // scrutVar.equals(ce)
+               ^(APPLY[$c.token, "APPLY"] ^(DOT[$c.token, "."] IDENTIFIER[$c.token, $switch_statement::scrutVar] IDENTIFIER[$c.token, "equals"]) ^(ARGS[$c.token, "ARGS"] $ce))
+        -> { $switch_statement::isEnum && $constant_expression.rmId != null}? ^($c IDENTIFIER[$c.token, $constant_expression.rmId])
+        -> ^($c $ce)
+	| 'default' { $isDefault = true; };
 iteration_statement
 scope SymTab;
 @init {
@@ -1320,3 +1450,8 @@ literal returns [TypeRepTemplate dotNetType]
 	| NULL                      { ns = "System.Object"; }
 	;
 
+magicScrutineeVar [IToken tok] returns [String thetext]
+@init {
+    $thetext = "__dummyScrutVar" + dummyScrutVarCtr++;
+}:
+  -> IDENTIFIER[tok,$thetext];
