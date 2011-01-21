@@ -1738,13 +1738,13 @@ namespace RusticiSoftware.Translator.CLR
                                         }
                                     }
                                 }
-                                if (matchingArgs)
-                                {
-                                    ResolveResult res = new ResolveResult();
-                                    res.Result = c;
-                                    res.ResultType = AppEnv.Search(Uses, TypeName);
-                                    return res;
-                                }
+                            }
+                            if (matchingArgs)
+                            {
+                                ResolveResult res = new ResolveResult();
+                                res.Result = c;
+                                res.ResultType = AppEnv.Search(Uses, TypeName);
+                                return res;
                             }
                         }
                     }
