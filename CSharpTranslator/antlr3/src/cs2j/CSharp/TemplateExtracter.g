@@ -1136,7 +1136,10 @@ conversion_operator_declaration:
 	conversion_operator_declarator   operator_body ;
 conversion_operator_declarator:
 	(i='implicit' { Warning($i.line, "[UNSUPPORTED] implicit user defined casts,  an explicit cast is always required."); } | 'explicit')  'operator'   tt=type   '('   tf=type   identifier   ')' 
-         {  ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(new CastRepTemplate($tf.thetext, $tt.thetext)); 
+         {  
+            CastRepTemplate kast = new CastRepTemplate($tf.thetext, $tt.thetext); 
+            kast.SurroundingTypeName = $NSContext::currentTypeRep.TypeName;
+            ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(kast);
             Debug("Processing conversion declaration");
         }
     ;

@@ -321,14 +321,14 @@ namespace RusticiSoftware.Translator.CLR
 		
 		public override string mkJava() {
 			string constructorName = "CONSTRUCTOR";
-			if (SurroundingTypeName != null) {
+			if (!String.IsNullOrEmpty(SurroundingTypeName)) {
 				constructorName = SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1);
 			}
 			return "new " + constructorName + mkJavaParams(Params);
 		}
 		
 		public override string[] mkImports() {
-			if (SurroundingTypeName != null) {
+			if (!String.IsNullOrEmpty(SurroundingTypeName)) {
 				return new string[] {SurroundingTypeName};
 			}
 			else {
@@ -454,12 +454,12 @@ namespace RusticiSoftware.Translator.CLR
 		public override string mkJava() {
 			StringBuilder methStr = new StringBuilder();
 			if (IsStatic) {
-				if (SurroundingTypeName != null) {
-					methStr.Append(SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1) + ".");
-				}
-				else {
-					methStr.Append("TYPENAME.");
-				}
+                            if (!String.IsNullOrEmpty(SurroundingTypeName)) {
+                                methStr.Append(SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1) + ".");
+                            }
+                            else {
+                                methStr.Append("TYPENAME.");
+                            }
 			}
 			else {
 				methStr.Append("${this}.");
@@ -565,11 +565,11 @@ namespace RusticiSoftware.Translator.CLR
 		}
 		
 		public override string[] mkImports() {
-			if (From == null || To == null) {
-				return null;
+			if (!String.IsNullOrEmpty(SurroundingTypeName)) {
+				return new string[] {SurroundingTypeName};
 			}
 			else {
-				return new string[] {"CS2JNet." + From};
+				return null;
 			}
 		}	
 		
@@ -578,7 +578,13 @@ namespace RusticiSoftware.Translator.CLR
 				return null;
 			}
 			else {
-				return From.Substring(From.LastIndexOf('.') + 1) + ".__cast_" + To.Replace('.','_') + "(${expr})";
+                            if (!String.IsNullOrEmpty(SurroundingTypeName)) {
+				return SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1) + ".__castto_" + To.Replace('.','_') + "(${expr})";
+                            }
+                            else
+                            {
+				return "__cast_" + To.Replace('.','_') + "(${expr})";
+                            }
 			}
 		}
 

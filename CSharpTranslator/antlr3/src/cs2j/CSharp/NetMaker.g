@@ -147,6 +147,13 @@ scope SymTab {
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
 
+    protected CommonTree wrapTypeOfType(TypeRepTemplate t, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "EXPRESSION"), root);
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(IDENTIFIER, tok, t.Java));
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
     protected CommonTree dupTree(CommonTree t) {
         return (CommonTree)adaptor.DupTree(t);
     }
@@ -264,7 +271,7 @@ class_member_declaration:
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | ^(ENUM attributes? modifiers? enum_declaration)
     | ^(DELEGATE attributes? modifiers? delegate_declaration)
-    | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
+    | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration[$attributes.tree, $modifiers.tree]) -> conversion_operator_declaration
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block exception*)
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
     ;
@@ -274,7 +281,7 @@ exception:
 
 // rmId is the rightmost ID in an expression like fdfd.dfdsf.returnme, otherwise it is null
 // used in switch labels to strip down qualified types, which Java doesn't grok
-primary_expression returns [TypeRepTemplate dotNetType, String rmId]
+primary_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]
 scope {
     bool parentIsApply;
 }
@@ -303,6 +310,10 @@ scope {
                     }
                     for (int idx = 0; idx < methodRep.Params.Count; idx++) {
                         myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
+                        if (methodRep.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
+                            // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                            myMap[methodRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+                        }
                     }
                     ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
                     Imports.Add(methodResult.Result.Imports);
@@ -432,7 +443,7 @@ scope {
 	| unchecked_expression          		// unchecked {...}
 	| default_value_expression      		// default
 	| anonymous_method_expression			// delegate (int foo) {}
-	| typeof_expression             // typeof(Foo).Name
+	| typeof_expression          { $dotNetType = $typeof_expression.dotNetType; $typeofType = $typeof_expression.typeofType; }   // typeof(Foo).Name
 	;
 
 primary_expression_start returns [TypeRepTemplate dotNetType]:
@@ -456,31 +467,32 @@ paren_expression:
 	'('   expression   ')' ;
 arguments: 
 	'('   argument_list?   ')' ;
-argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees]
+argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees, List<TypeRepTemplate> argTreeTypeofTypes]
 @init {
     $argTypes = new List<TypeRepTemplate>();
     $argTrees = new List<CommonTree>();
+    $argTreeTypeofTypes = new List<TypeRepTemplate>();
 }: 
-	^(ARGS (argument { $argTypes.Add($argument.dotNetType); $argTrees.Add(dupTree($argument.tree)); })+);
+	^(ARGS (argument { $argTypes.Add($argument.dotNetType); $argTrees.Add(dupTree($argument.tree)); $argTreeTypeofTypes.Add($argument.typeofType); })+);
 // 4.0
-argument returns [TypeRepTemplate dotNetType]:
-	argument_name   argument_value { $dotNetType = $argument_value.dotNetType; }
-	| argument_value { $dotNetType = $argument_value.dotNetType; }
+argument returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
+	argument_name   argument_value { $dotNetType = $argument_value.dotNetType; $typeofType = $argument_value.typeofType; }
+	| argument_value { $dotNetType = $argument_value.dotNetType; $typeofType = $argument_value.typeofType; }
     ;
 argument_name:
 	identifier   ':';
-argument_value returns [TypeRepTemplate dotNetType]:
-	expression { $dotNetType = $expression.dotNetType; } 
-	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; } 
-	| 'out'   variable_reference { $dotNetType = $variable_reference.dotNetType; } ;
-ref_variable_reference returns [TypeRepTemplate dotNetType]:
+argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
+	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
+	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; $typeofType = $ref_variable_reference.typeofType; } 
+	| 'out'   variable_reference { $dotNetType = $variable_reference.dotNetType; $typeofType = $variable_reference.typeofType; } ;
+ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
 	'ref' 
 		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference) { $dotNetType = $type.dotNetType; }   // SomeFunc(ref (int) ref foo)
 																									// SomeFunc(ref (int) foo)
-		| v1=variable_reference { $dotNetType = $v1.dotNetType; });	// SomeFunc(ref foo)
+		| v1=variable_reference { $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType; });	// SomeFunc(ref foo)
 // lvalue
-variable_reference returns [TypeRepTemplate dotNetType]:
-	expression { $dotNetType = $expression.dotNetType; };
+variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
+	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; };
 rank_specifiers: 
 	rank_specifier+ ;        
 rank_specifier: 
@@ -501,9 +513,9 @@ member_declarator_list:
 	member_declarator  (',' member_declarator)* ; 
 member_declarator: 
 	qid   ('='   expression)? ;
-primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, String rmId]:
+primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]:
 	(array_creation_expression) => array_creation_expression
-	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; }
+	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; $typeofType = $primary_expression.typeofType; }
 	;
 // new Type[2] { }
 array_creation_expression:
@@ -581,8 +593,8 @@ initializer_value:
 
 ///////////////////////////////////////////////////////
 
-typeof_expression: 
-	^('typeof'  (unbound_type_name | type | 'void') ) ;
+typeof_expression returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]: 
+	^('typeof'  (unbound_type_name | type { $typeofType = $type.dotNetType; } | 'void' { $typeofType = AppEnv.Search("System.Void"); }) ) { $dotNetType = AppEnv.Search("System.Type"); };
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -694,9 +706,9 @@ statement_list:
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
-expression returns [TypeRepTemplate dotNetType, String rmId]: 
+expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]: 
 	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; }
-	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; }
+	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; $typeofType = $non_assignment_expression.typeofType; }
 	;
 expression_list:
 	expression  (','   expression)* ;
@@ -730,12 +742,12 @@ assignment
     | unary_expression   assignment_operator expression ;
 
 
-unary_expression returns [TypeRepTemplate dotNetType, String rmId]: 
+unary_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
     //(cast_expression) => cast_expression
 	^(CAST_EXPR type unary_expression)          { $dotNetType = $type.dotNetType; }
-	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; }
+	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; $typeofType = $primary_or_array_creation_expression.typeofType; }
 	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
 	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
 	| ^(MONONOT u3=unary_expression)            { $dotNetType = $u3.dotNetType; }
@@ -744,7 +756,7 @@ unary_expression returns [TypeRepTemplate dotNetType, String rmId]:
 	| ^(PREDEC u6=unary_expression)             { $dotNetType = $u6.dotNetType; }
 	| ^(MONOSTAR unary_expression)              { $dotNetType = ObjectType; }
 	| ^(ADDRESSOF unary_expression)             { $dotNetType = ObjectType; }
-	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; $rmId = $expression.rmId; }
+	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; $rmId = $expression.rmId; $typeofType = $expression.typeofType; }
 	;
 //cast_expression:
 //	'('   type   ')'   non_assignment_expression ;
@@ -759,7 +771,7 @@ assignment_operator:
 //addressof_expression:
 //	'&'   unary_expression ;
 
-non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId]:
+non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]:
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
@@ -786,7 +798,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId]:
         | ^('/' n12=non_assignment_expression non_assignment_expression)      {$dotNetType = $n12.dotNetType; }
         | ^('%' n13=non_assignment_expression non_assignment_expression)      {$dotNetType = $n13.dotNetType; }
  //       | ^(UNARY_EXPRESSION unary_expression)
-        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; $rmId = $unary_expression.rmId; }
+        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; $rmId = $unary_expression.rmId; $typeofType = $unary_expression.typeofType; }
 	;
 
 // ///////////////////////////////////////////////////////
@@ -1172,10 +1184,15 @@ binary_operator_declarator:
 overloadable_binary_operator:
 	/*'+' | '-' | */ '*' | '/' | '%' | '&' | '|' | '^' | '<<' | '>' '>' | '==' | '!=' | '>' | '<' | '>=' | '<=' ; 
 
-conversion_operator_declaration:
-	conversion_operator_declarator   operator_body ;
-conversion_operator_declarator:
-	('implicit' | 'explicit')  'operator'   type   '('   type   identifier   ')' ;
+// rewrite to a method
+conversion_operator_declaration[CommonTree atts, CommonTree mods]
+scope SymTab;
+@init {
+    $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+}:
+	h=conversion_operator_declarator { $SymTab::symtab[$h.var] = $h.varTy; }  b=operator_body meth=magicCastOperator[$mods, $h.tree, $b.tree] -> $meth;
+conversion_operator_declarator returns [ String var, TypeRepTemplate varTy ] :
+	('implicit' | 'explicit')  o='operator'   t=type   '('   f=type   n=identifier   ')' { $var = $n.thetext; $varTy = $f.dotNetType; } -> $o $t $f $n;
 operator_body:
 	block ;
 
@@ -1455,3 +1472,17 @@ magicScrutineeVar [IToken tok] returns [String thetext]
     $thetext = "__dummyScrutVar" + dummyScrutVarCtr++;
 }:
   -> IDENTIFIER[tok,$thetext];
+
+magicCastOperator[CommonTree mods, CommonTree header, CommonTree body]
+@init {
+    IToken tok = ((CommonTree)$header.Children[0]).Token;
+    CommonTree toType = dupTree((CommonTree)$header.Children[1]);
+    CommonTree fromType = dupTree((CommonTree)$header.Children[2]);
+    CommonTree paramName = dupTree((CommonTree)$header.Children[3]);
+}:
+->     ^(METHOD[tok, "METHOD"]
+       { dupTree($mods) } 
+       { toType } IDENTIFIER[tok, "__cast"] ^(PARAMS[tok, "PARAMS"] { fromType } { paramName}) 
+       { dupTree(body) }
+      EXCEPTION[tok, "Throwable"])
+;
