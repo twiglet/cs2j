@@ -622,10 +622,16 @@ commas:
 
 type_name returns [string name, TypeRepTemplate dotNetType]: 
 	namespace_or_type_name { $name = $namespace_or_type_name.name; $dotNetType = findType($namespace_or_type_name.name); } ;
-namespace_or_type_name returns [String name, List<string> tyargs]: 
+namespace_or_type_name returns [String name, List<string> tyargs]
+@init {
+    TypeRepTemplate tyRep = null;
+}: 
 	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
     | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
-    | ^(d='.'   n1=namespace_or_type_name type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; } ;
+    | ^(d='.'   n1=namespace_or_type_name tg1=type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; tyRep = findType($name); if (tyRep != null) Imports.Add(tyRep.Imports); } 
+        -> { tyRep != null }? IDENTIFIER[$d.token, tyRep.Java]
+        -> ^($d $n1 $tg1)
+     ;
 
 type_or_generic returns [String name, List<String> tyargs]
 :
