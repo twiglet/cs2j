@@ -4,7 +4,7 @@
   <Java>MailAddressCollection</Java>
   <Name>System.Net.Mail.MailAddressCollection</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

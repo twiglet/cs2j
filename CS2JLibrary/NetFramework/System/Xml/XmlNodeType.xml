@@ -4,7 +4,7 @@
   <Java>short</Java>
   <Name>System.Xml.XmlNodeType</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

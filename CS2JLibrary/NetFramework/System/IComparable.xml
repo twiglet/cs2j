@@ -4,7 +4,7 @@
   <Java>IComparable</Java>
   <Name>System.IComparable</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

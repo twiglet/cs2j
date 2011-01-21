@@ -6,7 +6,7 @@
   <Java>Assembly</Java>
   <Name>System.Reflection.Assembly</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports>

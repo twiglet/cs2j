@@ -6,7 +6,7 @@
   <Java>NONE</Java>
   <Name>System.Text.RegularExpressions.Capture</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

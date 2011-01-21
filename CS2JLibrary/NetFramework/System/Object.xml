@@ -4,6 +4,7 @@
   <Java>Object</Java>
   <Name>System.Object</Name>
   <Uses />
+  <!-- very important that this doesn't inherit from system.object .... -->
   <Inherits />
   <Methods>
     <Method>

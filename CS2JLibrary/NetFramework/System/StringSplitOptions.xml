@@ -4,7 +4,7 @@
   <Java>StringSplitOptions</Java>
   <Name>System.StringSplitOptions</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

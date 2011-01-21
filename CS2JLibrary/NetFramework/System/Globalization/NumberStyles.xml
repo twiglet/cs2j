@@ -4,7 +4,7 @@
   <Java>NumberStyles</Java>
   <Name>System.Globalization.NumberStyles</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

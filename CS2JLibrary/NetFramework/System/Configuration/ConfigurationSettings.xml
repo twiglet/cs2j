@@ -4,7 +4,7 @@
   <Java>NONE</Java>
   <Name>System.Configuration.ConfigurationSettings</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

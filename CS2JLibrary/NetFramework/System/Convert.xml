@@ -4,7 +4,7 @@
   <Java>Convert</Java>
   <Name>System.Convert</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports>

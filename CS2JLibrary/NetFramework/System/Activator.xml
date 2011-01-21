@@ -4,7 +4,7 @@
   <Java>Activator</Java>
   <Name>System.Activator</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

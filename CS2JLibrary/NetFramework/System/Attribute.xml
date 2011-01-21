@@ -4,7 +4,7 @@
   <Java>Class</Java>
   <Name>System.Attribute</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties />
   <Events />

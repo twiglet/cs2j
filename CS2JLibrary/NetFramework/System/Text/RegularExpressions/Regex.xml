@@ -6,7 +6,7 @@
   <Java>Pattern</Java>
   <Name>System.Text.RegularExpressions.Regex</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

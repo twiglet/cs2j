@@ -6,7 +6,7 @@
   <Java>IXmlSerializable</Java>
   <Name>System.Xml.Serialization.IXmlSerializable</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

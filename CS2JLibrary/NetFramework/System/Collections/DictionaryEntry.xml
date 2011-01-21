@@ -6,7 +6,7 @@
   <Java>Map.Entry</Java>
   <Name>System.Collections.DictionaryEntry</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

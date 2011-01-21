@@ -4,7 +4,7 @@
   <Java>Encoding</Java>
   <Name>System.Text.Encoding</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

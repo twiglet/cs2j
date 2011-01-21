@@ -4,7 +4,7 @@
   <Java>Math</Java>
   <Name>System.Math</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

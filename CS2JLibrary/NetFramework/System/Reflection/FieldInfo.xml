@@ -6,7 +6,7 @@
   <Java>Field</Java>
   <Name>System.Reflection.FieldInfo</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports>

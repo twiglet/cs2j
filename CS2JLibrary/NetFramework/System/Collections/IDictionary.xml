@@ -6,7 +6,7 @@
   <Java>Map</Java>
   <Name>System.Collections.IDictionary</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

@@ -6,7 +6,7 @@
   <Java>List</Java>
   <Name>System.Collections.IList</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

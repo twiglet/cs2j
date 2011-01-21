@@ -4,7 +4,7 @@
   <Java>XmlSchemaObject</Java>
   <Name>System.Xml.Schema.XmlSchemaObject</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties />
   <Events />

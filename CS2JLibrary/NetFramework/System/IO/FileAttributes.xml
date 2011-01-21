@@ -4,7 +4,7 @@
   <Java>Integer</Java>
   <Name>System.IO.FileAttributes</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>

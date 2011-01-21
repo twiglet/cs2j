@@ -4,7 +4,7 @@
   <Java>Thread</Java>
   <Name>System.Threading.Thread</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

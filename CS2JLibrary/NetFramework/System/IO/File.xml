@@ -6,7 +6,7 @@
   <Java>File</Java>
   <Name>System.IO.File</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports>

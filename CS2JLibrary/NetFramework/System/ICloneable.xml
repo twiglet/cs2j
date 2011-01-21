@@ -6,7 +6,7 @@
   <Java>ICloneable</Java>
   <Name>System.ICloneable</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

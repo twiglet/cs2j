@@ -6,7 +6,7 @@
   <Java>XmlAttributeCollection</Java>
   <Name>System.Xml.XmlAttributeCollection</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
       <Imports />

@@ -4,7 +4,7 @@
   <Java>BindingFlags</Java>
   <Name>System.Reflection.BindingFlags</Name>
   <Uses />
-  <Inherits />
+  <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods />
   <Properties>
     <Property>
