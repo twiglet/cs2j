@@ -89,7 +89,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toArrayS(new ${TYPEOF_TYPE}[0])</Java>
+      <Java>${this}.toArrayS(new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>

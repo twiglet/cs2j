@@ -136,7 +136,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toArray(new ${TYPEOF_TYPE}[0])</Java>
+      <Java>${this}.toArray(new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
