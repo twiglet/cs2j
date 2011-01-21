@@ -1468,8 +1468,8 @@ literal returns [TypeRepTemplate dotNetType]
 	| Character_literal         { ns = "System.Char"; }
 	| STRINGLITERAL             { ns = "System.String"; }
 	| Verbatim_string_literal   { ns = "System.String"; }
-	| TRUE                      { ns = "System.Bool"; }
-	| FALSE                     { ns = "System.Bool"; }
+	| TRUE                      { ns = "System.Boolean"; }
+	| FALSE                     { ns = "System.Boolean"; }
 	| NULL                      { ns = "System.Object"; }
 	;
 
