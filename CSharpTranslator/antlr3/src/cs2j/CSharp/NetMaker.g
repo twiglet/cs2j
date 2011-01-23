@@ -751,8 +751,7 @@ assignment
 unary_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
-    //(cast_expression) => cast_expression
-	^(CAST_EXPR type unary_expression)          { $dotNetType = $type.dotNetType; }
+    cast_expression                             { $dotNetType = $cast_expression.dotNetType; }
 	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; $typeofType = $primary_or_array_creation_expression.typeofType; }
 	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
 	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
@@ -764,8 +763,36 @@ unary_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTempla
 	| ^(ADDRESSOF unary_expression)             { $dotNetType = ObjectType; }
 	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; $rmId = $expression.rmId; $typeofType = $expression.typeofType; }
 	;
-//cast_expression:
-//	'('   type   ')'   non_assignment_expression ;
+
+cast_expression  returns [TypeRepTemplate dotNetType]
+@init {
+    CommonTree ret = null;
+}
+@after {
+    if (ret != null)
+        $cast_expression.tree = ret;
+}:
+    ^(c=CAST_EXPR type unary_expression)          
+       { 
+            $dotNetType = $type.dotNetType;
+            if ($type.dotNetType != null && $unary_expression.dotNetType != null) {
+                // see if expression's type has a cast to type
+                ResolveResult kaster = $unary_expression.dotNetType.ResolveCastTo($type.dotNetType, AppEnv);
+                if (kaster == null) {
+                    // see if type has a cast from expression's type
+                    kaster = $type.dotNetType.ResolveCastFrom($unary_expression.dotNetType, AppEnv);
+                }
+                if (kaster != null) {
+                    Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                    myMap["expr"] = wrapExpression($unary_expression.tree, $c.token);
+                    myMap["TYPEOF_totype"] = wrapTypeOfType($type.dotNetType, $c.token);
+                    myMap["TYPEOF_expr"] = wrapTypeOfType($unary_expression.dotNetType, $c.token);
+                    ret = mkJavaWrapper(kaster.Result.Java, myMap, $c.token);
+                    Imports.Add(kaster.Result.Imports);
+                }
+            }
+       }
+;         
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 //pre_increment_expression: 
@@ -1195,10 +1222,22 @@ conversion_operator_declaration[CommonTree atts, CommonTree mods]
 scope SymTab;
 @init {
     $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+    String methodName = "__cast";
 }:
-	h=conversion_operator_declarator { $SymTab::symtab[$h.var] = $h.varTy; }  b=operator_body meth=magicCastOperator[$mods, $h.tree, $b.tree] -> $meth;
-conversion_operator_declarator returns [ String var, TypeRepTemplate varTy ] :
-	('implicit' | 'explicit')  o='operator'   t=type   '('   f=type   n=identifier   ')' { $var = $n.thetext; $varTy = $f.dotNetType; } -> $o $t $f $n;
+	h=conversion_operator_declarator 
+        { 
+            $SymTab::symtab[$h.var] = $h.varTy; 
+            // if varTy is same as this class then need to include toType in methodname
+            if ($NSContext::currentNS == $h.varTy.TypeName) 
+            {
+                methodName += $h.toTy.Java;
+            }
+        }  
+    b=operator_body meth=magicCastOperator[$mods, methodName, $h.tree, $b.tree] -> $meth;
+conversion_operator_declarator returns [ String var, TypeRepTemplate varTy, TypeRepTemplate toTy ] :
+	('implicit' | 'explicit')  o='operator'   t=type   '('   f=type   n=identifier   ')' 
+          { $var = $n.thetext; $varTy = $f.dotNetType; $toTy = $t.dotNetType; } 
+      -> $o $t $f $n;
 operator_body:
 	block ;
 
@@ -1479,7 +1518,7 @@ magicScrutineeVar [IToken tok] returns [String thetext]
 }:
   -> IDENTIFIER[tok,$thetext];
 
-magicCastOperator[CommonTree mods, CommonTree header, CommonTree body]
+magicCastOperator[CommonTree mods, String methodName, CommonTree header, CommonTree body]
 @init {
     IToken tok = ((CommonTree)$header.Children[0]).Token;
     CommonTree toType = dupTree((CommonTree)$header.Children[1]);
@@ -1488,7 +1527,7 @@ magicCastOperator[CommonTree mods, CommonTree header, CommonTree body]
 }:
 ->     ^(METHOD[tok, "METHOD"]
        { dupTree($mods) } 
-       { toType } IDENTIFIER[tok, "__cast"] ^(PARAMS[tok, "PARAMS"] { fromType } { paramName}) 
+       { toType } IDENTIFIER[tok, $methodName] ^(PARAMS[tok, "PARAMS"] { fromType } { paramName}) 
        { dupTree(body) }
       EXCEPTION[tok, "Throwable"])
 ;

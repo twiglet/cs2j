@@ -579,7 +579,17 @@ namespace RusticiSoftware.Translator.CLR
 			}
 			else {
                             if (!String.IsNullOrEmpty(SurroundingTypeName)) {
-				return SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1) + ".__castto_" + To.Replace('.','_') + "(${expr})";
+                                String myType = SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1);
+                                String toType = To.Substring(To.LastIndexOf('.') + 1);
+                                if (myType == toType)
+                                {
+                                    // just overload various casts to my type
+                                    return  myType + ".__cast(${expr})";
+                                }
+                                else
+                                {
+                                    return  myType + ".__cast${TYPEOF_totype}(${expr})";                                        
+                                }
                             }
                             else
                             {
@@ -906,6 +916,16 @@ namespace RusticiSoftware.Translator.CLR
 		[XmlArrayItem("Alias")]
 		public AliasRepTemplate[] Aliases { get; set; }
 
+		protected List<CastRepTemplate> _casts = null;
+		[XmlArrayItem("Cast")]
+		public virtual List<CastRepTemplate> Casts {
+			get {
+				if (_casts == null)
+					_casts = new List<CastRepTemplate> ();
+				return _casts;
+			}
+		}
+
 		public TypeRepTemplate () : base()
 		{
 			TypeName = null;
@@ -966,6 +986,7 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
+                // Resolve a method call (name and arg types)
                 public virtual ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
                     if (Inherits != null)
@@ -984,6 +1005,7 @@ namespace RusticiSoftware.Translator.CLR
                     return null;
                 }
 
+                // Resolve a field or property access
                 public virtual ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
                     if (Inherits != null)
@@ -996,6 +1018,85 @@ namespace RusticiSoftware.Translator.CLR
                                 ResolveResult ret = baseType.Resolve(name,AppEnv);
                                 if (ret != null)
                                     return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
+                // Resolve a cast from this type to castTo
+                public virtual ResolveResult ResolveCastTo(TypeRepTemplate castTo, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Casts != null)
+                    {
+                        foreach (CastRepTemplate c in Casts)
+                        {
+                            if (c.To != null)
+                            {
+                                // Is this a cast from us?
+                                TypeRepTemplate fromTy = null;
+                                if (c.From != null)
+                                {
+                                    fromTy = AppEnv.Search(Uses, c.From);
+                                }
+                                if (c.From == null || (fromTy != null && fromTy.TypeName == TypeName))
+                                {
+                                    // cast from us
+                                    TypeRepTemplate toTy = AppEnv.Search(Uses, c.To);
+                                    if (toTy.IsA(castTo, AppEnv))
+                                    {
+                                        ResolveResult res = new ResolveResult();
+                                        res.Result = c;
+                                        res.ResultType = toTy;
+                                        return res;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            TypeRepTemplate baseType = AppEnv.Search(Uses, b);
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.ResolveCastTo(castTo,AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
+                // Resolve a cast to this type from castFrom
+                public virtual ResolveResult ResolveCastFrom(TypeRepTemplate castFrom, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Casts != null)
+                    {
+                        foreach (CastRepTemplate c in Casts)
+                        {
+                            if (c.From != null)
+                            {
+                                // Is this a cast to us?
+                                TypeRepTemplate toTy = null;
+                                if (c.To != null)
+                                {
+                                    toTy = AppEnv.Search(Uses, c.To);
+                                }
+                                if (c.To == null || (toTy != null && toTy.TypeName == TypeName))
+                                {
+                                    // cast to us
+                                    TypeRepTemplate fromTy = AppEnv.Search(Uses, c.From);
+                                    if (castFrom.IsA(fromTy, AppEnv))
+                                    {
+                                        ResolveResult res = new ResolveResult();
+                                        res.Result = c;
+                                        res.ResultType = toTy;
+                                        return res;
+                                    }
+                                }
                             }
                         }
                     }
@@ -1122,6 +1223,15 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 			
+			if (Casts != other.Casts) {
+				if (Casts == null || other.Casts == null || Casts.Count != other.Casts.Count)
+					return false;
+				for (int i = 0; i < Casts.Count; i++) {
+					if (Casts[i] != other.Casts[i])
+						return false;
+				}
+			}
+
 			return TypeName == other.TypeName && base.Equals(other);
 		}
 
@@ -1163,6 +1273,12 @@ namespace RusticiSoftware.Translator.CLR
 					hashCode ^= e.GetHashCode();
 				}
 			}
+			if (Casts != null) {
+				foreach (CastRepTemplate e in Casts) {
+					hashCode ^= e.GetHashCode();
+				}
+			}
+
 			return (Java ?? String.Empty).GetHashCode () ^ hashCode;
 		}
 		#endregion		
@@ -1183,6 +1299,38 @@ namespace RusticiSoftware.Translator.CLR
 				if (_members == null)
 					_members = new List<EnumMemberRepTemplate> ();
 				return _members;
+			}
+		}
+
+                private List<CastRepTemplate> _enumCasts = null;
+		private List<CastRepTemplate> EnumCasts {
+			get {
+				if (_enumCasts == null)
+                                {
+                                    _enumCasts = new List<CastRepTemplate> ();
+                                    CastRepTemplate kast = new CastRepTemplate();
+                                    kast.From = "System.Int32";
+                                    kast.Java = "${TYPEOF_totype}.values()[${expr}]";
+                                    _enumCasts.Add(kast);
+                                    kast = new CastRepTemplate();
+                                    kast.To = "System.Int32";
+                                    kast.Java = "((Enum)${expr}).ordinal()";
+                                    _enumCasts.Add(kast);
+                                }
+				return _enumCasts;
+			}
+		}
+
+		public override List<CastRepTemplate> Casts {
+			get {
+				if (_casts == null)
+                                {
+                                    return EnumCasts;
+                                }
+                                else
+                                {
+                                    return _casts;        
+                                }
 			}
 		}
 
@@ -1632,16 +1780,6 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
-		private List<CastRepTemplate> _casts = null;
-		[XmlArrayItem("Cast")]
-		public List<CastRepTemplate> Casts {
-			get {
-				if (_casts == null)
-					_casts = new List<CastRepTemplate> ();
-				return _casts;
-			}
-		}
-
 		private List<MethodRepTemplate> _unaryOps = null;
 		[XmlArrayItem("UnaryOp")]
 		public List<MethodRepTemplate> UnaryOps {
@@ -1752,7 +1890,6 @@ namespace RusticiSoftware.Translator.CLR
                     return null;
                 }
 
-
 		#region Equality
 		public bool Equals (ClassRepTemplate other)
 		{
@@ -1773,15 +1910,6 @@ namespace RusticiSoftware.Translator.CLR
 					return false;
 				for (int i = 0; i < Fields.Count; i++) {
 					if (Fields[i] != other.Fields[i])
-						return false;
-				}
-			}
-
-			if (Casts != other.Casts) {
-				if (Casts == null || other.Casts == null || Casts.Count != other.Casts.Count)
-					return false;
-				for (int i = 0; i < Casts.Count; i++) {
-					if (Casts[i] != other.Casts[i])
 						return false;
 				}
 			}
@@ -1838,11 +1966,6 @@ namespace RusticiSoftware.Translator.CLR
 			}
 			if (Fields != null) {
 				foreach (FieldRepTemplate e in Fields) {
-					hashCode ^= e.GetHashCode();
-				}
-			}
-			if (Casts != null) {
-				foreach (CastRepTemplate e in Casts) {
 					hashCode ^= e.GetHashCode();
 				}
 			}
