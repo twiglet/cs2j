@@ -28,6 +28,7 @@ scope SymTab {
 
 @header
 {
+    using System.Text;
     using RusticiSoftware.Translator.Utils;
     using RusticiSoftware.Translator.CLR;
 }
@@ -65,6 +66,25 @@ scope SymTab {
 
     protected TypeRepTemplate findType(string name) {
         return AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name));
+    }
+
+    protected TypeRepTemplate findType(string name, TypeRepTemplate[] args) {
+        StringBuilder argNames = new StringBuilder();
+        bool first = true;
+        if (args != null && args.Length > 0) {
+            argNames.Append("<");
+            foreach (TypeRepTemplate ty in args) {
+                if (!first) {
+                    argNames.Append(", ");
+                    first = false;
+                }
+                argNames.Append(ty.TypeName);
+            }
+            argNames.Append(">");
+        }
+        TypeRepTemplate tyRep = AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name + argNames.ToString()));
+        tyRep.Apply(args);
+        return tyRep;
     }
 
     private ClassRepTemplate objectType = null;
@@ -493,10 +513,13 @@ ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate type
 // lvalue
 variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
 	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; };
-rank_specifiers: 
-	rank_specifier+ ;        
-rank_specifier: 
-	'['   /*dim_separators?*/   ']' ;
+rank_specifiers[TypeRepTemplate inTy] returns [TypeRepTemplate dotNetType]
+@init {
+    TypeRepTemplate ty = $inTy;
+}: 
+        (rank_specifier[ty] { ty = $rank_specifier.dotNetType;} )+ { $dotNetType = ty; };        
+rank_specifier[TypeRepTemplate inTy] returns [TypeRepTemplate dotNetType]:
+	'['   /*dim_separators?*/   ']' { if ($inTy != null) { $dotNetType = findType("System.Array", new TypeRepTemplate[] {$inTy}); } } ;
 // keving
 // dim_separators: 
 //	','+ ;
@@ -521,14 +544,14 @@ primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, String
 array_creation_expression:
 	^('new'   
 		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   array_initializer?	// new int[4]
+					( rank_specifiers[$type.dotNetType]?   array_initializer?	// new int[4]
 					// | invocation_part*
 					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
 					  | invocation_part)*   arguments
 					)							// new int[4]()
 				| array_initializer		
 				)
-		| rank_specifier   // [,]
+		| rank_specifier[null]   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
 		)) ;
@@ -674,13 +697,12 @@ type_arguments  returns [List<string> tyTexts]
 }: 
 	t1=type { $tyTexts.Add($t1.dotNetType.TypeName); } (',' tn=type { $tyTexts.Add($tn.dotNetType.TypeName); })* ;
 
-// TODO add arrays
 type returns [TypeRepTemplate dotNetType]
 :
     ^(TYPE (predefined_type { $dotNetType = $predefined_type.dotNetType; } 
            | type_name { $dotNetType = $type_name.dotNetType; } 
            | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
-        rank_specifiers? '*'* '?'?);
+        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; })? '*'* '?'?);
 
 non_nullable_type returns [TypeRepTemplate dotNetType]:
     type { $dotNetType = $type.dotNetType; } ;

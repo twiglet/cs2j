@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
@@ -18,13 +19,65 @@ using RusticiSoftware.Translator.Utils;
 namespace RusticiSoftware.Translator.CLR
 {
 	
+        public class TemplateUtilities
+        {
+            public static string Substitute(string c, Dictionary<string,TypeRepTemplate> argMap)
+            {
+                String ret = c;
+                if (argMap.ContainsKey(c))
+                {
+                    ret = argMap[c].TypeName;
+                }
+                return ret;
+            }
+            
+            public static string SubstituteInType(String type, Dictionary<string,TypeRepTemplate> argMap)
+            {
+                if (String.IsNullOrEmpty(type))
+                    return type;
+
+                string ret = type;
+                // type is either "string" or "string<type,type,...>"
+                Match match = Regex.Match(type, @"^([\w|\.]+)(?:\s*\[\s*([\w|\.]+)(?:\s*,\s*([\w|\.]+))*\s*\])?$");
+                if (match.Success)
+                {
+                    CaptureCollection captures = match.Captures;
+                    StringBuilder buf = new StringBuilder();
+                    buf.Append(Substitute(captures[0].Value, argMap));
+                    if ( captures.Count > 1)
+                    {
+                        bool first = true;
+                        buf.Append("[");
+                        for (int i = 1; i < captures.Count; i++)
+                        {
+                            if (!first)
+                            {
+                                buf.Append(", ");
+                            }
+                            buf.Append(Substitute(captures[i].Value, argMap));
+                            first = false;
+                        }
+                        buf.Append("]");
+                    }
+                    ret = buf.ToString();
+                }
+                return ret;
+            }
+        }
+
+        public interface IApplyTypeArgs
+        {
+            // Instantiate type arguments "in-situ"
+            void Apply(Dictionary<string,TypeRepTemplate> args);
+        }
+
 	public enum Javastyle 
 	{
 		Clean, MarkAuto
 	}
 	
 	// Simple <type> <name> pairs to represent formal parameters
-	public class ParamRepTemplate : IEquatable<ParamRepTemplate>
+        public class ParamRepTemplate : IEquatable<ParamRepTemplate>, IApplyTypeArgs
 	{
 		private string _type;
 		public string Type { 
@@ -58,6 +111,11 @@ namespace RusticiSoftware.Translator.CLR
 			Name = a;
 			IsByRef = isbyref;
 		}
+
+                public void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    Type = TemplateUtilities.SubstituteInType(Type, args);
+                }
 
 		#region Equality
 		public bool Equals (ParamRepTemplate other)
@@ -154,7 +212,7 @@ namespace RusticiSoftware.Translator.CLR
 
 
 	// Never directly create a TranslationBase. Its a common root for translatable language entities
-	public abstract class TranslationBase : IEquatable<TranslationBase>
+	public abstract class TranslationBase : IEquatable<TranslationBase>, IApplyTypeArgs
 	{
 		// Java imports required to make Java translation run
 		private string[] _imports = null;
@@ -251,6 +309,15 @@ namespace RusticiSoftware.Translator.CLR
 			return parStr.ToString();
 		}
 
+
+                // Instantiate type arguments
+                public virtual void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (!String.IsNullOrEmpty(SurroundingTypeName))
+                    {
+                        SurroundingTypeName = TemplateUtilities.SubstituteInType(SurroundingTypeName, args);
+                    }
+                }
 
 		#region Equality
 
@@ -350,6 +417,18 @@ namespace RusticiSoftware.Translator.CLR
 			_params = pars;
 		}
 
+
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Params != null)
+                    {
+                        foreach(ParamRepTemplate p in Params)
+                        {
+                            p.Apply(args);
+                        }
+                    }
+                    base.Apply(args);
+                }
 
 		#region Equality
 
@@ -476,6 +555,16 @@ namespace RusticiSoftware.Translator.CLR
 			return methStr.ToString() + mkJavaParams(Params);
 		}
 		
+                // TODO: filter out redefined type names
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Return != null)
+                    {
+                        Return = TemplateUtilities.SubstituteInType(Return,args);
+                    }
+                    base.Apply(args);
+                }
+
 		#region Equality
 		public bool Equals (MethodRepTemplate other)
 		{
@@ -598,6 +687,19 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (From != null)
+                    {
+                        From = TemplateUtilities.SubstituteInType(From, args);
+                    }
+                    if (To != null)
+                    { 
+                        To = TemplateUtilities.SubstituteInType(To, args);
+                    }
+                    base.Apply(args);
+                }
+
 		#region Equality
 		public bool Equals (CastRepTemplate other)
 		{
@@ -666,6 +768,15 @@ namespace RusticiSoftware.Translator.CLR
 		public override string mkJava() {
 			return "${this}." + Name;
 		}
+
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Type != null)
+                    {
+                        Type = TemplateUtilities.SubstituteInType(Type, args);
+                    }
+                    base.Apply(args);
+                }
 
 		#region Equality
 		public bool Equals (FieldRepTemplate other)
@@ -986,6 +1097,39 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
+
+                public void Apply(TypeRepTemplate[] args)
+                {
+                    if (args.Length == TypeParams.Length)
+                    {
+                        Dictionary<string,TypeRepTemplate> paramMap = new Dictionary<string,TypeRepTemplate>();
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            paramMap[TypeParams[i]] = args[i];
+                        }
+                        this.Apply(paramMap);
+                    }
+                }
+                
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Casts != null)
+                    {
+                        foreach(CastRepTemplate c in Casts)
+                        {
+                            c.Apply(args);
+                        }
+                    }
+                    if (Inherits != null)
+                    {
+                        for(int i = 0; i < Inherits.Length; i++)
+                        {
+                            Inherits[i] = TemplateUtilities.SubstituteInType(Inherits[i],args);
+                        }
+                    }
+                    base.Apply(args);
+                }
+
                 // Resolve a method call (name and arg types)
                 public virtual ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
@@ -1451,6 +1595,22 @@ namespace RusticiSoftware.Translator.CLR
 			return "${delegate}.Invoke" + mkJavaParams(Params);
 		}
 
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Params != null)
+                    {
+                        foreach(ParamRepTemplate p in Params)
+                        {
+                            p.Apply(args);
+                        }
+                    }
+                    if (Return != null)
+                    {
+                        Return = TemplateUtilities.SubstituteInType(Return, args);
+                    }
+                    base.Apply(args);
+                }
+
 		#region Equality
 		public bool Equals (DelegateRepTemplate other)
 		{
@@ -1566,6 +1726,39 @@ namespace RusticiSoftware.Translator.CLR
 		}
 
 		
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Methods != null)
+                    {
+                        foreach(MethodRepTemplate m in Methods)
+                        {
+                            m.Apply(args);
+                        }
+                    }
+                    if (Properties != null)
+                    {
+                        foreach(PropRepTemplate p in Properties)
+                        {
+                            p.Apply(args);
+                        }
+                    }
+                    if (Events != null)
+                    {
+                        foreach(FieldRepTemplate e in Events)
+                        {
+                            e.Apply(args);
+                        }
+                    }
+                    if (Indexers != null)
+                    {
+                        foreach(MethodRepTemplate i in Indexers)
+                        {
+                            i.Apply(args);
+                        }
+                    }
+                    base.Apply(args);
+                }
+
                 // Returns true if we are a subclass of other, or implements its interface
 		public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv) {
                     InterfaceRepTemplate i = other as InterfaceRepTemplate;
@@ -1824,6 +2017,42 @@ namespace RusticiSoftware.Translator.CLR
 			_fields = fs;
 			_casts = cts;
 		}
+
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Constructors != null)
+                    {
+                        foreach(ConstructorRepTemplate c in Constructors)
+                        {
+                            c.Apply(args);
+                        }
+                    }
+                    if (Fields != null)
+                    {
+                        foreach(FieldRepTemplate f in Fields)
+                        {
+                            f.Apply(args);
+                        }
+                    }
+
+                    if (UnaryOps != null)
+                    {
+                        foreach(MethodRepTemplate u in UnaryOps)
+                        {
+                            u.Apply(args);
+                        }
+                    }
+
+                    if (BinaryOps != null)
+                    {
+                        foreach(MethodRepTemplate b in BinaryOps)
+                        {
+                            b.Apply(args);
+                        }
+                    }
+                    base.Apply(args);
+                }
+
 
                 public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
