@@ -3,6 +3,9 @@
   <Imports />
   <Java>Array</Java>
   <Name>System.Array</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
   <Uses />
   <Inherits>
     <Type>System.Collections.ICollection</Type>
@@ -21,7 +24,7 @@
         </Param>
       </Params>
       <Name>GetValue</Name>
-      <Return>${TYPE}</Return>
+      <Return>T</Return>
     </Method>
     <Method>
       <Imports>
@@ -41,11 +44,9 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.length</Java>
       <Type>System.Int32</Type>
       <Name>Length</Name>
       <Get>${this}.length</Get>
-      <Set>${this}.setLength(${value})</Set>
     </Property>
   </Properties>
   <Events />
