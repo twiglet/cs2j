@@ -72,7 +72,7 @@ scope SymTab {
         StringBuilder argNames = new StringBuilder();
         bool first = true;
         if (args != null && args.Length > 0) {
-            argNames.Append("<");
+            argNames.Append("[");
             foreach (TypeRepTemplate ty in args) {
                 if (!first) {
                     argNames.Append(", ");
@@ -80,7 +80,7 @@ scope SymTab {
                 }
                 argNames.Append(ty.TypeName);
             }
-            argNames.Append(">");
+            argNames.Append("]");
         }
         TypeRepTemplate tyRep = AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name + argNames.ToString()));
         tyRep.Apply(args);
@@ -172,6 +172,14 @@ scope SymTab {
         root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "EXPRESSION"), root);
         adaptor.AddChild(root, (CommonTree)adaptor.Create(IDENTIFIER, tok, t.Java));
         return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    protected CommonTree mkArray(CommonTree t, IToken tok) {
+        if (!t.IsNil) {
+            adaptor.AddChild(t, (CommonTree)adaptor.Create(OPEN_BRACKET, tok, "["));
+            adaptor.AddChild(t, (CommonTree)adaptor.Create(CLOSE_BRACKET, tok, "]"));
+        }
+        return t;
     }
 
     protected CommonTree dupTree(CommonTree t) {
@@ -1190,7 +1198,8 @@ default_argument:
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
 parameter_array:
-	^('params'   type   identifier) ;
+	^(p='params'   type   identifier { $SymTab::symtab[$identifier.thetext] = findType("System.Array", new TypeRepTemplate[] {$type.dotNetType}); }) ;
+
 
 ///////////////////////////////////////////////////////
 interface_declaration:
