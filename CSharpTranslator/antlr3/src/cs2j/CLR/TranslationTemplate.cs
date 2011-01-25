@@ -822,10 +822,9 @@ namespace RusticiSoftware.Translator.CLR
 	// guessing that normally imports will be the same for both)
 	public class PropRepTemplate : FieldRepTemplate, IEquatable<PropRepTemplate>
 	{
-		
-		private string _javaGet = null;		
+		protected string _javaGet = null;		
 		[XmlElementAttribute("Get")]
-		public string JavaGet {
+		public virtual string JavaGet {
 			get {
 				if (!CanRead) return null;
 				if (_javaGet == null) {
@@ -842,7 +841,7 @@ namespace RusticiSoftware.Translator.CLR
 			}
 			set { _javaGet = value; }
 		}
-		
+                
                 public override string Java
                 {
                     get
@@ -851,9 +850,9 @@ namespace RusticiSoftware.Translator.CLR
                     }
                 }
 
-		private string _javaSet = null;
+		protected string _javaSet = null;
 		[XmlElementAttribute("Set")]
-		public string JavaSet { 
+		public virtual string JavaSet { 
 			get {
 				if (_javaSet == null) {
 					return (CanWrite ? "${this}.set" + Name + "(${value})" : null);
@@ -938,6 +937,152 @@ namespace RusticiSoftware.Translator.CLR
 		}
 		#endregion		
 	}
+
+	// An indexer is like a unnamed property that has params
+	public class IndexerRepTemplate : PropRepTemplate, IEquatable<IndexerRepTemplate>
+	{
+		private List<ParamRepTemplate> _params = null;
+		[XmlArrayItem("Param")]
+		public List<ParamRepTemplate> Params {
+			get {
+				if (_params == null)
+					_params = new List<ParamRepTemplate> ();
+				return _params;
+			}
+		}
+		
+                private List<ParamRepTemplate> _setParams = null;
+		private List<ParamRepTemplate> SetParams {
+			get {
+				if (_setParams == null)
+                                {
+                                    _setParams = new List<ParamRepTemplate> ();
+                                    foreach (ParamRepTemplate p in Params)
+                                    {
+                                        _setParams.Add(p);
+                                    }
+                                    _setParams.Add(new ParamRepTemplate(Type,"value"));
+                                }
+				return _setParams;
+			}
+		}
+		
+		[XmlElementAttribute("Get")]
+		public override string JavaGet {
+			get {
+				if (!CanRead) return null;
+				if (_javaGet == null) {
+					if (_java == null) {
+						return (CanRead ? "${this}.get___idx" + mkJavaParams(Params) : null);
+					}
+					else {
+						return _java;
+					}
+				}
+				else {
+					return _javaGet;
+				}
+			}
+			set { _javaGet = value; }
+		}
+		
+		[XmlElementAttribute("Set")]
+		public override string JavaSet { 
+			get {
+				if (_javaSet == null) {
+					return (CanWrite ? "${this}.set___idx" + mkJavaParams(SetParams): null);
+				}
+				else {
+					return _javaSet;
+				}
+			}
+			set { _javaSet = value; }
+		}
+		
+		public IndexerRepTemplate () : base()
+		{
+		}
+
+		public IndexerRepTemplate (string fType, List<ParamRepTemplate> pars) : base(fType, "this")
+		{
+			_params = pars;
+		}
+
+		public IndexerRepTemplate (string fType, List<ParamRepTemplate> pars, string[] imps, string javaGet, string javaSet) : base(fType, "this",imps,javaGet,javaSet)
+		{
+			_params = pars;
+		}
+
+
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (Params != null)
+                    {
+                        foreach(ParamRepTemplate p in Params)
+                        {
+                            p.Apply(args);
+                        }
+                    }
+                    if (_setParams != null)
+                    {
+                        foreach(ParamRepTemplate p in _setParams)
+                        {
+                            p.Apply(args);
+                        }
+                    }
+                    base.Apply(args);
+                }
+
+		#region Equality
+
+		public bool Equals (IndexerRepTemplate other)
+		{
+			if (other == null)
+				return false;
+			
+			if (Params != other.Params) {
+				if (Params == null || other.Params == null || Params.Count != other.Params.Count)
+					return false;
+				for (int i = 0; i < Params.Count; i++) {
+					if (Params[i] != other.Params[i])
+						return false;
+				}
+			}
+
+			return base.Equals(other);
+		}
+
+		public override bool Equals (object obj)
+		{
+			
+			IndexerRepTemplate temp = obj as IndexerRepTemplate;
+			
+			if (!Object.ReferenceEquals (temp, null))
+				return this.Equals (temp);
+			return false;
+		}
+
+		public static bool operator == (IndexerRepTemplate a1, IndexerRepTemplate a2)
+		{
+			return Object.Equals (a1, a2);
+		}
+
+		public static bool operator != (IndexerRepTemplate a1, IndexerRepTemplate a2)
+		{
+			return !(a1 == a2);
+		}
+
+		public override int GetHashCode ()
+		{
+			int hashCode = 0;
+			foreach (ParamRepTemplate o in Params) {
+				hashCode = hashCode ^ o.GetHashCode() ;
+			}
+			
+			return base.GetHashCode () ^ hashCode;
+		}
+		#endregion
+        }
 
 	// A member of an enum,  may also have a numeric value
 	public class EnumMemberRepTemplate : TranslationBase, IEquatable<EnumMemberRepTemplate>
@@ -1161,6 +1306,25 @@ namespace RusticiSoftware.Translator.CLR
                             if (baseType != null)
                             {
                                 ResolveResult ret = baseType.Resolve(name,AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
+                // Resolve a indexer call (arg types)
+                public virtual ResolveResult ResolveIndexer(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            TypeRepTemplate baseType = BuildType(b, AppEnv);
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.ResolveIndexer(args,AppEnv);
                                 if (ret != null)
                                     return ret;
                             }
@@ -1734,12 +1898,13 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
-		private List<MethodRepTemplate> _indexers = null;
+        [XmlIgnore]
+		private List<IndexerRepTemplate> _indexers = null;
 		[XmlArrayItem("Indexer")]
-		public List<MethodRepTemplate> Indexers {
+		public List<IndexerRepTemplate> Indexers {
 			get {
 				if (_indexers == null)
-					_indexers = new List<MethodRepTemplate> ();
+					_indexers = new List<IndexerRepTemplate> ();
 				return _indexers;
 			}
 		}
@@ -1753,7 +1918,7 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		protected InterfaceRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, string[] imps, string javaTemplate) 
+		protected InterfaceRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, string[] imps, string javaTemplate) 
                     : base(tName, tParams, usePath, aliases, imps, javaTemplate)
 		{
 			Inherits = inherits;
@@ -1789,7 +1954,7 @@ namespace RusticiSoftware.Translator.CLR
                     }
                     if (Indexers != null)
                     {
-                        foreach(MethodRepTemplate i in Indexers)
+                        foreach(IndexerRepTemplate i in Indexers)
                         {
                             i.Apply(args);
                         }
@@ -1878,6 +2043,50 @@ namespace RusticiSoftware.Translator.CLR
                     return base.Resolve(name, args, AppEnv);
                 }
 
+                public override ResolveResult ResolveIndexer(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+        
+                    if (Indexers != null)
+                    {
+                        foreach (IndexerRepTemplate i in Indexers)
+                        {
+                            bool matchingArgs = true;
+                            // If either params are null then make sure both represent zero length args
+                            if (i.Params == null || args == null)
+                            {
+                                // Are they both zero length?
+                                matchingArgs = (i.Params == null || i.Params.Count == 0) && (args == null || args.Count == 0);
+                            }
+                            else
+                            {
+                                // Are num args the same?
+                                if (i.Params.Count != args.Count)
+                                {
+                                    matchingArgs = false;
+                                }
+                                else
+                                {
+                                    // check that for each argument in the caller its type 'IsA' the type of the formal argument
+                                    for (int idx = 0; idx < i.Params.Count; idx++) {
+                                        if (args[idx] == null || !args[idx].IsA(BuildType(i.Params[idx].Type, AppEnv, new UnknownRepTemplate(i.Params[idx].Type)),AppEnv))
+                                        {
+                                             matchingArgs = false;
+                                             break;
+                                        }
+                                    }
+                                }
+                                if (matchingArgs)
+                                {
+                                    ResolveResult res = new ResolveResult();
+                                    res.Result = i;
+                                    res.ResultType = BuildType(i.Type, AppEnv);
+                                    return res;
+                                }
+                            }
+                        }
+                    }
+                    return base.ResolveIndexer(args, AppEnv);
+                }
 
 		#region Equality
 		public bool Equals (InterfaceRepTemplate other)
@@ -1977,7 +2186,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 			if (Indexers != null) {
-				foreach (MethodRepTemplate e in Indexers) {
+				foreach (IndexerRepTemplate e in Indexers) {
 					hashCode ^= e.GetHashCode();
 				}
 			}
@@ -2039,7 +2248,7 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public ClassRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts,
+		public ClassRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, List<CastRepTemplate> cts,
 		string[] imports, string javaTemplate) 
                     : base(tName, tParams, usePath, aliases, inherits, ms, ps, es, ixs, imports, javaTemplate)
 		{
@@ -2048,7 +2257,7 @@ namespace RusticiSoftware.Translator.CLR
 			_casts = cts;
 		}
 
-		public ClassRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts)
+		public ClassRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, List<CastRepTemplate> cts)
                     : base(tName, tParams, usePath, aliases, inherits, ms, ps, es, ixs, null, null)
 		{
 			_constructors = cs;
@@ -2111,7 +2320,7 @@ namespace RusticiSoftware.Translator.CLR
                     return base.Resolve(name, AppEnv);
                 }
 
-                public virtual ResolveResult Resolve(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+                public ResolveResult Resolve(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
                 {
         
                     if (Constructors != null)
@@ -2259,13 +2468,13 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public StructRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts,
+		public StructRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, List<CastRepTemplate> cts,
                                           string[] imports, string javaTemplate) : base(tName, tParams, usePath, aliases, inherits, cs, ms, ps, fs, es, ixs, cts,
 		imports, javaTemplate)
 		{
 		}
 
-		public StructRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<MethodRepTemplate> ixs, List<CastRepTemplate> cts)
+		public StructRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, List<CastRepTemplate> cts)
                     : base(tName, tParams, usePath, aliases, inherits, cs, ms, ps, fs, es, ixs, cts,	null, null)
 		{
 		}

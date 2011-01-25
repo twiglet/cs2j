@@ -1013,7 +1013,7 @@ interface_event_declaration:
 interface_indexer_declaration [string returnType]: 
 	// attributes?    'new'?    type   
 	'this'   '['   fpl=formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' 
-         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, "this", null, $fpl.paramlist)); }
+         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new IndexerRepTemplate($returnType, $fpl.paramlist)); }
            { Debug("Processing interface indexer declaration"); }
  ;
 interface_accessor_declarations returns [bool hasGetter, bool hasSetter]
@@ -1104,7 +1104,7 @@ indexer_declaration [string returnType, string prefix]:
 indexer_declarator [string returnType, string prefix]:
 	//(type_name '.')?   
 	'this'   '['   fpl=formal_parameter_list   ']' 
-         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new MethodRepTemplate($returnType, $prefix+"this", null, $fpl.paramlist)); }
+         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new IndexerRepTemplate($returnType, $fpl.paramlist)); }
         { Debug("Processing indexer declaration"); }
     ;
 	

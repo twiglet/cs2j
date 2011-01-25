@@ -322,7 +322,29 @@ scope {
     if (ret != null)
         $primary_expression.tree = ret;
 }:
-    ^(INDEX expression expression_list?)
+    ^(INDEX ie=expression expression_list?)
+        {
+            if ($ie.dotNetType != null) {
+                ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
+                if (indexerResult != null) {
+                    IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
+                    if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
+                        Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                        myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
+                        for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
+                            myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
+                            if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
+                                // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                                myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
+                            }
+                        }
+                        ret = mkJavaWrapper(indexerResult.Result.Java, myMap, $ie.tree.Token);
+                        Imports.Add(indexerResult.Result.Imports);
+                        $dotNetType = indexerResult.ResultType; 
+                    }
+                }
+            }
+        }
     | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
            ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
@@ -745,8 +767,14 @@ expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typ
 	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; }
 	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; $typeofType = $non_assignment_expression.typeofType; }
 	;
-expression_list:
-	expression  (','   expression)* ;
+expression_list returns [List<TypeRepTemplate> expTypes, List<CommonTree> expTrees, List<TypeRepTemplate> expTreeTypeofTypes]
+@init {
+    $expTypes = new List<TypeRepTemplate>();
+    $expTrees = new List<CommonTree>();
+    $expTreeTypeofTypes = new List<TypeRepTemplate>();
+}:
+	e1=expression { $expTypes.Add($e1.dotNetType); $expTrees.Add(dupTree($e1.tree)); $expTreeTypeofTypes.Add($e1.typeofType); }
+      (','   en=expression { $expTypes.Add($en.dotNetType); $expTrees.Add(dupTree($en.tree)); $expTreeTypeofTypes.Add($en.typeofType); })* ;
 
 assignment
 @init {
@@ -771,6 +799,30 @@ assignment
                     valMap["value"] = wrapExpression($rhs.tree, $i.tree.Token);
                     ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.token);
                     Imports.Add(fieldResult.Result.Imports);
+                }
+            }
+        }
+    | (^(INDEX expression expression_list?) '=')  => 
+        ^(INDEX ie=expression expression_list?)   ia='=' irhs=expression 
+        {
+            if ($ie.dotNetType != null) {
+                ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
+                if (indexerResult != null) {
+                    IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
+                    if (!String.IsNullOrEmpty(indexerRep.JavaSet)) {
+                        Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                        myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
+                        myMap["value"] = wrapExpression($irhs.tree, $irhs.tree.Token);
+                        for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
+                            myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
+                            if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
+                                // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                                myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
+                            }
+                        }
+                        ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
+                        Imports.Add(indexerRep.Imports);
+                    }   
                 }
             }
         }
