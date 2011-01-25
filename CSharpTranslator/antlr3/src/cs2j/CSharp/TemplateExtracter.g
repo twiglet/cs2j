@@ -270,12 +270,21 @@ ref_variable_reference:
 // lvalue
 variable_reference:
 	expression;
-rank_specifiers: 
-	rank_specifier+ ;        
-rank_specifier: 
-	'['   dim_separators?   ']' ;
-dim_separators: 
-	','+ ;
+rank_specifiers returns [string thetext]
+@init {
+    $thetext = "";
+}: 
+        (rank_specifier { $thetext += $rank_specifier.thetext; })+ ;        
+rank_specifier returns [string thetext]
+@init {
+    $thetext = "[]";
+}: 
+	'['   ( dim_separators { $thetext += $dim_separators.thetext;} )?   ']' ;
+dim_separators returns [string thetext]
+@init {
+    $thetext = "";
+}: 
+    (',' { $thetext += "[]"; } )+ ;
 
 delegate_creation_expression: 
 	// 'new'   
@@ -443,7 +452,7 @@ type_arguments returns [List<string> tyargs]
 	t1=type { $tyargs.Add($t1.thetext); } (',' tn=type { $tyargs.Add($tn.thetext); })* ;
 
 type returns [string thetext]:
-	  ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } ('*' { $thetext += "*"; })*
+	  ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.thetext; } ('*' { $thetext += "*"; })*
 	| ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   (('*' { $thetext += "*"; })+ | '?' { $thetext += "?"; })
 	| (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; })
 	| 'void' { $thetext = "System.Void"; } ('*' { $thetext += "*"; })+
