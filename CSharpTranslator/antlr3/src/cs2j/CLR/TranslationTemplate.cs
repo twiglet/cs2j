@@ -21,6 +21,7 @@ namespace RusticiSoftware.Translator.CLR
 	
         public class TemplateUtilities
         {
+            
             public static string Substitute(string c, Dictionary<string,TypeRepTemplate> argMap)
             {
                 String ret = c;
@@ -1137,7 +1138,7 @@ namespace RusticiSoftware.Translator.CLR
                     {
                         foreach (String b in Inherits)
                         {
-                            TypeRepTemplate baseType = AppEnv.Search(Uses, b);
+                            TypeRepTemplate baseType = BuildType(b, AppEnv);
                             if (baseType != null)
                             {
                                 ResolveResult ret = baseType.Resolve(name,args,AppEnv);
@@ -1156,7 +1157,7 @@ namespace RusticiSoftware.Translator.CLR
                     {
                         foreach (String b in Inherits)
                         {
-                            TypeRepTemplate baseType = AppEnv.Search(Uses, b);
+                            TypeRepTemplate baseType = BuildType(b, AppEnv);
                             if (baseType != null)
                             {
                                 ResolveResult ret = baseType.Resolve(name,AppEnv);
@@ -1181,12 +1182,12 @@ namespace RusticiSoftware.Translator.CLR
                                 TypeRepTemplate fromTy = null;
                                 if (c.From != null)
                                 {
-                                    fromTy = AppEnv.Search(Uses, c.From);
+                                    fromTy = BuildType(c.From, AppEnv);
                                 }
                                 if (c.From == null || (fromTy != null && fromTy.TypeName == TypeName))
                                 {
                                     // cast from us
-                                    TypeRepTemplate toTy = AppEnv.Search(Uses, c.To);
+                                    TypeRepTemplate toTy = BuildType(c.To, AppEnv);
                                     if (toTy.IsA(castTo, AppEnv))
                                     {
                                         ResolveResult res = new ResolveResult();
@@ -1202,7 +1203,7 @@ namespace RusticiSoftware.Translator.CLR
                     {
                         foreach (String b in Inherits)
                         {
-                            TypeRepTemplate baseType = AppEnv.Search(Uses, b);
+                            TypeRepTemplate baseType = BuildType(b, AppEnv);
                             if (baseType != null)
                             {
                                 ResolveResult ret = baseType.ResolveCastTo(castTo,AppEnv);
@@ -1227,12 +1228,12 @@ namespace RusticiSoftware.Translator.CLR
                                 TypeRepTemplate toTy = null;
                                 if (c.To != null)
                                 {
-                                    toTy = AppEnv.Search(Uses, c.To);
+                                    toTy = BuildType(c.To, AppEnv);
                                 }
                                 if (c.To == null || (toTy != null && toTy.TypeName == TypeName))
                                 {
                                     // cast to us
-                                    TypeRepTemplate fromTy = AppEnv.Search(Uses, c.From);
+                                    TypeRepTemplate fromTy = BuildType(c.From, AppEnv); 
                                     if (castFrom.IsA(fromTy, AppEnv))
                                     {
                                         ResolveResult res = new ResolveResult();
@@ -1257,7 +1258,7 @@ namespace RusticiSoftware.Translator.CLR
                     {
                         foreach (String ibase in Inherits)
                         {
-                            TypeRepTemplate tbase = AppEnv.Search(ibase, new UnknownRepTemplate(ibase));
+                            TypeRepTemplate tbase = BuildType(ibase, AppEnv, new UnknownRepTemplate(ibase));
                             if (tbase.IsA(other,AppEnv))
                             {
                                 return true;
@@ -1267,6 +1268,43 @@ namespace RusticiSoftware.Translator.CLR
                     return false;
 		}
 		
+                // Builds a type rep from a string representation
+                // "type_name"
+                // "<type>[]"
+                // "<type>[<type>, ...]"
+                public TypeRepTemplate BuildType(string typeRep, DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    return BuildType(typeRep, AppEnv, null);
+                }
+
+                public TypeRepTemplate BuildType(string typeRep, DirectoryHT<TypeRepTemplate> AppEnv, TypeRepTemplate def)
+                {
+                    if (String.IsNullOrEmpty(typeRep))
+                        return def;
+
+                    if (typeRep.EndsWith("[]"))
+                    {
+                        //Array
+                        string baseType = typeRep.Substring(0, typeRep.Length - 2);
+                        TypeRepTemplate baseTypeRep = BuildType(baseType, AppEnv);
+                        if (baseTypeRep == null)
+                        {
+                            return def;
+                        }
+                        else
+                        {
+                            TypeRepTemplate arrayType = AppEnv.Search("System.Array");
+                            arrayType.Apply(new TypeRepTemplate[] { baseTypeRep });
+                            return arrayType;
+                        }
+                    }
+                    else
+                    {
+                        // todo: search for type[type, ...]
+                        return AppEnv.Search(Uses, typeRep, def);
+                    }
+                }
+
 		#region deserialization
 		
 		private static object Deserialize (Stream fs, System.Type t)
@@ -1784,7 +1822,7 @@ namespace RusticiSoftware.Translator.CLR
                             {
                                 ResolveResult res = new ResolveResult();
                                 res.Result = p;
-                                res.ResultType = AppEnv.Search(Uses, p.Type);
+                                res.ResultType = BuildType(p.Type, AppEnv);
                                 return res;
                             }
                         }
@@ -1819,7 +1857,7 @@ namespace RusticiSoftware.Translator.CLR
                                     {
                                         // check that for each argument in the caller its type 'IsA' the type of the formal argument
                                         for (int idx = 0; idx < m.Params.Count; idx++) {
-                                            if (args[idx] == null || !args[idx].IsA(AppEnv.Search(Uses, m.Params[idx].Type, new UnknownRepTemplate(m.Params[idx].Type)),AppEnv))
+                                            if (args[idx] == null || !args[idx].IsA(BuildType(m.Params[idx].Type, AppEnv, new UnknownRepTemplate(m.Params[idx].Type)),AppEnv))
                                             {
                                                 matchingArgs = false;
                                                 break;
@@ -1831,7 +1869,7 @@ namespace RusticiSoftware.Translator.CLR
                                 {
                                     ResolveResult res = new ResolveResult();
                                     res.Result = m;
-                                    res.ResultType = AppEnv.Search(Uses, m.Return);
+                                    res.ResultType = BuildType(m.Return, AppEnv);
                                     return res;
                                 }
                             }
@@ -2065,7 +2103,7 @@ namespace RusticiSoftware.Translator.CLR
                             {
                                 ResolveResult res = new ResolveResult();
                                 res.Result = f;
-                                res.ResultType = AppEnv.Search(Uses, f.Type);
+                                res.ResultType = BuildType(f.Type, AppEnv);
                                 return res;
                             }
                         }
@@ -2098,7 +2136,7 @@ namespace RusticiSoftware.Translator.CLR
                                 {
                                     // check that for each argument in the caller its type 'IsA' the type of the formal argument
                                     for (int idx = 0; idx < c.Params.Count; idx++) {
-                                        if (args[idx] == null || !args[idx].IsA(AppEnv.Search(Uses, c.Params[idx].Type, new UnknownRepTemplate(c.Params[idx].Type)),AppEnv))
+                                        if (args[idx] == null || !args[idx].IsA(BuildType(c.Params[idx].Type, AppEnv, new UnknownRepTemplate(c.Params[idx].Type)),AppEnv))
                                         {
                                             matchingArgs = false;
                                             break;
@@ -2110,7 +2148,7 @@ namespace RusticiSoftware.Translator.CLR
                             {
                                 ResolveResult res = new ResolveResult();
                                 res.Result = c;
-                                res.ResultType = AppEnv.Search(Uses, TypeName);
+                                res.ResultType = BuildType(TypeName, AppEnv);
                                 return res;
                             }
                         }
