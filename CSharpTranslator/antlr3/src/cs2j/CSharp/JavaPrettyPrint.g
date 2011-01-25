@@ -286,7 +286,6 @@ class_member_declaration returns [List<String> preComments]:
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
     | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
-    | ^(INDEXER attributes? modifiers? type type_name? { $preComments = CollectedComments; } indexer_declaration)
     | ^(FIELD attributes? modifiers? type { $preComments = CollectedComments; } field_declaration)  -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
     | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st])
@@ -937,21 +936,6 @@ member_name
 //	qid -> { $qid.st };		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-
-accessor_declarations:
-	attributes?
-		(get_accessor_declaration   attributes?   set_accessor_declaration?
-		| set_accessor_declaration   attributes?   get_accessor_declaration?) ;
-get_accessor_declaration:
-	accessor_modifier?   'get'   accessor_body ;
-set_accessor_declaration:
-	accessor_modifier?   'set'   accessor_body ;
-accessor_modifier:
-	'public' | 'protected' | 'private' | 'internal' ;
-accessor_body:
-	block ;
-
-///////////////////////////////////////////////////////
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
@@ -1062,16 +1046,8 @@ interface_member_declaration returns [List<String> preComments]:
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list? exception*)
          { $preComments = CollectedComments; }
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $identifier.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions= { $exception.st }, bodyIsSemi = { true })
-    | ^(INDEXER attributes? modifiers? type type_name? { $preComments = CollectedComments; } indexer_declaration)
 		;
 
-///////////////////////////////////////////////////////
-indexer_declaration:
-	indexer_declarator   '{'   accessor_declarations   '}' ;
-indexer_declarator:
-	//(type_name '.')?   
-	'this'   '['   formal_parameter_list   ']' ;
-	
 ///////////////////////////////////////////////////////
 operator_declaration:
 	operator_declarator   operator_body ;

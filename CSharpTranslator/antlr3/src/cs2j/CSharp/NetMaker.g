@@ -294,7 +294,6 @@ class_member_declaration:
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
     | ^(INTERFACE attributes? modifiers? interface_declaration)
     | ^(CLASS attributes? modifiers? class_declaration)
-    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
     | ^(FIELD attributes? modifiers? type field_declaration[$type.dotNetType])
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | ^(ENUM attributes? modifiers? enum_declaration)
@@ -1106,21 +1105,6 @@ member_name:
 
 ///////////////////////////////////////////////////////
 
-accessor_declarations:
-       attributes?
-               (get_accessor_declaration   attributes?   set_accessor_declaration?
-               | set_accessor_declaration   attributes?   get_accessor_declaration?) ;
-get_accessor_declaration:
-       accessor_modifier?   'get'   accessor_body ;
-set_accessor_declaration:
-       accessor_modifier?   'set'   accessor_body ;
-accessor_modifier:
-       'public' | 'protected' | 'private' | 'internal' ;
-accessor_body:
-       block ;
-
-///////////////////////////////////////////////////////
-
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
@@ -1220,16 +1204,8 @@ scope SymTab;
 }:
     ^(EVENT attributes? modifiers? event_declaration)
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
-    | ^(INDEXER attributes? modifiers? type type_name? indexer_declaration)
 		;
 
-///////////////////////////////////////////////////////
-indexer_declaration:
-	indexer_declarator   '{'   accessor_declarations   '}' ;
-indexer_declarator:
-	//(type_name '.')?   
-	'this'   '['   formal_parameter_list   ']' ;
-	
 ///////////////////////////////////////////////////////
 operator_declaration:
 	operator_declarator   operator_body ;
