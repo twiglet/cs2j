@@ -112,6 +112,7 @@
       <Get>${this}.get(${key})</Get>
       <Set>${this}.put(${key}, ${value})</Set>
     </Indexer>
+  </Indexers>
   <Constructors>
     <Constructor>
       <Imports>
