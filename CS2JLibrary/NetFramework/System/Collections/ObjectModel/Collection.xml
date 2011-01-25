@@ -118,7 +118,20 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Type>System.Object</Type>
+      <Get>${this}.get(${i})</Get>
+      <Set>${this}.put(${i}, ${value})</Set>
+    </Indexer>
+  </Indexers>
   <Constructors>
     <Constructor>
       <Imports />

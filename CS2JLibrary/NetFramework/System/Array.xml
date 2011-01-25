@@ -50,7 +50,20 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Type>T</Type>
+      <Get>${this}[${i}]</Get>
+      <Set>${this}[${i}] = ${value}</Set>
+    </Indexer>
+  </Indexers>
   <Constructors />
   <Fields />
   <Casts />

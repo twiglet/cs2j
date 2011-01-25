@@ -662,18 +662,6 @@
       <Name>TrimEnd</Name>
       <Return>System.String</Return>
     </Method>
-    <Method>
-      <Imports />
-      <Java>${this}.charAt(${i})</Java>
-      <Params>
-        <Param>
-          <Type>System.Int32</Type>
-          <Name>i</Name>
-        </Param>
-      </Params>
-      <Name>get___idx</Name>
-      <Return>System.Char</Return>
-    </Method>
   </Methods>
   <Properties>
     <Property>
@@ -694,7 +682,19 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Type>System.Char</Type>
+      <Get>${this}.charAt(${i})</Get>
+    </Indexer>
+  </Indexers>
   <Constructors>
     <Constructor>
       <Imports>

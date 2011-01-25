@@ -99,7 +99,19 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Type>System.Object</Type>
+      <Get>${this}.get(${key})</Get>
+      <Set>${this}.put(${key}, ${value})</Set>
+    </Indexer>
   <Constructors>
     <Constructor>
       <Imports>

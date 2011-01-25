@@ -53,34 +53,6 @@
       <Name>Contains</Name>
       <Return>System.Boolean</Return>
     </Method>
-    <Method>
-      <Imports />
-      <Java>${this}.get(${key})</Java>
-      <Params>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>key</Name>
-        </Param>
-      </Params>
-      <Name>get___idx</Name>
-      <Return>System.Object</Return>
-    </Method>
-    <Method>
-      <Imports />
-      <Java>${this}.put(${key}, ${value})</Java>
-      <Params>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>key</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>value</Name>
-        </Param>
-      </Params>
-      <Name>set___idx</Name>
-      <Return>System.Void</Return>
-    </Method>
   </Methods>
   <Properties>
     <Property>
@@ -109,7 +81,20 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Type>System.Object</Type>
+      <Get>${this}.get(${key})</Get>
+      <Set>${this}.put(${key}, ${value})</Set>
+    </Indexer>
+  </Indexers>
   <Constructors>
     <Constructor>
       <Imports>

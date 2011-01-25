@@ -23,18 +23,6 @@
       <Name>Item</Name>
       <Return>System.Xml.XmlNode</Return>
     </Method>
-    <Method>
-      <Imports />
-      <Java>${this}.get(${idx})</Java>
-      <Params>
-        <Param>
-          <Type>System.Int32</Type>
-          <Name>idx</Name>
-        </Param>
-      </Params>
-      <Name>get___idx</Name>
-      <Return>System.Xml.XmlNode</Return>
-    </Method>
   </Methods>
   <Properties>
     <Property>
@@ -47,7 +35,19 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>idx</Name>
+        </Param>
+      </Params>
+      <Type>System.Xml.XmlNode</Type>
+      <Get>${this}.get(${idx})</Get>
+    </Indexer>
+  </Indexers>
   <Constructors />
   <Fields />
   <Casts />

@@ -32,34 +32,6 @@
       <Name>Contains</Name>
       <Return>System.Boolean</Return>
     </Method>
-    <Method>
-      <Imports />
-      <Java>${this}.get(${i})</Java>
-      <Params>
-        <Param>
-          <Type>System.Int32</Type>
-          <Name>i</Name>
-        </Param>
-      </Params>
-      <Name>get___idx</Name>
-      <Return>System.Object</Return>
-    </Method>
-    <Method>
-      <Imports />
-      <Java>${this}.set___idx(${i}, ${v})</Java>
-      <Params>
-        <Param>
-          <Type>System.Int32</Type>
-          <Name>i</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>v</Name>
-        </Param>
-      </Params>
-      <Name>set___idx</Name>
-      <Return>System.Void</Return>
-    </Method>
   </Methods>
   <Properties>
     <Property>
@@ -72,7 +44,20 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Type>System.Object</Type>
+      <Get>${this}.get(${i})</Get>
+      <Set>${this}.put(${i}, ${value})</Set>
+    </Indexer>
+  </Indexers>
   <Constructors />
   <Fields />
   <Casts />
