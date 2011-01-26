@@ -373,6 +373,77 @@ namespace RusticiSoftware.Translator.CLR
 		
 	}
 
+	public class IterableRepTemplate : TranslationBase, IEquatable<IterableRepTemplate>
+	{
+
+		public String ReturnType {
+                    get; set;
+		}
+		
+		public override string mkJava() {
+                    return "${expr}";
+		}
+		
+		public IterableRepTemplate () : base()
+		{
+		}
+
+		public IterableRepTemplate (String ty) : base()
+		{
+                    ReturnType = ty;
+		}
+
+		public IterableRepTemplate (String ty, string[] imps, string javaRep) : base(imps, javaRep)
+		{
+                    ReturnType = ty;
+		}
+
+
+                public override void Apply(Dictionary<string,TypeRepTemplate> args)
+                {
+                    if (ReturnType != null)
+                    {
+                        TemplateUtilities.SubstituteInType(ReturnType, args);
+                    }
+                    base.Apply(args);
+                }
+
+		#region Equality
+
+		public bool Equals (IterableRepTemplate other)
+		{
+			if (other == null)
+				return false;
+			
+			return ReturnType == other.ReturnType && base.Equals(other);
+		}
+
+		public override bool Equals (object obj)
+		{
+			
+			IterableRepTemplate temp = obj as IterableRepTemplate;
+			
+			if (!Object.ReferenceEquals (temp, null))
+				return this.Equals (temp);
+			return false;
+		}
+
+		public static bool operator == (IterableRepTemplate a1, IterableRepTemplate a2)
+		{
+			return Object.Equals (a1, a2);
+		}
+
+		public static bool operator != (IterableRepTemplate a1, IterableRepTemplate a2)
+		{
+			return !(a1 == a2);
+		}
+
+		public override int GetHashCode ()
+		{	
+                    return base.GetHashCode () ^ ReturnType.GetHashCode();
+		}
+		#endregion
+	}
 
 	public class ConstructorRepTemplate : TranslationBase, IEquatable<ConstructorRepTemplate>
 	{
@@ -1412,6 +1483,24 @@ namespace RusticiSoftware.Translator.CLR
                     return null;
                 }
 
+                public virtual ResolveResult ResolveIterable(DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+                    if (Inherits != null)
+                    {
+                        foreach (String b in Inherits)
+                        {
+                            TypeRepTemplate baseType = BuildType(b, AppEnv);
+                            if (baseType != null)
+                            {
+                                ResolveResult ret = baseType.ResolveIterable(AppEnv);
+                                if (ret != null)
+                                    return ret;
+                            }
+                        }
+                    }
+                    return null;
+                }
+
                 // Returns true if other is a subclass, or implements our interface
 		public virtual bool IsA (TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv) {
                     if (other.TypeName == this.TypeName)
@@ -1898,7 +1987,6 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 		
-        [XmlIgnore]
 		private List<IndexerRepTemplate> _indexers = null;
 		[XmlArrayItem("Indexer")]
 		public List<IndexerRepTemplate> Indexers {
@@ -1906,6 +1994,16 @@ namespace RusticiSoftware.Translator.CLR
 				if (_indexers == null)
 					_indexers = new List<IndexerRepTemplate> ();
 				return _indexers;
+			}
+		}
+		
+		private IterableRepTemplate _iterable = null;
+		public IterableRepTemplate Iterable {
+			get {
+                            return _iterable;
+			}
+			set {
+                            _iterable = value;
 			}
 		}
 		
@@ -2086,6 +2184,19 @@ namespace RusticiSoftware.Translator.CLR
                         }
                     }
                     return base.ResolveIndexer(args, AppEnv);
+                }
+
+                public override ResolveResult ResolveIterable(DirectoryHT<TypeRepTemplate> AppEnv)
+                {
+        
+                    if (Iterable != null)
+                    {
+                        ResolveResult res = new ResolveResult();
+                        res.Result = Iterable;
+                        res.ResultType = BuildType(Iterable.ReturnType, AppEnv);
+                        return res;
+                    }
+                    return base.ResolveIterable(AppEnv);
                 }
 
 		#region Equality

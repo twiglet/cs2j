@@ -218,15 +218,15 @@ options {
     public string cleanTemplate(string template) {
         // Are there any markers in the template? Mostly, the answer will be no and we can return tout-de-suite
         String ret = template;
-        if (Regex.IsMatch(ret, "\\$\\{.*\\}")) {
+        if (Regex.IsMatch(ret, "\\$\\{\\w+\\}")) {
             // ${this}.fred -> fred
-            ret = Regex.Replace(ret, "\\$\\{.*\\}\\.", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{\\w+?\\}\\.", String.Empty);
             // (a,${var},b) -> (a,b)
-            ret = Regex.Replace(ret, "\\$\\{.*\\},", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{\\w+?\\},", String.Empty);
             // (a,${var}) -> (a)
-            ret = Regex.Replace(ret, ",\\$\\{.*\\}", String.Empty);
+            ret = Regex.Replace(ret, ",\\$\\{\\w+?\\}", String.Empty);
             // (${var}) -> ()
-            ret = Regex.Replace(ret, "\\$\\{.*\\}", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{\\w+?\\}", String.Empty);
         }
         return ret;
     }

@@ -7,6 +7,10 @@
   <Inherits>
     <Type>System.Object</Type>
   </Inherits>
+  <Iterable>
+    <ReturnType>System.Char</ReturnType>
+    <Java>${expr}.toCharArray()</Java>
+  </Iterable>
   <Methods>
     <Method>
       <Imports>

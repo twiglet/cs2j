@@ -208,8 +208,9 @@ scope SymTab {
         
     }
 
-    // counter to ensure that the catch vars we introduce are unique 
+    // counter to ensure that the vars we introduce are unique 
     protected int dummyScrutVarCtr = 0;
+    protected int dummyForeachVarCtr = 0;
 
     protected CommonTree convertSectionsToITE(List sections) {
         CommonTree ret = null;
@@ -256,6 +257,33 @@ scope SymTab {
         return ret;
     }
 
+    // embeddedStatement is either ";", "{ .... }", or a single statement
+    protected CommonTree prefixCast(CommonTree ty, CommonTree id, CommonTree foreachVar, CommonTree embeddedStatement, IToken tok) {
+        CommonTree root = embeddedStatement;
+        if (!embeddedStatement.IsNil && adaptor.GetType(embeddedStatement) == SEMI) {
+            // Do nothing, id is unused  
+        }
+        else {
+            // Make cast statement
+            CommonTree kast = (CommonTree)adaptor.Nil;
+            kast = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(CAST_EXPR, tok, "CAST"), kast);
+            adaptor.AddChild(kast, (CommonTree)adaptor.DupTree(ty));
+            adaptor.AddChild(kast, (CommonTree)adaptor.DupTree(foreachVar));
+            CommonTree vardec = (CommonTree)adaptor.Nil;
+            adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(ty));
+            adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(id));
+            adaptor.AddChild(vardec, (CommonTree)adaptor.Create(ASSIGN, tok, "="));
+            adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(kast));
+            root = (CommonTree)adaptor.Nil;
+            // Make a { <cast> statement }
+            adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+            adaptor.AddChild(root, vardec);
+            // todo: strip "{ }"
+            adaptor.AddChild(root, (CommonTree)adaptor.DupTree(embeddedStatement));
+            adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+        }
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
 }
 
 compilation_unit
@@ -1459,11 +1487,54 @@ iteration_statement
 scope SymTab;
 @init {
     $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+    CommonTree ret = null;
+    CommonTree newType = null;
+    CommonTree newIdentifier = null;
+    CommonTree newExpression = null;
+    CommonTree newEmbeddedStatement = null;
+}
+@after {
+    if (ret != null)
+        $iteration_statement.tree = ret;
 }:
 	^('while' boolean_expression SEP embedded_statement)
 	| do_statement
 	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement)
-	| ^('foreach' local_variable_type   identifier expression SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement);
+	| ^(f='foreach' local_variable_type   identifier expression s=SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement)
+           magicObjectType[$f.token] magicForeachVar[$f.token]
+        {
+            newType = $local_variable_type.tree;
+            newIdentifier = $identifier.tree;
+            newExpression = $expression.tree;
+            newEmbeddedStatement = $embedded_statement.tree;
+            TypeRepTemplate exprType = $expression.dotNetType;
+            TypeRepTemplate elType = null;
+            // translate expression, if available
+            if (exprType != null) {
+                ResolveResult iterable = exprType.ResolveIterable(AppEnv);
+                if (iterable != null) {
+                    Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                    myMap["expr"] = wrapExpression($expression.tree, $expression.tree.Token);
+                    newExpression = mkJavaWrapper(iterable.Result.Java, myMap, $expression.tree.Token);
+                    Imports.Add(iterable.Result.Imports);
+                    elType = iterable.ResultType;
+                }
+            }
+            bool needCast = true;
+            if (elType != null && $local_variable_type.dotNetType != null) {
+                if (elType.IsA($local_variable_type.dotNetType, AppEnv)) {
+                    needCast = false;
+                }
+            } 
+            // Construct new foreach using newExpression and needCast
+            if (needCast) {
+                newType = $magicObjectType.tree;
+                newIdentifier = $magicForeachVar.tree;
+                newEmbeddedStatement = prefixCast($local_variable_type.tree, $identifier.tree, newIdentifier, $embedded_statement.tree, $embedded_statement.tree.Token);
+            }
+        }
+        -> ^($f { newType } { newIdentifier } { newExpression }  $s { newEmbeddedStatement })
+    ;
 do_statement:
 	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
 for_initializer:
@@ -1576,6 +1647,15 @@ magicScrutineeVar [IToken tok] returns [String thetext]
     $thetext = "__dummyScrutVar" + dummyScrutVarCtr++;
 }:
   -> IDENTIFIER[tok,$thetext];
+
+magicForeachVar [IToken tok] returns [String thetext]
+@init {
+    $thetext = "__dummyForeachVar" + dummyForeachVarCtr++;
+}:
+  -> IDENTIFIER[tok,$thetext];
+
+magicObjectType [IToken tok]:
+  -> ^(TYPE[tok, "TYPE"] OBJECT[tok, "System.Object"]);
 
 magicCastOperator[CommonTree mods, String methodName, CommonTree header, CommonTree body]
 @init {

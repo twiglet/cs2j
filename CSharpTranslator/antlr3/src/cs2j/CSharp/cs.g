@@ -61,6 +61,7 @@ tokens {
             THROW = 'throw';
             ELSE = 'else';
             BREAK = 'break';
+            OBJECT = 'object';
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
