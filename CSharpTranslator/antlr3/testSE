@@ -1,0 +1,1 @@
+time mono src/cs2j/bin/Debug/cs2j.exe -translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/se -odir=/Users/keving/tmp/java/se/src -appdir=/Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core

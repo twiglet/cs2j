@@ -257,6 +257,19 @@ scope SymTab {
         return ret;
     }
 
+    // if slist is a list of statements surrounded by braces, then strip them out. 
+    protected CommonTree stripPossibleBraces(CommonTree slist) {
+        CommonTree ret = slist;
+        if (ret.IsNil && adaptor.GetChildCount(ret) >= 2) {
+            if (adaptor.GetType(adaptor.GetChild(ret,0)) == OPEN_BRACE &&
+                adaptor.GetType(adaptor.GetChild(ret,adaptor.GetChildCount(ret)-1)) == CLOSE_BRACE) {
+                adaptor.DeleteChild(ret,adaptor.GetChildCount(ret)-1); 
+                adaptor.DeleteChild(ret,0); 
+            }
+        }
+        return ret;
+    }
+
     // embeddedStatement is either ";", "{ .... }", or a single statement
     protected CommonTree prefixCast(CommonTree ty, CommonTree id, CommonTree foreachVar, CommonTree embeddedStatement, IToken tok) {
         CommonTree root = embeddedStatement;
@@ -274,13 +287,14 @@ scope SymTab {
             adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(id));
             adaptor.AddChild(vardec, (CommonTree)adaptor.Create(ASSIGN, tok, "="));
             adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(kast));
+            adaptor.AddChild(vardec, (CommonTree)adaptor.Create(SEMI, tok, ";"));
             root = (CommonTree)adaptor.Nil;
             // Make a { <cast> statement }
             adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
             adaptor.AddChild(root, vardec);
             // todo: strip "{ }"
-            adaptor.AddChild(root, (CommonTree)adaptor.DupTree(embeddedStatement));
-            adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+            adaptor.AddChild(root, stripPossibleBraces((CommonTree)adaptor.DupTree(embeddedStatement)));
+            adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
         }
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
@@ -1655,7 +1669,7 @@ magicForeachVar [IToken tok] returns [String thetext]
   -> IDENTIFIER[tok,$thetext];
 
 magicObjectType [IToken tok]:
-  -> ^(TYPE[tok, "TYPE"] OBJECT[tok, "System.Object"]);
+  -> ^(TYPE[tok, "TYPE"] OBJECT[tok, "Object"]);
 
 magicCastOperator[CommonTree mods, String methodName, CommonTree header, CommonTree body]
 @init {
