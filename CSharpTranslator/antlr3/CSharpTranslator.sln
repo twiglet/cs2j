@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs2jTemplateGen", "src\cs2j
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateTxFiles", "UpdateTxFiles\UpdateTxFiles.csproj", "{4B69CC57-FAC3-464F-9103-5187421DB85F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JTesterProject", "CS2JTesterProject\CS2JTesterProject.csproj", "{409226EE-D546-43F6-84B8-B8F43DED5556}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{409226EE-D546-43F6-84B8-B8F43DED5556}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{409226EE-D546-43F6-84B8-B8F43DED5556}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{409226EE-D546-43F6-84B8-B8F43DED5556}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{409226EE-D546-43F6-84B8-B8F43DED5556}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{409226EE-D546-43F6-84B8-B8F43DED5556}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{409226EE-D546-43F6-84B8-B8F43DED5556}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B69CC57-FAC3-464F-9103-5187421DB85F}.Default|Any CPU.ActiveCfg = Debug|Any CPU
