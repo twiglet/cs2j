@@ -16,14 +16,31 @@ cd "C:\Documents and Settings\developer"
 -- "My Documents\gitrepos\cs2jCentral\CSharpTranslator\antlr3\src\cs2j\bin\Debug\cs2j.exe" -translator-timestamp-files=false -translator-keep-parens=false -netdir=z:\keving\gitrepos\cs2j\CS2JLibrary\NetFramework -dumpxmls -xmldir=z:\keving\tmp\xml\se -odir=z:\keving\tmp\java\se\src -appdir="My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core" "My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core"
 -- use git diff to check there are no differences (comments are diff actually)
 
-Make release:
+On mac:
 
-tag 
+git checkout ClientReleases
+git merge master
+git status
+git push
+git tag
+git tag -a HengtianSoft-Devel-2
+git push --tags
+
+
+On Windows 
+
+git bash:
+
+-- cd ~/My Documents/gitrepos/cs2jCentral/CS2JLibrary
+-- git pull
+-- ant src
+    makes a source delivery of cs2jlibrary
+
 
 cs2j\NetFramework
 cs2j\c2jTranslator\bin
   -- copy from "My Documents\gitrepos\cs2jCentral\CSharpTranslator\antlr3\src\cs2j\bin"
      -- delete *vhost*
      -- rename cs2j.exe to cs2j.exe.removeme
-cs2j\cs2jlibrary-src-release2010.1.0.13824-197-gfd0bee8
+cs2j\cs2jlibrary-src-release2010.1.0.13824-197-gfd0bee8   (name changes depending on last tag)
 cs2j\cs2j_A_Developer_s_Guide.pdf
