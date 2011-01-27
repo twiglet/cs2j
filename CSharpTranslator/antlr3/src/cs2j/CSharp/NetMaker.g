@@ -83,8 +83,7 @@ scope SymTab {
             argNames.Append("]");
         }
         TypeRepTemplate tyRep = AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name + argNames.ToString()));
-        tyRep.Apply(args);
-        return tyRep;
+        return tyRep.Instantiate(args);
     }
 
     private ClassRepTemplate objectType = null;

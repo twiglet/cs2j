@@ -99,7 +99,21 @@ namespace RusticiSoftware.Translator.CLR
 			IsByRef = false;
 		}
 
-		public ParamRepTemplate (string t, string a)
+        public ParamRepTemplate(ParamRepTemplate copyFrom)
+        {
+
+            if (!String.IsNullOrEmpty(copyFrom.Type))
+            {
+                Type = copyFrom.Type;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.Name))
+            {
+                Name = copyFrom.Name;
+            }
+            IsByRef = copyFrom.IsByRef;
+        }
+
+        public ParamRepTemplate (string t, string a)
 		{
 			Type = t;
 			Name = a;
@@ -162,11 +176,24 @@ namespace RusticiSoftware.Translator.CLR
 		public string Namespace { get; set; }
 
 
-		public AliasRepTemplate ()
-		{
-                    Alias = null;
-                    Namespace = null;
-		}
+        public AliasRepTemplate()
+        {
+            Alias = null;
+            Namespace = null;
+        }
+
+        public AliasRepTemplate(AliasRepTemplate copyFrom)
+        {
+
+            if (!String.IsNullOrEmpty(copyFrom.Alias))
+            {
+                Alias = copyFrom.Alias;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.Namespace))
+            {
+                Namespace = copyFrom.Namespace;
+            }
+        }
 
 		public AliasRepTemplate (string a, string u)
 		{
@@ -278,13 +305,35 @@ namespace RusticiSoftware.Translator.CLR
 				return unAdornedJava;
 			}
 		}
-		
-		protected TranslationBase ()
-		{
-			Imports = null;
-		}
 
-		protected TranslationBase (string java)
+        protected TranslationBase()
+        {
+            Imports = null;
+        }
+
+        protected TranslationBase(TranslationBase copyFrom)
+        {
+            int len = 0;
+            if (copyFrom.Imports != null)
+            {
+                len = copyFrom.Imports.Length;
+                Imports = new String[len];
+                for (int i = 0; i < len; i++)
+                {
+                    Imports[i] = copyFrom.Imports[i];
+                }
+            }
+            if (!String.IsNullOrEmpty(copyFrom.Java))
+            {
+                Java = copyFrom.Java;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.SurroundingTypeName))
+            {
+                SurroundingTypeName = copyFrom.SurroundingTypeName;
+            }
+        }
+
+        protected TranslationBase(string java)
 		{
 			Imports = null;
 			Java = java;
@@ -376,7 +425,7 @@ namespace RusticiSoftware.Translator.CLR
 	public class IterableRepTemplate : TranslationBase, IEquatable<IterableRepTemplate>
 	{
 
-		public String ReturnType {
+		public String ElementType {
                     get; set;
 		}
 		
@@ -388,22 +437,32 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public IterableRepTemplate (String ty) : base()
-		{
-                    ReturnType = ty;
-		}
+        public IterableRepTemplate(String ty)
+            : base()
+        {
+            ElementType = ty;
+        }
+
+        public IterableRepTemplate(IterableRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.ElementType))
+            {
+                ElementType = copyFrom.ElementType;
+            }
+        }
 
 		public IterableRepTemplate (String ty, string[] imps, string javaRep) : base(imps, javaRep)
 		{
-                    ReturnType = ty;
+                    ElementType = ty;
 		}
 
 
                 public override void Apply(Dictionary<string,TypeRepTemplate> args)
                 {
-                    if (ReturnType != null)
+                    if (ElementType != null)
                     {
-                        TemplateUtilities.SubstituteInType(ReturnType, args);
+                        TemplateUtilities.SubstituteInType(ElementType, args);
                     }
                     base.Apply(args);
                 }
@@ -415,7 +474,7 @@ namespace RusticiSoftware.Translator.CLR
 			if (other == null)
 				return false;
 			
-			return ReturnType == other.ReturnType && base.Equals(other);
+			return ElementType == other.ElementType && base.Equals(other);
 		}
 
 		public override bool Equals (object obj)
@@ -440,7 +499,7 @@ namespace RusticiSoftware.Translator.CLR
 
 		public override int GetHashCode ()
 		{	
-                    return base.GetHashCode () ^ ReturnType.GetHashCode();
+                    return base.GetHashCode () ^ ElementType.GetHashCode();
 		}
 		#endregion
 	}
@@ -473,11 +532,21 @@ namespace RusticiSoftware.Translator.CLR
 			else {
 				return null;
 			}
-		}	
-		
-		public ConstructorRepTemplate () : base()
-		{
 		}
+
+        public ConstructorRepTemplate()
+            : base()
+        {
+        }
+
+        public ConstructorRepTemplate(ConstructorRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            foreach (ParamRepTemplate p in copyFrom.Params)
+            {
+                Params.Add(new ParamRepTemplate(p));
+            }
+        }
 
 		public ConstructorRepTemplate (List<ParamRepTemplate> pars) : base()
 		{
@@ -575,13 +644,38 @@ namespace RusticiSoftware.Translator.CLR
 		[XmlAttribute("static")]
 		[System.ComponentModel.DefaultValueAttribute(false)]
 		public bool IsStatic{ get; set; }
-		
-		public MethodRepTemplate ()
-		{
-			IsStatic = false;
-		}
 
-		public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars, string[] imps, string javaRep) : base(pars, imps, javaRep)
+        public MethodRepTemplate()
+        {
+            IsStatic = false;
+        }
+
+        public MethodRepTemplate(MethodRepTemplate copyFrom) : base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.Name))
+            {
+                Name = copyFrom.Name;
+            }
+            int len = 0;
+            if (copyFrom.TypeParams != null)
+            {
+                len = copyFrom.TypeParams.Length;
+                TypeParams = new String[len];
+                for (int i = 0; i < len; i++)
+                {
+                    TypeParams[i] = copyFrom.TypeParams[i];
+                }
+            }
+            if (!String.IsNullOrEmpty(copyFrom.Return))
+            {
+                Return = copyFrom.Return;
+            }
+
+            IsStatic = copyFrom.IsStatic;
+        }
+
+        public MethodRepTemplate(string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars, string[] imps, string javaRep)
+            : base(pars, imps, javaRep)
 		{
 			Name = methodName;
 			TypeParams = tParams;
@@ -708,12 +802,27 @@ namespace RusticiSoftware.Translator.CLR
 			set {
 				_to=value.Replace('<','[').Replace('>',']');
 			}
-		}		
-
-
-		public CastRepTemplate () : base()
-		{
 		}
+
+
+        public CastRepTemplate()
+            : base()
+        {
+        }
+
+        public CastRepTemplate(CastRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.From))
+            {
+                From = copyFrom.From;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.To))
+            {
+                To = copyFrom.To;
+            }
+
+        }
 
 		public CastRepTemplate (string fType, string tType, string[] imps, string java) : base(imps, java)
 		{
@@ -822,11 +931,26 @@ namespace RusticiSoftware.Translator.CLR
 		}		
 		public string Name { get; set; }
 
-		public FieldRepTemplate () : base()
-		{
-		}
+        public FieldRepTemplate()
+            : base()
+        {
+        }
 
-		public FieldRepTemplate (string fType, string fName, string[] imps, string javaGet) : base(imps, javaGet)
+        public FieldRepTemplate(FieldRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.Name))
+            {
+                Name = copyFrom.Name;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.Type))
+            {
+                Type = copyFrom.Type;
+            }
+        }
+
+        public FieldRepTemplate(string fType, string fName, string[] imps, string javaGet)
+            : base(imps, javaGet)
 		{
 			Type = fType;
 			Name = fName;
@@ -953,11 +1077,28 @@ namespace RusticiSoftware.Translator.CLR
 			set { _canWrite = value; }
 		}
 
-		public PropRepTemplate () : base()
-		{
-		}
+        public PropRepTemplate()
+            : base()
+        {
+        }
 
-		public PropRepTemplate (string fType, string fName, string[] imps, string javaGet, string javaSet) : base(fType, fName, imps, null)
+        public PropRepTemplate(PropRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.JavaGet))
+            {
+                JavaGet = copyFrom.JavaGet;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.JavaSet))
+            {
+                JavaSet = copyFrom.JavaSet;
+            }
+            CanRead = copyFrom.CanRead;
+            CanWrite = copyFrom.CanWrite;
+        }
+
+        public PropRepTemplate(string fType, string fName, string[] imps, string javaGet, string javaSet)
+            : base(fType, fName, imps, null)
 		{
 			JavaGet = javaGet;
 			JavaSet = javaSet;
@@ -1069,12 +1210,37 @@ namespace RusticiSoftware.Translator.CLR
 			}
 			set { _javaSet = value; }
 		}
-		
-		public IndexerRepTemplate () : base()
-		{
-		}
 
-		public IndexerRepTemplate (string fType, List<ParamRepTemplate> pars) : base(fType, "this")
+        public IndexerRepTemplate()
+            : base()
+        {
+        }
+
+        public IndexerRepTemplate(IndexerRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            foreach (ParamRepTemplate p in copyFrom.Params)
+            {
+                Params.Add(new ParamRepTemplate(p));
+            }
+            foreach (ParamRepTemplate p in copyFrom.SetParams)
+            {
+                SetParams.Add(new ParamRepTemplate(p));
+            }
+            if (!String.IsNullOrEmpty(copyFrom.JavaGet))
+            {
+                JavaGet = copyFrom.JavaGet;
+            }
+            if (!String.IsNullOrEmpty(copyFrom.JavaSet))
+            {
+                JavaSet = copyFrom.JavaSet;
+            }
+
+
+        }
+
+        public IndexerRepTemplate(string fType, List<ParamRepTemplate> pars)
+            : base(fType, "this")
 		{
 			_params = pars;
 		}
@@ -1163,9 +1329,22 @@ namespace RusticiSoftware.Translator.CLR
 		public string Value { get; set; }
 
 
-		public EnumMemberRepTemplate () : this(null)
-		{
-		}
+        public EnumMemberRepTemplate() : base()
+        {
+        }
+        public EnumMemberRepTemplate(EnumMemberRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.Name))
+            {
+                Name = copyFrom.Name;
+            }
+
+            if (!String.IsNullOrEmpty(copyFrom.Value))
+            {
+                Value = copyFrom.Value;
+            }
+        }
 
 		public EnumMemberRepTemplate (string n) : this(n, null, null, null)
 		{
@@ -1254,14 +1433,6 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
-		public TypeRepTemplate () : base()
-		{
-			TypeName = null;
-			Uses = null;
-			Aliases = null;
-			
-		}
-
 		private string[] _inherits;
 		[XmlArrayItem("Type")]
 		public string[] Inherits { 
@@ -1276,21 +1447,85 @@ namespace RusticiSoftware.Translator.CLR
 				if (value != null) {
 					_inherits= new string[value.Length];
 					for (int i = 0; i < value.Length; i++) {
-						_inherits[i] = value[i].Replace('<','[').Replace('>',']');
+						_inherits[i] = (value[i] != null ? value[i].Replace('<','[').Replace('>',']') : null);
 					}
 				}
 				else {
 					_inherits = null;
 				}
 			}
-		}		
-
-		protected TypeRepTemplate (string typeName) : this()
-		{
-			TypeName = typeName;
 		}
 
-		protected TypeRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate) : base(imports, javaTemplate)
+        public TypeRepTemplate()
+            : base()
+        {
+            TypeName = null;
+            Uses = null;
+            Aliases = null;
+
+        }
+        protected TypeRepTemplate(string typeName)
+            : this()
+        {
+            TypeName = typeName;
+        }
+
+        protected TypeRepTemplate(TypeRepTemplate copyFrom)
+            :base(copyFrom)
+        {
+            if (!String.IsNullOrEmpty(copyFrom.TypeName)) 
+            {
+                TypeName = copyFrom.TypeName;
+            }
+
+            int len = 0;
+            if (copyFrom.TypeParams != null)
+            {
+                len = copyFrom.TypeParams.Length;
+                TypeParams = new String[len];
+                for (int i = 0; i < len; i++)
+                {
+                    TypeParams[i] = copyFrom.TypeParams[i];
+                }
+            }
+
+            if (copyFrom.Uses != null)
+            {
+                len = copyFrom.Uses.Length;
+                Uses = new String[len];
+                for (int i = 0; i < len; i++)
+                {
+                    Uses[i] = copyFrom.Uses[i];
+                }
+            }
+
+            if (copyFrom.Aliases != null)
+            {
+                len = copyFrom.Aliases.Length;
+                Aliases = new AliasRepTemplate[len];
+                for (int i = 0; i < len; i++)
+                {
+                    Aliases[i] = new AliasRepTemplate(copyFrom.Aliases[i]);
+                }
+            }
+
+            foreach (CastRepTemplate c in copyFrom.Casts)
+            {
+                Casts.Add(new CastRepTemplate(c));
+            }
+            if (copyFrom.Inherits != null)
+            {
+                len = copyFrom.Inherits.Length;
+                Inherits = new String[len];
+                for (int i = 0; i < len; i++)
+                {
+                    Inherits[i] = copyFrom.Inherits[i];
+                }
+            }
+        }
+
+        protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
+            : base(imports, javaTemplate)
 		{
 			TypeName = tName;
 			TypeParams = tParams;
@@ -1313,20 +1548,21 @@ namespace RusticiSoftware.Translator.CLR
 				return null;
 			}
 		}
-		
-
-                public void Apply(TypeRepTemplate[] args)
-                {
-                    if (args.Length == TypeParams.Length)
-                    {
-                        Dictionary<string,TypeRepTemplate> paramMap = new Dictionary<string,TypeRepTemplate>();
-                        for (int i = 0; i < args.Length; i++)
-                        {
-                            paramMap[TypeParams[i]] = args[i];
-                        }
-                        this.Apply(paramMap);
-                    }
+             
+        protected Dictionary<String,TypeRepTemplate> mkTypeMap(TypeRepTemplate[] args) { 
+            Dictionary<String,TypeRepTemplate> ret = new Dictionary<string,TypeRepTemplate>();
+            if (args.Length == TypeParams.Length)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {   
+                    ret[TypeParams[i]] = args[i];   
                 }
+            }
+            return ret;
+        }
+                
+        public abstract TypeRepTemplate Instantiate(TypeRepTemplate[] args);
+
                 
                 public override void Apply(Dictionary<string,TypeRepTemplate> args)
                 {
@@ -1547,8 +1783,7 @@ namespace RusticiSoftware.Translator.CLR
                         else
                         {
                             TypeRepTemplate arrayType = AppEnv.Search("System.Array");
-                            arrayType.Apply(new TypeRepTemplate[] { baseTypeRep });
-                            return arrayType;
+                            return arrayType.Instantiate(new TypeRepTemplate[] { baseTypeRep });
                         }
                     }
                     else
@@ -1769,10 +2004,20 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
-		public EnumRepTemplate () : base()
-		{
-                        Inherits = new string[] { "System.Enum" };
-		}
+        public EnumRepTemplate()
+            : base()
+        {
+            Inherits = new string[] { "System.Enum" };
+        }
+
+        public EnumRepTemplate(EnumRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            foreach (EnumMemberRepTemplate m in copyFrom.Members)
+            {
+                Members.Add(new EnumMemberRepTemplate(m));
+            }
+        }
 
 		public EnumRepTemplate (List<EnumMemberRepTemplate> ms) : base()
 		{
@@ -1796,7 +2041,12 @@ namespace RusticiSoftware.Translator.CLR
                     }
                     return base.Resolve(name, AppEnv);
                 }
-
+                public override TypeRepTemplate Instantiate(TypeRepTemplate[] args)
+                {
+                    EnumRepTemplate copy = new EnumRepTemplate(this);
+                    copy.Apply(mkTypeMap(args));
+                    return copy;
+                }
 		#region Equality
 		public bool Equals (EnumRepTemplate other)
 		{
@@ -1870,13 +2120,29 @@ namespace RusticiSoftware.Translator.CLR
 			set {
 				_return=value.Replace('<','[').Replace('>',']');
 			}
-		}		
-		
-		public DelegateRepTemplate () : base()
-		{
 		}
 
-		public DelegateRepTemplate (string retType, List<ParamRepTemplate> args) : base()
+        public DelegateRepTemplate()
+            : base()
+        {
+        }
+
+        public DelegateRepTemplate(DelegateRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            foreach (ParamRepTemplate p in copyFrom.Params)
+            {
+                Params.Add(new ParamRepTemplate(p));
+            }
+
+            if (!String.IsNullOrEmpty(copyFrom.Return))
+            {
+                Return = copyFrom.Return;
+            }
+        }
+
+        public DelegateRepTemplate(string retType, List<ParamRepTemplate> args)
+            : base()
 		{
 			Return = retType;
 			_params = args;
@@ -1900,6 +2166,12 @@ namespace RusticiSoftware.Translator.CLR
                         Return = TemplateUtilities.SubstituteInType(Return, args);
                     }
                     base.Apply(args);
+                }
+                public override TypeRepTemplate Instantiate(TypeRepTemplate[] args)
+                {
+                    DelegateRepTemplate copy = new DelegateRepTemplate(this);
+                    copy.Apply(mkTypeMap(args));
+                    return copy;
                 }
 
 		#region Equality
@@ -2012,11 +2284,41 @@ namespace RusticiSoftware.Translator.CLR
 			Inherits = null;
 		}
 
-		public InterfaceRepTemplate (string typeName) : base(typeName)
-		{
-		}
+        public InterfaceRepTemplate(InterfaceRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            foreach (MethodRepTemplate m in copyFrom.Methods)
+            {
+                Methods.Add(new MethodRepTemplate(m));
+            }
 
-		protected InterfaceRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, string[] imps, string javaTemplate) 
+            foreach (PropRepTemplate p in copyFrom.Properties)
+            {
+                Properties.Add(new PropRepTemplate(p));
+            }
+
+            foreach (FieldRepTemplate e in copyFrom.Events)
+            {
+                Events.Add(new FieldRepTemplate(e));
+            }
+
+            foreach (IndexerRepTemplate i in copyFrom.Indexers)
+            {
+                Indexers.Add(new IndexerRepTemplate(i));
+            }
+
+            if (copyFrom.Iterable != null)
+            {
+                Iterable = new IterableRepTemplate(copyFrom.Iterable);
+            }
+        }
+
+        public InterfaceRepTemplate(string typeName)
+            : base(typeName)
+        {
+        }
+
+        protected InterfaceRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, string[] imps, string javaTemplate) 
                     : base(tName, tParams, usePath, aliases, imps, javaTemplate)
 		{
 			Inherits = inherits;
@@ -2193,10 +2495,16 @@ namespace RusticiSoftware.Translator.CLR
                     {
                         ResolveResult res = new ResolveResult();
                         res.Result = Iterable;
-                        res.ResultType = BuildType(Iterable.ReturnType, AppEnv);
+                        res.ResultType = BuildType(Iterable.ElementType, AppEnv);
                         return res;
                     }
                     return base.ResolveIterable(AppEnv);
+                }
+                public override TypeRepTemplate Instantiate(TypeRepTemplate[] args)
+                {
+                    InterfaceRepTemplate copy = new InterfaceRepTemplate(this);
+                    copy.Apply(mkTypeMap(args));
+                    return copy;
                 }
 
 		#region Equality
@@ -2355,11 +2663,37 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public ClassRepTemplate (string typeName) : base(typeName)
-		{
-		}
+        public ClassRepTemplate(ClassRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+            foreach (ConstructorRepTemplate c in copyFrom.Constructors)
+            {
+                Constructors.Add(new ConstructorRepTemplate(c));
+            }
 
-		public ClassRepTemplate (string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, List<CastRepTemplate> cts,
+            foreach (FieldRepTemplate f in copyFrom.Fields)
+            {
+                Fields.Add(new FieldRepTemplate(f));
+            }
+
+            foreach (MethodRepTemplate u in copyFrom.UnaryOps)
+            {
+                UnaryOps.Add(new MethodRepTemplate(u));
+            }
+
+            foreach (MethodRepTemplate b in copyFrom.BinaryOps)
+            {
+                BinaryOps.Add(new MethodRepTemplate(b));
+            }
+
+        }
+
+        public ClassRepTemplate(string typeName)
+            : base(typeName)
+        {
+        }
+
+        public ClassRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] inherits, List<ConstructorRepTemplate> cs, List<MethodRepTemplate> ms, List<PropRepTemplate> ps, List<FieldRepTemplate> fs, List<FieldRepTemplate> es, List<IndexerRepTemplate> ixs, List<CastRepTemplate> cts,
 		string[] imports, string javaTemplate) 
                     : base(tName, tParams, usePath, aliases, inherits, ms, ps, es, ixs, imports, javaTemplate)
 		{
@@ -2476,6 +2810,12 @@ namespace RusticiSoftware.Translator.CLR
                     // We don't search base,  constructors aren't inherited
                     return null;
                 }
+                public override TypeRepTemplate Instantiate(TypeRepTemplate[] args)
+                {
+                    ClassRepTemplate copy = new ClassRepTemplate(this);
+                    copy.Apply(mkTypeMap(args));
+                    return copy;
+                }
 
 		#region Equality
 		public bool Equals (ClassRepTemplate other)
@@ -2575,7 +2915,13 @@ namespace RusticiSoftware.Translator.CLR
 		{
 		}
 
-		public StructRepTemplate (string typeName) : base(typeName)
+        public StructRepTemplate(StructRepTemplate copyFrom)
+            : base(copyFrom)
+        {
+        }
+        
+        public StructRepTemplate(string typeName)
+            : base(typeName)
 		{
 		}
 
@@ -2650,6 +2996,12 @@ namespace RusticiSoftware.Translator.CLR
                         return new string[0];
                     }
 		}
+        public override TypeRepTemplate Instantiate(TypeRepTemplate[] args)
+        {
+            StructRepTemplate copy = new StructRepTemplate(this);
+            copy.Apply(mkTypeMap(args));
+            return copy;
+        }
 		
 		#region Equality
 		public bool Equals (UnknownRepTemplate other)
