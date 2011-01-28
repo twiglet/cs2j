@@ -366,6 +366,7 @@ scope {
     ^(INDEX ie=expression expression_list?)
         {
             if ($ie.dotNetType != null) {
+                $dotNetType = new UnknownRepTemplate($ie.dotNetType.TypeName+".INDEXER");
                 ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
                 if (indexerResult != null) {
                     IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
@@ -390,6 +391,7 @@ scope {
            ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
             if (expType != null) {
+                $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
                 ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
                 if (methodResult != null) {
                     Debug($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
@@ -427,6 +429,8 @@ scope {
                 ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
                 Debug($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
+
+                $dotNetType = new UnknownRepTemplate(expType.TypeName+".DOTACCESS");
 
                 ResolveResult fieldResult = expType.Resolve($i1.thetext, AppEnv);
                 if (fieldResult != null) {
@@ -510,6 +514,7 @@ scope {
     | ^(n=NEW type argument_list? object_or_collection_initializer?)
         {
             ClassRepTemplate conType = $type.dotNetType as ClassRepTemplate;
+            $dotNetType = $type.dotNetType;
             ResolveResult conResult = conType.Resolve($argument_list.argTypes, AppEnv);
             if (conResult != null) {
                 ConstructorRepTemplate conRep = conResult.Result as ConstructorRepTemplate;
