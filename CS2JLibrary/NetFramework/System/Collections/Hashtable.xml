@@ -10,6 +10,10 @@
     <Type>System.Collections.ICollection</Type>
     <Type>System.Collections.IDictionary</Type>
   </Inherits>
+  <Iterable>
+    <ElementType>System.Object</ElementType>
+    <Java>${expr}.entrySet()</Java>
+  </Iterable>
   <Methods>
     <Method>
       <Imports />
