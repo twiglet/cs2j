@@ -25,10 +25,10 @@ import RusticiSoftware.System.Xml.XmlWriter;
 
 public interface IXmlSerializable {
 
-	public Object GetSchema() throws Exception;
+	public Object GetSchema() throws Throwable;
 	
-	public void ReadXml(XmlReader reader) throws Exception;
+	public void ReadXml(XmlReader reader) throws Throwable;
 	
-	public void WriteXml(XmlWriter writer) throws Exception;
+	public void WriteXml(XmlWriter writer) throws Throwable;
 	
 }

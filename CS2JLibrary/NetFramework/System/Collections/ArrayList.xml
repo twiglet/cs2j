@@ -111,7 +111,7 @@
       <Java>${this}.toArray(new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>
         <Param>
-          <Type>System.Object</Type>
+          <Type>System.Type</Type>
           <Name>TYPEOF_expr</Name>
         </Param>
       </Params>
@@ -172,7 +172,7 @@
       <Java>new ArrayList(${collection})</Java>
       <Params>
         <Param>
-          <Type>System.ICollection</Type>
+          <Type>System.Collections.ICollection</Type>
           <Name>collection</Name>
         </Param>
       </Params>

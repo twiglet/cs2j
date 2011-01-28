@@ -74,7 +74,7 @@
     <Property>
       <Imports />
       <Java>${this}.values()</Java>
-      <Type>System.ICollection</Type>
+      <Type>System.Collections.ICollection</Type>
       <Name>Values</Name>
       <Get>${this}.values()</Get>
       <Set>${this}.setValues(${value})</Set>
