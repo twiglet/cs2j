@@ -246,7 +246,7 @@ scope SymTab {
                 // not found
                 breakPos = -1;
             }
-            if (breakPos > 0) {
+            if (breakPos >= 0) {
                 // delete from break to end
                 for (int i = len-1; i >= breakPos; i--) {
                     stats.DeleteChild(i);
