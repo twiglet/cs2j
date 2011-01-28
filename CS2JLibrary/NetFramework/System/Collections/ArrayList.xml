@@ -119,8 +119,10 @@
       <Return>System.Object[]</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>${this}.sort()</Java>
+      <Imports>
+        <Import>java.util.Collections</Import>
+      </Imports>
+      <Java>Collections.sort(${this})</Java>
       <Params />
       <Name>Sort</Name>
       <Return>System.Void</Return>
