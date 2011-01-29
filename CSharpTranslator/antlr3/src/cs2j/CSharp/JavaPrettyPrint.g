@@ -288,9 +288,8 @@ class_member_declaration returns [List<String> preComments]:
     | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
     | ^(FIELD attributes? modifiers? type { $preComments = CollectedComments; } field_declaration)  -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
-    | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st])
+    | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st]) -> { $enum_declaration.st }
     | ^(DELEGATE attributes? modifiers? { $preComments = CollectedComments; } delegate_declaration)
-    | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration)
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block exception*)
        -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
