@@ -612,11 +612,11 @@ member_declarator_list:
 member_declarator: 
 	qid   ('='   expression)? ;
 primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]:
-	(array_creation_expression) => array_creation_expression
+	(array_creation_expression) => array_creation_expression { $dotNetType = $array_creation_expression.dotNetType; }
 	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; $typeofType = $primary_expression.typeofType; }
 	;
 // new Type[2] { }
-array_creation_expression:
+array_creation_expression returns [TypeRepTemplate dotNetType]:
 	^('new'   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers[$type.dotNetType]?   array_initializer?	// new int[4]
@@ -624,7 +624,7 @@ array_creation_expression:
 					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
 					  | invocation_part)*   arguments
 					)							// new int[4]()
-				| array_initializer		
+				| array_initializer	{ $dotNetType = $type.dotNetType; } 	
 				)
 		| rank_specifier[null]   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
