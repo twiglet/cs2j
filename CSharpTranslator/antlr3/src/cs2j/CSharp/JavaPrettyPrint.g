@@ -26,8 +26,15 @@ options {
     private List<string> collectedComments = null;
     List<string> CollectedComments {
         get {
-            List<string> rets = collectedComments;
+   
+            List<string> rets = new List<string>(); 
+            if (collectedComments != null) {
+                foreach (String c in collectedComments) {
+                    rets.Add(processComment(c));
+                }
+            }
             collectedComments = null;
+            
             return rets;
         }
         set {
@@ -38,6 +45,13 @@ options {
             }
         }
     }
+        
+        // substitute \\u for \u, java searches for unicode in comments so you can have an error in a comment!
+        // In time, we will convert C# doc comments to javadoc
+        private string processComment(string c)
+        {
+            return Regex.Replace(c, "([^\\\\])\\\\u","$1\\\\u");
+        }
 
     // Collect all comments from previous position to endIdx
     // comments are the text from tokens on the Hidden channel
