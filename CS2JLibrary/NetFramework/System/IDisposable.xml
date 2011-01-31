@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.close()</Java>
+      <Java>${this:16}.close()</Java>
       <Params />
       <Name>Dispose</Name>
       <Return>System.Void</Return>

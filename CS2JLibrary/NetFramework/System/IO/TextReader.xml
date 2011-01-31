@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.close()</Java>
+      <Java>${this:16}.close()</Java>
       <Params />
       <Name>Close</Name>
       <Return>System.Void</Return>
