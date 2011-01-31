@@ -31,6 +31,12 @@ namespace RusticiSoftware.Translator.Utils
         }
 
         // p is key to a sub directory
+        public DirectoryHT<TValue> Parent
+        {  
+            get { return _parent; }
+        }
+
+        // p is key to a sub directory
         public DirectoryHT<TValue> subDir(string p)
         {
             string[] components = p.Split(new char[] { '.' }, 2);
