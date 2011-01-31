@@ -24,11 +24,13 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>${this}.addAll(${arg})</Java>
+      <Imports>
+        <Import>java.util.Arrays</Import>
+      </Imports>
+      <Java>${this}.addAll(Arrays.asList(${arg}))</Java>
       <Params>
         <Param>
-          <Type>System.Collections.ICollection</Type>
+          <Type>System.Object[]</Type>
           <Name>arg</Name>
         </Param>
       </Params>
@@ -40,7 +42,7 @@
       <Java>${this}.addAll(${arg})</Java>
       <Params>
         <Param>
-          <Type>System.Array</Type>
+          <Type>System.Collections.ICollection</Type>
           <Name>arg</Name>
         </Param>
       </Params>
@@ -166,6 +168,18 @@
         <Param>
           <Type>System.Int32</Type>
           <Name>length</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>java.util.Arrays</Import>
+      </Imports>
+      <Java>new ArrayList(Arrays.asList(${collection}))</Java>
+      <Params>
+        <Param>
+          <Type>System.Object[]</Type>
+          <Name>collection</Name>
         </Param>
       </Params>
     </Constructor>
