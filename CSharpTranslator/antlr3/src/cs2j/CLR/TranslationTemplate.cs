@@ -707,7 +707,7 @@ namespace RusticiSoftware.Translator.CLR
                             }
 			}
 			else {
-				methStr.Append("${this}.");
+				methStr.Append("${this:16}.");
 			}
                         // special for ToString -> tostring
                         if (Name == "ToString" && Params.Count == 0)
@@ -962,7 +962,7 @@ namespace RusticiSoftware.Translator.CLR
 		
 				
 		public override string mkJava() {
-			return "${this}." + Name;
+			return "${this:16}." + Name;
 		}
 
                 public override void Apply(Dictionary<string,TypeRepTemplate> args)
@@ -1024,7 +1024,7 @@ namespace RusticiSoftware.Translator.CLR
 				if (!CanRead) return null;
 				if (_javaGet == null) {
 					if (_java == null) {
-						return (CanRead ? "${this}.get" + Name + "()" : null);
+						return (CanRead ? "${this:16}.get" + Name + "()" : null);
 					}
 					else {
 						return _java;
@@ -1050,7 +1050,7 @@ namespace RusticiSoftware.Translator.CLR
 		public virtual string JavaSet { 
 			get {
 				if (_javaSet == null) {
-					return (CanWrite ? "${this}.set" + Name + "(${value})" : null);
+					return (CanWrite ? "${this:16}.set" + Name + "(${value})" : null);
 				}
 				else {
 					return _javaSet;
@@ -1185,7 +1185,7 @@ namespace RusticiSoftware.Translator.CLR
 				if (!CanRead) return null;
 				if (_javaGet == null) {
 					if (_java == null) {
-						return (CanRead ? "${this}.get___idx" + mkJavaParams(Params) : null);
+						return (CanRead ? "${this:16}.get___idx" + mkJavaParams(Params) : null);
 					}
 					else {
 						return _java;
@@ -1202,7 +1202,7 @@ namespace RusticiSoftware.Translator.CLR
 		public override string JavaSet { 
 			get {
 				if (_javaSet == null) {
-					return (CanWrite ? "${this}.set___idx" + mkJavaParams(SetParams): null);
+					return (CanWrite ? "${this:16}.set___idx" + mkJavaParams(SetParams): null);
 				}
 				else {
 					return _javaSet;
@@ -1361,7 +1361,7 @@ namespace RusticiSoftware.Translator.CLR
 		}		
 		
 		public override string mkJava() {
-			return "${this}." + Name;
+			return "${this:16}." + Name;
 		}
 
 
@@ -1980,7 +1980,7 @@ namespace RusticiSoftware.Translator.CLR
                                     _enumCasts = new List<CastRepTemplate> ();
                                     CastRepTemplate kast = new CastRepTemplate();
                                     kast.From = "System.Int32";
-                                    kast.Java = "${TYPEOF_totype}.values()[${expr}]";
+                                    kast.Java = "${TYPEOF_totype:16}.values()[${expr}]";
                                     _enumCasts.Add(kast);
                                     kast = new CastRepTemplate();
                                     kast.To = "System.Int32";
@@ -2149,7 +2149,7 @@ namespace RusticiSoftware.Translator.CLR
 		}
 
 		public override string mkJava() {
-			return "${delegate}.Invoke" + mkJavaParams(Params);
+			return "${delegate:16}.Invoke" + mkJavaParams(Params);
 		}
 
                 public override void Apply(Dictionary<string,TypeRepTemplate> args)

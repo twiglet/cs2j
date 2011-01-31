@@ -232,26 +232,52 @@ options {
     public string cleanTemplate(string template) {
         // Are there any markers in the template? Mostly, the answer will be no and we can return tout-de-suite
         String ret = template;
-        if (Regex.IsMatch(ret, "\\$\\{\\w+\\}")) {
+        if (Regex.IsMatch(ret, "\\$\\{[\\w:]+\\}")) {
             // ${this}.fred -> fred
-            ret = Regex.Replace(ret, "\\$\\{\\w+?\\}\\.", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}\\.", String.Empty);
             // (a,${var},b) -> (a,b)
-            ret = Regex.Replace(ret, "\\$\\{\\w+?\\},", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\},", String.Empty);
             // (a,${var}) -> (a)
-            ret = Regex.Replace(ret, ",\\$\\{\\w+?\\}", String.Empty);
+            ret = Regex.Replace(ret, ",\\$\\{[\\w:]+?\\}", String.Empty);
             // (${var}) -> ()
-            ret = Regex.Replace(ret, "\\$\\{\\w+?\\}", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}", String.Empty);
         }
         return ret;
     }
-    public string fillTemplate(string template, Dictionary<string,string> templateMap) {
+    
+    public class ReplacementDescriptor {
+        private string replacementText = "";
+        private int replacementPrec = -1;
+        public ReplacementDescriptor(string txt, int prec)
+        {
+            replacementText = txt;
+            replacementPrec = prec;
+        }
+        public ReplacementDescriptor(string txt)
+        {
+            replacementText = txt;
+            replacementPrec = Int32.MaxValue;
+        }
+
+        public string replace(Match m) {
+            // Console.Out.WriteLine("prec: {0} {1} {2} {3}", m.Value, m.Groups.Count, m.Groups[0], m.Groups[1]);
+            int patternPrec = (String.IsNullOrEmpty(m.Groups[1].Value) ? -1 : Int32.Parse(m.Groups[1].Value));
+            return String.Format(replacementPrec < patternPrec ? "({0})" : "{0}", replacementText);
+        }
+    }
+
+    public string fillTemplate(string template, Dictionary<string,ReplacementDescriptor> templateMap) {
         String ret = template;
         foreach (string v in templateMap.Keys) {
-            ret = ret.Replace("${" + v + "}", templateMap[v]);
+            MatchEvaluator myEvaluator = new MatchEvaluator(templateMap[v].replace);
+            ret = Regex.Replace(ret, Regex.Escape("${" + v) + "(?::(?<prec>\\d+))?}", myEvaluator);
         }
         ret = cleanTemplate(ret);
         return ret;
     }
+
+
+
 }
 
 compilation_unit
@@ -316,9 +342,15 @@ exception:
 primary_expression returns [int precedence]
 @init {
     $precedence = int.MaxValue;
-    Dictionary<string,string> templateMap = new Dictionary<string,string>();
+    Dictionary<string,ReplacementDescriptor> templateMap = new Dictionary<string,ReplacementDescriptor>();
 }: 
-      ^(JAVAWRAPPER t=identifier (k=identifier v=wrapped { templateMap[$k.st.ToString()] = $v.st.ToString(); })*) -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
+      ^(JAVAWRAPPER t=identifier 
+                  (k=identifier v=wrapped 
+                       {
+                         templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st.ToString(), $v.precedence); 
+                       }
+                  )*) 
+             -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
     | ^(INDEX expression expression_list?) { $precedence = precedence[INDEX]; } -> index(func= { $expression.st }, funcparens = { comparePrecedence(precedence[INDEX], $expression.precedence) < 0 }, args = { $expression_list.st } )
     | ^(APPLY expression argument_list?) { $precedence = precedence[APPLY]; } -> application(func= { $expression.st }, funcparens = { comparePrecedence(precedence[APPLY], $expression.precedence) < 0 }, args = { $argument_list.st } )
     | ^((op=POSTINC|op=POSTDEC) expression) { $precedence = precedence[$op.token.Type]; } 
@@ -409,11 +441,12 @@ argument_name:
 	argument_name_unsupported -> unsupported(reason={ "named parameters are not yet supported"}, text = { $argument_name_unsupported.st } );
 argument_name_unsupported:
 	identifier   ':' -> op(pre={$identifier.st}, op={":"});
-argument_value
+argument_value  returns [int precedence]
 @init {
     StringTemplate someText = null;
+    $precedence = int.MaxValue;
 }: 
-	expression -> { $expression.st }
+	expression { $precedence = $expression.precedence; } -> { $expression.st }
 	| ref_variable_reference 
 	| 'out'   variable_reference 
         { someText = %op(); 
@@ -438,9 +471,9 @@ rank_specifier:
 // dim_separators: 
 //	','+ ;
 
-wrapped:
-    ^(JAVAWRAPPEREXPRESSION expression) -> { $expression.st } 
-    | ^(JAVAWRAPPERARGUMENT argument_value) -> { $argument_value.st } 
+wrapped returns [int precedence]:
+    ^(JAVAWRAPPEREXPRESSION expression) { $precedence = $expression.precedence; } -> { $expression.st } 
+    | ^(JAVAWRAPPERARGUMENT argument_value) { $precedence = $argument_value.precedence; } -> { $argument_value.st } 
     ;
 
 delegate_creation_expression: 
