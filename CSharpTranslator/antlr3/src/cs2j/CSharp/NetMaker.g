@@ -1644,9 +1644,15 @@ also_keyword:
 literal returns [TypeRepTemplate dotNetType]
 @init {
     string ns = "System.Object";
+    bool isNull = false;
 }
 @after {
-    $dotNetType = AppEnv.Search(ns); 
+    TypeRepTemplate retTy = AppEnv.Search(ns);
+    if (isNull) {
+        retTy = new ClassRepTemplate((ClassRepTemplate)retTy);
+        retTy.IsExplicitNull = true;
+    }
+    $dotNetType = retTy; 
 }:
 	Real_literal 
 	| NUMBER                    { ns = "System.Int32"; }
@@ -1657,7 +1663,7 @@ literal returns [TypeRepTemplate dotNetType]
 	| Verbatim_string_literal   { ns = "System.String"; }
 	| TRUE                      { ns = "System.Boolean"; }
 	| FALSE                     { ns = "System.Boolean"; }
-	| NULL                      { ns = "System.Object"; }
+	| NULL                      { ns = "System.Object"; isNull = true; }
 	;
 
 magicScrutineeVar [IToken tok] returns [String thetext]

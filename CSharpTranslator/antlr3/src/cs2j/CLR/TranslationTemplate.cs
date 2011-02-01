@@ -1456,6 +1456,21 @@ namespace RusticiSoftware.Translator.CLR
 			}
 		}
 
+                // Client can set IsExplicitNull.  If so then null IsA anytype 
+                private bool _isExplicitNull = false;
+                [XmlIgnore]
+                public bool IsExplicitNull
+                {
+                    get
+                    {
+                        return _isExplicitNull;
+                    }
+                    set
+                    {
+                        _isExplicitNull = value;
+                    }
+                }
+
         public TypeRepTemplate()
             : base()
         {
@@ -1522,6 +1537,8 @@ namespace RusticiSoftware.Translator.CLR
                     Inherits[i] = copyFrom.Inherits[i];
                 }
             }
+
+            IsExplicitNull = copyFrom.IsExplicitNull;
         }
 
         protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
@@ -1739,7 +1756,7 @@ namespace RusticiSoftware.Translator.CLR
 
                 // Returns true if other is a subclass, or implements our interface
 		public virtual bool IsA (TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv) {
-                    if (other.TypeName == this.TypeName)
+                    if (this.IsExplicitNull || other.TypeName == this.TypeName)
                     {
                         return true;
                     }
@@ -1902,7 +1919,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 
-			return TypeName == other.TypeName && base.Equals(other);
+			return IsExplicitNull == other.IsExplicitNull && TypeName == other.TypeName && base.Equals(other);
 		}
 
 		public override bool Equals (object obj)
@@ -1949,7 +1966,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 
-			return (Java ?? String.Empty).GetHashCode () ^ hashCode;
+			return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ hashCode;
 		}
 		#endregion		
 		
