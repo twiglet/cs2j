@@ -109,19 +109,17 @@
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getInnerText()</Java>
       <Type>System.String</Type>
       <Name>InnerText</Name>
-      <Get>${this}.getInnerText()</Get>
-      <Set>${this}.setInnerText(${value})</Set>
+      <Get>${this:16}.getInnerText()</Get>
+      <Set>${this:16}.setInnerText(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getInnerXml()</Java>
       <Type>System.String</Type>
       <Name>InnerXml</Name>
-      <Get>${this}.getInnerXml()</Get>
-      <Set>${this}.setInnerXml(${value})</Set>
+      <Get>${this:16}.getInnerXml()</Get>
+      <Set>${this:16}.setInnerXml(${value})</Set>
     </Property>
     <Property>
       <Imports />

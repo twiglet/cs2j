@@ -110,11 +110,10 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.hasAttributes()</Java>
       <Type>System.Boolean</Type>
       <Name>HasAttributes</Name>
-      <Get>${this}.hasAttributes()</Get>
-      <Set>${this}.setHasAttributes(${value})</Set>
+      <Get>${this:16}.hasAttributes()</Get>
+      <Set>${this:16}.setHasAttributes(${value})</Set>
     </Property>
   </Properties>
   <Events />
