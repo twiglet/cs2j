@@ -51,14 +51,7 @@
   <Indexers />
   <Constructors />
   <Fields />
-  <Casts>
-    <Cast>
-      <Imports />
-      <Java>(Boolean)(${expr})</Java>
-      <From>System.Object</From>
-      <To>System.Boolean</To>
-    </Cast>
-  </Casts>
+  <Casts />
   <UnaryOps />
   <BinaryOps />
 </Class>
