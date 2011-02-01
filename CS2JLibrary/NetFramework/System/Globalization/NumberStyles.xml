@@ -15,7 +15,7 @@
       <Type>System.Globalization.NumberStyles</Type>
       <Name>Integer</Name>
       <Get>NumberStyles.getInteger()</Get>
-      <Set>${this}.setInteger(${value})</Set>
+      <Set>${this:16}.setInteger(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -25,7 +25,7 @@
       <Type>System.Globalization.NumberStyles</Type>
       <Name>HexNumber</Name>
       <Get>NumberStyles.getHexNumber()</Get>
-      <Set>${this}.setHexNumber(${value})</Set>
+      <Set>${this:16}.setHexNumber(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -35,7 +35,7 @@
       <Type>System.Globalization.NumberStyles</Type>
       <Name>Any</Name>
       <Get>NumberStyles.getAny()</Get>
-      <Set>${this}.setAny(${value})</Set>
+      <Set>${this:16}.setAny(${value})</Set>
     </Property>
   </Properties>
   <Events />

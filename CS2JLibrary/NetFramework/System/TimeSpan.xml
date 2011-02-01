@@ -28,11 +28,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getTotalSeconds()</Java>
+      <Java>${this:16}.getTotalSeconds()</Java>
       <Type>System.Double</Type>
       <Name>TotalSeconds</Name>
-      <Get>${this}.getTotalSeconds()</Get>
-      <Set>${this}.setTotalSeconds(${value})</Set>
+      <Get>${this:16}.getTotalSeconds()</Get>
+      <Set>${this:16}.setTotalSeconds(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -14,7 +14,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.getNextEntry()</Java>
+      <Java>${this:16}.getNextEntry()</Java>
       <Params />
       <Name>GetNextEntry</Name>
       <Return>ICSharpCode.SharpZipLib.Zip.ZipEntry</Return>

@@ -28,7 +28,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.get(${obj})</Java>
+      <Java>${this:16}.get(${obj})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -40,7 +40,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.set(${obj}, ${value})</Java>
+      <Java>${this:16}.set(${obj}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -58,19 +58,19 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getName()</Java>
+      <Java>${this:16}.getName()</Java>
       <Type>System.String</Type>
       <Name>Name</Name>
-      <Get>${this}.getName()</Get>
-      <Set>${this}.setName(${value})</Set>
+      <Get>${this:16}.getName()</Get>
+      <Set>${this:16}.setName(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getType()</Java>
+      <Java>${this:16}.getType()</Java>
       <Type>System.Type</Type>
       <Name>FieldType</Name>
-      <Get>${this}.getType()</Get>
-      <Set>${this}.setFieldType(${value})</Set>
+      <Get>${this:16}.getType()</Get>
+      <Set>${this:16}.setFieldType(${value})</Set>
     </Property>
   </Properties>
   <Events />

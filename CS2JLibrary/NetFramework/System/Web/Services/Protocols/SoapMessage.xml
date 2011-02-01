@@ -13,11 +13,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getStream()</Java>
+      <Java>${this:16}.getStream()</Java>
       <Type>System.IO.Stream</Type>
       <Name>Stream</Name>
-      <Get>${this}.getStream()</Get>
-      <Set>${this}.setStream(${value})</Set>
+      <Get>${this:16}.getStream()</Get>
+      <Set>${this:16}.setStream(${value})</Set>
     </Property>
   </Properties>
   <Events />

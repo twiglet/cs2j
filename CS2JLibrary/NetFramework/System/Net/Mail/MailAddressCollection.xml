@@ -9,11 +9,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.size()</Java>
+      <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
-      <Get>${this}.size()</Get>
-      <Set>${this}.setCount(${value})</Set>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -140,7 +140,7 @@
       <Type>System.Object</Type>
       <Name>DBNull</Name>
       <Get>null</Get>
-      <Set>${this}.setDBNull(${value})</Set>
+      <Set>${this:16}.setDBNull(${value})</Set>
     </Property>
   </Properties>
   <Events />

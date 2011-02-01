@@ -13,19 +13,19 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getName()</Java>
+      <Java>${this:16}.getName()</Java>
       <Type>System.String</Type>
       <Name>Name</Name>
-      <Get>${this}.getName()</Get>
-      <Set>${this}.setName(${value})</Set>
+      <Get>${this:16}.getName()</Get>
+      <Set>${this:16}.setName(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.isDirectory()</Java>
+      <Java>${this:16}.isDirectory()</Java>
       <Type>System.Boolean</Type>
       <Name>IsDirectory</Name>
-      <Get>${this}.isDirectory()</Get>
-      <Set>${this}.setIsDirectory(${value})</Set>
+      <Get>${this:16}.isDirectory()</Get>
+      <Set>${this:16}.setIsDirectory(${value})</Set>
     </Property>
   </Properties>
   <Events />

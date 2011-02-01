@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.iterator()</Java>
+      <Java>${this:16}.iterator()</Java>
       <Params />
       <Name>GetEnumerator</Name>
       <Return>System.IEnumerator</Return>
@@ -17,11 +17,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.size()</Java>
+      <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
-      <Get>${this}.size()</Get>
-      <Set>${this}.setCount(${value})</Set>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
     </Property>
   </Properties>
   <Events />

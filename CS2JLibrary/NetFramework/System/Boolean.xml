@@ -37,7 +37,7 @@
       <Type>System.String</Type>
       <Name>FalseString</Name>
       <Get>"False"</Get>
-      <Set>${this}.setFalseString(${value})</Set>
+      <Set>${this:16}.setFalseString(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -45,7 +45,7 @@
       <Type>System.String</Type>
       <Name>TrueString</Name>
       <Get>"True"</Get>
-      <Set>${this}.setTrueString(${value})</Set>
+      <Set>${this:16}.setTrueString(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -53,7 +53,7 @@
       <Type>System.Boolean</Type>
       <Name>HasValue</Name>
       <Get>${this} != null</Get>
-      <Set>${this}.setHasValue(${value})</Set>
+      <Set>${this:16}.setHasValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -61,7 +61,7 @@
       <Type>System.Boolean</Type>
       <Name>Value</Name>
       <Get>${this}</Get>
-      <Set>${this}.setValue(${value})</Set>
+      <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -18,7 +18,7 @@
       <Type>System.Globalization.CultureInfo</Type>
       <Name>InvariantCulture</Name>
       <Get>LocaleSupport.INVARIANT</Get>
-      <Set>${this}.setInvariantCulture(${value})</Set>
+      <Set>${this:16}.setInvariantCulture(${value})</Set>
     </Property>
   </Properties>
   <Events />

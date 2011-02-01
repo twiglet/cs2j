@@ -9,7 +9,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.equals(${obj})</Java>
+      <Java>${this:16}.equals(${obj})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -21,7 +21,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toString()</Java>
+      <Java>${this:16}.toString()</Java>
       <Params />
       <Name>ToString</Name>
       <Return>System.String</Return>
@@ -40,7 +40,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.getClass()</Java>
+      <Java>${this:16}.getClass()</Java>
       <Params />
       <Name>GetType</Name>
       <Return>System.Type</Return>

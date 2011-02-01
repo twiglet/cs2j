@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.getBytes(${s})</Java>
+      <Java>${this:16}.getBytes(${s})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -28,7 +28,7 @@
       <Type>System.Text.Encoding</Type>
       <Name>UTF8</Name>
       <Get>(new EncodingSupport("UTF-8"))</Get>
-      <Set>${this}.setUTF8(${value})</Set>
+      <Set>${this:16}.setUTF8(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.Clone()</Java>
+      <Java>${this:16}.Clone()</Java>
       <Params />
       <Name>Clone</Name>
       <Return>System.Object</Return>

@@ -118,7 +118,7 @@
       <Type>System.Double</Type>
       <Name>MinValue</Name>
       <Get>Double.MIN_VALUE</Get>
-      <Set>${this}.setMinValue(${value})</Set>
+      <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -126,7 +126,7 @@
       <Type>System.Double</Type>
       <Name>MaxValue</Name>
       <Get>Double.MAX_VALUE</Get>
-      <Set>${this}.setMaxValue(${value})</Set>
+      <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -134,7 +134,7 @@
       <Type>System.Double</Type>
       <Name>NaN</Name>
       <Get>Double.NaN</Get>
-      <Set>${this}.setNaN(${value})</Set>
+      <Set>${this:16}.setNaN(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -142,7 +142,7 @@
       <Type>System.Double</Type>
       <Name>NegativeInfinity</Name>
       <Get>Double.NEGATIVE_INFINITY</Get>
-      <Set>${this}.setNegativeInfinity(${value})</Set>
+      <Set>${this:16}.setNegativeInfinity(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -150,7 +150,7 @@
       <Type>System.Double</Type>
       <Name>PositiveInfinity</Name>
       <Get>Double.POSITIVE_INFINITY</Get>
-      <Set>${this}.setPositiveInfinity(${value})</Set>
+      <Set>${this:16}.setPositiveInfinity(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -10,14 +10,14 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.close()</Java>
+      <Java>${this:16}.close()</Java>
       <Params />
       <Name>Close</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.write(${arg} + System.getProperty("line.separator"))</Java>
+      <Java>${this:16}.write(${arg} + System.getProperty("line.separator"))</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -29,7 +29,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.write(${arg})</Java>
+      <Java>${this:16}.write(${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

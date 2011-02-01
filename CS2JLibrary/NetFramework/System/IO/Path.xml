@@ -90,7 +90,7 @@
       <Type>System.Char</Type>
       <Name>DirectorySeparatorChar</Name>
       <Get>File.separatorChar</Get>
-      <Set>${this}.setDirectorySeparatorChar(${value})</Set>
+      <Set>${this:16}.setDirectorySeparatorChar(${value})</Set>
     </Property>
   </Properties>
   <Events />

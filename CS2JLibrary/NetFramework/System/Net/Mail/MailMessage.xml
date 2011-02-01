@@ -13,49 +13,49 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getBody()</Java>
+      <Java>${this:16}.getBody()</Java>
       <Type>System.String</Type>
       <Name>Body</Name>
-      <Get>${this}.getBody()</Get>
-      <Set>${this}.setBody(${value})</Set>
+      <Get>${this:16}.getBody()</Get>
+      <Set>${this:16}.setBody(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getSubject()</Java>
+      <Java>${this:16}.getSubject()</Java>
       <Type>System.String</Type>
       <Name>Subject</Name>
-      <Get>${this}.getSubject()</Get>
-      <Set>${this}.setSubject(${value})</Set>
+      <Get>${this:16}.getSubject()</Get>
+      <Set>${this:16}.setSubject(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getFrom()</Java>
+      <Java>${this:16}.getFrom()</Java>
       <Type>System.Net.Mail.MailAddress</Type>
       <Name>From</Name>
-      <Get>${this}.getFrom()</Get>
-      <Set>${this}.setFrom(${value})</Set>
+      <Get>${this:16}.getFrom()</Get>
+      <Set>${this:16}.setFrom(${value})</Set>
     </Property>
     <Property>
       <Imports>
         <Import>javax.mail.internet.MimeMessage</Import>
         <Import>javax.mail.internet.MimeMessage.RecipientType</Import>
       </Imports>
-      <Java>${this}.getTo()</Java>
+      <Java>${this:16}.getTo()</Java>
       <Type>System.Net.Mail.MailAddressCollection</Type>
       <Name>To</Name>
-      <Get>${this}.getTo()</Get>
-      <Set>${this}.setTo(${value})</Set>
+      <Get>${this:16}.getTo()</Get>
+      <Set>${this:16}.setTo(${value})</Set>
     </Property>
     <Property>
       <Imports>
         <Import>javax.mail.internet.MimeMessage</Import>
         <Import>javax.mail.internet.MimeMessage.RecipientType</Import>
       </Imports>
-      <Java>${this}.getCC()</Java>
+      <Java>${this:16}.getCC()</Java>
       <Type>System.Net.Mail.MailAddressCollection</Type>
       <Name>CC</Name>
-      <Get>${this}.getCC()</Get>
-      <Set>${this}.setCC(${value})</Set>
+      <Get>${this:16}.getCC()</Get>
+      <Set>${this:16}.setCC(${value})</Set>
     </Property>
   </Properties>
   <Events />

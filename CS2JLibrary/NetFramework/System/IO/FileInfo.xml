@@ -13,11 +13,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getParent()</Java>
+      <Java>${this:16}.getParent()</Java>
       <Type>System.String</Type>
       <Name>DirectoryName</Name>
-      <Get>${this}.getParent()</Get>
-      <Set>${this}.setDirectoryName(${value})</Set>
+      <Get>${this:16}.getParent()</Get>
+      <Set>${this:16}.setDirectoryName(${value})</Set>
     </Property>
   </Properties>
   <Events />

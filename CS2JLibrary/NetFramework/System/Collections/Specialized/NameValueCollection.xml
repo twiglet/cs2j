@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.getProperty(${key})</Java>
+      <Java>${this:16}.getProperty(${key})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

@@ -125,7 +125,7 @@
       <Type>System.IO.TextWriter</Type>
       <Name>Out</Name>
       <Get>System.out</Get>
-      <Set>${this}.setOut(${value})</Set>
+      <Set>${this:16}.setOut(${value})</Set>
     </Property>
   </Properties>
   <Events />

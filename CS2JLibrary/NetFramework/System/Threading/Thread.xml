@@ -20,7 +20,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.start()</Java>
+      <Java>${this:16}.start()</Java>
       <Params />
       <Name>Start</Name>
       <Return />
@@ -29,11 +29,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.isAlive()</Java>
+      <Java>${this:16}.isAlive()</Java>
       <Type>System.Boolean</Type>
       <Name>IsAlive</Name>
-      <Get>${this}.isAlive()</Get>
-      <Set>${this}.setIsAlive(${value})</Set>
+      <Get>${this:16}.isAlive()</Get>
+      <Set>${this:16}.setIsAlive(${value})</Set>
     </Property>
   </Properties>
   <Events />

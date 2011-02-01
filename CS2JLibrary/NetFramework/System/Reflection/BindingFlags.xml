@@ -15,7 +15,7 @@
       <Type>System.Reflection.BindingFlags</Type>
       <Name>Instance</Name>
       <Get>BindingFlags.getInstance()</Get>
-      <Set>${this}.setInstance(${value})</Set>
+      <Set>${this:16}.setInstance(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -25,7 +25,7 @@
       <Type>System.Reflection.BindingFlags</Type>
       <Name>Public</Name>
       <Get>BindingFlags.getPublic()</Get>
-      <Set>${this}.setPublic(${value})</Set>
+      <Set>${this:16}.setPublic(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -35,7 +35,7 @@
       <Type>System.Reflection.BindingFlags</Type>
       <Name>FlattenHierarchy</Name>
       <Get>BindingFlags.getFlattenHierarchy()</Get>
-      <Set>${this}.setFlattenHierarchy(${value})</Set>
+      <Set>${this:16}.setFlattenHierarchy(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -45,7 +45,7 @@
       <Type>System.Reflection.BindingFlags</Type>
       <Name>Static</Name>
       <Get>BindingFlags.getStatic()</Get>
-      <Set>${this}.setStatic(${value})</Set>
+      <Set>${this:16}.setStatic(${value})</Set>
     </Property>
   </Properties>
   <Events />

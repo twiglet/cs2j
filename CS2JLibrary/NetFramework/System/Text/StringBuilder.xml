@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.append(${arg})</Java>
+      <Java>${this:16}.append(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -22,7 +22,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.append((${arg}) + System.getProperty("line.separator"))</Java>
+      <Java>${this:16}.append((${arg}) + System.getProperty("line.separator"))</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -48,7 +48,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.insert(${idx}, ${obj})</Java>
+      <Java>${this:16}.insert(${idx}, ${obj})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -64,7 +64,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.replace(${old}, ${new})</Java>
+      <Java>${this:16}.replace(${old}, ${new})</Java>
       <Params>
         <Param>
           <Type>System.Char</Type>
@@ -80,7 +80,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.delete(${startIndex}, (${startIndex})+(${length}))</Java>
+      <Java>${this:16}.delete(${startIndex}, (${startIndex})+(${length}))</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -96,7 +96,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.substring(${startIndex}, (${startIndex})+(${length}))</Java>
+      <Java>${this:16}.substring(${startIndex}, (${startIndex})+(${length}))</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -116,19 +116,19 @@
       <Imports>
         <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
       </Imports>
-      <Java>${this}.length()</Java>
+      <Java>${this:16}.length()</Java>
       <Type>System.Int32</Type>
       <Name>Length</Name>
-      <Get>${this}.length()</Get>
+      <Get>${this:16}.length()</Get>
       <Set>StringBuilderSupport.setLength(${this}, ${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.capacity()</Java>
+      <Java>${this:16}.capacity()</Java>
       <Type>System.Int32</Type>
       <Name>Capacity</Name>
-      <Get>${this}.capacity()</Get>
-      <Set>${this}.ensureCapacity(${value})</Set>
+      <Get>${this:16}.capacity()</Get>
+      <Set>${this:16}.ensureCapacity(${value})</Set>
     </Property>
   </Properties>
   <Events />

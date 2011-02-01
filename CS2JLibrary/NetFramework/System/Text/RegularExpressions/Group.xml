@@ -13,11 +13,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.find()</Java>
+      <Java>${this:16}.find()</Java>
       <Type>System.Boolean</Type>
       <Name>Success</Name>
-      <Get>${this}.find()</Get>
-      <Set>${this}.setSuccess(${value})</Set>
+      <Get>${this:16}.find()</Get>
+      <Set>${this:16}.setSuccess(${value})</Set>
     </Property>
   </Properties>
   <Events />

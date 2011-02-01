@@ -38,7 +38,7 @@
       <Type>System.Decimal</Type>
       <Name>MinValue</Name>
       <Get>Double.MIN_VALUE</Get>
-      <Set>${this}.setMinValue(${value})</Set>
+      <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -46,7 +46,7 @@
       <Type>System.Decimal</Type>
       <Name>MaxValue</Name>
       <Get>Double.MAX_VALUE</Get>
-      <Set>${this}.setMaxValue(${value})</Set>
+      <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -54,7 +54,7 @@
       <Type>System.Decimal</Type>
       <Name>MinusOne</Name>
       <Get>-1.0</Get>
-      <Set>${this}.setMinusOne(${value})</Set>
+      <Set>${this:16}.setMinusOne(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -62,7 +62,7 @@
       <Type>System.Decimal</Type>
       <Name>Zero</Name>
       <Get>0.0</Get>
-      <Set>${this}.setZero(${value})</Set>
+      <Set>${this:16}.setZero(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -70,7 +70,7 @@
       <Type>System.Decimal</Type>
       <Name>One</Name>
       <Get>1.0</Get>
-      <Set>${this}.setOne(${value})</Set>
+      <Set>${this:16}.setOne(${value})</Set>
     </Property>
   </Properties>
   <Events />

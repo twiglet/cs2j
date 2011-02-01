@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.getClass(${name}, ${throwOnError})</Java>
+      <Java>${this:16}.getClass(${name}, ${throwOnError})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

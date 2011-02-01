@@ -11,11 +11,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.start()</Java>
+      <Java>${this:16}.start()</Java>
       <Type>System.Int32</Type>
       <Name>Index</Name>
-      <Get>${this}.start()</Get>
-      <Set>${this}.setIndex(${value})</Set>
+      <Get>${this:16}.start()</Get>
+      <Set>${this:16}.setIndex(${value})</Set>
     </Property>
   </Properties>
   <Events />

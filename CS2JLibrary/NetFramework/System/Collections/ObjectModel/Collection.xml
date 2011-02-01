@@ -13,7 +13,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.addS(${arg})</Java>
+      <Java>${this:16}.addS(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -25,7 +25,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.addAllS(${arg})</Java>
+      <Java>${this:16}.addAllS(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Collections.ICollection</Type>
@@ -37,7 +37,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.addAllS(${arg})</Java>
+      <Java>${this:16}.addAllS(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Array</Type>
@@ -49,7 +49,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.contains(${key})</Java>
+      <Java>${this:16}.contains(${key})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -61,7 +61,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.get(${i})</Java>
+      <Java>${this:16}.get(${i})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -73,7 +73,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.set___idx(${i}, ${v})</Java>
+      <Java>${this:16}.set___idx(${i}, ${v})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -89,7 +89,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toArrayS(new ${TYPEOF_expr_TYPE}[0])</Java>
+      <Java>${this:16}.toArrayS(new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -101,7 +101,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.sort()</Java>
+      <Java>${this:16}.sort()</Java>
       <Params />
       <Name>Sort</Name>
       <Return>System.Void</Return>
@@ -110,11 +110,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.size()</Java>
+      <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
-      <Get>${this}.size()</Get>
-      <Set>${this}.setCount(${value})</Set>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
     </Property>
   </Properties>
   <Events />
@@ -128,8 +128,8 @@
         </Param>
       </Params>
       <Type>System.Object</Type>
-      <Get>${this}.get(${i})</Get>
-      <Set>${this}.put(${i}, ${value})</Set>
+      <Get>${this:16}.get(${i})</Get>
+      <Set>${this:16}.put(${i}, ${value})</Set>
     </Indexer>
   </Indexers>
   <Constructors>

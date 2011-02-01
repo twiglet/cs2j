@@ -13,7 +13,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.add(${arg})</Java>
+      <Java>${this:16}.add(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -27,7 +27,7 @@
       <Imports>
         <Import>java.util.Arrays</Import>
       </Imports>
-      <Java>${this}.addAll(Arrays.asList(${arg}))</Java>
+      <Java>${this:16}.addAll(Arrays.asList(${arg}))</Java>
       <Params>
         <Param>
           <Type>System.Object[]</Type>
@@ -39,7 +39,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.addAll(${arg})</Java>
+      <Java>${this:16}.addAll(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Collections.ICollection</Type>
@@ -51,14 +51,14 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.clear()</Java>
+      <Java>${this:16}.clear()</Java>
       <Params />
       <Name>Clear</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.contains(${key})</Java>
+      <Java>${this:16}.contains(${key})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -70,7 +70,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.add(${index}, ${value})</Java>
+      <Java>${this:16}.add(${index}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -86,7 +86,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.remove(${value})</Java>
+      <Java>${this:16}.remove(${value})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -98,7 +98,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.remove(${index})</Java>
+      <Java>${this:16}.remove(${index})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -110,7 +110,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toArray(new ${TYPEOF_expr_TYPE}[0])</Java>
+      <Java>${this:16}.toArray(new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>
         <Param>
           <Type>System.Type</Type>
@@ -133,11 +133,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.size()</Java>
+      <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
-      <Get>${this}.size()</Get>
-      <Set>${this}.setCount(${value})</Set>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
     </Property>
   </Properties>
   <Events />
@@ -151,8 +151,8 @@
         </Param>
       </Params>
       <Type>System.Object</Type>
-      <Get>${this}.get(${i})</Get>
-      <Set>${this}.add(${i}, ${value})</Set>
+      <Get>${this:16}.get(${i})</Get>
+      <Set>${this:16}.add(${i}, ${value})</Set>
     </Indexer>
   </Indexers>
   <Constructors>

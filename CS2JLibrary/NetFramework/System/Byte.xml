@@ -38,7 +38,7 @@
       <Type>System.Byte</Type>
       <Name>MinValue</Name>
       <Get>Byte.MIN_VALUE</Get>
-      <Set>${this}.setMinValue(${value})</Set>
+      <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -46,7 +46,7 @@
       <Type>System.Byte</Type>
       <Name>MaxValue</Name>
       <Get>Byte.MAX_VALUE</Get>
-      <Set>${this}.setMaxValue(${value})</Set>
+      <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

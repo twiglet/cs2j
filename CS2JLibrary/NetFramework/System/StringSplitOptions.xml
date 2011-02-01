@@ -15,7 +15,7 @@
       <Type>System.StringSplitOptions</Type>
       <Name>None</Name>
       <Get>StringSplitOptions.None</Get>
-      <Set>${this}.setNone(${value})</Set>
+      <Set>${this:16}.setNone(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -25,7 +25,7 @@
       <Type>System.StringSplitOptions</Type>
       <Name>RemoveEmptyEntries</Name>
       <Get>StringSplitOptions.RemoveEmptyEntries</Get>
-      <Set>${this}.setRemoveEmptyEntries(${value})</Set>
+      <Set>${this:16}.setRemoveEmptyEntries(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.Compare(${arg})</Java>
+      <Java>${this:16}.Compare(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>

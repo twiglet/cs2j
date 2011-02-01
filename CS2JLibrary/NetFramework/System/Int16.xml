@@ -38,7 +38,7 @@
       <Type>System.Int16</Type>
       <Name>MinValue</Name>
       <Get>Short.MIN_VALUE</Get>
-      <Set>${this}.setMinValue(${value})</Set>
+      <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -46,7 +46,7 @@
       <Type>System.Int16</Type>
       <Name>MaxValue</Name>
       <Get>Short.MAX_VALUE</Get>
-      <Set>${this}.setMaxValue(${value})</Set>
+      <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

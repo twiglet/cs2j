@@ -11,19 +11,19 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getKey()</Java>
+      <Java>${this:16}.getKey()</Java>
       <Type>System.Object</Type>
       <Name>Key</Name>
-      <Get>${this}.getKey()</Get>
-      <Set>${this}.setKey(${value})</Set>
+      <Get>${this:16}.getKey()</Get>
+      <Set>${this:16}.setKey(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getValue()</Java>
+      <Java>${this:16}.getValue()</Java>
       <Type>System.Object</Type>
       <Name>Value</Name>
-      <Get>${this}.getValue()</Get>
-      <Set>${this}.setValue(${value})</Set>
+      <Get>${this:16}.getValue()</Get>
+      <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

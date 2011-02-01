@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.getAttribute(${att})</Java>
+      <Java>${this:16}.getAttribute(${att})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.getElementsByTagName(${name})</Java>
+      <Java>${this:16}.getElementsByTagName(${name})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -36,7 +36,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.hasAttribute(${att})</Java>
+      <Java>${this:16}.hasAttribute(${att})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -48,7 +48,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.removeAttribute(${att})</Java>
+      <Java>${this:16}.removeAttribute(${att})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -60,7 +60,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.setAttribute(${name}, ${value})</Java>
+      <Java>${this:16}.setAttribute(${name}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -76,7 +76,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.setAttributeNS(${namespaceURI}, ${localName}, ${value})</Java>
+      <Java>${this:16}.setAttributeNS(${namespaceURI}, ${localName}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -96,7 +96,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.setAttributeNode(${att})</Java>
+      <Java>${this:16}.setAttributeNode(${att})</Java>
       <Params>
         <Param>
           <Type>System.Xml.XmlAttribute</Type>

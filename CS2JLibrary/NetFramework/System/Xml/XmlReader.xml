@@ -12,21 +12,21 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.readStartElement()</Java>
+      <Java>${this:16}.readStartElement()</Java>
       <Params />
       <Name>ReadStartElement</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.moveToContent()</Java>
+      <Java>${this:16}.moveToContent()</Java>
       <Params />
       <Name>MoveToContent</Name>
       <Return>System.Xml.XmlNodeType</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.getAttribute(${name})</Java>
+      <Java>${this:16}.getAttribute(${name})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -38,21 +38,21 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.readElementString()</Java>
+      <Java>${this:16}.readElementString()</Java>
       <Params />
       <Name>ReadElementString</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.skip()</Java>
+      <Java>${this:16}.skip()</Java>
       <Params />
       <Name>Skip</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.readEndElement()</Java>
+      <Java>${this:16}.readEndElement()</Java>
       <Params />
       <Name>ReadEndElement</Name>
       <Return>System.Void</Return>

@@ -46,7 +46,7 @@
       <Imports />
       <Type>System.Int32</Type>
       <Name>Length</Name>
-      <Get>${this}.length</Get>
+      <Get>${this:16}.length</Get>
     </Property>
   </Properties>
   <Events />

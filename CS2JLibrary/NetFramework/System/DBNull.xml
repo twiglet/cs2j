@@ -15,7 +15,7 @@
       <Type>System.DBNull</Type>
       <Name>Value</Name>
       <Get>null</Get>
-      <Set>${this}.setValue(${value})</Set>
+      <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -11,11 +11,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getMessage()</Java>
+      <Java>${this:16}.getMessage()</Java>
       <Type>System.String</Type>
       <Name>Message</Name>
-      <Get>${this}.getMessage()</Get>
-      <Set>${this}.setMessage(${value})</Set>
+      <Get>${this:16}.getMessage()</Get>
+      <Set>${this:16}.setMessage(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -25,23 +25,23 @@
       <Type>System.String</Type>
       <Name>Source</Name>
       <Get>ExceptionSupport.getSource(${this})</Get>
-      <Set>${this}.setSource(${value})</Set>
+      <Set>${this:16}.setSource(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getStackTrace().toString()</Java>
+      <Java>${this:16}.getStackTrace().toString()</Java>
       <Type>System.String</Type>
       <Name>StackTrace</Name>
-      <Get>${this}.getStackTrace().toString()</Get>
-      <Set>${this}.setStackTrace(${value})</Set>
+      <Get>${this:16}.getStackTrace().toString()</Get>
+      <Set>${this:16}.setStackTrace(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>((Exception)${this}.getCause())</Java>
+      <Java>((Exception)${this:16}.getCause())</Java>
       <Type>System.Exception</Type>
       <Name>InnerException</Name>
-      <Get>((Exception)${this}.getCause())</Get>
-      <Set>${this}.setInnerException(${value})</Set>
+      <Get>((Exception)${this:16}.getCause())</Get>
+      <Set>${this:16}.setInnerException(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -20,7 +20,7 @@
       <Type>System.Globalization.NumberFormatInfo</Type>
       <Name>InvariantInfo</Name>
       <Get>LocaleSupport.INVARIANT</Get>
-      <Set>${this}.setInvariantInfo(${value})</Set>
+      <Set>${this:16}.setInvariantInfo(${value})</Set>
     </Property>
   </Properties>
   <Events />

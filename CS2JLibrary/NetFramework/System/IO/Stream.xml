@@ -12,14 +12,14 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.close()</Java>
+      <Java>${this:16}.close()</Java>
       <Params />
       <Name>Close</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.read(${buffer},${offset},${count})</Java>
+      <Java>${this:16}.read(${buffer},${offset},${count})</Java>
       <Params>
         <Param>
           <Type>System.Byte[]</Type>
@@ -39,7 +39,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.write(${buffer},${offset},${count})</Java>
+      <Java>${this:16}.write(${buffer},${offset},${count})</Java>
       <Params>
         <Param>
           <Type>System.Byte[]</Type>
@@ -63,11 +63,11 @@
       <Imports>
         <Import>RusticiSoftware.JavaSupport.Unsupported</Import>
       </Imports>
-      <Java>Unsupported.throwUnsupported("${this}.Position")</Java>
+      <Java>Unsupported.throwUnsupported("${this:16}.Position")</Java>
       <Type>System.Int64</Type>
       <Name>Position</Name>
-      <Get>Unsupported.throwUnsupported("${this}.Position")</Get>
-      <Set>Unsupported.throwUnsupported("${this}.Position = ${value}")</Set>
+      <Get>Unsupported.throwUnsupported("${this:16}.Position")</Get>
+      <Set>Unsupported.throwUnsupported("${this:16}.Position = ${value}")</Set>
     </Property>
   </Properties>
   <Events />

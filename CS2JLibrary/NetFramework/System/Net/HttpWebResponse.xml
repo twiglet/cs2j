@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.getInputStream()</Java>
+      <Java>${this:16}.getInputStream()</Java>
       <Params />
       <Name>GetResponseStream</Name>
       <Return>System.IO.Stream</Return>
@@ -21,11 +21,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getResponseCode()</Java>
+      <Java>${this:16}.getResponseCode()</Java>
       <Type>System.Int32</Type>
       <Name>StatusCode</Name>
-      <Get>${this}.getResponseCode()</Get>
-      <Set>${this}.setStatusCode(${value})</Set>
+      <Get>${this:16}.getResponseCode()</Get>
+      <Set>${this:16}.setStatusCode(${value})</Set>
     </Property>
   </Properties>
   <Events />

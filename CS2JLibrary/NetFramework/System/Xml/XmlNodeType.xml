@@ -13,7 +13,7 @@
       <Type>short</Type>
       <Name>Element</Name>
       <Get>org.w3c.dom.Node.ELEMENT_NODE</Get>
-      <Set>${this}.setElement(${value})</Set>
+      <Set>${this:16}.setElement(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -21,7 +21,7 @@
       <Type>short</Type>
       <Name>Attribute</Name>
       <Get>org.w3c.dom.Node.ATTRIBUTE_NODE</Get>
-      <Set>${this}.setAttribute(${value})</Set>
+      <Set>${this:16}.setAttribute(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -29,7 +29,7 @@
       <Type>short</Type>
       <Name>Text</Name>
       <Get>org.w3c.dom.Node.TEXT_NODE</Get>
-      <Set>${this}.setText(${value})</Set>
+      <Set>${this:16}.setText(${value})</Set>
     </Property>
   </Properties>
   <Events />

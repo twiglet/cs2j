@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.put(${key}, ${value})</Java>
+      <Java>${this:16}.put(${key}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -26,7 +26,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.containsKey(${key})</Java>
+      <Java>${this:16}.containsKey(${key})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -38,7 +38,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.containsKey(${key})</Java>
+      <Java>${this:16}.containsKey(${key})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -50,7 +50,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.remove(${value})</Java>
+      <Java>${this:16}.remove(${value})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -64,27 +64,27 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.size()</Java>
+      <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
-      <Get>${this}.size()</Get>
-      <Set>${this}.setCount(${value})</Set>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.keySet()</Java>
+      <Java>${this:16}.keySet()</Java>
       <Type>System.Collections.ICollection</Type>
       <Name>Keys</Name>
-      <Get>${this}.keySet()</Get>
-      <Set>${this}.setKeys(${value})</Set>
+      <Get>${this:16}.keySet()</Get>
+      <Set>${this:16}.setKeys(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.values()</Java>
+      <Java>${this:16}.values()</Java>
       <Type>System.Collections.ICollection</Type>
       <Name>Values</Name>
-      <Get>${this}.values()</Get>
-      <Set>${this}.setValues(${value})</Set>
+      <Get>${this:16}.values()</Get>
+      <Set>${this:16}.setValues(${value})</Set>
     </Property>
   </Properties>
   <Events />
@@ -98,8 +98,8 @@
         </Param>
       </Params>
       <Type>System.Object</Type>
-      <Get>${this}.get(${key})</Get>
-      <Set>${this}.put(${key}, ${value})</Set>
+      <Get>${this:16}.get(${key})</Get>
+      <Set>${this:16}.put(${key}, ${value})</Set>
     </Indexer>
   </Indexers>
 </Interface>

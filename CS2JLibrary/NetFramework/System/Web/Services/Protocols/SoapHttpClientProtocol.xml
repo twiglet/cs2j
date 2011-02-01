@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.invoke(${methodName}, ${parameters})</Java>
+      <Java>${this:16}.invoke(${methodName}, ${parameters})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -30,19 +30,19 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getUrl()</Java>
+      <Java>${this:16}.getUrl()</Java>
       <Type>System.String</Type>
       <Name>Url</Name>
-      <Get>${this}.getUrl()</Get>
-      <Set>${this}.setUrl(${value})</Set>
+      <Get>${this:16}.getUrl()</Get>
+      <Set>${this:16}.setUrl(${value})</Set>
     </Property>
     <Property>
       <Imports />
-      <Java>${this}.getCookieContainer()</Java>
+      <Java>${this:16}.getCookieContainer()</Java>
       <Type>System.String</Type>
       <Name>CookieContainer</Name>
-      <Get>${this}.getCookieContainer()</Get>
-      <Set>${this}.setCookieContainer(${value})</Set>
+      <Get>${this:16}.getCookieContainer()</Get>
+      <Set>${this:16}.setCookieContainer(${value})</Set>
     </Property>
   </Properties>
   <Events />

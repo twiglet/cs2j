@@ -15,7 +15,7 @@
       <Type>System.Collections.Specialized.NameValueCollection</Type>
       <Name>AppSettings</Name>
       <Get>ConfigurationSettings.getAppSettings()</Get>
-      <Set>${this}.setAppSettings(${value})</Set>
+      <Set>${this:16}.setAppSettings(${value})</Set>
     </Property>
   </Properties>
   <Events />

@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.matcher(${input})</Java>
+      <Java>${this:16}.matcher(${input})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -22,7 +22,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.matcher(${input}).matches()</Java>
+      <Java>${this:16}.matcher(${input}).matches()</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

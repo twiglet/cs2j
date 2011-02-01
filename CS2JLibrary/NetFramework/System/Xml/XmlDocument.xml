@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.load(${p})</Java>
+      <Java>${this:16}.load(${p})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.load(${txtReader})</Java>
+      <Java>${this:16}.load(${txtReader})</Java>
       <Params>
         <Param>
           <Type>System.IO.TextReader</Type>
@@ -36,7 +36,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.load(${stream})</Java>
+      <Java>${this:16}.load(${stream})</Java>
       <Params>
         <Param>
           <Type>System.IO.Stream</Type>
@@ -48,7 +48,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.loadXml(${xml})</Java>
+      <Java>${this:16}.loadXml(${xml})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -60,7 +60,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.getElementsByTagName(${name})</Java>
+      <Java>${this:16}.getElementsByTagName(${name})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -72,7 +72,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createCDataSection(${data})</Java>
+      <Java>${this:16}.createCDataSection(${data})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -84,7 +84,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createComment(${data})</Java>
+      <Java>${this:16}.createComment(${data})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -96,7 +96,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createAttribute(${name})</Java>
+      <Java>${this:16}.createAttribute(${name})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -108,7 +108,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createAttribute(${qualifiedName},${namespaceURI})</Java>
+      <Java>${this:16}.createAttribute(${qualifiedName},${namespaceURI})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -124,7 +124,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createAttribute(${prefix},${localName},${namespaceURI})</Java>
+      <Java>${this:16}.createAttribute(${prefix},${localName},${namespaceURI})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -144,7 +144,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createElement(${name})</Java>
+      <Java>${this:16}.createElement(${name})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -156,7 +156,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createElement(${qualifiedName}, ${namespaceURI})</Java>
+      <Java>${this:16}.createElement(${qualifiedName}, ${namespaceURI})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -172,7 +172,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createElement(${prefix}, ${localName}, ${namespaceURI})</Java>
+      <Java>${this:16}.createElement(${prefix}, ${localName}, ${namespaceURI})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -214,7 +214,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.createText(${value})</Java>
+      <Java>${this:16}.createText(${value})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -226,7 +226,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.save(${p})</Java>
+      <Java>${this:16}.save(${p})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -240,11 +240,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getDocumentElement()</Java>
+      <Java>${this:16}.getDocumentElement()</Java>
       <Type>System.Xml.XmlElement</Type>
       <Name>DocumentElement</Name>
-      <Get>${this}.getDocumentElement()</Get>
-      <Set>${this}.setDocumentElement(${value})</Set>
+      <Get>${this:16}.getDocumentElement()</Get>
+      <Set>${this:16}.setDocumentElement(${value})</Set>
     </Property>
   </Properties>
   <Events />

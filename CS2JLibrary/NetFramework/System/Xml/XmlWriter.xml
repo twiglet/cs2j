@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.writeStartElement(${localName})</Java>
+      <Java>${this:16}.writeStartElement(${localName})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.writeAttributeString(${localName}, ${value})</Java>
+      <Java>${this:16}.writeAttributeString(${localName}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -40,7 +40,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.writeString(${text})</Java>
+      <Java>${this:16}.writeString(${text})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -52,7 +52,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.writeEndElement()</Java>
+      <Java>${this:16}.writeEndElement()</Java>
       <Params />
       <Name>WriteEndElement</Name>
       <Return>System.Void</Return>

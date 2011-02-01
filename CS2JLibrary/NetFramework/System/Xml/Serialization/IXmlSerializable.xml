@@ -11,11 +11,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.getValue()</Java>
+      <Java>${this:16}.getValue()</Java>
       <Type>System.String</Type>
       <Name>Value</Name>
-      <Get>${this}.getValue()</Get>
-      <Set>${this}.setValue(${value})</Set>
+      <Get>${this:16}.getValue()</Get>
+      <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

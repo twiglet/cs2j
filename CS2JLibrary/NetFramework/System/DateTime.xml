@@ -110,7 +110,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.compareTo(${value})</Java>
+      <Java>${this:16}.compareTo(${value})</Java>
       <Params>
         <Param>
           <Type>System.DateTime</Type>
@@ -125,7 +125,7 @@
         <Import>RusticiSoftware.System.DateTZ</Import>
         <Import>java.util.TimeZone</Import>
       </Imports>
-      <Java>(new DateTZ(${this}.getTime(), TimeZone.getTimeZone("UTC")))</Java>
+      <Java>(new DateTZ(${this:16}.getTime(), TimeZone.getTimeZone("UTC")))</Java>
       <Params />
       <Name>ToUniversalTime</Name>
       <Return>System.DateTime</Return>
@@ -224,7 +224,7 @@
       <Imports>
         <Import>RusticiSoftware.System.DateTimeSupport</Import>
       </Imports>
-      <Java>(new TimeSpan(Math.abs(${this}.getTime() - ${date2}.getTime())))</Java>
+      <Java>(new TimeSpan(Math.abs(${this:16}.getTime() - ${date2}.getTime())))</Java>
       <Params>
         <Param>
           <Type>System.DateTime</Type>
@@ -244,7 +244,7 @@
       <Type>System.DateTime</Type>
       <Name>Now</Name>
       <Get>Calendar.getInstance().getTime()</Get>
-      <Set>${this}.setNow(${value})</Set>
+      <Set>${this:16}.setNow(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -254,7 +254,7 @@
       <Type>System.DateTime</Type>
       <Name>Today</Name>
       <Get>new Date()</Get>
-      <Set>${this}.setToday(${value})</Set>
+      <Set>${this:16}.setToday(${value})</Set>
     </Property>
   </Properties>
   <Events />

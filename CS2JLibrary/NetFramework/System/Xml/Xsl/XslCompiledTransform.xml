@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.load(${xmlReader}, ${ignore}, ${ignore2})</Java>
+      <Java>${this:16}.load(${xmlReader}, ${ignore}, ${ignore2})</Java>
       <Params>
         <Param>
           <Type>System.Xml.XmlTextReader</Type>
@@ -32,7 +32,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.transform(${xmlDocument}, ${ignore}, ${stringWriter})</Java>
+      <Java>${this:16}.transform(${xmlDocument}, ${ignore}, ${stringWriter})</Java>
       <Params>
         <Param>
           <Type>System.Xml.XmlDocument</Type>

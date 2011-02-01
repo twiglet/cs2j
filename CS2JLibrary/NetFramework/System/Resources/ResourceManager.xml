@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.getString(${name})</Java>
+      <Java>${this:16}.getString(${name})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

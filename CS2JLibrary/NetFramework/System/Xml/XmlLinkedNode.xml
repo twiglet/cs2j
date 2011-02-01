@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.Load(${p})</Java>
+      <Java>${this:16}.Load(${p})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

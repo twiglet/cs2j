@@ -13,7 +13,7 @@
       <Type>System.Enum</Type>
       <Name>ReadOnly</Name>
       <Get>/* FileAttributes.ReadOnly */ 0</Get>
-      <Set>${this}.setReadOnly(${value})</Set>
+      <Set>${this:16}.setReadOnly(${value})</Set>
     </Property>
   </Properties>
   <Events />

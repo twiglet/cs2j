@@ -13,7 +13,7 @@
       <Type>System.String</Type>
       <Name>StartupPath</Name>
       <Get>System.getProperty("user.dir")</Get>
-      <Set>${this}.setStartupPath(${value})</Set>
+      <Set>${this:16}.setStartupPath(${value})</Set>
     </Property>
   </Properties>
   <Events />

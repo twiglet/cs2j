@@ -19,7 +19,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.readLine()</Java>
+      <Java>${this:16}.readLine()</Java>
       <Params />
       <Name>ReadLine</Name>
       <Return>System.String</Return>

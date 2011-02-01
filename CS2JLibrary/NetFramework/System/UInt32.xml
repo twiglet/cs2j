@@ -38,7 +38,7 @@
       <Type>System.UInt32</Type>
       <Name>MinValue</Name>
       <Get>0</Get>
-      <Set>${this}.setMinValue(${value})</Set>
+      <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -46,7 +46,7 @@
       <Type>System.UInt32</Type>
       <Name>MaxValue</Name>
       <Get>4294967295L /* UInt32.MaxValue */</Get>
-      <Set>${this}.setMaxValue(${value})</Set>
+      <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
   </Properties>
   <Events />

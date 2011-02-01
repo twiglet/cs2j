@@ -70,7 +70,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.contains(${arg})</Java>
+      <Java>${this:16}.contains(${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -82,7 +82,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.endsWith(${arg})</Java>
+      <Java>${this:16}.endsWith(${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -94,7 +94,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.indexOf(${arg})</Java>
+      <Java>${this:16}.indexOf(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Char</Type>
@@ -106,7 +106,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.indexOf(${arg}, ${start})</Java>
+      <Java>${this:16}.indexOf(${arg}, ${start})</Java>
       <Params>
         <Param>
           <Type>System.Char</Type>
@@ -122,7 +122,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.indexOf(${arg})</Java>
+      <Java>${this:16}.indexOf(${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -134,7 +134,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.indexOf(${arg}, ${start})</Java>
+      <Java>${this:16}.indexOf(${arg}, ${start})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -178,7 +178,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.lastIndexOf(${arg})</Java>
+      <Java>${this:16}.lastIndexOf(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Char</Type>
@@ -190,7 +190,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.lastIndexOf(${arg},${start})</Java>
+      <Java>${this:16}.lastIndexOf(${arg},${start})</Java>
       <Params>
         <Param>
           <Type>System.Char</Type>
@@ -206,7 +206,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.lastIndexOf(${arg})</Java>
+      <Java>${this:16}.lastIndexOf(${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -218,7 +218,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.lastIndexOf(${arg},${start})</Java>
+      <Java>${this:16}.lastIndexOf(${arg},${start})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -298,7 +298,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.replace(${old}, ${new})</Java>
+      <Java>${this:16}.replace(${old}, ${new})</Java>
       <Params>
         <Param>
           <Type>System.Char</Type>
@@ -314,7 +314,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.replace(${old}, ${new})</Java>
+      <Java>${this:16}.replace(${old}, ${new})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -364,7 +364,7 @@
       <Imports>
         <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
-      <Java>${this}.split(StringSupport.charAltsToRegex(${cs}))</Java>
+      <Java>${this:16}.split(StringSupport.charAltsToRegex(${cs}))</Java>
       <Params>
         <Param>
           <Type>System.Char[]</Type>
@@ -378,7 +378,7 @@
       <Imports>
         <Import>RusticiSoftware.System.StringSupport</Import>
       </Imports>
-      <Java>${this}.split(StringSupport.charAltsToRegex(${cs}), ${count})</Java>
+      <Java>${this:16}.split(StringSupport.charAltsToRegex(${cs}), ${count})</Java>
       <Params>
         <Param>
           <Type>System.Char[]</Type>
@@ -412,7 +412,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.startsWith(${arg})</Java>
+      <Java>${this:16}.startsWith(${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -424,7 +424,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.substring(${start})</Java>
+      <Java>${this:16}.substring(${start})</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -436,7 +436,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.substring(${start}, (${start}) + (${length}))</Java>
+      <Java>${this:16}.substring(${start}, (${start}) + (${length}))</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -452,14 +452,14 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toCharArray()</Java>
+      <Java>${this:16}.toCharArray()</Java>
       <Params />
       <Name>ToCharArray</Name>
       <Return>System.Char[]</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.substring(${start}, ${end}).toCharArray()</Java>
+      <Java>${this:16}.substring(${start}, ${end}).toCharArray()</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -475,28 +475,28 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toLowerCase()</Java>
+      <Java>${this:16}.toLowerCase()</Java>
       <Params />
       <Name>ToLower</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toUpperCase()</Java>
+      <Java>${this:16}.toUpperCase()</Java>
       <Params />
       <Name>ToUpper</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toLowerCase()</Java>
+      <Java>${this:16}.toLowerCase()</Java>
       <Params />
       <Name>ToLowerInvariant</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.toUpperCase()</Java>
+      <Java>${this:16}.toUpperCase()</Java>
       <Params />
       <Name>ToUpperInvariant</Name>
       <Return>System.String</Return>
@@ -670,11 +670,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.length()</Java>
+      <Java>${this:16}.length()</Java>
       <Type>System.Int32</Type>
       <Name>Length</Name>
-      <Get>${this}.length()</Get>
-      <Set>${this}.setLength(${value})</Set>
+      <Get>${this:16}.length()</Get>
+      <Set>${this:16}.setLength(${value})</Set>
     </Property>
     <Property>
       <Imports />
@@ -682,7 +682,7 @@
       <Type>System.String</Type>
       <Name>Empty</Name>
       <Get>""</Get>
-      <Set>${this}.setEmpty(${value})</Set>
+      <Set>${this:16}.setEmpty(${value})</Set>
     </Property>
   </Properties>
   <Events />
@@ -696,7 +696,7 @@
         </Param>
       </Params>
       <Type>System.Char</Type>
-      <Get>${this}.charAt(${i})</Get>
+      <Get>${this:16}.charAt(${i})</Get>
     </Indexer>
   </Indexers>
   <Constructors>

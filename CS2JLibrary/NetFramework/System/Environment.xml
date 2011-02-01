@@ -15,7 +15,7 @@
       <Type>System.String</Type>
       <Name>NewLine</Name>
       <Get>System.getProperty("line.separator")</Get>
-      <Set>${this}.setNewLine(${value})</Set>
+      <Set>${this:16}.setNewLine(${value})</Set>
     </Property>
     <Property>
       <Imports>
@@ -25,7 +25,7 @@
       <Type>System.String</Type>
       <Name>MachineName</Name>
       <Get>InetAddress.getLocalHost().getHostName()</Get>
-      <Set>${this}.setMachineName(${value})</Set>
+      <Set>${this:16}.setMachineName(${value})</Set>
     </Property>
   </Properties>
   <Events />

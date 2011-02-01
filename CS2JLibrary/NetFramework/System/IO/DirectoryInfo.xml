@@ -14,7 +14,7 @@
       <Imports>
         <Import>RusticiSoftware.JavaSupport.io.*</Import>
       </Imports>
-      <Java>${this}.listFiles(new FilterOnlyFiles())</Java>
+      <Java>${this:16}.listFiles(new FilterOnlyFiles())</Java>
       <Params />
       <Name>GetFiles</Name>
       <Return>System.IO.FileInfo[]</Return>
@@ -23,14 +23,14 @@
       <Imports>
         <Import>RusticiSoftware.JavaSupport.io.*</Import>
       </Imports>
-      <Java>${this}.listFiles(new FilterOnlyDirs())</Java>
+      <Java>${this:16}.listFiles(new FilterOnlyDirs())</Java>
       <Params />
       <Name>GetDirectories</Name>
       <Return>System.IO.FileInfo[]</Return>
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.listFiles()</Java>
+      <Java>${this:16}.listFiles()</Java>
       <Params />
       <Name>GetFileSystemInfos</Name>
       <Return>System.IO.FileSystemInfo[]</Return>

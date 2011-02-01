@@ -8,7 +8,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.iterator()</Java>
+      <Java>${this:16}.iterator()</Java>
       <Params />
       <Name>GetEnumerator</Name>
       <Return>System.IEnumerator</Return>

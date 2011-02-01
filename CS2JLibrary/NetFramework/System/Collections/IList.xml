@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports />
-      <Java>${this}.add(${arg})</Java>
+      <Java>${this:16}.add(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -22,7 +22,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this}.contains(${key})</Java>
+      <Java>${this:16}.contains(${key})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -36,11 +36,11 @@
   <Properties>
     <Property>
       <Imports />
-      <Java>${this}.size()</Java>
+      <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
-      <Get>${this}.size()</Get>
-      <Set>${this}.setCount(${value})</Set>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
     </Property>
   </Properties>
   <Events />
@@ -54,8 +54,8 @@
         </Param>
       </Params>
       <Type>System.Object</Type>
-      <Get>${this}.get(${i})</Get>
-      <Set>${this}.put(${i}, ${value})</Set>
+      <Get>${this:16}.get(${i})</Get>
+      <Set>${this:16}.put(${i}, ${value})</Set>
     </Indexer>
   </Indexers>
   <Constructors />
