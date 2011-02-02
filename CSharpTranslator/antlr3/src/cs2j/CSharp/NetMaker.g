@@ -270,7 +270,7 @@ scope SymTab {
     }
 
     // embeddedStatement is either ";", "{ .... }", or a single statement
-    protected CommonTree prefixCast(CommonTree ty, CommonTree id, CommonTree foreachVar, CommonTree embeddedStatement, IToken tok) {
+    protected CommonTree prefixCast(CommonTree targetTy, CommonTree id, CommonTree castTy, CommonTree foreachVar, CommonTree embeddedStatement, IToken tok) {
         CommonTree root = embeddedStatement;
         if (!embeddedStatement.IsNil && adaptor.GetType(embeddedStatement) == SEMI) {
             // Do nothing, id is unused  
@@ -279,10 +279,10 @@ scope SymTab {
             // Make cast statement
             CommonTree kast = (CommonTree)adaptor.Nil;
             kast = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(CAST_EXPR, tok, "CAST"), kast);
-            adaptor.AddChild(kast, (CommonTree)adaptor.DupTree(ty));
+            adaptor.AddChild(kast, (CommonTree)adaptor.DupTree(castTy));
             adaptor.AddChild(kast, (CommonTree)adaptor.DupTree(foreachVar));
             CommonTree vardec = (CommonTree)adaptor.Nil;
-            adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(ty));
+            adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(targetTy));
             adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(id));
             adaptor.AddChild(vardec, (CommonTree)adaptor.Create(ASSIGN, tok, "="));
             adaptor.AddChild(vardec, (CommonTree)adaptor.DupTree(kast));
@@ -296,6 +296,39 @@ scope SymTab {
             adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
         }
         return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    private Dictionary<int,string> _boxTypeMap = null;
+    protected Dictionary<int,string> BoxTypeMap {
+        get {
+            if (_boxTypeMap == null) {
+                _boxTypeMap  = new Dictionary<int,string>();
+                // Initialize boxTypeMap (see JLS, ed 3 sec 5.1.7)
+                _boxTypeMap[BOOL] = "Boolean";
+                _boxTypeMap[BYTE] = "Byte";
+                _boxTypeMap[CHAR] = "Character";
+                _boxTypeMap[SHORT] = "Short";
+                _boxTypeMap[INT] = "Integer";
+                _boxTypeMap[LONG] = "Long";
+                _boxTypeMap[FLOAT] = "Float";
+                _boxTypeMap[DOUBLE] = "Double";
+            }
+            return _boxTypeMap;
+        }
+    }
+    
+
+    // if slist is a list of statements surrounded by braces, then strip them out. 
+    protected CommonTree mkBoxedType(CommonTree ty, IToken tok) {
+        CommonTree ret = ty;
+        // Make sure its just  plain old predefined type
+        if (!ty.IsNil && adaptor.GetType(ty) == TYPE && adaptor.GetChildCount(ty) == 1 && 
+            BoxTypeMap.ContainsKey(adaptor.GetType(((CommonTree)adaptor.GetChild(ty,0)))) ) {
+            ret =  (CommonTree)adaptor.Nil;
+            ret = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), ret);
+            adaptor.AddChild(ret, (CommonTree)adaptor.Create(IDENTIFIER, tok, BoxTypeMap[adaptor.GetType((CommonTree)adaptor.GetChild(ty,0))]));
+        }
+        return ret;
     }
 }
 
@@ -899,7 +932,7 @@ cast_expression  returns [TypeRepTemplate dotNetType]
     if (ret != null)
         $cast_expression.tree = ret;
 }:
-    ^(c=CAST_EXPR type unary_expression)          
+    ^(c=CAST_EXPR type unary_expression) 
        { 
             $dotNetType = $type.dotNetType;
             if ($type.dotNetType != null && $unary_expression.dotNetType != null) {
@@ -919,6 +952,8 @@ cast_expression  returns [TypeRepTemplate dotNetType]
                 }
             }
        }
+         ->  ^($c  { ($unary_expression.dotNetType != null && $unary_expression.dotNetType.TypeName == "System.Object" ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
+//         ->  ^($c  { ($type.dotNetType.IsUnboxedType && !$unary_expression.dotNetType.IsUnboxedType ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
 ;         
 assignment_operator:
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
@@ -1548,7 +1583,7 @@ scope SymTab;
             if (needCast) {
                 newType = $magicObjectType.tree;
                 newIdentifier = $magicForeachVar.tree;
-                newEmbeddedStatement = prefixCast($local_variable_type.tree, $identifier.tree, newIdentifier, $embedded_statement.tree, $embedded_statement.tree.Token);
+                newEmbeddedStatement = prefixCast($local_variable_type.tree, $identifier.tree, mkBoxedType($local_variable_type.tree, $local_variable_type.tree.Token), newIdentifier, $embedded_statement.tree, $embedded_statement.tree.Token);
             }
         }
         -> ^($f { newType } { newIdentifier } { newExpression }  $s { newEmbeddedStatement })
@@ -1608,7 +1643,8 @@ predefined_type returns [TypeRepTemplate dotNetType]
     string ns = "";
 }
 @after {
-    $dotNetType = AppEnv.Search(ns); 
+    $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns));
+    $dotNetType.IsUnboxedType = true;
 }:
 	  'bool'    { ns = "System.Boolean"; }
     | 'byte'    { ns = "System.Byte"; }

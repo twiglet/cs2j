@@ -134,6 +134,15 @@ tokens {
             JAVAWRAPPERARGUMENT;
             SEP;
             KGHOLE;
+
+            BOOL = 'bool';
+            BYTE = 'byte';
+            CHAR = 'char';
+            SHORT = 'short';
+            INT = 'int';
+            LONG = 'long';
+            FLOAT = 'float';
+            DOUBLE = 'double';
 }
 
 @namespace { RusticiSoftware.Translator.CSharp }
