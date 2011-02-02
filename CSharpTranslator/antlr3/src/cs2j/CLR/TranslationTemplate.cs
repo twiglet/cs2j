@@ -1471,6 +1471,21 @@ namespace RusticiSoftware.Translator.CLR
                     }
                 }
 
+                // Client can set _isUnboxedType.  If so then we know the expression / type is inboxed 
+                private bool _isUnboxedType = false;
+                [XmlIgnore]
+                public bool IsUnboxedType
+                {
+                    get
+                    {
+                        return _isUnboxedType;
+                    }
+                    set
+                    {
+                        _isUnboxedType = value;
+                    }
+                }
+
         public TypeRepTemplate()
             : base()
         {
@@ -1539,6 +1554,7 @@ namespace RusticiSoftware.Translator.CLR
             }
 
             IsExplicitNull = copyFrom.IsExplicitNull;
+            IsUnboxedType = copyFrom.IsUnboxedType;
         }
 
         protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
@@ -1919,7 +1935,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 
-			return IsExplicitNull == other.IsExplicitNull && TypeName == other.TypeName && base.Equals(other);
+			return IsExplicitNull == other.IsExplicitNull && IsUnboxedType == other.IsUnboxedType && TypeName == other.TypeName && base.Equals(other);
 		}
 
 		public override bool Equals (object obj)
@@ -1966,7 +1982,7 @@ namespace RusticiSoftware.Translator.CLR
 				}
 			}
 
-			return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ hashCode;
+			return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ IsUnboxedType.GetHashCode() ^ hashCode;
 		}
 		#endregion		
 		
