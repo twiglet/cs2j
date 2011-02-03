@@ -109,8 +109,10 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>${this:16}.toArray(new ${TYPEOF_expr_TYPE}[0])</Java>
+      <Imports>
+        <Import>RusticiSoftware.System.Collections.ArrayListSupport</Import>
+      </Imports>
+      <Java>ArrayListSupport.toArray(${this}, new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>
         <Param>
           <Type>System.Type</Type>

@@ -93,6 +93,27 @@ public class ArrayListSupport extends AbstractCollection implements List {
 		return arrayInt;
 	}
 
+//	public static Object[] toArray(ArrayList al)
+//	{
+//		int idx = 0;
+//		Object[] arr = new Object[al.size()];
+//		for(Object v : al)
+//		   arr[idx++] = v;
+//		return arr;
+//	}
+	public static <T> T[] toArray(ArrayList al, T[] dummy)
+	{
+		return (T[]) al.toArray(dummy);
+	}
+	public static int[] toArray(ArrayList al, int[] dummy)
+	{
+		int idx = 0;
+		int[] arrayInt = new int[al.size()];
+		for(int v : (ArrayList<Integer>)al)
+		   arrayInt[idx++] = v;
+		return arrayInt;
+	}
+
 	public Object[] toArray()
 	{
 		return  al.toArray();
