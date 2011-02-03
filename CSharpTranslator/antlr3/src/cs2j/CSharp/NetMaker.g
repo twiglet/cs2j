@@ -330,6 +330,45 @@ scope SymTab {
         }
         return ret;
     }
+
+    private Dictionary<int,int> _assOpMap = null;
+    protected Dictionary<int,int> AssOpMap {
+        get {
+            if (_assOpMap == null) {
+                _assOpMap  = new Dictionary<int,int>();
+                // Initialize boxTypeMap (see JLS, ed 3 sec 5.1.7)
+                _assOpMap[PLUS_ASSIGN] = PLUS;
+                _assOpMap[MINUS_ASSIGN] = MINUS;
+                _assOpMap[STAR_ASSIGN] = STAR;
+                _assOpMap[DIV_ASSIGN] = DIV;
+                _assOpMap[MOD_ASSIGN] = MOD;
+                _assOpMap[BIT_AND_ASSIGN] = BIT_AND;
+                _assOpMap[BIT_OR_ASSIGN] = BIT_OR;
+                _assOpMap[BIT_XOR_ASSIGN] = BIT_XOR;
+                _assOpMap[LEFT_SHIFT_ASSIGN] = LEFT_SHIFT;
+                _assOpMap[RIGHT_SHIFT_ASSIGN] = RIGHT_SHIFT;
+            }
+            return _assOpMap;
+        }
+    }
+    
+    // Converts <OP>= to <OP>
+    protected CommonTree mkOpExp(CommonTree assTok) {
+        CommonTree ret = assTok;
+        if (AssOpMap.ContainsKey(assTok.Token.Type)) {
+            ret = (CommonTree)adaptor.Create(AssOpMap[assTok.Token.Type], assTok.Token, assTok.Token.Text != null && assTok.Token.Text.EndsWith("=") ? assTok.Token.Text.Substring(0, assTok.Token.Text.Length - 1) : assTok.Token.Text);
+        }
+        return ret;
+    }
+
+    // make ^(op lhs rhs)
+    protected CommonTree mkOpExp(CommonTree opTok, CommonTree lhs, CommonTree rhs) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.DupTree(opTok), root);
+        adaptor.AddChild(root, (CommonTree)adaptor.DupTree(lhs));
+        adaptor.AddChild(root, (CommonTree)adaptor.DupTree(rhs));
+        return root;
+    }
 }
 
 compilation_unit
@@ -864,19 +903,29 @@ assignment
     if (ret != null)
         $assignment.tree = ret;
 }:
-    ((^('.' expression identifier generic_argument_list?) | identifier) '=')  => 
-        (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a='=' rhs=expression 
+    ((^('.' expression identifier generic_argument_list?) | identifier) assignment_operator)  => 
+        (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a=assignment_operator rhs=expression 
         {
             TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
             if (seType != null) {
                 ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
                 if (fieldResult != null && fieldResult.Result is PropRepTemplate) {
                     Debug($i.tree.Token.Line + ": Found '" + $i.thetext + "'");
+                    CommonTree newRhsExp = $rhs.tree;
+                    if ($a.tree.Token.Type != ASSIGN) {
+                        // we have prop <op>= rhs
+                        // need to translate to setProp(getProp <op> rhs)
+                        Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                        if (!isThis)
+                            rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                        CommonTree rhsPropTree = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaGet, rhsMap, $a.tree.Token);
+                        newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                    }
                     Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
                     if (!isThis)
                         valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                    valMap["value"] = wrapExpression($rhs.tree, $i.tree.Token);
-                    ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.token);
+                    valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
+                    ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.tree.Token);
                     Imports.Add(fieldResult.Result.Imports);
                 }
             }
@@ -956,7 +1005,8 @@ cast_expression  returns [TypeRepTemplate dotNetType]
 //         ->  ^($c  { ($type.dotNetType.IsUnboxedType && !$unary_expression.dotNetType.IsUnboxedType ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
 ;         
 assignment_operator:
-	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
+	'=' | shortcut_assignment_operator ;
+shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
 //pre_increment_expression: 
 //	'++'   unary_expression ;
 //pre_decrement_expression: 

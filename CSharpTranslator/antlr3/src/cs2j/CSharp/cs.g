@@ -113,6 +113,7 @@ tokens {
             LONGNUMBER;
 
             PLUS = '+';
+            MINUS = '-';
             
 
             DIV = '/';
