@@ -910,37 +910,73 @@ assignment
             if (seType != null) {
                 ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
                 if (fieldResult != null && fieldResult.Result is PropRepTemplate) {
-                    Debug($i.tree.Token.Line + ": Found '" + $i.thetext + "'");
-                    CommonTree newRhsExp = $rhs.tree;
-                    if ($a.tree.Token.Type != ASSIGN) {
-                        // we have prop <op>= rhs
-                        // need to translate to setProp(getProp <op> rhs)
-                        Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                    PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
+                    if (!String.IsNullOrEmpty(propRep.JavaSet)) {
+                        CommonTree newRhsExp = $rhs.tree;
+                        // if assignment operator is a short cut operator then only translate if we also have JavaGet  
+                        bool goodTx = true;
+                        if ($a.tree.Token.Type != ASSIGN) {
+                            if (!String.IsNullOrEmpty(propRep.JavaGet)) {
+                                // we have prop <op>= rhs
+                                // need to translate to setProp(getProp <op> rhs)
+                                Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                                if (!isThis)
+                                    rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                                CommonTree rhsPropTree = mkJavaWrapper(propRep.JavaGet, rhsMap, $a.tree.Token);
+                                newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                            }
+                            else {
+                                goodTx = false;
+                            }
+                        }
+                        Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
                         if (!isThis)
-                            rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                        CommonTree rhsPropTree = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaGet, rhsMap, $a.tree.Token);
-                        newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                            valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                        valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
+                        if (goodTx) {
+                            ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
+                            Imports.Add(propRep.Imports);
+                        }
                     }
-                    Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
-                    if (!isThis)
-                        valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                    valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
-                    ret = mkJavaWrapper(((PropRepTemplate)fieldResult.Result).JavaSet, valMap, $a.tree.Token);
-                    Imports.Add(fieldResult.Result.Imports);
                 }
             }
         }
-    | (^(INDEX expression expression_list?) '=')  => 
-        ^(INDEX ie=expression expression_list?)   ia='=' irhs=expression 
+    | (^(INDEX expression expression_list?) assignment_operator)  => 
+        ^(INDEX ie=expression expression_list?)   ia=assignment_operator irhs=expression 
         {
             if ($ie.dotNetType != null) {
                 ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
                 if (indexerResult != null) {
                     IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
                     if (!String.IsNullOrEmpty(indexerRep.JavaSet)) {
+                        CommonTree newRhsExp = $irhs.tree;
+                        // if assignment operator is a short cut operator then only translate if we also have JavaGet  
+                        bool goodTx = true;
+                        if ($ia.tree.Token.Type != ASSIGN) {
+                            if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
+                                // we have indexable[args] <op>= rhs
+                                // need to translate to set___idx(args, get___idx(args) <op> rhs)
+                                Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                                rhsMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
+                                for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
+                                    rhsMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
+                                    if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
+                                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                                        rhsMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
+                                    }
+                                }
+
+                                CommonTree rhsIdxTree = mkJavaWrapper(indexerRep.JavaGet, rhsMap, $ia.tree.Token);
+                                newRhsExp = mkOpExp(mkOpExp($ia.tree), rhsIdxTree, $irhs.tree);
+                            }
+                            else {
+                                goodTx = false;
+                            }
+                        }
+
                         Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                         myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
-                        myMap["value"] = wrapExpression($irhs.tree, $irhs.tree.Token);
+                        myMap["value"] = wrapExpression(newRhsExp, newRhsExp.Token);
                         for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
                             myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
                             if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
@@ -948,8 +984,10 @@ assignment
                                 myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
                             }
                         }
-                        ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
-                        Imports.Add(indexerRep.Imports);
+                        if (goodTx) {
+                            ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
+                            Imports.Add(indexerRep.Imports);
+                        }
                     }   
                 }
             }
