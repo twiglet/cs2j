@@ -219,6 +219,7 @@ scope TypeContext {
     Dictionary<string, string> predefined_type_map = new Dictionary<string, string>()
     {
         {"bool", "boolean"},
+        {"decimal", "double"},
         {"object", "Object"},
         {"string", "String"}
     };
