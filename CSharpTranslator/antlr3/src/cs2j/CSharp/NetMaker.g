@@ -119,6 +119,28 @@ scope SymTab {
         }
     }
 
+    private ClassRepTemplate stringType = null;
+
+    protected ClassRepTemplate StringType {
+        get {
+            if (stringType == null) {
+                stringType = (ClassRepTemplate)AppEnv.Search("System.String", new UnknownRepTemplate("System.String"));
+            }
+            return stringType;
+        }
+    }
+
+    private ClassRepTemplate dateType = null;
+
+    protected ClassRepTemplate DateType {
+        get {
+            if (dateType == null) {
+                dateType = (ClassRepTemplate)AppEnv.Search("System.DateTime", new UnknownRepTemplate("System.DateTime"));
+            }
+            return dateType;
+        }
+    }
+
     protected TypeRepTemplate SymTabLookup(string name) {
         return SymTabLookup(name, null);
     }
@@ -1054,7 +1076,12 @@ shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '
 //addressof_expression:
 //	'&'   unary_expression ;
 
-non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]:
+non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, TypeRepTemplate typeofType]
+@init {
+    bool nullArg = false;
+    bool stringArgs = false;
+    bool dateArgs = false;
+}:
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
@@ -1065,12 +1092,120 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
         | ^('|' n4=non_assignment_expression non_assignment_expression)       {$dotNetType = $n4.dotNetType; }
         | ^('^' n5=non_assignment_expression non_assignment_expression)       {$dotNetType = $n5.dotNetType; }
         | ^('&' n6=non_assignment_expression non_assignment_expression)       {$dotNetType = $n6.dotNetType; }
-        | ^('==' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
-        | ^('!=' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
-        | ^('>' non_assignment_expression non_assignment_expression)          {$dotNetType = BoolType; }
-        | ^('<' non_assignment_expression non_assignment_expression)          {$dotNetType = BoolType; }
-        | ^('>=' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
-        | ^('<=' non_assignment_expression non_assignment_expression)         {$dotNetType = BoolType; }
+        | ^(eq='==' ne1=non_assignment_expression ne2=non_assignment_expression 
+            {
+                // if One arg is null then leave original operator
+                nullArg = $ne1.dotNetType != null && $ne2.dotNetType != null && ($ne1.dotNetType.IsExplicitNull || $ne2.dotNetType.IsExplicitNull);
+                // need to exclude null because that has every type
+                stringArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(StringType,AppEnv)) || 
+                                            ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(StringType,AppEnv)));
+                if (stringArgs) {
+                    this.Imports.Add("RusticiSoftware.System.StringSupport");
+                }
+                dateArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(DateType,AppEnv)) || 
+                                           ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(DateType,AppEnv)));
+                if (dateArgs) {
+                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                }
+                $dotNetType = BoolType; 
+            }
+            opse=magicSupportOp[stringArgs, "StringSupport", "equals", $ne1.tree, $ne2.tree, $eq.token]
+            opde=magicSupportOp[dateArgs, "DateTimeSupport", "equals", $ne1.tree, $ne2.tree, $eq.token])
+         -> {stringArgs}? 
+               $opse
+         -> {dateArgs}? 
+               $opde
+         ->^($eq $ne1 $ne2)
+        | ^(neq='!=' neqo1=non_assignment_expression neqo2=non_assignment_expression    
+            {
+                // if One arg is null then leave original operator
+                nullArg = $neqo1.dotNetType != null && $neqo2.dotNetType != null && ($neqo1.dotNetType.IsExplicitNull || $neqo2.dotNetType.IsExplicitNull);
+                // need to exclude null because that has every type
+                stringArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(StringType,AppEnv)) || 
+                                            ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(StringType,AppEnv)));
+                if (stringArgs) {
+                    this.Imports.Add("RusticiSoftware.System.StringSupport");
+                }
+                dateArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(DateType,AppEnv)) || 
+                                           ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(DateType,AppEnv)));
+                if (dateArgs) {
+                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                }
+                $dotNetType = BoolType; 
+            }
+            opse1=magicSupportOp[stringArgs, "StringSupport", "equals", $neqo1.tree, $neqo2.tree, $neq.token]
+            opsne=magicNegate[stringArgs, $opse1.tree, $neq.token]
+            opde1=magicSupportOp[dateArgs, "DateTimeSupport", "equals", $neqo1.tree, $neqo2.tree, $neq.token]
+            opdne=magicNegate[dateArgs, $opde1.tree, $neq.token])
+         -> {stringArgs}? 
+               $opsne
+         -> {dateArgs}? 
+               $opdne
+         ->^($neq $neqo1 $neqo2)
+        | ^(gt='>' gt1=non_assignment_expression gt2=non_assignment_expression
+            {
+                // if One arg is null then leave original operator
+                nullArg = $gt1.dotNetType != null && $gt2.dotNetType != null && ($gt1.dotNetType.IsExplicitNull || $gt2.dotNetType.IsExplicitNull);
+                // need to exclude null because that has every type
+                dateArgs = !nullArg && (($gt1.dotNetType != null && !$gt1.dotNetType.IsExplicitNull && $gt1.dotNetType.IsA(DateType,AppEnv)) || 
+                                           ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsA(DateType,AppEnv)));
+                if (dateArgs) {
+                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                }
+                $dotNetType = BoolType; 
+            }
+            opgt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $gt2.tree, $gt1.tree, $gt.token])
+        -> {dateArgs}? 
+               $opgt
+         ->^($gt $gt1 $gt2)
+        | ^(lt='<' lt1=non_assignment_expression lt2=non_assignment_expression
+            {
+                // if One arg is null then leave original operator
+                nullArg = $lt1.dotNetType != null && $lt2.dotNetType != null && ($lt1.dotNetType.IsExplicitNull || $lt2.dotNetType.IsExplicitNull);
+                // need to exclude null because that has every type
+                dateArgs = !nullArg && (($lt1.dotNetType != null && !$lt1.dotNetType.IsExplicitNull && $lt1.dotNetType.IsA(DateType,AppEnv)) || 
+                                           ($lt2.dotNetType != null && !$lt2.dotNetType.IsExplicitNull && $lt2.dotNetType.IsA(DateType,AppEnv)));
+                if (dateArgs) {
+                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                }
+                $dotNetType = BoolType; 
+            }
+            oplt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $lt1.tree, $lt2.tree, $lt.token])
+        -> {dateArgs}? 
+               $oplt
+         ->^($lt $lt1 $lt2)
+        | ^(ge='>=' ge1=non_assignment_expression ge2=non_assignment_expression
+            {
+                // if One arg is null then leave original operator
+                nullArg = $ge1.dotNetType != null && $ge2.dotNetType != null && ($ge1.dotNetType.IsExplicitNull || $ge2.dotNetType.IsExplicitNull);
+                // need to exclude null because that has every type
+                dateArgs = !nullArg && (($ge1.dotNetType != null && !$ge1.dotNetType.IsExplicitNull && $ge1.dotNetType.IsA(DateType,AppEnv)) || 
+                                          ($ge2.dotNetType != null && !$ge2.dotNetType.IsExplicitNull && $ge2.dotNetType.IsA(DateType,AppEnv)));
+                if (dateArgs) {
+                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                }
+                $dotNetType = BoolType; 
+            }
+            opge=magicSupportOp[dateArgs, "DateTimeSupport", "lessthanorequal", $ge2.tree, $ge1.tree, $ge.token])
+        -> {dateArgs}? 
+               $opge
+         ->^($ge $ge1 $ge2)
+        | ^(le='<=' le1=non_assignment_expression le2=non_assignment_expression
+            {
+                // if One arg is null then leave original operator
+                nullArg = $le1.dotNetType != null && $le2.dotNetType != null && ($le1.dotNetType.IsExplicitNull || $le2.dotNetType.IsExplicitNull);
+                // need to exclude null because that has every type
+                dateArgs = !nullArg && (($le1.dotNetType != null && !$le1.dotNetType.IsExplicitNull && $le1.dotNetType.IsA(DateType,AppEnv)) || 
+                                            ($le2.dotNetType != null && !$le2.dotNetType.IsExplicitNull && $le2.dotNetType.IsA(DateType,AppEnv)));
+                if (dateArgs) {
+                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                }
+                $dotNetType = BoolType; 
+            }
+            ople=magicSupportOp[dateArgs, "DateTimeSupport", "lessthanorequal", $le1.tree, $le2.tree, $le.token])
+        -> {dateArgs}? 
+               $ople
+         ->^($le $le1 $le2)
         | ^(INSTANCEOF non_assignment_expression non_nullable_type)           {$dotNetType = BoolType; }
         | ^('<<' n7=non_assignment_expression non_assignment_expression)      {$dotNetType = $n7.dotNetType; }
         | ^('>>' n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
@@ -1831,4 +1966,16 @@ magicCastOperator[CommonTree mods, String methodName, CommonTree header, CommonT
 
 magicAnnotation [CommonTree mods, CommonTree name, CommonTree body, IToken tok]:
   -> ^(ANNOTATION[tok, "ANNOTATION"] { dupTree($mods) } { dupTree($name) } { dupTree(body) });
+
+magicSupportOp[bool isOn, String supportlib, String op, CommonTree e1, CommonTree e2, IToken tok]:
+  -> { isOn }? 
+     ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,supportlib] IDENTIFIER[tok,op]) ^(ARGS[tok, "ARGS"] { dupTree($e1) } { dupTree($e2) } ) ) 
+  -> 
+;
+
+magicNegate[bool isOn, CommonTree e, IToken tok]:
+  -> { isOn }? 
+     ^(MONONOT[tok, "!"] { dupTree($e) }) 
+  -> 
+;
 
