@@ -152,4 +152,16 @@ public class DateTimeSupport {
     	return cal.getTime();
     }
 
+    public static boolean equals(Date d1, Date d2) {
+        return d1 == d2 || (d1 != null && d2 != null && d1.getTime() == d2.getTime());
+    }
+    
+    // null == null, but otherwise all comparisons return false
+    public static boolean lessthan(Date d1, Date d2) {
+        return d1 != null && d2 != null && d1.before(d2);
+    }
+    public static boolean lessthanorequal(Date d1, Date d2) {
+        return d1 != null && d2 != null && (d1.before(d2) || equals(d1,d2));
+    }
+
 }
