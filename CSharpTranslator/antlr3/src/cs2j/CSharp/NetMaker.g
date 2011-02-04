@@ -35,6 +35,9 @@ scope SymTab {
 
 @members
 {
+
+    private String CompUnitName = null;
+
     // Initial namespace search path gathered in JavaMaker
     public List<string> SearchPath { get; set; }
     public List<string> AliasKeys { get; set; }
@@ -61,7 +64,7 @@ scope SymTab {
     public void AddToImports(String imp) {
         // Don't add import if its namespace is within our type
 //       if (!imp.StartsWith($NSContext::currentNS+".")) {
-        if (imp != null) { 
+        if (imp != null && !imp.StartsWith(CompUnitName+".")) { 
             Imports.Add(imp);
         }
   //      }
@@ -1391,7 +1394,7 @@ scope NSContext,SymTab;
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
-   ^(c=CLASS  attributes? modifiers? identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
+   ^(c=CLASS  attributes? modifiers? identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; if (CompUnitName == null) CompUnitName = $NSContext::currentNS; } type_parameter_constraints_clauses? type_parameter_list?
          class_implements? 
          { 
             $NSContext::namespaces.Add($NSContext::currentNS);
