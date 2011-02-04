@@ -120,6 +120,22 @@
     </Method>
     <Method>
       <Imports />
+      <Java>Math.max(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Max</Name>
+      <Return>System.Number</Return>
+    </Method>
+    <Method>
+      <Imports />
       <Java>Math.round(${d})</Java>
       <Params>
         <Param>
