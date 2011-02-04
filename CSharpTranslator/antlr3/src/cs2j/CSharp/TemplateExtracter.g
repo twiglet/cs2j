@@ -686,9 +686,6 @@ scope NSContext;
 	'class'  type_or_generic   
         { 
             Debug("Processing class: " + $type_or_generic.type);
-            klass.Uses = this.CollectUses;
-            klass.Aliases = this.CollectAliases;
-            klass.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
             klass.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
             if ($type_or_generic.generic_arguments.Count > 0) {
                 klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
@@ -698,6 +695,9 @@ scope NSContext;
             $NSContext::currentNS = klass.TypeName;
             $NSContext::currentTypeRep = klass;
             AppEnv[klass.TypeName] = klass;
+            klass.Uses = this.CollectUses;
+            klass.Aliases = this.CollectAliases;
+            klass.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
         }
         (cb=class_base { klass.Inherits =  $cb.typeList.ToArray(); } )?   
         type_parameter_constraints_clauses? class_body  ';'? ;
@@ -824,15 +824,15 @@ scope NSContext;
 	'enum'   identifier   enum_base? 
         { 
             Debug("Processing enum: " + $identifier.text);
-            eenum.Uses = this.CollectUses;
-            eenum.Aliases = this.CollectAliases;
-            eenum.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
             eenum.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             // Nested types can see things in this space
             $NSContext::searchpath.Add(eenum.TypeName);
             $NSContext::currentNS = eenum.TypeName;
             $NSContext::currentTypeRep = eenum;
             AppEnv[eenum.TypeName] = eenum;
+            eenum.Uses = this.CollectUses;
+            eenum.Aliases = this.CollectAliases;
+            eenum.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
         } 
     enum_body   ';'? ;
 enum_base:
@@ -866,9 +866,6 @@ scope NSContext;
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
         { 
             Debug("Processing delegate: " + $identifier.text);
-            dlegate.Uses = this.CollectUses;
-            dlegate.Aliases = this.CollectAliases;
-            dlegate.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
             dlegate.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
@@ -876,6 +873,9 @@ scope NSContext;
             dlegate.Return=$return_type.thetext;
             dlegate.Params=$formal_parameter_list.paramlist;
             AppEnv[dlegate.TypeName] = dlegate;
+            dlegate.Uses = this.CollectUses;
+            dlegate.Aliases = this.CollectAliases;
+            dlegate.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
         } 
 ;
 delegate_modifiers:
@@ -957,9 +957,6 @@ scope NSContext;
 	'interface'   identifier   variant_generic_parameter_list?
         { 
             Debug("Processing interface: " + $identifier.text);
-            iface.Uses = this.CollectUses;
-            iface.Aliases = this.CollectAliases;
-            iface.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
             iface.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
@@ -969,6 +966,9 @@ scope NSContext;
             $NSContext::currentNS = iface.TypeName;
             $NSContext::currentTypeRep = iface;
             AppEnv[iface.TypeName] = iface;
+            iface.Uses = this.CollectUses;
+            iface.Aliases = this.CollectAliases;
+            iface.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
         } 
     	(interface_base { iface.Inherits = $interface_base.typeList.ToArray(); } )?   
         type_parameter_constraints_clauses?   interface_body   ';'? ;
@@ -1044,9 +1044,6 @@ scope NSContext;
 	'struct'   type_or_generic   
         { 
             Debug("Processing struct: " + $type_or_generic.type);
-            strukt.Uses = this.CollectUses;
-            strukt.Aliases = this.CollectAliases;
-            strukt.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
             strukt.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
             if ($type_or_generic.generic_arguments.Count > 0) {
                 strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
@@ -1056,6 +1053,9 @@ scope NSContext;
             $NSContext::currentNS = strukt.TypeName;
             $NSContext::currentTypeRep = strukt;
             AppEnv[strukt.TypeName] = strukt;
+            strukt.Uses = this.CollectUses;
+            strukt.Aliases = this.CollectAliases;
+            strukt.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
         } (si=struct_interfaces { strukt.Inherits =  $si.typeList.ToArray(); })?
          type_parameter_constraints_clauses?   struct_body   ';'? ;
 struct_modifiers:
