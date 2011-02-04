@@ -381,8 +381,8 @@ scope NSContext;
     $NSContext::namespaces = SearchPath ?? new List<string>();
     $NSContext::globalNamespaces = SearchPath ?? new List<string>();
 }:
-	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } m=modifiers? dec=type_declaration  )
-    -> ^($pkg $ns  { mkImports() } $m? $dec);
+	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
+    -> ^($pkg $ns  { mkImports() } $dec);
 
 type_declaration:
 	class_declaration
@@ -405,12 +405,12 @@ class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators[$type.dotNetType])
     | ^(EVENT attributes? modifiers? event_declaration)
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
-    | ^(INTERFACE attributes? modifiers? interface_declaration)
-    | ^(CLASS attributes? modifiers? class_declaration)
+    | interface_declaration
+    | class_declaration
     | ^(FIELD attributes? modifiers? type field_declaration[$type.dotNetType])
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
-    | ^(ENUM attributes? modifiers? enum_declaration)
-    | ^(DELEGATE attributes? modifiers? delegate_declaration)
+    | enum_declaration
+    | delegate_declaration
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration[$attributes.tree, $modifiers.tree]) -> conversion_operator_declaration
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block exception*)
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
@@ -1231,7 +1231,7 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration
+class_declaration 
 scope NSContext,SymTab;
 @init {
     $NSContext::namespaces = new List<string>();
@@ -1239,7 +1239,7 @@ scope NSContext,SymTab;
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
-   ^(CLASS identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
+   ^(CLASS  attributes? modifiers? identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
          class_implements? 
          { 
             $NSContext::namespaces.Add($NSContext::currentNS);
@@ -1345,7 +1345,7 @@ remove_accessor_declaration:
 //	enum declaration
 ///////////////////////////////////////////////////////
 enum_declaration:
-	'enum'   identifier   enum_base?   enum_body   ';'? ;
+	^(ENUM attributes? modifiers?   identifier   enum_base?   enum_body );
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -1363,8 +1363,7 @@ integral_type:
 
 // B.2.12 Delegates
 delegate_declaration:
-	'delegate'   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'    ';' ;
+	^(DELEGATE attributes? modifiers?   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?  '('   formal_parameter_list?   ')' ) ;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -1408,7 +1407,7 @@ parameter_array:
 
 ///////////////////////////////////////////////////////
 interface_declaration:
-   ^(INTERFACE identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
+   ^(INTERFACE attributes? modifiers? identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
     	class_extends?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;

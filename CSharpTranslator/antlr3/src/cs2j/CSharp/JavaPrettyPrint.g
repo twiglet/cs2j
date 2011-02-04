@@ -285,17 +285,17 @@ compilation_unit
     initPrecedence();
 }
 :
-    ^(PACKAGE nm=PAYLOAD imports? modifiers? type_declaration[$modifiers.st] { if (IsLast) collectComments(); }) -> 
+    ^(PACKAGE nm=PAYLOAD imports? type_declaration { if (IsLast) collectComments(); }) -> 
         package(now = {DateTime.Now}, includeDate = {Cfg.TranslatorAddTimeStamp}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)},
             imports = {$imports.st},
             type = {$type_declaration.st},
             endComments = { CollectedComments });
 
-type_declaration [StringTemplate modifiersST]:
-    class_declaration[modifiersST] -> { $class_declaration.st }
-	| interface_declaration[modifiersST] -> { $interface_declaration.st }
-	| enum_declaration[modifiersST] -> { $enum_declaration.st }
-	| delegate_declaration ;
+type_declaration:
+    class_declaration -> { $class_declaration.st }
+	| interface_declaration -> { $interface_declaration.st }
+	| enum_declaration -> { $enum_declaration.st }
+	| delegate_declaration -> { $delegate_declaration.st };
 // Identifiers
 qualified_identifier:
 	identifier ('.' identifier)*;
@@ -324,12 +324,12 @@ class_member_declaration returns [List<String> preComments]:
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]? formal_parameter_list?
             { $preComments = CollectedComments; } method_body exception*)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
-    | ^(INTERFACE attributes? modifiers? interface_declaration[$modifiers.st]) -> { $interface_declaration.st }
-    | ^(CLASS attributes? modifiers? class_declaration[$modifiers.st]) -> { $class_declaration.st }
+    | interface_declaration -> { $interface_declaration.st }
+    | class_declaration -> { $class_declaration.st }
     | ^(FIELD attributes? modifiers? type { $preComments = CollectedComments; } field_declaration)  -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
-    | ^(ENUM attributes? modifiers? { $preComments = CollectedComments; } enum_declaration[$modifiers.st]) -> { $enum_declaration.st }
-    | ^(DELEGATE attributes? modifiers? { $preComments = CollectedComments; } delegate_declaration)
+    | enum_declaration -> { $enum_declaration.st }
+    | delegate_declaration -> { $delegate_declaration.st }
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block exception*)
        -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
@@ -893,14 +893,14 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration[StringTemplate modifiersST]
+class_declaration
 @init {
     List<string> preComments = null;
 }:
    ^(c=CLASS 
-            identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
+            attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
          class_extends? class_implements?  { preComments = CollectedComments; } class_body )
-    -> class(modifiers = {modifiersST}, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
+    -> class(modifiers = { $modifiers.st }, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
             extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}) ;
 
 type_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
@@ -1000,12 +1000,12 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 //	enum declaration
 ///////////////////////////////////////////////////////
-enum_declaration[StringTemplate modifiersST]
+enum_declaration
 @init {
     List<string> preComments = null;
 }:
-	e='enum' { preComments = CollectedComments; }  identifier   enum_base?   enum_body   ';'?
-    -> enum(comments = { preComments}, modifiers = { $modifiersST }, name={$identifier.text}, body={$enum_body.st}) ;
+	^(ENUM { preComments = CollectedComments; } attributes? modifiers? identifier   enum_base?   enum_body )
+    -> enum(comments = { preComments}, modifiers = { $modifiers.st }, name={$identifier.text}, body={$enum_body.st}) ;
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -1021,8 +1021,8 @@ integral_type:
 
 // B.2.12 Delegates
 delegate_declaration:
-	'delegate'   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
-		'('   formal_parameter_list?   ')'      ';' ;
+	^(DELEGATE attributes modifiers   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
+		'('   formal_parameter_list?   ')' );
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -1071,14 +1071,14 @@ parameter_array:
 	^('params'   type   identifier) -> varargs(type={ $type.st }, name = { $identifier.st }) ;
 
 ///////////////////////////////////////////////////////
-interface_declaration[StringTemplate modifiersST]
+interface_declaration
 @init {
     List<string> preComments = null;
 }:
-   ^(c=INTERFACE 
+   ^(c=INTERFACE attributes? modifiers?
             identifier  type_parameter_constraints_clauses?  variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
          class_extends?   { preComments = CollectedComments; } interface_body )
-    -> iface(modifiers = {modifiersST}, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
+    -> iface(modifiers = { $modifiers.st }, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
             imps = { $class_extends.st }, body = { $interface_body.st }) ;
 //interface_base: 
 //   	':' interface_type_list ;

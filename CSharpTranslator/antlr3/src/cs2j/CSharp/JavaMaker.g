@@ -307,20 +307,20 @@ namespace_member_declaration
 }
 :
 	namespace_declaration
-	| attributes?   modifiers?   ty=type_declaration  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token, "package"] PAYLOAD[ns] { mangleModifiersForType($modifiers.tree) } type_declaration);
+	| attributes?   modifiers?   ty=type_declaration[$attributes.tree, mangleModifiersForType($modifiers.tree)]  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token, "package"] PAYLOAD[ns] $ty);
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
-type_declaration returns [string name]
+type_declaration[CommonTree atts, CommonTree mods] returns [string name]
 :
     ('partial') => p='partial'!  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
-                                (pc=class_declaration { $name=$pc.name; }
-								| ps=struct_declaration { $name=$ps.name; }
-								| pi=interface_declaration { $name=$pi.name; }) 
-	| c=class_declaration { $name=$c.name; }
-	| s=struct_declaration { $name=$s.name; }
-	| i=interface_declaration { $name=$i.name; }
-	| e=enum_declaration { $name=$e.name; }
-	| d=delegate_declaration { $name=$d.name; }
+                                (pc=class_declaration[$atts, $mods] { $name=$pc.name; }
+								| ps=struct_declaration[$atts, $mods] { $name=$ps.name; }
+								| pi=interface_declaration[$atts, $mods] { $name=$pi.name; }) 
+	| c=class_declaration[$atts, $mods] { $name=$c.name; }
+	| s=struct_declaration[$atts, $mods] { $name=$s.name; }
+	| i=interface_declaration[$atts, $mods] { $name=$i.name; }
+	| e=enum_declaration[$atts, $mods] { $name=$e.name; }
+	| d=delegate_declaration[$atts, $mods] { $name=$d.name; }
     ;
 // Identifiers
 qualified_identifier returns [string thetext]:
@@ -341,12 +341,12 @@ class_member_declaration:
 	a=attributes?
 	m=modifiers?
 	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, $m.modList) } $ct constant_declarators)
-	| ed=event_declaration	-> ^(EVENT[$ed.start.Token, "EVENT"] $a? $m? $ed)
+	| ev=event_declaration	-> ^(EVENT[$ev.start.Token, "EVENT"] $a? $m? $ev)
 	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 
-			   | i1=interface_declaration -> ^(INTERFACE[$i1.start.Token, "INTERFACE"] $a? $m? $i1)
-			   | c1=class_declaration -> ^(CLASS[$c1.start.Token, "CLASS"] $a? $m? $c1)
-			   | s1=struct_declaration) -> ^(CLASS[$s1.start.Token, "CLASS"] $a? $m? $s1)
-	| i2=interface_declaration	-> ^(INTERFACE[$i2.start.Token, "INTERFACE"] $a? $m? $i2) // 'interface'
+			   | pi=interface_declaration[$a.tree, $m.tree] -> $pi
+			   | pc=class_declaration[$a.tree, $m.tree] -> $pc
+			   | ps=struct_declaration[$a.tree, $m.tree] -> $ps)
+	| i=interface_declaration[$a.tree, $m.tree] -> $i
 	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text] -> $m2
 		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
@@ -357,10 +357,10 @@ class_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| c3=class_declaration	-> ^(CLASS[$c3.start.Token, "CLASS"] $a? $m? $c3)	// 'class'
-	| s3=struct_declaration	-> ^(CLASS[$s3.start.Token, "CLASS"] $a? $m? $s3)
-	| e3=enum_declaration	-> ^(ENUM[$e3.start.Token, "ENUM"] $a? $m? $e3)
-	| d3=delegate_declaration	-> ^(DELEGATE[$d3.start.Token, "DELEGATE"] $a? $m? $d3)
+	| cd=class_declaration[$a.tree, $m.tree] -> $cd
+	| sd=struct_declaration[$a.tree, $m.tree] -> $sd
+	| ed=enum_declaration[$a.tree, $m.tree] -> $ed
+	| dd=delegate_declaration[$a.tree, $m.tree] -> $dd
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
 	| con3=constructor_declaration[$a.tree, $m.tree, $m.modList]	-> $con3
 	| de3=destructor_declaration -> $de3
@@ -871,11 +871,11 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration returns [string name]
+class_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	c='class'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+	c='class' identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+    -> ^(CLASS[$c.Token] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 type_parameter_list returns [List<string> names] 
 @init {
@@ -1035,10 +1035,11 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 //	enum declaration
 ///////////////////////////////////////////////////////
-enum_declaration returns [string name]
+enum_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	'enum'   identifier  { $name = $identifier.text; $TypeContext::typeName = $identifier.text; } enum_base?   enum_body   ';'? ;
+	e='enum'   identifier  { $name = $identifier.text; $TypeContext::typeName = $identifier.text; } enum_base?   enum_body   ';'? 
+            -> ^(ENUM[$e.token, "ENUM"] { dupTree($atts) } { dupTree($mods) } identifier enum_base? enum_body);
 enum_base:
 	':'   integral_type ;
 enum_body:
@@ -1092,13 +1093,13 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration returns [string name]
+delegate_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	'delegate'   return_type   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?   
+	d='delegate'   return_type   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?   
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' -> 
-    'delegate'   return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'  ';';
+    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
+		'('   formal_parameter_list?   ')' );
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -1174,12 +1175,12 @@ parameter_array:
     ;
 
 ///////////////////////////////////////////////////////
-interface_declaration returns [string name]
+interface_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
 	c='interface'   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list? 
     	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
-    -> ^(INTERFACE[$c.Token] identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
+    -> ^(INTERFACE[$c.Token] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
 interface_base:
 	c=':'   ts+=type (','   ts+=type)* -> ^(EXTENDS[$c.token,"extends"] $ts)*;
@@ -1222,55 +1223,15 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
     ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration returns [string name]
+struct_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
 	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.text]   ';'? 
-    -> ^(CLASS[$c.Token, "class"] identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
+    -> ^(CLASS[$c.Token, "class"] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
 
 struct_body [String structName]:
 	o='{'  magicDefaultConstructor[$o.token, structName] class_member_declarations? '}' ;
 
-// UNUSED, HOPEFULLY
-// struct_modifiers:
-// 	struct_modifier+ ;
-// struct_modifier:
-// 	'new' | 'public' | 'protected' | 'internal' | 'private' | 'unsafe' ;
-// struct_interfaces:
-// 	':'   interface_type_list;
-// struct_body:
-// 	'{'   struct_member_declarations?   '}';
-// struct_member_declarations:
-// 	struct_member_declaration+ ;
-// struct_member_declaration:
-// 	attributes?   m=modifiers?
-// 	( 'const'   type   constant_declarators   ';'
-// 	| event_declaration		// 'event'
-// 	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type method_declaration[$attributes.tree, $modifiers.tree, $v1.tree]
-// 			   | interface_declaration 
-// 			   | class_declaration 
-// 			   | struct_declaration)
-// 
-// 	| interface_declaration	// 'interface'
-// 	| class_declaration		// 'class'
-// 	| v2=void_type method_declaration[$attributes.tree, $modifiers.tree, $v2.tree]
-// 	| t1=type ( (member_name   type_parameter_list? '(') => method_declaration[$attributes.tree, $modifiers.tree, $t1.tree]
-// 		   | (member_name   '{') => property_declaration
-// 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration
-// 		   | indexer_declaration	//this
-// 	       | field_declaration      // qid
-// 	       | operator_declaration
-// 	       )
-// //	common_modifiers// (method_modifiers | field_modifiers)
-// 	
-// 	| struct_declaration	// 'struct'	   
-// 	| enum_declaration		// 'enum'
-// 	| delegate_declaration	// 'delegate'
-// 	| conversion_operator_declaration
-// 	| constructor_declaration	//	| static_constructor_declaration
-// 	) 
-// 	;
-// UNUSED END
 
 ///////////////////////////////////////////////////////
 indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
