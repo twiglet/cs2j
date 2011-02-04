@@ -14,6 +14,7 @@ tokens {
             IMPORT;
             INTERFACE;
             FINAL; /* final modifier */
+            ANNOTATION;
             IN;
             OUT;
             CONST;

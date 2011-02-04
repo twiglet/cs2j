@@ -1239,7 +1239,7 @@ scope NSContext,SymTab;
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
-   ^(CLASS  attributes? modifiers? identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
+   ^(c=CLASS  attributes? modifiers? identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; } type_parameter_constraints_clauses? type_parameter_list?
          class_implements? 
          { 
             $NSContext::namespaces.Add($NSContext::currentNS);
@@ -1255,7 +1255,9 @@ scope NSContext,SymTab;
             }
             $SymTab::symtab["super"] = baseType;
          }
-         class_body ) ;
+         class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
+    -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
+    -> ^($c attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
 
 type_parameter_list:
     (attributes? type_parameter)+ ;
@@ -1269,12 +1271,21 @@ class_extend:
 	^(EXTENDS type) ;
 
 // If first implements type is a class then convert to extends
-class_implements:
-	class_implement_or_extend class_implement* ;
+class_implements returns [bool hasExtends, TypeRepTemplate extendDotNetType]:
+	class_implement_or_extend { $hasExtends = $class_implement_or_extend.hasExtends; $extendDotNetType = $class_implement_or_extend.extendDotNetType;  }class_implement* ;
 
-class_implement_or_extend:
-	^(i=IMPLEMENTS t=type) -> { $t.dotNetType is ClassRepTemplate }? ^(EXTENDS[$i.token, "extends"] type)
-                           -> ^($i $t);
+class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNetType]
+@init {
+    $hasExtends = false;
+}:
+	^(i=IMPLEMENTS t=type  
+            { if ($t.dotNetType is ClassRepTemplate) {
+                    $hasExtends = true;
+                    $extendDotNetType = $t.dotNetType;
+                }
+            } ) 
+              -> { $t.dotNetType is ClassRepTemplate }? ^(EXTENDS[$i.token, "extends"] type)
+              -> ^($i $t);
 	
 class_implement:
 	^(IMPLEMENTS type) ;
@@ -1817,3 +1828,7 @@ magicCastOperator[CommonTree mods, String methodName, CommonTree header, CommonT
        { dupTree(body) }
       EXCEPTION[tok, "Throwable"])
 ;
+
+magicAnnotation [CommonTree mods, CommonTree name, CommonTree body, IToken tok]:
+  -> ^(ANNOTATION[tok, "ANNOTATION"] { dupTree($mods) } { dupTree($name) } { dupTree(body) });
+

@@ -108,6 +108,13 @@ statement(statement) ::= <<
 <statement>
 >>
 
+annotation(modifiers, comments, attributes, name, body) ::= <<
+<comments; separator="\n">
+<modifiers(modifiers)>@interface <name>
+{
+    <body>
+}
+>>
 
 //***** local var declarations:
 

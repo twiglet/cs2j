@@ -295,6 +295,7 @@ type_declaration:
     class_declaration -> { $class_declaration.st }
 	| interface_declaration -> { $interface_declaration.st }
 	| enum_declaration -> { $enum_declaration.st }
+	| annotation_declaration -> { $annotation_declaration.st }
 	| delegate_declaration -> { $delegate_declaration.st };
 // Identifiers
 qualified_identifier:
@@ -329,6 +330,7 @@ class_member_declaration returns [List<String> preComments]:
     | ^(FIELD attributes? modifiers? type { $preComments = CollectedComments; } field_declaration)  -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
     | enum_declaration -> { $enum_declaration.st }
+    | annotation_declaration -> { $annotation_declaration.st }
     | delegate_declaration -> { $delegate_declaration.st }
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block exception*)
        -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
@@ -996,6 +998,17 @@ add_accessor_declaration:
 	'add'   block ;
 remove_accessor_declaration:
 	'remove'   block ;
+
+
+///////////////////////////////////////////////////////
+//	annotation declaration
+///////////////////////////////////////////////////////
+annotation_declaration
+@init {
+    List<string> preComments = null;
+}:
+	^(ANNOTATION attributes? modifiers? identifier  { preComments = CollectedComments; } class_body? )
+    -> annotation(comments = { preComments}, modifiers = { $modifiers.st }, name={$identifier.text}, body={$class_body.st}) ;
 
 ///////////////////////////////////////////////////////
 //	enum declaration
