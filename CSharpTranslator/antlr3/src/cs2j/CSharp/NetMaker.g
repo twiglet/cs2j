@@ -58,6 +58,23 @@ scope SymTab {
 
     }
 
+    public void AddToImports(String imp) {
+        // Don't add import if its namespace is within our type
+//       if (!imp.StartsWith($NSContext::currentNS+".")) {
+        if (imp != null) { 
+            Imports.Add(imp);
+        }
+  //      }
+    }
+
+    public void AddToImports(ICollection<string> imps) {
+        if (imps != null) {
+            foreach (String imp in imps) {
+                AddToImports(imp);
+            }
+        }
+    }
+
     protected string ParentNameSpace {
         get {
             return ((NSContext_scope)$NSContext.ToArray()[1]).currentNS;
@@ -475,7 +492,7 @@ scope {
                             }
                         }
                         ret = mkJavaWrapper(indexerResult.Result.Java, myMap, $ie.tree.Token);
-                        Imports.Add(indexerResult.Result.Imports);
+                        AddToImports(indexerResult.Result.Imports);
                         $dotNetType = indexerResult.ResultType; 
                     }
                 }
@@ -502,7 +519,7 @@ scope {
                         }
                     }
                     ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
-                    Imports.Add(methodResult.Result.Imports);
+                    AddToImports(methodResult.Result.Imports);
                     $dotNetType = methodResult.ResultType; 
                 }
             }
@@ -532,14 +549,14 @@ scope {
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["this"] = wrapExpression($e1.tree, $i1.tree.Token);
                     ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
-                    Imports.Add(fieldResult.Result.Imports);
+                    AddToImports(fieldResult.Result.Imports);
                     $dotNetType = fieldResult.ResultType; 
                 }
                 else if ($e1.dotNetType is UnknownRepTemplate) {
                     string staticType = $e1.dotNetType + "." + $i1.thetext;
                     TypeRepTemplate type = findType(staticType);
                     if (type != null) {
-                        Imports.Add(type.Imports);
+                        AddToImports(type.Imports);
                         $dotNetType = type;
                     }
                     else {
@@ -580,7 +597,7 @@ scope {
                     if (fieldResult != null) {
                         Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
                         ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
-                        Imports.Add(fieldResult.Result.Imports);
+                        AddToImports(fieldResult.Result.Imports);
                         $dotNetType = fieldResult.ResultType; 
                         found = true;
                     }
@@ -590,7 +607,7 @@ scope {
                 // Not a variable, not a property read, is it a type name?
                 TypeRepTemplate staticType = findType($i.thetext);
                 if (staticType != null) {
-                    Imports.Add(staticType.Imports);
+                    AddToImports(staticType.Imports);
                     $dotNetType = staticType;
                     found = true;
                 }
@@ -617,7 +634,7 @@ scope {
                     myMap[conRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $n.token);
                 }
                 ret = mkJavaWrapper(conResult.Result.Java, myMap, $n.token);
-                Imports.Add(conResult.Result.Imports);
+                AddToImports(conResult.Result.Imports);
                 $dotNetType = conResult.ResultType; 
             }
         }
@@ -820,7 +837,7 @@ namespace_or_type_name returns [String name, List<string> tyargs]
 }: 
 	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
     | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
-    | ^(d='.'   n1=namespace_or_type_name tg1=type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; tyRep = findType($name); if (tyRep != null) Imports.Add(tyRep.Imports); } 
+    | ^(d='.'   n1=namespace_or_type_name tg1=type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; tyRep = findType($name); if (tyRep != null) AddToImports(tyRep.Imports); } 
         -> { tyRep != null }? IDENTIFIER[$d.token, tyRep.Java]
         -> ^($d $n1 $tg1)
      ;
@@ -837,7 +854,7 @@ identifier_type returns [string thetext]
 @after{
     $thetext = $t.thetext;
 }:
-    t=identifier { tyRep = findType($t.thetext); if (tyRep != null)  Imports.Add(tyRep.Imports); } 
+    t=identifier { tyRep = findType($t.thetext); if (tyRep != null)  AddToImports(tyRep.Imports); } 
         -> { tyRep != null }? IDENTIFIER[$t.tree.Token, tyRep.Java]
         -> $t;
 
@@ -957,7 +974,7 @@ assignment
                         valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
                         if (goodTx) {
                             ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
-                            Imports.Add(propRep.Imports);
+                            AddToImports(propRep.Imports);
                         }
                     }
                 }
@@ -1008,7 +1025,7 @@ assignment
                         }
                         if (goodTx) {
                             ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
-                            Imports.Add(indexerRep.Imports);
+                            AddToImports(indexerRep.Imports);
                         }
                     }   
                 }
@@ -1057,7 +1074,7 @@ cast_expression  returns [TypeRepTemplate dotNetType]
                     myMap["TYPEOF_totype"] = wrapTypeOfType($type.dotNetType, $c.token);
                     myMap["TYPEOF_expr"] = wrapTypeOfType($unary_expression.dotNetType, $c.token);
                     ret = mkJavaWrapper(kaster.Result.Java, myMap, $c.token);
-                    Imports.Add(kaster.Result.Imports);
+                    AddToImports(kaster.Result.Imports);
                 }
             }
        }
@@ -1100,12 +1117,12 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 stringArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(StringType,AppEnv)) || 
                                             ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(StringType,AppEnv)));
                 if (stringArgs) {
-                    this.Imports.Add("RusticiSoftware.System.StringSupport");
+                    this.AddToImports("RusticiSoftware.System.StringSupport");
                 }
                 dateArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1124,12 +1141,12 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 stringArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(StringType,AppEnv)) || 
                                             ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(StringType,AppEnv)));
                 if (stringArgs) {
-                    this.Imports.Add("RusticiSoftware.System.StringSupport");
+                    this.AddToImports("RusticiSoftware.System.StringSupport");
                 }
                 dateArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1150,7 +1167,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($gt1.dotNetType != null && !$gt1.dotNetType.IsExplicitNull && $gt1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1166,7 +1183,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($lt1.dotNetType != null && !$lt1.dotNetType.IsExplicitNull && $lt1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($lt2.dotNetType != null && !$lt2.dotNetType.IsExplicitNull && $lt2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1182,7 +1199,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($ge1.dotNetType != null && !$ge1.dotNetType.IsExplicitNull && $ge1.dotNetType.IsA(DateType,AppEnv)) || 
                                           ($ge2.dotNetType != null && !$ge2.dotNetType.IsExplicitNull && $ge2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1198,7 +1215,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($le1.dotNetType != null && !$le1.dotNetType.IsExplicitNull && $le1.dotNetType.IsA(DateType,AppEnv)) || 
                                             ($le2.dotNetType != null && !$le2.dotNetType.IsExplicitNull && $le2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.Imports.Add("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1802,7 +1819,7 @@ scope SymTab;
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["expr"] = wrapExpression($expression.tree, $expression.tree.Token);
                     newExpression = mkJavaWrapper(iterable.Result.Java, myMap, $expression.tree.Token);
-                    Imports.Add(iterable.Result.Imports);
+                    AddToImports(iterable.Result.Imports);
                     elType = iterable.ResultType;
                 }
             }
