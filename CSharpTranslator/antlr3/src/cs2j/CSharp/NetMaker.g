@@ -1788,10 +1788,10 @@ literal returns [TypeRepTemplate dotNetType]
     }
     $dotNetType = retTy; 
 }:
-	Real_literal 
+	Real_literal                { ns = "System.Double"; }
 	| NUMBER                    { ns = "System.Int32"; }
 	| LONGNUMBER                { ns = "System.Int64"; }
-	| Hex_number
+	| Hex_number                { ns = "System.Int32"; }
 	| Character_literal         { ns = "System.Char"; }
 	| STRINGLITERAL             { ns = "System.String"; }
 	| Verbatim_string_literal   { ns = "System.String"; }
