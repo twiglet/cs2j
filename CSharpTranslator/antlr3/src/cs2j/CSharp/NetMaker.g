@@ -449,7 +449,7 @@ class_member_declaration:
     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
     | interface_declaration
     | class_declaration
-    | ^(FIELD attributes? modifiers? type field_declaration[$type.dotNetType])
+    | ^(FIELD attributes? modifiers? type field_declaration[$type.tree, $type.dotNetType])
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | enum_declaration
     | delegate_declaration
@@ -1464,13 +1464,22 @@ constant_expression returns [String rmId]:
 	expression {$rmId = $expression.rmId; };
 
 ///////////////////////////////////////////////////////
-field_declaration[TypeRepTemplate ty]:
-	variable_declarators[$ty] ;
-variable_declarators[TypeRepTemplate ty]:
-	variable_declarator[ty] (','   variable_declarator[ty])* ;
-variable_declarator[TypeRepTemplate ty]:
-	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
-
+field_declaration[CommonTree tyTree, TypeRepTemplate ty]:
+	variable_declarators[$tyTree, $ty] ;
+variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
+	variable_declarator[$tyTree, $ty] (','   variable_declarator[$tyTree, $ty])* ;
+variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
+@init {
+    bool hasInit = false;
+}:
+	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } 
+       (e='='   variable_initializer { hasInit = true; } )?
+        magicConstructStruct[!hasInit && $ty != null && $ty is StructRepTemplate, $tyTree, $identifier.tree != null ? $identifier.tree.Token : null]
+        		// eg. event EventHandler IInterface.VariableName = Foo;
+    -> {hasInit}? identifier $e variable_initializer
+    -> {!hasInit && $ty != null && $ty is StructRepTemplate}? identifier ASSIGN[$identifier.tree.Token, "="] magicConstructStruct
+    -> identifier
+    ;
 ///////////////////////////////////////////////////////
 method_declaration
 scope SymTab;
@@ -1495,7 +1504,7 @@ member_name:
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators[$type.dotNetType]   ';')	// typename=foo;
+		| variable_declarators[$type.tree, $type.dotNetType]   ';')	// typename=foo;
 		;
 event_modifiers:
 	modifier+ ;
@@ -1720,15 +1729,25 @@ declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
 local_variable_declaration:
-	local_variable_type   local_variable_declarators[$local_variable_type.dotNetType] ;
+	local_variable_type   local_variable_declarators[$local_variable_type.tree, $local_variable_type.dotNetType] ;
 local_variable_type returns [TypeRepTemplate dotNetType]:
 	('var') => 'var'             { $dotNetType = new UnknownRepTemplate("System.Object"); }
 	| ('dynamic') => 'dynamic'   { $dotNetType = new UnknownRepTemplate("System.Object"); }
 	| type                       { $dotNetType = $type.dotNetType; };
-local_variable_declarators[TypeRepTemplate ty]:
-	local_variable_declarator[$ty] (',' local_variable_declarator[$ty])* ;
-local_variable_declarator[TypeRepTemplate ty]:
-	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   local_variable_initializer)? ; 
+local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
+	local_variable_declarator[$tyTree, $ty] (',' local_variable_declarator[$tyTree, $ty])* ;
+local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
+@init {
+    bool hasInit = false;
+}:
+	i=identifier { $SymTab::symtab[$i.thetext] = $ty; } 
+       (e='='   local_variable_initializer { hasInit = true; } )?
+        magicConstructStruct[!hasInit && $ty != null && $ty is StructRepTemplate, $tyTree, ($i.tree != null ? $i.tree.Token : null)]
+        		// eg. event EventHandler IInterface.VariableName = Foo;
+    -> {hasInit}? $i $e local_variable_initializer
+    -> {!hasInit && $ty != null && $ty is StructRepTemplate}? $i ASSIGN[$i.tree.Token, "="] magicConstructStruct
+    -> $i
+    ;
 local_variable_initializer:
 	expression
 	| array_initializer 
@@ -1999,3 +2018,7 @@ magicNegate[bool isOn, CommonTree e, IToken tok]:
   -> 
 ;
 
+magicConstructStruct[bool isOn, CommonTree ty, IToken tok]:
+   -> { isOn }? ^(NEW[tok, "NEW"] { dupTree(ty) } )
+   -> 
+;
