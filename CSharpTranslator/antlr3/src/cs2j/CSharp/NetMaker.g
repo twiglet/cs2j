@@ -1471,13 +1471,23 @@ variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
 variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
 @init {
     bool hasInit = false;
+    bool constructStruct = $ty != null && $ty is StructRepTemplate ;
+    EnumRepTemplate enumRep = $ty as EnumRepTemplate;
+    bool constructEnum = enumRep != null && enumRep.Members.Count > 0;
+    string zeroEnum = "WhoopsEnum";
+    if (constructEnum)
+    {
+        zeroEnum = enumRep.Members[0].Name;
+    }
 }:
 	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } 
-       (e='='   variable_initializer { hasInit = true; } )?
-        magicConstructStruct[!hasInit && $ty != null && $ty is StructRepTemplate, $tyTree, $identifier.tree != null ? $identifier.tree.Token : null]
+       (e='='   variable_initializer { hasInit = true; constructStruct = false; constructEnum = false; } )?
+        magicConstructStruct[constructStruct, $tyTree, $identifier.tree != null ? $identifier.tree.Token : null]
+        magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
         		// eg. event EventHandler IInterface.VariableName = Foo;
     -> {hasInit}? identifier $e variable_initializer
-    -> {!hasInit && $ty != null && $ty is StructRepTemplate}? identifier ASSIGN[$identifier.tree.Token, "="] magicConstructStruct
+    -> {constructStruct}? identifier ASSIGN[$identifier.tree.Token, "="] magicConstructStruct
+    -> {constructEnum}? identifier ASSIGN[$identifier.tree.Token, "="] magicConstructDefaultEnum
     -> identifier
     ;
 ///////////////////////////////////////////////////////
@@ -1739,13 +1749,23 @@ local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
 local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
 @init {
     bool hasInit = false;
+    bool constructStruct = $ty != null && $ty is StructRepTemplate ;
+    EnumRepTemplate enumRep = $ty as EnumRepTemplate;
+    bool constructEnum = enumRep != null && enumRep.Members.Count > 0;
+    string zeroEnum = "WhoopsEnum";
+    if (constructEnum)
+    {
+        zeroEnum = enumRep.Members[0].Name;
+    }
 }:
 	i=identifier { $SymTab::symtab[$i.thetext] = $ty; } 
-       (e='='   local_variable_initializer { hasInit = true; } )?
-        magicConstructStruct[!hasInit && $ty != null && $ty is StructRepTemplate, $tyTree, ($i.tree != null ? $i.tree.Token : null)]
+       (e='='   local_variable_initializer { hasInit = true; constructStruct = false; constructEnum = false; } )?
+        magicConstructStruct[constructStruct, $tyTree, ($i.tree != null ? $i.tree.Token : null)]
+        magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
         		// eg. event EventHandler IInterface.VariableName = Foo;
     -> {hasInit}? $i $e local_variable_initializer
-    -> {!hasInit && $ty != null && $ty is StructRepTemplate}? $i ASSIGN[$i.tree.Token, "="] magicConstructStruct
+    -> {constructStruct}? $i ASSIGN[$i.tree.Token, "="] magicConstructStruct
+    -> {constructEnum}? $i ASSIGN[$i.tree.Token, "="] magicConstructDefaultEnum
     -> $i
     ;
 local_variable_initializer:
@@ -2020,5 +2040,9 @@ magicNegate[bool isOn, CommonTree e, IToken tok]:
 
 magicConstructStruct[bool isOn, CommonTree ty, IToken tok]:
    -> { isOn }? ^(NEW[tok, "NEW"] { dupTree(ty) } )
+   -> 
+;
+magicConstructDefaultEnum[bool isOn, TypeRepTemplate ty, String zero, IToken tok]:
+   -> { isOn }? ^(DOT[tok, "."] IDENTIFIER[tok, ty.Java] IDENTIFIER[tok, zero]) 
    -> 
 ;
