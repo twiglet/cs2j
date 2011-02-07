@@ -976,7 +976,7 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
             member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
 
 method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
-	b=block nb=magicSmotherExceptions[ dupTree($b.tree) ] el=magicThrowable { if (!smotherExceptions) $exceptionList=$el.tree; }
+	b=block nb=magicSmotherExceptions[ dupTree($b.tree) ] el=magicThrowsException[true,$b.tree.Token] { if (!smotherExceptions) $exceptionList=$el.tree; }
        -> {smotherExceptions}? $nb 
        -> $b
          ;
@@ -1205,9 +1205,9 @@ interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 	i=identifier   '{'   iads=interface_accessor_declarations[atts, mods, type, $i.text]   '}' -> $iads ;
 interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	identifier   generic_argument_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   magicThrowable ';' 
+	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    s=';' magicThrowsException[true,$s.token]
        -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list? magicThrowable);
+            identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list? magicThrowsException);
 interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
 	'event'   type   identifier   ';' ; 
@@ -1282,9 +1282,9 @@ operator_body:
 
 ///////////////////////////////////////////////////////
 constructor_declaration[CommonTree atts, CommonTree mods, List<String> modList]:
-		i=identifier   '('   p=formal_parameter_list?   ')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptionsThrow[$b.tree, "ExceptionInInitializerError"] magicThrowable
+		i=identifier   '('   p=formal_parameter_list?   s=')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptionsThrow[$b.tree, "ExceptionInInitializerError"] magicThrowsException[true,$s.token]
             -> {modList.Contains("static")}? ^(STATIC_CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $sb)
-            ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b magicThrowable);
+            ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b magicThrowsException);
 constructor_initializer: 
 	':' tok='this' '('   argument_list?   ')' 
          -> ^(APPLY[$tok.token, "APPLY"] $tok argument_list?) SEMI[$tok.token, ";"]
@@ -1475,7 +1475,7 @@ scope { CommonTree throwVar; }
     CommonTree ty = null, var = null;
 }:
     c='catch' ('('   given_t=class_type { ty = $given_t.tree; }  (given_v=identifier { var = $given_v.tree; } | magic_v=magicCatchVar { var = $magic_v.tree; } ) ')'
-                 | magic_t=magicThrowableType magic_v=magicCatchVar { ty = $magic_t.tree; var = $magic_v.tree; })   { $catch_clause::throwVar = var; } block
+                 | magic_t=magicThrowableType[true,$c.token] magic_v=magicCatchVar { ty = $magic_t.tree; var = $magic_v.tree; })   { $catch_clause::throwVar = var; } block
        -> ^($c { ty } { var } block)
     ;
 finally_clause:
@@ -1572,8 +1572,10 @@ literal:
 void_type:
     v='void' -> ^(TYPE[$v.token, "TYPE"] $v);
 
-magicThrowableType:
- -> ^(TYPE["TYPE"] IDENTIFIER["Throwable"]);
+magicThrowableType[bool isOn, IToken tok]:
+ -> {isOn}? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, Cfg.TranslatorExceptionIsThrowable ? "Throwable" : "Exception"])
+ -> 
+;
 
 magicCatchVar:
   -> IDENTIFIER["__dummyCatchVar" + dummyCatchVarCtr++];
@@ -1583,7 +1585,7 @@ magicPropGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTr
     CommonTree realBody = body;
     CommonTree exceptionList = null;
 }: 
-    ( { mkBody }? => b=magicGetterBody[getTok,varName] { realBody = $b.tree; } | e=magicException { exceptionList = $e.tree; })
+    ( { mkBody }? => b=magicGetterBody[getTok,varName] { realBody = $b.tree; } | e=magicThrowsException[true,getTok] { exceptionList = $e.tree; })
     -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } { exceptionList }) 
     ;
 magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, String propName, bool mkBody, String varName]
@@ -1591,7 +1593,7 @@ magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTr
     CommonTree realBody = body;
     CommonTree exceptionList = null;
 }: 
-    ( { mkBody }? => b=magicSetterBody[setTok,varName] { realBody = $b.tree; }| e=magicException { exceptionList = $e.tree; } )
+    ( { mkBody }? => b=magicSetterBody[setTok,varName] { realBody = $b.tree; }| e=magicThrowsException[true,setTok] { exceptionList = $e.tree; } )
     -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } { exceptionList } ) 
     ;
 
@@ -1609,7 +1611,8 @@ magicSetterBody[IToken setTok, String varName]:
 
 magicIdxGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken getTok, CommonTree body, CommonTree idxparams]
 : 
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get___idx"] { dupTree(idxparams) } { dupTree(body) } EXCEPTION[getTok, "Throwable"]) 
+    magicThrowsException[true,getTok]
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get___idx"] { dupTree(idxparams) } { dupTree(body) } magicThrowsException) 
     ;
 magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, CommonTree idxparams]
 @init {
@@ -1617,34 +1620,28 @@ magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTre
     adaptor.AddChild(augParams, dupTree($type));
     adaptor.AddChild(augParams, (CommonTree)adaptor.Create(IDENTIFIER, setTok, "value"));
 }
-: 
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set___idx"] { augParams } { dupTree(body) } EXCEPTION[setTok, "Throwable"] ) 
+:
+    magicThrowsException[true,setTok] 
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set___idx"] { augParams } { dupTree(body) } magicThrowsException ) 
     ;
 
 // keving: can't get this to work reasonably
 //magicMkConstModifiers[IToken tok, List<string> filter]: 
 //    ({ !filter.Contains("static") }?=> -> STATIC[tok, "static"] ) ( { !filter.Contains("public") }?=> -> $magicMkConstModifiers FINAL[tok, "final"] ); 
 
-magicException:
- -> EXCEPTION["Throwable"]
-;
 
 magicSmotherExceptions[CommonTree body]:
   magicSmotherExceptionsThrow[body, "RuntimeException"] 
 ;
 
 magicSmotherExceptionsThrow[CommonTree body, String exception]:
-  v=magicCatchVar 
+  v=magicCatchVar magicThrowableType[true, body.Token]
  -> OPEN_BRACE["{"]
        ^(TRY["try"] 
             { dupTree(body) }
-         ^(CATCH["catch"] ^(TYPE["TYPE"] IDENTIFIER["Throwable"]) { dupTree($v.tree) } 
+         ^(CATCH["catch"] magicThrowableType { dupTree($v.tree) } 
            OPEN_BRACE["{"] ^(THROW["throw"] ^(NEW["new"] ^(TYPE["TYPE"] IDENTIFIER[exception]) ^(ARGS["ARGS"] { dupTree($v.tree) }))) CLOSE_BRACE["}"]))
     CLOSE_BRACE["}"]
-;
-
-magicThrowable:
- -> EXCEPTION["Throwable"]
 ;
 
 // METHOD{ public static TYPE{ void } main PARAMS{ TYPE{ String [ ] } args } { APPLY{ .{ System exit } ARGS{ APPLY{ .{ Program Main } } } } ;
@@ -1671,13 +1668,14 @@ magicMainExit[bool isOn, bool retInt, IToken tok, CommonTree body]:
     
 
 magicMainWrapper[bool isOn, IToken tok, CommonTree body]:
+ magicThrowsException[isOn,tok]
  -> { isOn }?
     ^(METHOD[tok, "METHOD"]
          PUBLIC[tok, "public"] STATIC[tok,"static"] 
          ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "void"]) 
              IDENTIFIER[tok, "main"] ^(PARAMS[tok, "PARAMS"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok,"String"] OPEN_BRACKET[tok, "["] CLOSE_BRACKET[tok, "]"]) IDENTIFIER[tok, "args"]) 
               OPEN_BRACE[tok, "{"] { dupTree(body) } SEMI[tok, ";"] CLOSE_BRACE[tok, "}"] 
-      EXCEPTION[tok, "Throwable"])
+      magicThrowsException)
  -> 
 ;
 
@@ -1697,6 +1695,7 @@ magicFinally[IToken tok, CommonTree statement_list]:
 ;
 
 magicFinalize[IToken tok, CommonTree body]:
+ magicThrowsException[true,tok]
 ->
     ^(METHOD[tok, "METHOD"]
          PROTECTED[tok, "protected"] 
@@ -1704,8 +1703,9 @@ magicFinalize[IToken tok, CommonTree body]:
               OPEN_BRACE[tok, "{"] 
                     ^(TRY[tok, "try"] { dupTree(body) } 
                          ^(FINALLY[tok, "finally"] OPEN_BRACE[tok, "{"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] SUPER[tok,"super"] IDENTIFIER[tok,"finalize"])) SEMI[tok, ";"] CLOSE_BRACE[tok, "}"]))
-              CLOSE_BRACE[tok, "}"] 
-      EXCEPTION[tok, "Throwable"])
+              CLOSE_BRACE[tok, "}"]
+     // Always throws Throwable to match Object.finalize()
+     EXCEPTION[tok, "Throwable"])
 ;
 
 magicDefaultConstructor[IToken tok, String name]:
@@ -1716,5 +1716,10 @@ magicDefaultConstructor[IToken tok, String name]:
               OPEN_BRACE[tok, "{"] 
               CLOSE_BRACE[tok, "}"] 
       )
+;
+
+magicThrowsException[bool isOn, IToken tok]:
+->  {isOn}? EXCEPTION[tok, Cfg.TranslatorExceptionIsThrowable ? "Throwable" : "Exception"]
+-> 
 ;
 

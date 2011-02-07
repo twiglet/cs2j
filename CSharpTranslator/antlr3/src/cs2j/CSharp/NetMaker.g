@@ -1981,7 +1981,7 @@ magicCastOperator[CommonTree mods, String methodName, CommonTree header, CommonT
        { dupTree($mods) } 
        { toType } IDENTIFIER[tok, $methodName] ^(PARAMS[tok, "PARAMS"] { fromType } { paramName}) 
        { dupTree(body) }
-      EXCEPTION[tok, "Throwable"])
+      EXCEPTION[tok, Cfg.TranslatorExceptionIsThrowable ? "Throwable" : "Exception"])
 ;
 
 magicAnnotation [CommonTree mods, CommonTree name, CommonTree body, IToken tok]:

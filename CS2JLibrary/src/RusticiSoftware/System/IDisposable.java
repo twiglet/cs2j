@@ -1,7 +1,7 @@
 package RusticiSoftware.System;
 
 public interface IDisposable {
-	void Dispose() throws Throwable;
+	void Dispose() throws Exception;
 
-	void close() throws Throwable;
+	void close() throws Exception;
 }

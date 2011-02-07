@@ -105,6 +105,7 @@ namespace RusticiSoftware.Translator.CSharp
                         .Add ("exclude=", dirs => addDirectories(cfg.Exclude, dirs))
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
+                        .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
                         ;
 					
                     //TODO: fix enum dump

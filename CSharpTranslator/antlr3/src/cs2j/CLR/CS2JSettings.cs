@@ -43,6 +43,11 @@ namespace RusticiSoftware.Translator.CSharp
                 get; set;
             }
 
+            public bool TranslatorExceptionIsThrowable
+            {
+                get; set;
+            }
+
             public CS2JSettings ()
             {
 		
@@ -68,10 +73,11 @@ namespace RusticiSoftware.Translator.CSharp
 	        Verbosity = 0;	
                 DebugTemplateExtraction = true;	
 	        DebugLevel = 0;		
-	        Warnings = false;		
+	        Warnings = true;		
 
                 TranslatorKeepParens = true;
                 TranslatorAddTimeStamp = true;
+                TranslatorExceptionIsThrowable = false;
             }
 	}
 }
