@@ -36,8 +36,6 @@
 			<manifest>
 				<attribute name="Built-By" value="${user.name}" />
 				<attribute name="Built-On" value="${timestamp.isoformat}" />
-				<attribute name="Subversion-Branch" value="$HeadURL: https://svn.rusticisoftware.com/svn/projects/Products/CS2JLibrary/trunk/build.xml $" />
-				<attribute name="Subversion-Revision" value="${svn.revision}" />
 			</manifest>
 		</jar>
 		<!-- And copy any 3rd party jars needed by cs2j. -->
