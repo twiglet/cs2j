@@ -34,9 +34,9 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</Import>
+        <Import>CS2JNet.System.Web.HttpUtilSupport</Import>
       </Imports>
-      <Java>HttpUtil.UrlEncode(${str})</Java>
+      <Java>HttpUtilSupport.UrlEncode(${str})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -48,9 +48,9 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.ScormContentPlayer.Util.HttpUtil</Import>
+        <Import>CS2JNet.System.Web.HttpUtilSupport</Import>
       </Imports>
-      <Java>HttpUtil.UrlDecode(${str})</Java>
+      <Java>HttpUtilSupport.UrlDecode(${str})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
