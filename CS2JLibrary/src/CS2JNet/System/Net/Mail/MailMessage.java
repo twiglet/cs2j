@@ -1,36 +1,35 @@
 package CS2JNet.System.Net.Mail;
 
+import java.util.ArrayList;
 import javax.mail.internet.InternetAddress;
-
-import CS2JNet.System.Collections.ArrayListSupport;
 
 public class MailMessage 
 {
 
     public MailMessage() throws Exception
     {
-        _bcc = new ArrayListSupport();
-        _cc = new ArrayListSupport();
-        _to = new ArrayListSupport();
+        _bcc = new ArrayList();
+        _cc = new ArrayList();
+        _to = new ArrayList();
     }
-    private ArrayListSupport _bcc;
-    private ArrayListSupport _cc;
-    private ArrayListSupport _to;
+    private ArrayList _bcc;
+    private ArrayList _cc;
+    private ArrayList _to;
     private String _body;
     private InternetAddress _from;
     private String _subject;
 
-    public ArrayListSupport getBcc() throws Exception
+    public ArrayList getBcc() throws Exception
     {
         return _bcc;
     }
 
-    public ArrayListSupport getCC() throws Exception
+    public ArrayList getCC() throws Exception
     {
         return _cc;
     }
 
-    public ArrayListSupport getTo() throws Exception
+    public ArrayList getTo() throws Exception
     {
         return _to;
     }

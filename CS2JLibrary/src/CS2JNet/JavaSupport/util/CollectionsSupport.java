@@ -21,13 +21,12 @@
 
 package CS2JNet.JavaSupport.util;
 
+import java.util.ArrayList;
 import java.util.Collections;
-
-import CS2JNet.System.Collections.ArrayListSupport;
 
 public class CollectionsSupport {
 
-	public static void sort(ArrayListSupport a) {
-		Collections.sort(a.getArrayList());
+	public static void sort(ArrayList a) {
+		Collections.sort(a);
 	}
 }
