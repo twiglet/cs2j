@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.JavaSupport.reflect.FieldSupport</Import>
+        <Import>CS2JNet.JavaSupport.reflect.FieldSupport</Import>
       </Imports>
       <Java>FieldSupport.getAnnotations(${this}, ${attributeType}, ${inherits})</Java>
       <Params>

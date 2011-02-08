@@ -16,7 +16,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>CS2JNet.System.IO.StreamReader</Import>
         <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(new FileInputStream(${path}))))</Java>
@@ -29,7 +29,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>CS2JNet.System.IO.StreamReader</Import>
         <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(new FileInputStream(${path}), ${encoding})))</Java>
@@ -46,7 +46,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.IO.StreamReader</Import>
+        <Import>CS2JNet.System.IO.StreamReader</Import>
         <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), ${encoding}))</Java>
@@ -63,8 +63,8 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.IO.StreamReader</Import>
-        <Import>RusticiSoftware.System.Text.EncodingSupport</Import>
+        <Import>CS2JNet.System.IO.StreamReader</Import>
+        <Import>CS2JNet.System.Text.EncodingSupport</Import>
         <Import>java.io.*</Import>
       </Imports>
       <Java>new BufferedReader(StreamReader.make(new BufferedInputStream(${stream}), new EncodingSupport("UTF-8")))</Java>

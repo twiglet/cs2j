@@ -9,7 +9,7 @@
   <Properties>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Globalization.NumberStyles</Import>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
       </Imports>
       <Java>NumberStyles.getInteger()</Java>
       <Type>System.Globalization.NumberStyles</Type>
@@ -19,7 +19,7 @@
     </Property>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Globalization.NumberStyles</Import>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
       </Imports>
       <Java>NumberStyles.getHexNumber()</Java>
       <Type>System.Globalization.NumberStyles</Type>
@@ -29,7 +29,7 @@
     </Property>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Globalization.NumberStyles</Import>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
       </Imports>
       <Java>NumberStyles.getAny()</Java>
       <Type>System.Globalization.NumberStyles</Type>

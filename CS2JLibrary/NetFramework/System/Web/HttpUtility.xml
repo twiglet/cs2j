@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.Web.HttpUtilSupport</Import>
+        <Import>CS2JNet.System.Web.HttpUtilSupport</Import>
       </Imports>
       <Java>HttpUtilSupport.HtmlEncode(${str})</Java>
       <Params>

@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.TypeSupport</Import>
+        <Import>CS2JNet.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetFields(${this})</Java>
       <Params />
@@ -19,7 +19,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.TypeSupport</Import>
+        <Import>CS2JNet.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetFields(${this},${flags})</Java>
       <Params>
@@ -33,7 +33,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.TypeSupport</Import>
+        <Import>CS2JNet.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetField(${this},${name})</Java>
       <Params>
@@ -47,7 +47,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.TypeSupport</Import>
+        <Import>CS2JNet.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetField(${this},${name},${flags})</Java>
       <Params>
@@ -65,7 +65,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.TypeSupport</Import>
+        <Import>CS2JNet.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.InvokeMember(${this}, ${name}, ${target}, ${args})</Java>
       <Params>

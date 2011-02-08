@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>RusticiSoftware.System.Web.Services.Protocols.SoapMessage</Import>
+    <Import>CS2JNet.System.Web.Services.Protocols.SoapMessage</Import>
   </Imports>
   <Java>SoapMessage</Java>
   <Name>System.Web.Services.Protocols.SoapMessage</Name>

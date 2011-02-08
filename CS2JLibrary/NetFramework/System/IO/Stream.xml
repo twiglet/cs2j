@@ -61,7 +61,7 @@
   <Properties>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.JavaSupport.Unsupported</Import>
+        <Import>CS2JNet.JavaSupport.Unsupported</Import>
       </Imports>
       <Java>Unsupported.throwUnsupported("${this:16}.Position")</Java>
       <Type>System.Int64</Type>

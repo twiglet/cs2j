@@ -26,7 +26,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.IO.TextReaderSupport</Import>
+        <Import>CS2JNet.System.IO.TextReaderSupport</Import>
       </Imports>
       <Java>TextReaderSupport.readToEnd(${this})</Java>
       <Params />

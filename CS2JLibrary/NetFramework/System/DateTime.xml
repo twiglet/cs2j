@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.parse(${s})</Java>
       <Params>
@@ -26,7 +26,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.parse(${s}, ${provider})</Java>
       <Params>
@@ -44,7 +44,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.*</Import>
+        <Import>CS2JNet.System.*</Import>
       </Imports>
       <Java>DateTimeSupport.ToString(${this}, ${format})</Java>
       <Params>
@@ -58,7 +58,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.ToString(${this}, ${format}, ${provider})</Java>
       <Params>
@@ -122,7 +122,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTZ</Import>
+        <Import>CS2JNet.System.DateTZ</Import>
         <Import>java.util.TimeZone</Import>
       </Imports>
       <Java>(new DateTZ(${this:16}.getTime(), TimeZone.getTimeZone("UTC")))</Java>
@@ -132,7 +132,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
         <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MINUTE,${amount})</Java>
@@ -147,7 +147,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
         <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.HOUR,${amount})</Java>
@@ -162,7 +162,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
         <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MILLISECOND,${amount})</Java>
@@ -177,7 +177,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
         <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.SECOND,${amount})</Java>
@@ -192,7 +192,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
         <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.DAY_OF_YEAR,${amount})</Java>
@@ -207,7 +207,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
         <Import>java.util.Calendar</Import>
       </Imports>
       <Java>DateTimeSupport.add(${this},Calendar.MONTH,${amount})</Java>
@@ -222,7 +222,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
       </Imports>
       <Java>(new TimeSpan(Math.abs(${this:16}.getTime() - ${date2}.getTime())))</Java>
       <Params>

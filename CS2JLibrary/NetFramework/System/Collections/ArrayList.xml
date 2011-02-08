@@ -110,7 +110,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.Collections.ArrayListSupport</Import>
+        <Import>CS2JNet.System.Collections.ArrayListSupport</Import>
       </Imports>
       <Java>ArrayListSupport.toArray(${this}, new ${TYPEOF_expr_TYPE}[0])</Java>
       <Params>

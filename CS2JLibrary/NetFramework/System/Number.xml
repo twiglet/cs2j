@@ -24,7 +24,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.NumberSupport</Import>
+        <Import>CS2JNet.System.NumberSupport</Import>
       </Imports>
       <Java>NumberSupport.format(${this}, ${format})</Java>
       <Params>

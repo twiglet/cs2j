@@ -9,7 +9,7 @@
   <Properties>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Configuration.ConfigurationSettings</Import>
+        <Import>CS2JNet.System.Configuration.ConfigurationSettings</Import>
       </Imports>
       <Java>ConfigurationSettings.getAppSettings()</Java>
       <Type>System.Collections.Specialized.NameValueCollection</Type>

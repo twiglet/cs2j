@@ -9,7 +9,7 @@
   <Properties>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Reflection.BindingFlags</Import>
+        <Import>CS2JNet.System.Reflection.BindingFlags</Import>
       </Imports>
       <Java>BindingFlags.getInstance()</Java>
       <Type>System.Reflection.BindingFlags</Type>
@@ -19,7 +19,7 @@
     </Property>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Reflection.BindingFlags</Import>
+        <Import>CS2JNet.System.Reflection.BindingFlags</Import>
       </Imports>
       <Java>BindingFlags.getPublic()</Java>
       <Type>System.Reflection.BindingFlags</Type>
@@ -29,7 +29,7 @@
     </Property>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Reflection.BindingFlags</Import>
+        <Import>CS2JNet.System.Reflection.BindingFlags</Import>
       </Imports>
       <Java>BindingFlags.getFlattenHierarchy()</Java>
       <Type>System.Reflection.BindingFlags</Type>
@@ -39,7 +39,7 @@
     </Property>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Reflection.BindingFlags</Import>
+        <Import>CS2JNet.System.Reflection.BindingFlags</Import>
       </Imports>
       <Java>BindingFlags.getStatic()</Java>
       <Type>System.Reflection.BindingFlags</Type>

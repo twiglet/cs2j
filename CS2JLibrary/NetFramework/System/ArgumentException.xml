@@ -19,7 +19,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.ArgumentException</Import>
+        <Import>CS2JNet.System.ArgumentException</Import>
       </Imports>
       <Java>new ArgumentException(${message})</Java>
       <Params>
@@ -45,7 +45,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.ArgumentException</Import>
+        <Import>CS2JNet.System.ArgumentException</Import>
       </Imports>
       <Java>new ArgumentException(${message}, ${inner})</Java>
       <Params>
@@ -61,7 +61,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.ArgumentException</Import>
+        <Import>CS2JNet.System.ArgumentException</Import>
       </Imports>
       <Java>new ArgumentException(${message}, ${paramName})</Java>
       <Params>
@@ -77,7 +77,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.System.ArgumentException</Import>
+        <Import>CS2JNet.System.ArgumentException</Import>
       </Imports>
       <Java>new ArgumentException(${message}, ${paramName}, ${inner})</Java>
       <Params>

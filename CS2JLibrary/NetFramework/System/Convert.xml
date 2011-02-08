@@ -108,7 +108,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.DateTimeSupport</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.parse(${value})</Java>
       <Params>

@@ -34,7 +34,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
+        <Import>CS2JNet.System.Text.StringBuilderSupport</Import>
       </Imports>
       <Java>StringBuilderSupport.ensureCapacity(${this}, ${arg})</Java>
       <Params>
@@ -114,7 +114,7 @@
   <Properties>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.Text.StringBuilderSupport</Import>
+        <Import>CS2JNet.System.Text.StringBuilderSupport</Import>
       </Imports>
       <Java>${this:16}.length()</Java>
       <Type>System.Int32</Type>

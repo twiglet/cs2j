@@ -19,7 +19,7 @@
     </Property>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.System.ExceptionSupport</Import>
+        <Import>CS2JNet.System.ExceptionSupport</Import>
       </Imports>
       <Java>ExceptionSupport.getSource(${this})</Java>
       <Type>System.String</Type>

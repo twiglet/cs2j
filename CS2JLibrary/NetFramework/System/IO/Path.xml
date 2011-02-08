@@ -50,7 +50,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.IO.PathSupport</Import>
+        <Import>CS2JNet.System.IO.PathSupport</Import>
       </Imports>
       <Java>PathSupport.getExtension(${path})</Java>
       <Params>

@@ -10,7 +10,7 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.EnumSupport</Import>
+        <Import>CS2JNet.System.EnumSupport</Import>
       </Imports>
       <Java>EnumSupport.isDefined(${enumType}, ${value})</Java>
       <Params>
@@ -28,7 +28,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.EnumSupport</Import>
+        <Import>CS2JNet.System.EnumSupport</Import>
       </Imports>
       <Java>EnumSupport.toString(${this}, ${modifier})</Java>
       <Params>

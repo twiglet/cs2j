@@ -14,7 +14,7 @@
   <Properties>
     <Property>
       <Imports>
-        <Import>RusticiSoftware.JavaSupport.util.LocaleSupport</Import>
+        <Import>CS2JNet.JavaSupport.util.LocaleSupport</Import>
       </Imports>
       <Java>LocaleSupport.INVARIANT</Java>
       <Type>System.Globalization.NumberFormatInfo</Type>
@@ -28,7 +28,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <Import>RusticiSoftware.JavaSupport.util.LocaleSupport</Import>
+        <Import>CS2JNet.JavaSupport.util.LocaleSupport</Import>
       </Imports>
       <Java>LocaleSupport.INVARIANT</Java>
       <Params />

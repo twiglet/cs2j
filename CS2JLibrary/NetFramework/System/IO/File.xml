@@ -81,7 +81,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.IO.FileSupport</Import>
+        <Import>CS2JNet.System.IO.FileSupport</Import>
       </Imports>
       <Java>FileSupport.copyFile(${sourceFileName}, ${destFileName}, true)</Java>
       <Params>
@@ -99,7 +99,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.System.IO.FileSupport</Import>
+        <Import>CS2JNet.System.IO.FileSupport</Import>
       </Imports>
       <Java>FileSupport.copyFile(${sourceFileName}, ${destFileName}, ${overwrite})</Java>
       <Params>

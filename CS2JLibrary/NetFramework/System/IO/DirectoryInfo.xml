@@ -12,7 +12,7 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.JavaSupport.io.*</Import>
+        <Import>CS2JNet.JavaSupport.io.*</Import>
       </Imports>
       <Java>${this:16}.listFiles(new FilterOnlyFiles())</Java>
       <Params />
@@ -21,7 +21,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>RusticiSoftware.JavaSupport.io.*</Import>
+        <Import>CS2JNet.JavaSupport.io.*</Import>
       </Imports>
       <Java>${this:16}.listFiles(new FilterOnlyDirs())</Java>
       <Params />
