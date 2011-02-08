@@ -42,7 +42,7 @@ import org.w3c.dom.Document;
 
 public class XmlDocument extends XmlNode {
 
-	private static Logger logger = Logger.getLogger("com.rusticisoftware.scormcontentplayer");
+	private static Logger logger = Logger.getLogger(XmlDocument.class.getName());
 
 	public XmlDocument() throws ParserConfigurationException
 	{
