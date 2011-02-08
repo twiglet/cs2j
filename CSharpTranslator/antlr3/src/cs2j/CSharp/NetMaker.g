@@ -1120,12 +1120,12 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 stringArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(StringType,AppEnv)) || 
                                             ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(StringType,AppEnv)));
                 if (stringArgs) {
-                    this.AddToImports("RusticiSoftware.System.StringSupport");
+                    this.AddToImports("CS2JNet.System.StringSupport");
                 }
                 dateArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("CS2JNet.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1144,12 +1144,12 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 stringArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(StringType,AppEnv)) || 
                                             ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(StringType,AppEnv)));
                 if (stringArgs) {
-                    this.AddToImports("RusticiSoftware.System.StringSupport");
+                    this.AddToImports("CS2JNet.System.StringSupport");
                 }
                 dateArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("CS2JNet.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1170,7 +1170,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($gt1.dotNetType != null && !$gt1.dotNetType.IsExplicitNull && $gt1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("CS2JNet.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1186,7 +1186,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($lt1.dotNetType != null && !$lt1.dotNetType.IsExplicitNull && $lt1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($lt2.dotNetType != null && !$lt2.dotNetType.IsExplicitNull && $lt2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("CS2JNet.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1202,7 +1202,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($ge1.dotNetType != null && !$ge1.dotNetType.IsExplicitNull && $ge1.dotNetType.IsA(DateType,AppEnv)) || 
                                           ($ge2.dotNetType != null && !$ge2.dotNetType.IsExplicitNull && $ge2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("CS2JNet.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
@@ -1218,7 +1218,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, String rmId, Type
                 dateArgs = !nullArg && (($le1.dotNetType != null && !$le1.dotNetType.IsExplicitNull && $le1.dotNetType.IsA(DateType,AppEnv)) || 
                                             ($le2.dotNetType != null && !$le2.dotNetType.IsExplicitNull && $le2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("RusticiSoftware.System.DateTimeSupport");
+                    this.AddToImports("CS2JNet.System.DateTimeSupport");
                 }
                 $dotNetType = BoolType; 
             }
