@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CS2JTranslator</RootNamespace>
+    <AssemblyName>cs2j</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Twiglet.CS2J.Translator.Driver</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\CSharpParser\AntlrUtils.cs">
+      <Link>CSharpParser\AntlrUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharpParser\csLexer.cs">
+      <Link>CSharpParser\csLexer.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharpParser\csParser.cs">
+      <Link>CSharpParser\csParser.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharpParser\PreProcessor.cs">
+      <Link>CSharpParser\PreProcessor.cs</Link>
+    </Compile>
+    <Compile Include="CS2JMain\CS2JMain.cs" />
+    <Compile Include="CS2JMain\CS2JSettings.cs" />
+    <Compile Include="CS2JMain\Main.cs" />
+    <Compile Include="CS2JMain\Templates.cs" />
+    <Compile Include="CS2JTemplate\TranslationTemplate.cs" />
+    <Compile Include="CS2JTransform\CommonWalker.cs" />
+    <Compile Include="CS2JTransform\JavaMaker.cs" />
+    <Compile Include="CS2JTransform\JavaPrettyPrint.cs" />
+    <Compile Include="CS2JTransform\NetMaker.cs" />
+    <Compile Include="CS2JTransform\TemplateExtracter.cs" />
+    <Compile Include="CS2JUtil\Constants.cs" />
+    <Compile Include="CS2JUtil\DirectoryHT.cs" />
+    <Compile Include="CS2JUtil\Set.cs" />
+    <Compile Include="CS2JTemplate\TypeHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\CSharpParser\cs.g">
+      <Link>CSharpParser\cs.g</Link>
+    </None>
+    <None Include="app.config" />
+    <None Include="CS2JTransform\JavaMaker.g" />
+    <None Include="CS2JTransform\JavaPrettyPrint.g" />
+    <None Include="CS2JTransform\NetMaker.g" />
+    <None Include="CS2JTransform\TemplateExtracter.g" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="antlr.runtime">
+      <HintPath>..\..\dll\antlr.runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="StringTemplate">
+      <HintPath>..\..\dll\StringTemplate.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Antlr.Runtime\Antlr3.Runtime.csproj">
+      <Project>{CF15D0D5-BE72-4F98-B70F-229ABA1DF0E8}</Project>
+      <Name>Antlr3.Runtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NDesk.Options\NDesk.Options.csproj">
+      <Project>{E6ACBB37-AF38-45E1-B399-0CEE63809A15}</Project>
+      <Name>NDesk.Options</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
