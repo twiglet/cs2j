@@ -69,7 +69,6 @@
     <None Include="..\CSharpParser\cs.g">
       <Link>CSharpParser\cs.g</Link>
     </None>
-    <None Include="app.config" />
     <None Include="CS2JTransform\JavaMaker.g" />
     <None Include="CS2JTransform\JavaPrettyPrint.g" />
     <None Include="CS2JTransform\NetMaker.g" />
