@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using Twiglet.CS2J.Translator.TypeRep;
 using Twiglet.CS2J.Translator.Utils;
 
-namespace Twiglet.CS2J.Utils
+namespace Twiglet.CS2J.Utility
 {
     public class TemplateFromDLL
     {
