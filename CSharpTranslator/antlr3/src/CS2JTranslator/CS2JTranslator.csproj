@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -75,14 +75,14 @@
     <None Include="CS2JTransform\TemplateExtracter.g" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="antlr.runtime">
+    <Reference Include="System" />
+    <Reference Include="antlr.runtime, Version=2.7.7.3, Culture=neutral, PublicKeyToken=d7701e059243744f">
       <HintPath>..\..\dll\antlr.runtime.dll</HintPath>
     </Reference>
-    <Reference Include="StringTemplate">
+    <Reference Include="StringTemplate, Version=3.0.1.6846, Culture=neutral, PublicKeyToken=beee492b52c41e85">
       <HintPath>..\..\dll\StringTemplate.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.XML" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Antlr.Runtime\Antlr3.Runtime.csproj">
