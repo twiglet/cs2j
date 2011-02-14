@@ -17,6 +17,9 @@ java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -v
 java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser JavaPrettyPrint.g 
 cd ../../../
 
-#xbuild
+cd src
+xbuild
+cd ../
+
 echo 'All Done'
 
