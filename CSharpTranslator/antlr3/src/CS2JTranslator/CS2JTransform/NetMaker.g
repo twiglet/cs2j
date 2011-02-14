@@ -1406,15 +1406,20 @@ scope NSContext,SymTab;
             $NSContext::namespaces.Add($NSContext::currentNS);
             $NSContext::globalNamespaces.Add($NSContext::currentNS);
             ClassRepTemplate classTypeRep = (ClassRepTemplate)AppEnv.Search($NSContext::currentNS);
-            $SymTab::symtab["this"] = classTypeRep;
-            ClassRepTemplate baseType = ObjectType;
-            if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
-                // if Inherits[0] is a class then it is parent, else system.object
-                ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
-                if (parent != null)
-                    baseType = parent;
-            }
-            $SymTab::symtab["super"] = baseType;
+			if (classTypeRep == null) {
+			    Error($c.line, "Could not find class " + $NSContext::currentNS + " in the type environment");
+			}
+			else {
+				$SymTab::symtab["this"] = classTypeRep;
+				ClassRepTemplate baseType = ObjectType;
+				if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
+					// if Inherits[0] is a class then it is parent, else system.object
+					ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
+					if (parent != null)
+						baseType = parent;
+				}
+				$SymTab::symtab["super"] = baseType;
+			}
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
