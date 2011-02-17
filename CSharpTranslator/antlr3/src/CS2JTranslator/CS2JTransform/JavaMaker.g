@@ -876,7 +876,7 @@ attribute_argument_expression:
 class_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	c='class' identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
+	c='class' identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
     -> ^(CLASS[$c.Token] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 type_parameter_list returns [List<string> names] 
@@ -1228,7 +1228,7 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 struct_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkTypeName($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.text]   ';'? 
+	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.text]   ';'? 
     -> ^(CLASS[$c.Token, "class"] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
 
 struct_body [string structName]:

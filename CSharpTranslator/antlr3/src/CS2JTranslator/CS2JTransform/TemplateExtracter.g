@@ -85,10 +85,6 @@ scope NSContext {
         }
     }
 
-    protected string NSPrefix(string ns) {
-        return (String.IsNullOrEmpty(ns) ? "" : ns + ".");
-    }
-
 }
 
 /********************************************************************************************
@@ -687,18 +683,22 @@ scope NSContext;
 	'class'  type_or_generic   
         { 
             Debug("Processing class: " + $type_or_generic.type);
-            klass.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
+            // For class System.Dictionary<K,V>
+            // The Type Rep has TypeName "System.Dictionary", TypeArgs "K","V" is stored at System/Dictionary'2.xml 
+            // and will be used as [System.]Dictionary[Type1,Type2] 
+            String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($type_or_generic.type, $type_or_generic.generic_arguments);
+            klass.TypeName = NSPrefix(ParentNameSpace) + $type_or_generic.type;
             if ($type_or_generic.generic_arguments.Count > 0) {
                 klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
             // Nested types can see things in this space
-            $NSContext::searchpath.Add(klass.TypeName);
-            $NSContext::currentNS = klass.TypeName;
+            $NSContext::searchpath.Add(genericNameSpace);
+            $NSContext::currentNS = genericNameSpace;
             $NSContext::currentTypeRep = klass;
-            AppEnv[klass.TypeName] = klass;
+            AppEnv[genericNameSpace] = klass;
             klass.Uses = this.CollectUses;
             klass.Aliases = this.CollectAliases;
-            klass.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
+            klass.Imports = new string[] {klass.TypeName};
         }
         (cb=class_base { klass.Inherits =  $cb.typeList.ToArray(); } )?   
         type_parameter_constraints_clauses? class_body  ';'? ;
@@ -717,7 +717,7 @@ interface_type_list returns [List<string> typeList]
     $typeList = new List<string>();
 }
 :
-	t1=type { typeList.Add($t1.text); } (','   tn=type { typeList.Add($tn.text); } )* ;
+	t1=type { typeList.Add($t1.thetext); } (','   tn=type { typeList.Add($tn.thetext); } )* ;
 
 class_body:
 	'{'   class_member_declarations?   '}' ;
@@ -867,16 +867,17 @@ scope NSContext;
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
         { 
             Debug("Processing delegate: " + $identifier.text);
-            dlegate.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
+            String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
+            dlegate.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
             dlegate.Return=$return_type.thetext;
             dlegate.Params=$formal_parameter_list.paramlist;
-            AppEnv[dlegate.TypeName] = dlegate;
+            AppEnv[genericNameSpace] = dlegate;
             dlegate.Uses = this.CollectUses;
             dlegate.Aliases = this.CollectAliases;
-            dlegate.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
+            dlegate.Imports = new string[] {dlegate.TypeName};
         } 
 ;
 delegate_modifiers:
@@ -958,7 +959,8 @@ scope NSContext;
 	'interface'   identifier   variant_generic_parameter_list?
         { 
             Debug("Processing interface: " + $identifier.text);
-            iface.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($identifier.text, $variant_generic_parameter_list.tyargs);
+            String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
+            iface.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
@@ -966,10 +968,10 @@ scope NSContext;
             $NSContext::searchpath.Add(iface.TypeName);
             $NSContext::currentNS = iface.TypeName;
             $NSContext::currentTypeRep = iface;
-            AppEnv[iface.TypeName] = iface;
+            AppEnv[genericNameSpace] = iface;
             iface.Uses = this.CollectUses;
             iface.Aliases = this.CollectAliases;
-            iface.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
+            iface.Imports = new string[] {iface.TypeName};
         } 
     	(interface_base { iface.Inherits = $interface_base.typeList.ToArray(); } )?   
         type_parameter_constraints_clauses?   interface_body   ';'? ;
@@ -1045,7 +1047,8 @@ scope NSContext;
 	'struct'   type_or_generic   
         { 
             Debug("Processing struct: " + $type_or_generic.type);
-            strukt.TypeName = NSPrefix(ParentNameSpace) + mkTypeName($type_or_generic.type, $type_or_generic.generic_arguments);
+            String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($type_or_generic.type, $type_or_generic.generic_arguments);
+            strukt.TypeName = NSPrefix(ParentNameSpace) + $type_or_generic.type;
             if ($type_or_generic.generic_arguments.Count > 0) {
                 strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
@@ -1053,10 +1056,10 @@ scope NSContext;
             $NSContext::searchpath.Add(strukt.TypeName);
             $NSContext::currentNS = strukt.TypeName;
             $NSContext::currentTypeRep = strukt;
-            AppEnv[strukt.TypeName] = strukt;
+            AppEnv[genericNameSpace] = strukt;
             strukt.Uses = this.CollectUses;
             strukt.Aliases = this.CollectAliases;
-            strukt.Imports = new string[] {NSPrefix(ParentNameSpace) + $type_or_generic.type};
+            strukt.Imports = new string[] {strukt.TypeName};
         } (si=struct_interfaces { strukt.Inherits =  $si.typeList.ToArray(); })?
          type_parameter_constraints_clauses?   struct_body   ';'? ;
 struct_modifiers:

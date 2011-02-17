@@ -78,8 +78,13 @@ namespace Twiglet.CS2J.Translator.Transform
         }
 
         // distinguish classes with same name, but differing numbers of type arguments
-        protected string mkTypeName (string name, List<String> tyargs) {
-            return name + (tyargs != null && tyargs.Count > 0 ? "'" + tyargs.Count.ToString() : "");
+        // Dictionary<K,V> -> Dictionary'2
+        protected string mkGenericTypeAlias (string name, List<String> tyargs) {
+            return mkGenericTypeAlias(name, tyargs == null ? 0 : tyargs.Count);
+        }
+        
+        protected string mkGenericTypeAlias (string name, int tyargCount) {
+            return name + (tyargCount > 0 ? "'" + tyargCount.ToString() : "");
         }
         
         protected string formatTyargs(List<string> tyargs) {
@@ -95,6 +100,11 @@ namespace Twiglet.CS2J.Translator.Transform
             buf.Remove(buf.Length-1,1);
             buf.Append(">");
             return buf.ToString();
+        }
+
+        //  Unless empty return current namespace suffixed with "."
+        protected string NSPrefix(string ns) {
+            return (String.IsNullOrEmpty(ns) ? "" : ns + ".");
         }
 
     }

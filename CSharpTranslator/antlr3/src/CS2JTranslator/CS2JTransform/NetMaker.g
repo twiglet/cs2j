@@ -70,7 +70,7 @@ scope SymTab {
     public void AddToImports(string imp) {
         // Don't add import if its namespace is within our type
 //       if (!imp.StartsWith($NSContext::currentNS+".")) {
-        if (imp != null && !imp.StartsWith(CompUnitName+".")) { 
+        if (imp != null && !imp.StartsWith(NSPrefix(CompUnitName))) { 
             Imports.Add(imp);
         }
   //      }
