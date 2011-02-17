@@ -63,7 +63,6 @@
     <Compile Include="CS2JUtil\Constants.cs" />
     <Compile Include="CS2JUtil\DirectoryHT.cs" />
     <Compile Include="CS2JUtil\Set.cs" />
-    <Compile Include="CS2JTemplate\TypeHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CSharpParser\cs.g">

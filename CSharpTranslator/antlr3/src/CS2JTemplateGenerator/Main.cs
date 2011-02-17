@@ -8,6 +8,7 @@ using NDesk.Options;
 using System.Collections.Generic;
 using Twiglet.CS2J.Translator.TypeRep;
 using Twiglet.CS2J.Translator.Utils;
+using Twiglet.CS2J.Utility.Utils;
 
 namespace Twiglet.CS2J.Utility
 {
