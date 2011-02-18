@@ -261,7 +261,8 @@ namespace Twiglet.CS2J.Translator
         {
             Stream s = new FileStream(fullName, FileMode.Open, FileAccess.Read);
             TypeRepTemplate t = TypeRepTemplate.newInstance(s);
-            AppEnv[t.TypeName] = t;
+            // Fullname has form: <path>/<key>.xml
+            AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
         }
 
         // Here's where we do the real work...
