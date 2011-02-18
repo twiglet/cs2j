@@ -21,6 +21,11 @@ scope NSContext {
     List<string> namespaces;
     // all namespaces in all scopes
     List<string> globalNamespaces;
+
+    // all typevariables in scope
+    List<string> typeVariables;
+    // all typevariables in all scopes
+    List<string> globalTypeVariables;
 }
 
 // A scope to keep track of the mapping from variables to types
@@ -70,7 +75,7 @@ scope SymTab {
     public void AddToImports(string imp) {
         // Don't add import if its namespace is within our type
 //       if (!imp.StartsWith($NSContext::currentNS+".")) {
-        if (imp != null && !imp.StartsWith(NSPrefix(CompUnitName))) { 
+        if (imp != null && (CompUnitName == null || CompUnitName.Length == 0 || !imp.StartsWith(NSPrefix(CompUnitName)))) { 
             Imports.Add(imp);
         }
   //      }
@@ -94,22 +99,23 @@ scope SymTab {
         return AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name));
     }
 
-    protected TypeRepTemplate findType(string name, TypeRepTemplate[] args) {
+    protected TypeRepTemplate findType(string name, ICollection<TypeRepTemplate> args) {
         StringBuilder argNames = new StringBuilder();
         bool first = true;
-        if (args != null && args.Length > 0) {
+        if (args != null && args.Count > 0) {
             argNames.Append("[");
-            foreach (TypeRepTemplate ty in args) {
+            foreach (TypeRepTemplate sub in args) {
                 if (!first) {
                     argNames.Append(", ");
                     first = false;
                 }
-                argNames.Append(ty.TypeName);
+                argNames.Append(sub.TypeName);
             }
             argNames.Append("]");
         }
-        TypeRepTemplate tyRep = AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name + argNames.ToString()));
-        return tyRep.Instantiate(args);
+        
+        TypeRepTemplate tyRep = AppEnv.Search($NSContext::globalNamespaces, mkGenericTypeAlias(name, args != null ? args.Count : 0), new UnknownRepTemplate(name + argNames.ToString()));
+        return (args != null && args.Count > 0 ? tyRep.Instantiate(args) : tyRep);
     }
 
     private ClassRepTemplate objectType = null;
@@ -428,6 +434,9 @@ scope NSContext;
     // TODO: Do we need to ensure we have access to System? If so, can add it here.
     $NSContext::namespaces = SearchPath ?? new List<string>();
     $NSContext::globalNamespaces = SearchPath ?? new List<string>();
+
+    $NSContext::typeVariables = new List<string>();
+    $NSContext::globalTypeVariables = new List<string>();
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
     -> ^($pkg $ns  { mkImports() } $dec);
@@ -839,21 +848,21 @@ commas:
 ///////////////////////////////////////////////////////
 
 type_name returns [string name, TypeRepTemplate dotNetType]: 
-	namespace_or_type_name { $name = $namespace_or_type_name.name; $dotNetType = findType($namespace_or_type_name.name); } ;
-namespace_or_type_name returns [string name, List<string> tyargs]
+	namespace_or_type_name { $name = $namespace_or_type_name.name; $dotNetType = findType($namespace_or_type_name.name, $namespace_or_type_name.tyargs); } ;
+namespace_or_type_name returns [string name, List<TypeRepTemplate> tyargs]
 @init {
     TypeRepTemplate tyRep = null;
 }: 
 	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
     | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
-    | ^(d='.'   n1=namespace_or_type_name tg1=type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; tyRep = findType($name); if (tyRep != null) AddToImports(tyRep.Imports); } 
+    | ^(d='.'   n1=namespace_or_type_name tg1=type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; tyRep = findType($name, $tyargs); if (tyRep != null) AddToImports(tyRep.Imports); } 
         -> { tyRep != null }? IDENTIFIER[$d.token, tyRep.Java]
         -> ^($d $n1 $tg1)
      ;
 
-type_or_generic returns [string name, List<string> tyargs]
+type_or_generic returns [string name, List<TypeRepTemplate> tyargs]
 :
-	(identifier_type   generic_argument_list) => t=identifier_type { $name = $identifier_type.thetext; }  generic_argument_list { $tyargs = $generic_argument_list.argTexts; }
+	(identifier_type   generic_argument_list) => t=identifier_type { $name = $identifier_type.thetext; }  generic_argument_list { $tyargs = $generic_argument_list.argTypes; }
 	| t=identifier_type { $name = $identifier_type.thetext; } ;
 
 identifier_type returns [string thetext]
@@ -884,14 +893,15 @@ qid_start:
 qid_part:
 	access_identifier;
 
-generic_argument_list returns [List<string> argTexts]: 
-	'<'   type_arguments   '>' { $argTexts = $type_arguments.tyTexts; };
-type_arguments  returns [List<string> tyTexts]
+generic_argument_list returns [List<TypeRepTemplate> argTypes]: 
+	'<'   type_arguments   '>' { $argTypes = $type_arguments.tyTypes; };
+type_arguments  returns [List<TypeRepTemplate> tyTypes]
 @init {
-    $tyTexts = new List<string>();
+    $tyTypes = new List<TypeRepTemplate>();
 }: 
-	t1=type { $tyTexts.Add($t1.dotNetType.TypeName); } (',' tn=type { $tyTexts.Add($tn.dotNetType.TypeName); })* ;
+	t1=type { $tyTypes.Add($t1.dotNetType); } (',' tn=type { $tyTypes.Add($tn.dotNetType); })* ;
 
+// keving: TODO: Look for type vars
 type returns [TypeRepTemplate dotNetType]
 :
     ^(TYPE (predefined_type { $dotNetType = $predefined_type.dotNetType; } 
@@ -1397,14 +1407,22 @@ scope NSContext,SymTab;
 @init {
     $NSContext::namespaces = new List<string>();
     $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
+    $NSContext::typeVariables = new List<string>();
+    $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
-   ^(c=CLASS  attributes? modifiers? identifier { $NSContext::currentNS = ParentNameSpace + "." + $identifier.thetext; if (CompUnitName == null) CompUnitName = $NSContext::currentNS; } type_parameter_constraints_clauses? type_parameter_list?
+   ^(c=CLASS  attributes? modifiers? identifier type_parameter_constraints_clauses? 
+        type_parameter_list? 
+             { $NSContext::currentNS = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.thetext, $type_parameter_list.tyParams); if (CompUnitName == null) CompUnitName = $NSContext::currentNS; }
          class_implements? 
          { 
             $NSContext::namespaces.Add($NSContext::currentNS);
             $NSContext::globalNamespaces.Add($NSContext::currentNS);
+            if ($type_parameter_list.tyParams != null) {
+                $NSContext::typeVariables.AddRange($type_parameter_list.tyParams);
+                $NSContext::globalTypeVariables.AddRange($type_parameter_list.tyParams);
+            }
             ClassRepTemplate classTypeRep = (ClassRepTemplate)AppEnv.Search($NSContext::currentNS);
 			if (classTypeRep == null) {
 			    Error($c.line, "Could not find class " + $NSContext::currentNS + " in the type environment");
@@ -1425,11 +1443,14 @@ scope NSContext,SymTab;
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
     -> ^($c attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
 
-type_parameter_list:
-    (attributes? type_parameter)+ ;
+type_parameter_list returns [List<string> tyParams]
+@init {
+    $tyParams = new List<string>();
+}:
+    (attributes? type_parameter { $tyParams.Add($type_parameter.thetext); })+ ;
 
-type_parameter:
-    identifier ;
+type_parameter returns [string thetext]:
+    identifier { $thetext = $identifier.thetext; };
 
 class_extends:
 	class_extend+ ;
