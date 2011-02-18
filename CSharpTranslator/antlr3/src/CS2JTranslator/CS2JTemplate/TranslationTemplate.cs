@@ -3222,10 +3222,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
 	}
 
 	[XmlType("TypeVariable")]
-	// Represents Type Variables.  We inherit from StructRepTemplate to that
+	// Represents Type Variables.  We inherit from ClassRepTemplate to that
         // Type Variables have the same interface as types, but we can override as
         // neccessary
- 	public class TypeVarRepTemplate : StructRepTemplate, IEquatable<TypeVarRepTemplate>
+ 	public class TypeVarRepTemplate : ClassRepTemplate, IEquatable<TypeVarRepTemplate>
 	{
 
 		public TypeVarRepTemplate ()

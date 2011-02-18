@@ -96,10 +96,16 @@ scope SymTab {
     }
 
     protected TypeRepTemplate findType(string name) {
+        if ($NSContext::globalTypeVariables.Contains(name)) {
+            return new TypeVarRepTemplate(name);
+        }
         return AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name));
     }
 
     protected TypeRepTemplate findType(string name, ICollection<TypeRepTemplate> args) {
+        if (args == null || args.Count == 0) {
+            return findType(name);
+        }
         StringBuilder argNames = new StringBuilder();
         bool first = true;
         if (args != null && args.Count > 0) {
