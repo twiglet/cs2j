@@ -3174,6 +3174,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
                         return new string[0];
                     }
 		}
+
+		public override string mkJava() {
+                    return TypeName;
+		}
+
         public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
         {
             UnknownRepTemplate copy = new UnknownRepTemplate(this);

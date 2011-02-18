@@ -103,7 +103,7 @@ scope SymTab {
         StringBuilder argNames = new StringBuilder();
         bool first = true;
         if (args != null && args.Count > 0) {
-            argNames.Append("[");
+            argNames.Append("<");
             foreach (TypeRepTemplate sub in args) {
                 if (!first) {
                     argNames.Append(", ");
@@ -111,7 +111,7 @@ scope SymTab {
                 }
                 argNames.Append(sub.TypeName);
             }
-            argNames.Append("]");
+            argNames.Append(">");
         }
         
         TypeRepTemplate tyRep = AppEnv.Search($NSContext::globalNamespaces, mkGenericTypeAlias(name, args != null ? args.Count : 0), new UnknownRepTemplate(name + argNames.ToString()));
