@@ -61,6 +61,7 @@ namespace Twiglet.CS2J.Translator
             Console.Out.WriteLine(" [-debug <level>]                                                            (set debug level, default 0)");
             Console.Out.WriteLine(" [-debug-template-extraction <true/false>]                                   (show debug messages during template extraction, default true)");
             Console.Out.WriteLine(" [-warnings <true/false>]                                                    (show warnings, default true)");
+            Console.Out.WriteLine(" [-warning-resolve-failures <true/false>]                                    (show warnings for resolve failures, default true)");
             Console.Out.WriteLine(" <directory or file name to be translated>");
             Environment.Exit(0);
         }
@@ -92,6 +93,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("debug=", v => cfg.DebugLevel = Int32.Parse(v))
                         .Add ("debug-template-extraction=", v => cfg.DebugTemplateExtraction = Boolean.Parse(v))
                         .Add ("warnings=", v => cfg.Warnings = Boolean.Parse(v))
+                        .Add ("warnings-resolve-failures=", v => cfg.WarningsFailedResolves = Boolean.Parse(v))
                         .Add ("version", v => showVersion())
                         .Add ("help|h|?", v => showUsage())
                         .Add ("dumpcsharp", v => cfg.DumpCSharp = true)

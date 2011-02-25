@@ -180,7 +180,7 @@ scope SymTab {
     }
 
     protected TypeRepTemplate SymTabLookup(string name) {
-        return SymTabLookup(name, null);
+        return SymTabLookup(name, new UnknownRepTemplate("TYPE OF " + name));
     }
 
     protected TypeRepTemplate SymTabLookup(string name, TypeRepTemplate def) {
@@ -498,9 +498,9 @@ scope {
     if (ret != null)
         $primary_expression.tree = ret;
 }:
-    ^(INDEX ie=expression expression_list?)
+    ^(index=INDEX ie=expression expression_list?)
         {
-            if ($ie.dotNetType != null) {
+            if ($ie.dotNetType != null && !$ie.dotNetType.IsUnknownType) {
                 $dotNetType = new UnknownRepTemplate($ie.dotNetType.TypeName+".INDEXER");
                 ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
                 if (indexerResult != null) {
@@ -520,12 +520,18 @@ scope {
                         $dotNetType = indexerResult.ResultType; 
                     }
                 }
+                else {
+                   WarningFailedResolve($index.token.Line, "Could not resolve index expression");
+                }
+            }
+            else {
+               WarningFailedResolve($index.token.Line, "Could not find type of indexed expression");
             }
         }
     | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
            ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
-            if (expType != null) {
+            if (expType != null && !expType.IsUnknownType) {
                 $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
                 ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
                 if (methodResult != null) {
@@ -546,6 +552,12 @@ scope {
                     AddToImports(methodResult.Result.Imports);
                     $dotNetType = methodResult.ResultType; 
                 }
+                else {
+                   WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application");
+                }
+            }
+            else {
+               WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
@@ -576,15 +588,11 @@ scope {
                     AddToImports(fieldResult.Result.Imports);
                     $dotNetType = fieldResult.ResultType; 
                 }
-                else if ($e1.dotNetType is UnknownRepTemplate) {
+                else if ($e1.dotNetType.IsUnknownType) {
                     string staticType = $e1.dotNetType + "." + $i1.thetext;
-                    TypeRepTemplate type = findType(staticType);
-                    if (type != null) {
-                        AddToImports(type.Imports);
-                        $dotNetType = type;
-                    }
-                    else {
-                        $dotNetType = new UnknownRepTemplate(staticType);
+                    $dotNetType = findType(staticType);
+                    if (!$dotNetType.IsUnknownType) {
+                        AddToImports($dotNetType.Imports);
                     }
                 }
             }
@@ -604,7 +612,7 @@ scope {
             // - part of a type name
             bool found = false;
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
-            if (idType != null) {
+            if (idType != null && !idType.IsUnknownType) {
                 $dotNetType = idType;
                 found = true;
             }
@@ -613,7 +621,7 @@ scope {
                 TypeRepTemplate thisType = SymTabLookup("this");
 
                 // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
-                if (thisType != null &&
+                if (thisType != null && !thisType.IsUnknownType &&
                     ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
                     Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
@@ -630,7 +638,7 @@ scope {
             if (!found) {
                 // Not a variable, not a property read, is it a type name?
                 TypeRepTemplate staticType = findType($i.thetext);
-                if (staticType != null) {
+                if (!staticType.IsUnknownType) {
                     AddToImports(staticType.Imports);
                     $dotNetType = staticType;
                     found = true;
@@ -660,6 +668,9 @@ scope {
                 ret = mkJavaWrapper(conResult.Result.Java, myMap, $n.token);
                 AddToImports(conResult.Result.Imports);
                 $dotNetType = conResult.ResultType; 
+            }
+            else {
+               WarningFailedResolve($n.token.Line, "Could not resolve constructor");
             }
         }
 	| 'new' (   
@@ -971,7 +982,7 @@ assignment
         (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a=assignment_operator rhs=expression 
         {
             TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
-            if (seType != null) {
+            if (seType != null && !seType.IsUnknownType) {
                 ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
                 if (fieldResult != null && fieldResult.Result is PropRepTemplate) {
                     PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
@@ -1003,12 +1014,18 @@ assignment
                         }
                     }
                 }
+                else {
+                   WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression");
+                }
+            }
+            else {
+               WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
             }
         }
     | (^(INDEX expression expression_list?) assignment_operator)  => 
         ^(INDEX ie=expression expression_list?)   ia=assignment_operator irhs=expression 
         {
-            if ($ie.dotNetType != null) {
+            if ($ie.dotNetType != null && !$ie.dotNetType.IsUnknownType) {
                 ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
                 if (indexerResult != null) {
                     IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
@@ -1054,6 +1071,12 @@ assignment
                         }
                     }   
                 }
+                else {
+                   WarningFailedResolve($ie.tree.Token.Line, "Could not resolve index expression");
+                }
+            }
+            else {
+               WarningFailedResolve($ie.tree.Token.Line, "Could not find type of expression for index access");
             }
         }
     | unary_expression   assignment_operator expression ;

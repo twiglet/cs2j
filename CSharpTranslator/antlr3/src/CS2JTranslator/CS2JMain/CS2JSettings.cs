@@ -37,6 +37,7 @@ namespace Twiglet.CS2J.Translator
             public int DebugLevel { get; set; }
             
             public bool Warnings { get; set; }
+            public bool WarningsFailedResolves { get; set; }
 
             public bool TranslatorKeepParens
             {
@@ -79,6 +80,7 @@ namespace Twiglet.CS2J.Translator
                 DebugTemplateExtraction = true;	
 	        DebugLevel = 0;		
 	        Warnings = true;		
+	        WarningsFailedResolves = false;		
 
                 TranslatorKeepParens = true;
                 TranslatorAddTimeStamp = true;

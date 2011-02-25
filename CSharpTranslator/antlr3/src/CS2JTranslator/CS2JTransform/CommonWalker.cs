@@ -59,6 +59,12 @@ namespace Twiglet.CS2J.Translator.Transform
                 Console.Out.WriteLine("{0} failed assertion: {1}", Filename, s);
         }
 
+        protected void WarningFailedResolve(int line, String s)
+        {
+            if (Cfg.WarningsFailedResolves)
+               Console.Out.WriteLine("{0}({1}) warning: {2}", Filename, line, s);
+        }
+
         protected void Debug(String s)
         {
             Debug(1, s);
