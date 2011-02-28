@@ -978,8 +978,9 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
             member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
 
 method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
-	b=block nb=magicSmotherExceptions[ dupTree($b.tree) ] el=magicThrowsException[true,$b.tree.Token] { if (!smotherExceptions) $exceptionList=$el.tree; }
-       -> {smotherExceptions}? $nb 
+	{smotherExceptions}? b=block nb=magicSmotherExceptions[dupTree($b.tree) ]
+       -> $nb 
+   | b=block el=magicThrowsException[true,$b.tree.Token] { $exceptionList=$el.tree; }   
        -> $b
          ;
 member_name returns [string rawId]:
@@ -1633,7 +1634,7 @@ magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTre
 
 
 magicSmotherExceptions[CommonTree body]:
-  magicSmotherExceptionsThrow[body, "RuntimeException"] 
+   magicSmotherExceptionsThrow[body, "RuntimeException"] 
 ;
 
 magicSmotherExceptionsThrow[CommonTree body, string exception]:
