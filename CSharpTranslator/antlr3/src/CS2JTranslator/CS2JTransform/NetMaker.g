@@ -517,6 +517,7 @@ scope {
     CommonTree ret = null;
     TypeRepTemplate expType = SymTabLookup("this");
     bool implicitThis = true;
+    $thedottedtext = null;
 }
 @after {
     if (ret != null)
@@ -581,7 +582,7 @@ scope {
                $dotNetType = methodResult.ResultType; 
             }
             else {
-               WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application against " + expType.TypeName);
+               WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application of " + $i2.thetext + " against " + expType.TypeName);
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
@@ -603,7 +604,7 @@ scope {
                     
                 Debug($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
 
-                $dotNetType = new UnknownRepTemplate(expType.TypeName+".DOTACCESS");
+                $dotNetType = new UnknownRepTemplate(expType.TypeName+".DOTACCESS."+ $i1.thetext);
 
                 ResolveResult fieldResult = expType.Resolve($i1.thetext, AppEnv);
                 if (fieldResult != null) {
@@ -614,13 +615,22 @@ scope {
                     AddToImports(fieldResult.Result.Imports);
                     $dotNetType = fieldResult.ResultType; 
                 }
-                else if ($e1.dotNetType.IsUnknownType) {
-                    string staticType = $e1.dotNetType + "." + $i1.thetext;
+                else if ($e1.thedottedtext != null) {
+                    string staticType = $e1.thedottedtext + "." + $i1.thetext;
                     $dotNetType = findType(staticType);
                     if (!$dotNetType.IsUnknownType) {
-                        AddToImports($dotNetType.Imports);
+                       AddToImports($dotNetType.Imports);
+                    }
+                    else {
+                       // remember text so far
+                       $thedottedtext = staticType;
                     }
                 }
+                else {
+                   // Could not find identifier in e1's type and we aren't building up a static type reference, so emit warning
+                   WarningFailedResolve($i1.tree.Token.Line, "Could not resolve identifier " + $i1.thetext + " against " + expType.TypeName);
+                }
+
             }
             $rmId = $identifier.thetext;
         }         
@@ -673,6 +683,7 @@ scope {
             if (!found) {
                 // Not a variable, not a property read, not a type, is it part of a type name?
                 $dotNetType = new UnknownRepTemplate($identifier.thetext);
+                $thedottedtext = $identifier.thetext;
             }
         }         
     | primary_expression_start                        { $dotNetType = $primary_expression_start.dotNetType; }  
@@ -706,7 +717,7 @@ scope {
                 AddToImports(conResult.Result.Imports);
                 $dotNetType = conResult.ResultType; 
             }
-            else {
+            else if ($argument_list.argTypes != null && $argument_list.argTypes.Count > 0) { // assume we have a zero-arg constructor, so don't print warning 
                WarningFailedResolve($n.token.Line, "Could not resolve constructor against " + conType.TypeName);
             }
         }
@@ -794,9 +805,9 @@ member_declarator_list:
 	member_declarator  (',' member_declarator)* ; 
 member_declarator: 
 	qid   ('='   expression)? ;
-primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType]:
-	(array_creation_expression) => array_creation_expression { $dotNetType = $array_creation_expression.dotNetType; }
-	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; $typeofType = $primary_expression.typeofType; }
+primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]:
+	(array_creation_expression) => array_creation_expression { $dotNetType = $array_creation_expression.dotNetType; $thedottedtext = null; }
+	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; $typeofType = $primary_expression.typeofType; $thedottedtext = $primary_expression.thedottedtext; }
 	;
 // new Type[2] { }
 array_creation_expression returns [TypeRepTemplate dotNetType]:
@@ -1051,9 +1062,10 @@ statement_list:
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
-expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType]: 
-	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; }
-	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; $typeofType = $non_assignment_expression.typeofType; }
+expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+: 
+	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; $thedottedtext = null;}
+	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; $typeofType = $non_assignment_expression.typeofType; $thedottedtext = $non_assignment_expression.thedottedtext; }
 	;
 expression_list returns [List<TypeRepTemplate> expTypes, List<CommonTree> expTrees, List<TypeRepTemplate> expTreeTypeofTypes]
 @init {
@@ -1077,48 +1089,53 @@ assignment
     ((^('.' expression identifier generic_argument_list?) | identifier) assignment_operator)  => 
         (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a=assignment_operator rhs=expression 
         {
-            TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
-            if (seType == null) {
-               seType = new UnknownRepTemplate("FIELD.BASE");
+            if (isThis && SymTabLookup($i.thetext) != null) {
+               // a simple variable assignment
             }
-            if (seType.IsUnknownType) {
-               WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
-            }
-            ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
-            if (fieldResult != null) {
-               if (fieldResult.Result is PropRepTemplate) {
-                  PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
-                  if (!String.IsNullOrEmpty(propRep.JavaSet)) {
-                     CommonTree newRhsExp = $rhs.tree;
-                     // if assignment operator is a short cut operator then only translate if we also have JavaGet  
-                     bool goodTx = true;
-                     if ($a.tree.Token.Type != ASSIGN) {
-                        if (!String.IsNullOrEmpty(propRep.JavaGet)) {
-                           // we have prop <op>= rhs
-                           // need to translate to setProp(getProp <op> rhs)
-                           Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
-                           if (!isThis)
-                              rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                           CommonTree rhsPropTree = mkJavaWrapper(propRep.JavaGet, rhsMap, $a.tree.Token);
-                           newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+            else {
+               TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
+               if (seType == null) {
+                  seType = new UnknownRepTemplate("FIELD.BASE");
+               }
+               if (seType.IsUnknownType) {
+                  WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
+               }
+               ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
+               if (fieldResult != null) {
+                  if (fieldResult.Result is PropRepTemplate) {
+                     PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
+                     if (!String.IsNullOrEmpty(propRep.JavaSet)) {
+                        CommonTree newRhsExp = $rhs.tree;
+                        // if assignment operator is a short cut operator then only translate if we also have JavaGet  
+                        bool goodTx = true;
+                        if ($a.tree.Token.Type != ASSIGN) {
+                           if (!String.IsNullOrEmpty(propRep.JavaGet)) {
+                              // we have prop <op>= rhs
+                              // need to translate to setProp(getProp <op> rhs)
+                              Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                              if (!isThis)
+                                 rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                              CommonTree rhsPropTree = mkJavaWrapper(propRep.JavaGet, rhsMap, $a.tree.Token);
+                              newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                           }
+                           else {
+                              goodTx = false;
+                           }
                         }
-                        else {
-                           goodTx = false;
+                        Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
+                        if (!isThis)
+                           valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                        valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
+                        if (goodTx) {
+                           ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
+                           AddToImports(propRep.Imports);
                         }
-                     }
-                     Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
-                     if (!isThis)
-                        valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                     valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
-                     if (goodTx) {
-                        ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
-                        AddToImports(propRep.Imports);
                      }
                   }
                }
-            }
-            else {
-               WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
+               else {
+                  WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
+               }
             }
         }
     | (^(INDEX expression expression_list?) assignment_operator)  => 
@@ -1180,11 +1197,14 @@ assignment
     | unary_expression   assignment_operator expression ;
 
 
-unary_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType]: 
+unary_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+@init {
+   $thedottedtext = null;
+}: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
     cast_expression                             { $dotNetType = $cast_expression.dotNetType; }
-	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; $typeofType = $primary_or_array_creation_expression.typeofType; }
+	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; $typeofType = $primary_or_array_creation_expression.typeofType; $thedottedtext = $primary_or_array_creation_expression.thedottedtext; }
 	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
 	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
 	| ^(MONONOT u3=unary_expression)            { $dotNetType = $u3.dotNetType; }
@@ -1239,11 +1259,12 @@ shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '
 //addressof_expression:
 //	'&'   unary_expression ;
 
-non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType]
+non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
 @init {
     bool nullArg = false;
     bool stringArgs = false;
     bool dateArgs = false;
+    $thedottedtext = null;
 }:
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
@@ -1379,7 +1400,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
         | ^('/' n12=non_assignment_expression non_assignment_expression)      {$dotNetType = $n12.dotNetType; }
         | ^('%' n13=non_assignment_expression non_assignment_expression)      {$dotNetType = $n13.dotNetType; }
  //       | ^(UNARY_EXPRESSION unary_expression)
-        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; $rmId = $unary_expression.rmId; $typeofType = $unary_expression.typeofType; }
+        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; $rmId = $unary_expression.rmId; $typeofType = $unary_expression.typeofType; $thedottedtext = $unary_expression.thedottedtext; }
 	;
 
 // ///////////////////////////////////////////////////////
