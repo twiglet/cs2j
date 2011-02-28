@@ -281,6 +281,7 @@ scope SymTab {
     // counter to ensure that the vars we introduce are unique 
     protected int dummyScrutVarCtr = 0;
     protected int dummyForeachVarCtr = 0;
+    protected int dummyStaticConstructorCatchVarCtr = 0;
 
     protected CommonTree convertSectionsToITE(List sections) {
         CommonTree ret = null;
@@ -467,8 +468,11 @@ type_declaration:
 qualified_identifier:
 	identifier ('.' identifier)*;
 
-modifiers:
-	modifier+ ;
+modifiers returns [List<string> modList]
+@init {
+    $modList = new List<string>();
+}:
+	(modifier { $modList.Add($modifier.tree.Text); } )+ ;
 modifier: 
 	'new' | 'public' | 'protected' | 'private' | 'abstract' | 'sealed' | 'static'
 	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override' | FINAL ;
@@ -484,16 +488,27 @@ class_member_declaration:
     | enum_declaration
     | delegate_declaration
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration[$attributes.tree, $modifiers.tree]) -> conversion_operator_declaration
-    | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list? block exception*)
-    | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
+    | constructor_declaration
     ;
 
 exception:
     EXCEPTION;
 
+constructor_declaration
+@init {
+   bool isStatic = false;
+}:
+    ^(c=CONSTRUCTOR attributes? (modifiers { isStatic = $modifiers.modList.Contains("static"); })? identifier  formal_parameter_list? block exception* sb=magicSmotherExceptionsThrow[$block.tree, "ExceptionInInitializerError"])
+      -> { isStatic }? ^(STATIC_CONSTRUCTOR[$c.token, "CONSTRUCTOR"] attributes? modifiers? $sb)
+      ->  ^($c attributes? modifiers? identifier formal_parameter_list? block exception*)
+       ;
+
+
+
 // rmId is the rightmost ID in an expression like fdfd.dfdsf.returnme, otherwise it is null
 // used in switch labels to strip down qualified types, which Java doesn't grok
-primary_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType]
+// thedottedtext is the text read so far that *might* be part of a qualified type  
+primary_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
 scope {
     bool parentIsApply;
 }
@@ -2198,4 +2213,22 @@ magicConstructStruct[bool isOn, CommonTree ty, IToken tok]:
 magicConstructDefaultEnum[bool isOn, TypeRepTemplate ty, string zero, IToken tok]:
    -> { isOn }? ^(DOT[tok, "."] IDENTIFIER[tok, ty.Java] IDENTIFIER[tok, zero]) 
    -> 
+;
+
+magicSmotherExceptionsThrow[CommonTree body, string exception]:
+  v=magicCatchVar magicThrowableType[true, body.Token]
+ -> OPEN_BRACE["{"]
+       ^(TRY["try"] 
+            { dupTree(body) }
+         ^(CATCH["catch"] magicThrowableType { dupTree($v.tree) } 
+           OPEN_BRACE["{"] ^(THROW["throw"] ^(NEW["new"] ^(TYPE["TYPE"] IDENTIFIER[exception]) ^(ARGS["ARGS"] { dupTree($v.tree) }))) CLOSE_BRACE["}"]))
+    CLOSE_BRACE["}"]
+;
+
+magicCatchVar:
+  -> IDENTIFIER["__dummyStaticConstructorCatchVar" + dummyStaticConstructorCatchVarCtr++];
+
+magicThrowableType[bool isOn, IToken tok]:
+ -> {isOn}? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, Cfg.TranslatorExceptionIsThrowable ? "Throwable" : "Exception"])
+ -> 
 ;

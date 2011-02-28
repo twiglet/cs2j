@@ -1285,8 +1285,7 @@ operator_body:
 
 ///////////////////////////////////////////////////////
 constructor_declaration[CommonTree atts, CommonTree mods, List<string> modList]:
-		i=identifier   '('   p=formal_parameter_list?   s=')'   init=constructor_initializer? b=constructor_body[$init.tree] sb=magicSmotherExceptionsThrow[$b.tree, "ExceptionInInitializerError"] magicThrowsException[true,$s.token]
-            -> {modList.Contains("static")}? ^(STATIC_CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $sb)
+		i=identifier   '('   p=formal_parameter_list?   s=')'   init=constructor_initializer? b=constructor_body[$init.tree] magicThrowsException[true,$s.token]
             ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b magicThrowsException);
 constructor_initializer: 
 	':' tok='this' '('   argument_list?   ')' 
