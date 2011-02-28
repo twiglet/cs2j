@@ -273,6 +273,8 @@ options {
 
     public string fillTemplate(string template, Dictionary<string,ReplacementDescriptor> templateMap) {
         string ret = template;
+        // *[ -> < and ]* -> >
+        ret = ret.Replace("*[","<").Replace("]*",">");
         foreach (string v in templateMap.Keys) {
             MatchEvaluator myEvaluator = new MatchEvaluator(templateMap[v].replace);
             ret = Regex.Replace(ret, Regex.Escape("${" + v) + "(?::(?<prec>\\d+))?}", myEvaluator);
@@ -481,6 +483,7 @@ rank_specifier:
 wrapped returns [int precedence]:
     ^(JAVAWRAPPEREXPRESSION expression) { $precedence = $expression.precedence; } -> { $expression.st } 
     | ^(JAVAWRAPPERARGUMENT argument_value) { $precedence = $argument_value.precedence; } -> { $argument_value.st } 
+    | ^(JAVAWRAPPERTYPE type) { $precedence = int.MaxValue; } -> { $type.st } 
     ;
 
 delegate_creation_expression: 
@@ -627,8 +630,18 @@ commas:
 //	Type Section
 ///////////////////////////////////////////////////////
 
-type_name: 
-	namespace_or_type_name -> { $namespace_or_type_name.st };
+type_name
+@init {
+    Dictionary<string,ReplacementDescriptor> templateMap = new Dictionary<string,ReplacementDescriptor>();
+}: 
+	namespace_or_type_name -> { $namespace_or_type_name.st }
+   | ^(JAVAWRAPPER t=identifier 
+         (k=identifier v=wrapped 
+            {
+               templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "<sorry, untranslated expression>", $v.precedence); 
+            }
+      )*) -> string(payload = {fillTemplate($t.st.ToString(), templateMap)})
+    ;
 namespace_or_type_name:
 	 t1=type_or_generic -> { $t1.st }
         // keving: external aliases not supported
@@ -670,8 +683,13 @@ type
     StringTemplate nm = null;
     List<string> stars = new List<string>();
     string opt = null;
+    Dictionary<string,ReplacementDescriptor> templateMap = new Dictionary<string,ReplacementDescriptor>();
 }:
-	  ^(TYPE (tp=predefined_type {nm=$tp.st;} | tn=type_name {nm=$tn.st;} | tv='void' { nm=%void();})  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
+	  ^(TYPE (
+            tp=predefined_type {nm=$tp.st;} 
+            | tn=type_name {nm=$tn.st;} 
+            | tv='void' { nm=%void();}
+            )  rank_specifiers? ('*' { stars.Add("*");})* ('?' { opt = "?";} )?)  ->  type(name={ nm }, stars={ stars }, rs={ $rank_specifiers.st }, opt={ opt })
 	;
 non_nullable_type:
 	type -> { $type.st } ;

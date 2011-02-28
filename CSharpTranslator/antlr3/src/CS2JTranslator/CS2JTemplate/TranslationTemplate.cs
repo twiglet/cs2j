@@ -35,7 +35,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          return ret;
       }
-            
+      
       public static string SubstituteInType(String type, Dictionary<string,TypeRepTemplate> argMap)
       {
          if (String.IsNullOrEmpty(type))
@@ -88,7 +88,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public string Type { 
          get { return _type; }
          set {
-            _type=value.Replace('<','[').Replace('>',']');
+            _type=value.Replace("<","*[").Replace(">","]*");
          }
       }
       public string Name { get; set; }
@@ -281,7 +281,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public string SurroundingTypeName { 
          get { return _surroundingTypeName; }
          set {
-            _surroundingTypeName=value.Replace('<','[').Replace('>',']');
+            _surroundingTypeName=value.Replace("<","*[").Replace(">","]*");
          }
       }		
       public virtual string[] mkImports() {
@@ -632,15 +632,41 @@ namespace Twiglet.CS2J.Translator.TypeRep
       // Method name
       public string Name { get; set; }
 
+      private string[] _typeParams = null;
       [XmlArrayItem("Name")]
-      public string[] TypeParams { get; set; }
+      public string[] TypeParams { 
+         get
+         {
+            if (_typeParams == null)
+            {
+               TypeParams = new string[0];
+            }
+            return _typeParams;
+         }
+         set
+         {
+            // First time that TypeParams is set then create InstantiatedTypes as corresponding list of TypeVars 
+            if (value != null && InstantiatedTypes == null)
+            {
+               InstantiatedTypes = new TypeRepTemplate[value.Length];
+               for (int i = 0; i < value.Length; i++)
+               {
+                  InstantiatedTypes[i] = new TypeVarRepTemplate(value[i]);
+               }
+            }
+            _typeParams = value;
+         }
+      }
+
+      [XmlIgnore]
+      public TypeRepTemplate[] InstantiatedTypes { get; set; }
 
       // Return type
       private string _return;
       public string Return { 
          get { return _return; }
          set {
-            _return=value.Replace('<','[').Replace('>',']');
+            _return=value.Replace("<","*[").Replace(">","]*");
          }
       }		
 
@@ -668,6 +694,15 @@ namespace Twiglet.CS2J.Translator.TypeRep
             for (int i = 0; i < len; i++)
             {
                TypeParams[i] = copyFrom.TypeParams[i];
+            }
+         }
+         if (copyFrom.InstantiatedTypes != null)
+         {
+            len = copyFrom.InstantiatedTypes.Length;
+            InstantiatedTypes = new TypeRepTemplate[len];
+            for (int i = 0; i < len; i++)
+            {
+               InstantiatedTypes[i] = copyFrom.InstantiatedTypes[i].Instantiate(null);
             }
          }
          if (!String.IsNullOrEmpty(copyFrom.Return))
@@ -749,6 +784,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   return false;
             }
          }
+         if (InstantiatedTypes != other.InstantiatedTypes) {
+            if (InstantiatedTypes == null || other.InstantiatedTypes == null || InstantiatedTypes.Length != other.InstantiatedTypes.Length)
+               return false;
+            for (int i = 0; i < InstantiatedTypes.Length; i++) {
+               if (InstantiatedTypes[i] != other.InstantiatedTypes[i])
+                  return false;
+            }
+         }
 			
          return Return == other.Return && Name == other.Name && IsStatic == other.IsStatic && base.Equals(other);
       }
@@ -781,6 +824,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
                hashCode = hashCode ^ o.GetHashCode() ;
             }
          }
+         if (InstantiatedTypes != null) {
+            foreach (TypeRepTemplate o in InstantiatedTypes) {
+               hashCode = hashCode ^ o.GetHashCode() ;
+            }
+         }
 
          return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ base.GetHashCode();
       }
@@ -796,7 +844,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public string From { 
          get { return _from; }
          set {
-            _from=value.Replace('<','[').Replace('>',']');
+            _from=value.Replace("<","*[").Replace(">","]*");
          }
       }		
 
@@ -804,7 +852,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public string To { 
          get { return _to; }
          set {
-            _to=value.Replace('<','[').Replace('>',']');
+            _to=value.Replace("<","*[").Replace(">","]*");
          }
       }
 
@@ -930,7 +978,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public string Type { 
          get { return _type; }
          set {
-            _type=value.Replace('<','[').Replace('>',']');
+            _type=value.Replace("<","*[").Replace(">","]*");
          }
       }		
       public string Name { get; set; }
@@ -1414,8 +1462,48 @@ namespace Twiglet.CS2J.Translator.TypeRep
       [XmlElementAttribute("Name")]
       public string TypeName { get; set; }
 
+      private string[] _typeParams = null;
       [XmlArrayItem("Name")]
-      public string[] TypeParams { get; set; }
+      public string[] TypeParams { 
+         get
+         {
+            if (_typeParams == null)
+            {
+               TypeParams = new string[0];
+            }
+            return _typeParams;
+         }
+         set
+         {
+            // First time that TypeParams is set then create InstantiatedTypes as corresponding list of TypeVars 
+            if (value != null && InstantiatedTypes == null)
+            {
+               InstantiatedTypes = new TypeRepTemplate[value.Length];
+               for (int i = 0; i < value.Length; i++)
+               {
+                  InstantiatedTypes[i] = new TypeVarRepTemplate(value[i]);
+               }
+            }
+            _typeParams = value;
+         }
+      }
+
+      [XmlIgnore]
+      public TypeRepTemplate[] InstantiatedTypes { get; set; }
+
+      [XmlIgnore]
+      public Dictionary<string,TypeRepTemplate> TyVarMap 
+      { get
+         { 
+            Dictionary<string,TypeRepTemplate> ret = new Dictionary<string,TypeRepTemplate>(TypeParams.Length);
+            for (int i = 0; i < TypeParams.Length; i++)
+            {
+               ret[TypeParams[i]] = InstantiatedTypes[i];
+            }
+            return ret;
+         }
+         
+      }
 
       // Path to use when resolving types
       [XmlArrayItem("Use")]
@@ -1449,7 +1537,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             if (value != null) {
                _inherits= new string[value.Length];
                for (int i = 0; i < value.Length; i++) {
-                  _inherits[i] = (value[i] != null ? value[i].Replace('<','[').Replace('>',']') : null);
+                  _inherits[i] = (value[i] != null ? value[i].Replace("<","*[").Replace(">","]*") : null);
                }
             }
             else {
@@ -1490,36 +1578,20 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       // Equivalent to "this is TypeVarRepTemplate"
       [XmlIgnore]
-      public bool IsTypeVar
+      public virtual bool IsTypeVar
       {
          get
          {
             return (this is TypeVarRepTemplate);
          }
       }
-
-      // Type Arguments that this (generic) type has been instantiated with 
-      private TypeRepTemplate[] _instantiatedTypes = null;
+      // Equivalent to "this is UnknownRepTemplate"
       [XmlIgnore]
-      public TypeRepTemplate[] InstantiatedTypes 
+      public virtual bool IsUnknownType
       {
          get
          {
-            if (_instantiatedTypes == null)
-            {
-               // Create from the TypeParams
-               int numParams = TypeParams == null ? 0 : TypeParams.Length;
-               _instantiatedTypes = new TypeRepTemplate[numParams];
-               for (int i = 0; i < numParams; i++)
-               {
-                  _instantiatedTypes[i] = new TypeVarRepTemplate(TypeParams[i]);
-               }
-            }
-            return _instantiatedTypes;
-         }
-         set
-         {
-            _instantiatedTypes = value;
+            return (this is UnknownRepTemplate);
          }
       }
 
@@ -1553,6 +1625,16 @@ namespace Twiglet.CS2J.Translator.TypeRep
             for (int i = 0; i < len; i++)
             {
                TypeParams[i] = copyFrom.TypeParams[i];
+            }
+         }
+
+         if (copyFrom.InstantiatedTypes != null)
+         {
+            len = copyFrom.InstantiatedTypes.Length;
+            InstantiatedTypes = new TypeRepTemplate[len];
+            for (int i = 0; i < len; i++)
+            {
+               InstantiatedTypes[i] = copyFrom.InstantiatedTypes[i].Instantiate(null);
             }
          }
 
@@ -1623,20 +1705,16 @@ namespace Twiglet.CS2J.Translator.TypeRep
       // IMPORTANT: Call this on the fresh copy because it has the side effect of updating this type's TypeParams.         
       protected Dictionary<string,TypeRepTemplate> mkTypeMap(ICollection<TypeRepTemplate> args) { 
          Dictionary<string,TypeRepTemplate> ret = new Dictionary<string,TypeRepTemplate>();
-         if (args.Count == TypeParams.Length)
+         if (args != null && args.Count == TypeParams.Length)
          {
-            List<string> remTypeParams = new List<string>();
+            InstantiatedTypes = new TypeRepTemplate[args.Count];
             int i = 0;
             foreach (TypeRepTemplate sub in args)
             {   
-               if (sub.IsTypeVar)
-               {
-                  remTypeParams.Add(sub.TypeName);
-               }
                ret[TypeParams[i]] = sub;   
+               InstantiatedTypes[i] = sub;   
                i++;
             }
-            TypeParams = remTypeParams.ToArray();
          }
          else
          {
@@ -1664,16 +1742,6 @@ namespace Twiglet.CS2J.Translator.TypeRep
             for(int i = 0; i < Inherits.Length; i++)
             {
                Inherits[i] = TemplateUtilities.SubstituteInType(Inherits[i],args);
-            }
-         }
-         if (InstantiatedTypes != null)
-         {
-            for(int i = 0; i < InstantiatedTypes.Length; i++)
-            {
-               if (InstantiatedTypes[i].IsTypeVar && args.ContainsKey(InstantiatedTypes[i].TypeName))
-               {
-                  InstantiatedTypes[i] = args[InstantiatedTypes[i].TypeName];
-               }
             }
          }
          base.Apply(args);
@@ -2077,9 +2145,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          if (InstantiatedTypes != null)
          {
-            foreach (TypeRepTemplate t in InstantiatedTypes)
+            foreach (TypeRepTemplate ty in InstantiatedTypes)
             {
-               hashCode ^= t.GetHashCode();
+               hashCode ^= ty.GetHashCode();
             }
          }
 
@@ -2102,7 +2170,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             else
             {
                fmt.Append(TypeName.Substring(incNameSpace ? 0 : TypeName.LastIndexOf('.')+1));
-               if (InstantiatedTypes.Length > 0)
+               if (InstantiatedTypes != null && InstantiatedTypes.Length > 0)
                {
                   bool isFirst = true;
                   fmt.Append("<");
@@ -2291,7 +2359,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public string Return { 
          get { return _return; }
          set {
-            _return=value.Replace('<','[').Replace('>',']');
+            _return=value.Replace("<","*[").Replace(">","]*");
          }
       }
 
@@ -2974,7 +3042,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                {
                   ResolveResult res = new ResolveResult();
                   res.Result = c;
-                  res.ResultType = BuildType(TypeName, AppEnv);
+                  res.ResultType = this;
                   return res;
                }
             }

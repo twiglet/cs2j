@@ -46,6 +46,10 @@ scope SymTab {
 
 @members
 {
+    // in_member_name is set while we are processing member_name. It stops type_or_generic from 
+    // treating its input as a type (and translating it).
+    // TODO: Decide what should really be done here with <type>.member_name
+    private bool in_member_name = false;
 
     private string CompUnitName = null;
 
@@ -180,7 +184,7 @@ scope SymTab {
     }
 
     protected TypeRepTemplate SymTabLookup(string name) {
-        return SymTabLookup(name, new UnknownRepTemplate("TYPE OF " + name));
+        return SymTabLookup(name, null);
     }
 
     protected TypeRepTemplate SymTabLookup(string name, TypeRepTemplate def) {
@@ -226,6 +230,13 @@ scope SymTab {
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
 
+    protected CommonTree wrapType(CommonTree t, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERTYPE, tok, "TYPE"), root);
+        adaptor.AddChild(root, dupTree(t));
+
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
     protected CommonTree wrapTypeOfType(TypeRepTemplate t, IToken tok) {
         CommonTree root = (CommonTree)adaptor.Nil;
         root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "EXPRESSION"), root);
@@ -455,8 +466,6 @@ type_declaration:
 // Identifiers
 qualified_identifier:
 	identifier ('.' identifier)*;
-namespace_name
-	: namespace_or_type_name ;
 
 modifiers:
 	modifier+ ;
@@ -500,64 +509,64 @@ scope {
 }:
     ^(index=INDEX ie=expression expression_list?)
         {
-            if ($ie.dotNetType != null && !$ie.dotNetType.IsUnknownType) {
-                $dotNetType = new UnknownRepTemplate($ie.dotNetType.TypeName+".INDEXER");
-                ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
-                if (indexerResult != null) {
-                    IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
-                    if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
-                        Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                        myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
-                        for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
-                            myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
-                            if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
-                                // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                                myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
-                            }
-                        }
-                        ret = mkJavaWrapper(indexerResult.Result.Java, myMap, $ie.tree.Token);
-                        AddToImports(indexerResult.Result.Imports);
-                        $dotNetType = indexerResult.ResultType; 
-                    }
-                }
-                else {
-                   WarningFailedResolve($index.token.Line, "Could not resolve index expression");
-                }
+            expType = $ie.dotNetType ?? (new UnknownRepTemplate("INDEXER.BASE"));
+            if (expType.IsUnknownType) {
+               WarningFailedResolve($index.token.Line, "Could not find type of indexed expression");
+            }
+            $dotNetType = new UnknownRepTemplate(expType.TypeName+".INDEXER");
+            ResolveResult indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            if (indexerResult != null) {
+               IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
+               if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
+                  for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
+                     myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
+                     if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
+                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                        myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
+                     }
+                  }
+                  ret = mkJavaWrapper(indexerResult.Result.Java, myMap, $ie.tree.Token);
+                  AddToImports(indexerResult.Result.Imports);
+                  $dotNetType = indexerResult.ResultType; 
+               }
             }
             else {
-               WarningFailedResolve($index.token.Line, "Could not find type of indexed expression");
+               WarningFailedResolve($index.token.Line, "Could not resolve index expression against " + expType.TypeName);
             }
         }
     | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
            ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
-            if (expType != null && !expType.IsUnknownType) {
-                $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
-                ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
-                if (methodResult != null) {
-                    Debug($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
-                    MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
-                    Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                    if (!implicitThis) {
-                        myMap["this"] = wrapExpression($e2.tree, $i2.tree.Token);
-                    }
-                    for (int idx = 0; idx < methodRep.Params.Count; idx++) {
-                        myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
-                        if (methodRep.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
-                            // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                            myMap[methodRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
-                        }
-                    }
-                    ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
-                    AddToImports(methodResult.Result.Imports);
-                    $dotNetType = methodResult.ResultType; 
-                }
-                else {
-                   WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application");
-                }
+            if (expType == null) {
+               expType = new UnknownRepTemplate("APPLY.BASE");
+            }
+            if (expType.IsUnknownType) {
+               WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
+            }
+            $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
+            ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            if (methodResult != null) {
+               Debug($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
+               MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
+               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+               if (!implicitThis) {
+                  myMap["this"] = wrapExpression($e2.tree, $i2.tree.Token);
+               }
+               for (int idx = 0; idx < methodRep.Params.Count; idx++) {
+                  myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
+                  if (methodRep.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
+                     // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                     myMap[methodRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+                  }
+               }
+               ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
+               AddToImports(methodResult.Result.Imports);
+               $dotNetType = methodResult.ResultType; 
             }
             else {
-               WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
+               WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application against " + expType.TypeName);
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
@@ -565,6 +574,8 @@ scope {
     | ^(POSTDEC expression)    { $dotNetType = $expression.dotNetType; }
     | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
         { 
+            // TODO: generic_argument_list is ignored ....
+
             // Possibilities:
             // - accessing a property/field of some object
             // - a qualified type name
@@ -612,7 +623,7 @@ scope {
             // - part of a type name
             bool found = false;
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
-            if (idType != null && !idType.IsUnknownType) {
+            if (idType != null) {
                 $dotNetType = idType;
                 found = true;
             }
@@ -658,6 +669,9 @@ scope {
         {
             ClassRepTemplate conType = $type.dotNetType as ClassRepTemplate;
             $dotNetType = $type.dotNetType;
+            if (conType == null) {
+               conType = new UnknownRepTemplate("CONSTRUCTOR");
+            }
             ResolveResult conResult = conType.Resolve($argument_list.argTypes, AppEnv);
             if (conResult != null) {
                 ConstructorRepTemplate conRep = conResult.Result as ConstructorRepTemplate;
@@ -665,12 +679,20 @@ scope {
                 for (int idx = 0; idx < conRep.Params.Count; idx++) {
                     myMap[conRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $n.token);
                 }
+                if ($type.argTrees != null && $type.argTrees.Count == $type.dotNetType.TypeParams.Length) {
+                   int idx = 0;
+                   foreach (CommonTree ty in $type.argTrees)
+                   {
+                      myMap[$type.dotNetType.TypeParams[idx]] = wrapType(ty, $n.token);
+                      idx++;
+                   }
+                }
                 ret = mkJavaWrapper(conResult.Result.Java, myMap, $n.token);
                 AddToImports(conResult.Result.Imports);
                 $dotNetType = conResult.ResultType; 
             }
             else {
-               WarningFailedResolve($n.token.Line, "Could not resolve constructor");
+               WarningFailedResolve($n.token.Line, "Could not resolve constructor against " + conType.TypeName);
             }
         }
 	| 'new' (   
@@ -697,7 +719,7 @@ primary_expression_part:
 	| '++'
 	| '--' ;
 access_identifier:
-	access_operator   type_or_generic ;
+	access_operator   type_or_generic[""] ;
 access_operator:
 	'.'  |  '->' ;
 brackets_or_arguments:
@@ -864,37 +886,94 @@ commas:
 //	Type Section
 ///////////////////////////////////////////////////////
 
-type_name returns [string name, TypeRepTemplate dotNetType]: 
-	namespace_or_type_name { $name = $namespace_or_type_name.name; $dotNetType = findType($namespace_or_type_name.name, $namespace_or_type_name.tyargs); } ;
-namespace_or_type_name returns [string name, List<TypeRepTemplate> tyargs]
+// i.e not a predefined type.
+type_name returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, bool hasTyArgs]
 @init {
-    TypeRepTemplate tyRep = null;
-}: 
-	 type_or_generic { $name = $type_or_generic.name; $tyargs = $type_or_generic.tyargs; }
-    | ^('::' namespace_or_type_name type_or_generic) { $name = "System.Object"; } // give up, we don't support these
-    | ^(d='.'   n1=namespace_or_type_name tg1=type_or_generic) { WarningAssert($n1.tyargs == null, $d.token.Line, "Didn't expect type arguments in prefix of type name"); $name = $n1.name + "." + $type_or_generic.name; $tyargs = $type_or_generic.tyargs; tyRep = findType($name, $tyargs); if (tyRep != null) AddToImports(tyRep.Imports); } 
-        -> { tyRep != null }? IDENTIFIER[$d.token, tyRep.Java]
-        -> ^($d $n1 $tg1)
+   $hasTyArgs = false;
+   Dictionary<string,CommonTree> tyMap = new Dictionary<string,CommonTree>();
+}
+@after {
+   AddToImports($dotNetType.Imports);
+}
+:
+	 tg=type_or_generic[""] { $dotNetType = $tg.dotNetType; $argTrees = $tg.argTrees; $hasTyArgs = $tg.hasTyArgs; }
+    | ^('::' ct=type_name ctg=type_or_generic[$ct.dotNetType == null ? "::" : $ct.dotNetType.TypeName+"::"]) 
+      { 
+         // give up, we don't support these, pretty printer will wrap in a comment
+         $dotNetType = $ctg.dotNetType;
+         $hasTyArgs = $ctg.hasTyArgs;
+         $argTrees = $ctg.argTrees;
+      } 
+    | ^(d='.'   dt=type_name dtg=type_or_generic[$dt.dotNetType == null ? "." : $dt.dotNetType.TypeName+"."]) 
+      { 
+         WarningAssert(!$dt.hasTyArgs, $d.token.Line, "Didn't expect type arguments in prefix of type name"); 
+
+         $dotNetType = $dtg.dotNetType;
+         if (!$dotNetType.IsUnknownType) {
+            if ($dotNetType.TypeParams.Length == $dtg.argTrees.Count) {
+               int i = 0;
+               foreach (CommonTree ty in $dtg.argTrees) {
+                  tyMap[$dotNetType.TypeParams[i]] = wrapType(ty, $dt.tree.Token);
+                  i++;
+               }
+               $hasTyArgs = true; 
+               $argTrees = $dtg.argTrees;
+            }
+         }
+      } 
+      -> {!$dotNetType.IsUnknownType}? { mkJavaWrapper($dotNetType.Java, tyMap, $dt.tree.Token) } 
+      -> ^($d $dt $dtg)
      ;
 
-type_or_generic returns [string name, List<TypeRepTemplate> tyargs]
-:
-	(identifier_type   generic_argument_list) => t=identifier_type { $name = $identifier_type.thetext; }  generic_argument_list { $tyargs = $generic_argument_list.argTypes; }
-	| t=identifier_type { $name = $identifier_type.thetext; } ;
-
-identifier_type returns [string thetext]
+type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, bool hasTyArgs]
 @init {
-    TypeRepTemplate tyRep = null;
+   $hasTyArgs = false;
+   $argTrees = new List<CommonTree>();
+   Dictionary<string,CommonTree> tyMap = new Dictionary<string,CommonTree>();
 }
-@after{
-    $thetext = $t.thetext;
-}:
-    t=identifier { tyRep = findType($t.thetext); if (tyRep != null)  AddToImports(tyRep.Imports); } 
-        -> { tyRep != null }? IDENTIFIER[$t.tree.Token, tyRep.Java]
-        -> $t;
-
+@after {
+   AddToImports($dotNetType.Imports);
+}
+:
+//	(identifier   generic_argument_list) => t=identifier  ga=generic_argument_list 
+	t=identifier  (ga=generic_argument_list {$hasTyArgs = true;})? 
+      { 
+         $dotNetType = findType(prefix+$t.thetext, $ga.argTypes); 
+         if (!$dotNetType.IsUnknownType) {
+            if ($hasTyArgs && $dotNetType.TypeParams.Length == $ga.argTrees.Count) {
+               int i = 0;
+               foreach (CommonTree ty in $ga.argTrees) {
+                  tyMap[$dotNetType.TypeParams[i]] = wrapType(ty, $t.tree.Token);
+                  i++;
+               }
+               $argTrees = $ga.argTrees;
+            }
+         }
+      } 
+      -> {!this.in_member_name && !$dotNetType.IsUnknownType}? { mkJavaWrapper($dotNetType.Java, tyMap, $t.tree.Token) } 
+      -> $t $ga?
+   ;
+// 	| ity=identifier_type[prefix] 
+//       { $dotNetType = $ity.dotNetType); 
+//       } 
+//       -> {!$dotNetType.IsUnknownType}? { mkJavaWrapper($dotNetType.Java, null, $ity.tree.Token) } 
+//       -> $ity
+//       ;
+// 
+// identifier_type[string prefix] returns [string thetext]
+// @init {
+//     TypeRepTemplate tyRep = null;
+// }
+// @after{
+//     $thetext = $t.thetext;
+//     AddToImports($dotNetType.Imports);
+// }:
+//     t=identifier { tyRep = findType(prefix+$t.thetext); } 
+//         -> { mkJavaWrapper(tyRep.Java, null, $t.tree.Token) } 
+//    ;
+// 
 qid:		// qualified_identifier v2
-    ^(access_operator qid type_or_generic) 
+    ^(access_operator qid type_or_generic[""]) 
 	| qid_start  
 	;
 qid_start:
@@ -910,21 +989,22 @@ qid_start:
 qid_part:
 	access_identifier;
 
-generic_argument_list returns [List<TypeRepTemplate> argTypes]: 
-	'<'   type_arguments   '>' { $argTypes = $type_arguments.tyTypes; };
-type_arguments  returns [List<TypeRepTemplate> tyTypes]
+generic_argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees]: 
+	'<'   type_arguments   '>' { $argTypes = $type_arguments.tyTypes; $argTrees = $type_arguments.argTrees; };
+type_arguments  returns [List<TypeRepTemplate> tyTypes, List<CommonTree> argTrees]
 @init {
     $tyTypes = new List<TypeRepTemplate>();
+    $argTrees = new List<CommonTree>();
 }: 
-	t1=type { $tyTypes.Add($t1.dotNetType); } (',' tn=type { $tyTypes.Add($tn.dotNetType); })* ;
+	t1=type { $tyTypes.Add($t1.dotNetType); $argTrees.Add(dupTree($t1.tree)); } (',' tn=type { $tyTypes.Add($tn.dotNetType); $argTrees.Add(dupTree($tn.tree)); })* ;
 
 // keving: TODO: Look for type vars
-type returns [TypeRepTemplate dotNetType]
+type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
 :
     ^(TYPE (predefined_type { $dotNetType = $predefined_type.dotNetType; } 
-           | type_name { $dotNetType = $type_name.dotNetType; } 
+           | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
-        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; })? '*'* '?'?);
+        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; })? '*'* '?'?);
 
 non_nullable_type returns [TypeRepTemplate dotNetType]:
     type { $dotNetType = $type.dotNetType; } ;
@@ -973,6 +1053,7 @@ assignment
 @init {
     CommonTree ret = null;
     bool isThis = false;
+    TypeRepTemplate expType = null;
 }
 @after {
     if (ret != null)
@@ -982,103 +1063,105 @@ assignment
         (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a=assignment_operator rhs=expression 
         {
             TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
-            if (seType != null && !seType.IsUnknownType) {
-                ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
-                if (fieldResult != null && fieldResult.Result is PropRepTemplate) {
-                    PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
-                    if (!String.IsNullOrEmpty(propRep.JavaSet)) {
-                        CommonTree newRhsExp = $rhs.tree;
-                        // if assignment operator is a short cut operator then only translate if we also have JavaGet  
-                        bool goodTx = true;
-                        if ($a.tree.Token.Type != ASSIGN) {
-                            if (!String.IsNullOrEmpty(propRep.JavaGet)) {
-                                // we have prop <op>= rhs
-                                // need to translate to setProp(getProp <op> rhs)
-                                Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
-                                if (!isThis)
-                                    rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                                CommonTree rhsPropTree = mkJavaWrapper(propRep.JavaGet, rhsMap, $a.tree.Token);
-                                newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
-                            }
-                            else {
-                                goodTx = false;
-                            }
+            if (seType == null) {
+               seType = new UnknownRepTemplate("FIELD.BASE");
+            }
+            if (seType.IsUnknownType) {
+               WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
+            }
+            ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
+            if (fieldResult != null) {
+               if (fieldResult.Result is PropRepTemplate) {
+                  PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
+                  if (!String.IsNullOrEmpty(propRep.JavaSet)) {
+                     CommonTree newRhsExp = $rhs.tree;
+                     // if assignment operator is a short cut operator then only translate if we also have JavaGet  
+                     bool goodTx = true;
+                     if ($a.tree.Token.Type != ASSIGN) {
+                        if (!String.IsNullOrEmpty(propRep.JavaGet)) {
+                           // we have prop <op>= rhs
+                           // need to translate to setProp(getProp <op> rhs)
+                           Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                           if (!isThis)
+                              rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                           CommonTree rhsPropTree = mkJavaWrapper(propRep.JavaGet, rhsMap, $a.tree.Token);
+                           newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
                         }
-                        Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
-                        if (!isThis)
-                            valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                        valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
-                        if (goodTx) {
-                            ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
-                            AddToImports(propRep.Imports);
+                        else {
+                           goodTx = false;
                         }
-                    }
-                }
-                else {
-                   WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression");
-                }
+                     }
+                     Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
+                     if (!isThis)
+                        valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                     valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
+                     if (goodTx) {
+                        ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
+                        AddToImports(propRep.Imports);
+                     }
+                  }
+               }
             }
             else {
-               WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
+               WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
             }
         }
     | (^(INDEX expression expression_list?) assignment_operator)  => 
         ^(INDEX ie=expression expression_list?)   ia=assignment_operator irhs=expression 
         {
-            if ($ie.dotNetType != null && !$ie.dotNetType.IsUnknownType) {
-                ResolveResult indexerResult = $ie.dotNetType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
-                if (indexerResult != null) {
-                    IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
-                    if (!String.IsNullOrEmpty(indexerRep.JavaSet)) {
-                        CommonTree newRhsExp = $irhs.tree;
-                        // if assignment operator is a short cut operator then only translate if we also have JavaGet  
-                        bool goodTx = true;
-                        if ($ia.tree.Token.Type != ASSIGN) {
-                            if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
-                                // we have indexable[args] <op>= rhs
-                                // need to translate to set___idx(args, get___idx(args) <op> rhs)
-                                Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
-                                rhsMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
-                                for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
-                                    rhsMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
-                                    if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
-                                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                                        rhsMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
-                                    }
-                                }
-
-                                CommonTree rhsIdxTree = mkJavaWrapper(indexerRep.JavaGet, rhsMap, $ia.tree.Token);
-                                newRhsExp = mkOpExp(mkOpExp($ia.tree), rhsIdxTree, $irhs.tree);
-                            }
-                            else {
-                                goodTx = false;
-                            }
-                        }
-
-                        Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                        myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
-                        myMap["value"] = wrapExpression(newRhsExp, newRhsExp.Token);
+            expType = $ie.dotNetType ?? (new UnknownRepTemplate("INDEXER.BASE"));
+            if (expType.IsUnknownType) {
+               WarningFailedResolve($ie.tree.Token.Line, "Could not find type of expression for Indexer");
+            }
+            ResolveResult indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            if (indexerResult != null) {
+               IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
+               if (!String.IsNullOrEmpty(indexerRep.JavaSet)) {
+                  CommonTree newRhsExp = $irhs.tree;
+                  // if assignment operator is a short cut operator then only translate if we also have JavaGet  
+                  bool goodTx = true;
+                  if ($ia.tree.Token.Type != ASSIGN) {
+                     if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
+                        // we have indexable[args] <op>= rhs
+                        // need to translate to set___idx(args, get___idx(args) <op> rhs)
+                        Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                        rhsMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
                         for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
-                            myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
-                            if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
-                                // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                                myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
-                            }
+                           rhsMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
+                           if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
+                              // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                              rhsMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
+                           }
                         }
-                        if (goodTx) {
-                            ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
-                            AddToImports(indexerRep.Imports);
-                        }
-                    }   
-                }
-                else {
-                   WarningFailedResolve($ie.tree.Token.Line, "Could not resolve index expression");
-                }
+                        
+                        CommonTree rhsIdxTree = mkJavaWrapper(indexerRep.JavaGet, rhsMap, $ia.tree.Token);
+                        newRhsExp = mkOpExp(mkOpExp($ia.tree), rhsIdxTree, $irhs.tree);
+                     }
+                     else {
+                        goodTx = false;
+                     }
+                  }
+
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
+                  myMap["value"] = wrapExpression(newRhsExp, newRhsExp.Token);
+                  for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
+                     myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
+                     if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
+                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                        myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
+                     }
+                  }
+                  if (goodTx) {
+                     ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
+                     AddToImports(indexerRep.Imports);
+                  }
+               }   
             }
             else {
-               WarningFailedResolve($ie.tree.Token.Line, "Could not find type of expression for index access");
+               WarningFailedResolve($ie.tree.Token.Line, "Could not resolve index expression against " + expType.ToString());
             }
-        }
+      }
     | unary_expression   assignment_operator expression ;
 
 
@@ -1562,8 +1645,17 @@ method_header:
     ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
 method_body:
 	block ;
-member_name:
-    type_or_generic ('.' type_or_generic)*
+member_name
+@init {
+   // in_member_name is used by type_or-generic so that we don't treat the member name as a type.
+    string preTy = null;
+    bool save_in_member_name = this.in_member_name;
+    this.in_member_name = true;
+}
+@after{
+    this.in_member_name = save_in_member_name;
+}:
+    t1=type_or_generic[""] { preTy = ($t1.dotNetType == null ? "" : $t1.dotNetType.TypeName); }('.' tn=type_or_generic[preTy+"."] { preTy = ($tn.dotNetType == null ? "" : $tn.dotNetType.TypeName); })*
     //(type '.') => type '.' identifier 
     //| identifier
     ;
