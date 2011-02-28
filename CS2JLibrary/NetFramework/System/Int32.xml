@@ -17,6 +17,7 @@
     <Type>System.IComparable</Type>
     <Type>System.IFormattable</Type>
     <Type>System.IConvertible</Type>
+    <!--<Type>System.Int64</Type> (how to treat ints as longs when necessary)-->
   </Inherits>
   <Methods>
     <Method>
