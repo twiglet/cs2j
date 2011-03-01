@@ -606,7 +606,7 @@ scope {
 
                 $dotNetType = new UnknownRepTemplate(expType.TypeName+".DOTACCESS."+ $i1.thetext);
 
-                ResolveResult fieldResult = expType.Resolve($i1.thetext, AppEnv);
+                ResolveResult fieldResult = expType.Resolve($i1.thetext, false, AppEnv);
                 if (fieldResult != null) {
                     Debug($d1.token.Line + ": Found '" + $i1.thetext + "'");
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
@@ -661,7 +661,7 @@ scope {
                     ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
                     Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
-                    ResolveResult fieldResult = thisType.Resolve($identifier.thetext, AppEnv);
+                    ResolveResult fieldResult = thisType.Resolve($identifier.thetext, false, AppEnv);
                     if (fieldResult != null) {
                         Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
                         ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
@@ -1100,7 +1100,7 @@ assignment
                if (seType.IsUnknownType) {
                   WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
                }
-               ResolveResult fieldResult = seType.Resolve($i.thetext, AppEnv);
+               ResolveResult fieldResult = seType.Resolve($i.thetext, true, AppEnv);
                if (fieldResult != null) {
                   if (fieldResult.Result is PropRepTemplate) {
                      PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
@@ -1109,17 +1109,24 @@ assignment
                         // if assignment operator is a short cut operator then only translate if we also have JavaGet  
                         bool goodTx = true;
                         if ($a.tree.Token.Type != ASSIGN) {
-                           if (!String.IsNullOrEmpty(propRep.JavaGet)) {
-                              // we have prop <op>= rhs
-                              // need to translate to setProp(getProp <op> rhs)
-                              Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
-                              if (!isThis)
-                                 rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                              CommonTree rhsPropTree = mkJavaWrapper(propRep.JavaGet, rhsMap, $a.tree.Token);
-                              newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
-                           }
-                           else {
-                              goodTx = false;
+                           // We have to resolve property reads and writes separately, because they may come from 
+                           // different parent classes
+                           ResolveResult readFieldResult = seType.Resolve($i.thetext, false, AppEnv);
+                           if (readFieldResult.Result is PropRepTemplate) {
+                              PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
+
+                              if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
+                                 // we have prop <op>= rhs
+                                 // need to translate to setProp(getProp <op> rhs)
+                                 Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                                 if (!isThis)
+                                    rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                                 CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, $a.tree.Token);
+                                 newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                              }
+                              else {
+                                 goodTx = false;
+                              }
                            }
                         }
                         Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();

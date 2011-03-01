@@ -1767,7 +1767,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
       // Resolve a field or property access
-      public virtual ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+      public virtual ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
          if (Inherits != null)
          {
@@ -1776,7 +1776,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                TypeRepTemplate baseType = BuildType(b, AppEnv);
                if (baseType != null)
                {
-                  ResolveResult ret = baseType.Resolve(name,AppEnv);
+                  ResolveResult ret = baseType.Resolve(name, forWrite, AppEnv);
                   if (ret != null)
                      return ret;
                }
@@ -2265,7 +2265,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          _members = ms;
       }
 
-      public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
          if (Members != null)
          {
@@ -2280,7 +2280,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.Resolve(name, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv);
       }
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
       {
@@ -2617,14 +2617,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return base.IsA(other,AppEnv);
       }
 
-      public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
          if (Properties != null)
          {
             foreach (PropRepTemplate p in Properties)
             {
-               if (p.Name == name)
+               if (p.Name == name && ((forWrite && p.CanWrite) || (!forWrite && p.CanRead)))
                {
                   ResolveResult res = new ResolveResult();
                   res.Result = p;
@@ -2633,7 +2633,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.Resolve(name,AppEnv);
+         return base.Resolve(name, forWrite, AppEnv);
       }
 
       public override ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
@@ -2986,7 +2986,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
 
-      public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
          if (Fields != null)
@@ -3002,7 +3002,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.Resolve(name, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv);
       }
 
       public ResolveResult Resolve(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
@@ -3172,9 +3172,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 		
-      public override ResolveResult Resolve(String name, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
-         return base.Resolve(name, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv);
       }
 
       #region Equality
