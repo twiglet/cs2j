@@ -466,7 +466,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          if (ElementType != null)
          {
-            TemplateUtilities.SubstituteInType(ElementType, args);
+            ElementType = TemplateUtilities.SubstituteInType(ElementType, args);
          }
          base.Apply(args);
       }
@@ -2595,10 +2595,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          if (Indexers != null)
          {
-            foreach(IndexerRepTemplate i in Indexers)
-            {
-               i.Apply(args);
-            }
+             foreach (IndexerRepTemplate i in Indexers)
+             {
+                 i.Apply(args);
+             }
+         }
+         if (Iterable != null)
+         {
+             Iterable.Apply(args);
          }
          base.Apply(args);
       }
