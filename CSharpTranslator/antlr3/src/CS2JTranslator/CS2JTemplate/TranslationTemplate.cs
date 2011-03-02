@@ -1969,7 +1969,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
             else
             {
-               return InstantiatedTypes == other.InstantiatedTypes;
+                // might be equal if they both represent "nothing"
+                return (InstantiatedTypes == null && (other.InstantiatedTypes == null || other.InstantiatedTypes.Length == 0)) ||
+                     (other.InstantiatedTypes == null && (InstantiatedTypes == null || InstantiatedTypes.Length == 0));
             }
          }
          else if (Inherits != null)
@@ -1985,6 +1987,87 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          return false;
       }
+
+      private class ParseResult<T>
+      {
+         public ParseResult(List<T> inParses, String inStr)
+         {
+            Parses = inParses;
+            RemainingStr = inStr;
+         }
+         public List<T> Parses;
+         public String RemainingStr;
+      }
+
+      // returns a list of type reps from a string representation:
+      // <qualified.type.name>(*[<type>, <type>, ...]*)?([])*, .....
+      private ParseResult<TypeRepTemplate> buildTypeList(string typeList, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+         List<TypeRepTemplate> types = new List<TypeRepTemplate>();
+         string typeStr = typeList.TrimStart();
+         bool moreTypes = true;
+         while (moreTypes)
+         {
+            // get type name from the start
+            int nameEnd = typeStr.IndexOfAny(new char[] { '*','[',']',','});    
+            string typeName = typeStr.Substring(0,(nameEnd >= 0 ? nameEnd : typeStr.Length)).TrimEnd();
+            typeStr = typeStr.Substring(typeName.Length).TrimStart();
+
+            // build basetype
+            TypeRepTemplate typeRep = null;
+
+            // Is it a type var?
+            foreach (string p in TypeParams) {
+               if (p == typeName)
+               {
+                  typeRep = new TypeVarRepTemplate(typeName);
+                  break;
+               }    
+            }   
+            if (typeRep == null)
+            {
+               // Not a type var, look for a type
+               List<TypeRepTemplate> tyArgs = new List<TypeRepTemplate>();
+
+               // Do we have type arguments?
+               if (typeStr.Length > 0 && typeStr.StartsWith("*["))
+               {
+                  // isolate type arguments
+                  ParseResult<TypeRepTemplate> args = buildTypeList(typeStr.Substring(2), AppEnv);
+                  tyArgs = args.Parses;
+                  typeStr = args.RemainingStr.TrimStart();
+                  if (typeStr.StartsWith("]*"))
+                  {
+                     typeStr = typeStr.Substring(2).TrimStart();
+                  }
+                  else
+                  {
+                     throw new Exception("buildTypeList: Cannot parse " + types);
+                  }
+               }
+               typeRep = AppEnv.Search(this.Uses, typeName + (tyArgs.Count > 0 ? "'" + tyArgs.Count.ToString() : ""));
+               if (typeRep != null && tyArgs.Count > 0)
+               {
+                   typeRep = typeRep.Instantiate(tyArgs);
+               }
+            }
+         
+            // Take care of arrays ....
+            while (typeStr.StartsWith("[]"))
+            {
+               TypeRepTemplate arrayType = AppEnv.Search("System.Array'1");
+               typeRep = arrayType.Instantiate(new TypeRepTemplate[] { typeRep });
+               typeStr = typeStr.Substring(2).TrimStart();
+            }
+            types.Add(typeRep);
+            moreTypes = typeStr.StartsWith(",");
+            if (moreTypes)
+            {
+               typeStr = typeStr.Substring(1).TrimStart();
+            }
+         } 
+         return new ParseResult<TypeRepTemplate>(types, typeStr);
+      }
 		
       // Builds a type rep from a string representation
       // "type_name"
@@ -1997,28 +2080,18 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public TypeRepTemplate BuildType(string typeRep, DirectoryHT<TypeRepTemplate> AppEnv, TypeRepTemplate def)
       {
+
          if (String.IsNullOrEmpty(typeRep))
             return def;
-
-         if (typeRep.EndsWith("[]"))
+         ParseResult<TypeRepTemplate> parseTypes = buildTypeList(typeRep, AppEnv);
+         if (parseTypes.Parses != null && parseTypes.Parses.Count == 1 && 
+             String.IsNullOrEmpty(parseTypes.RemainingStr.Trim()))
          {
-            //Array
-            string baseType = typeRep.Substring(0, typeRep.Length - 2);
-            TypeRepTemplate baseTypeRep = BuildType(baseType, AppEnv);
-            if (baseTypeRep == null)
-            {
-               return def;
-            }
-            else
-            {
-               TypeRepTemplate arrayType = AppEnv.Search("System.Array'1");
-               return arrayType.Instantiate(new TypeRepTemplate[] { baseTypeRep });
-            }
+            return parseTypes.Parses.ToArray()[0] ?? def;
          }
          else
          {
-            // todo: search for type[type, ...]
-            return AppEnv.Search(Uses, typeRep, def);
+            return def;
          }
       }
 
