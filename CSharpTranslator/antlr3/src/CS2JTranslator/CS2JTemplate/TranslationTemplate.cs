@@ -2730,19 +2730,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
       // Returns true if we are a subclass of other, or implements its interface
-      public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv) {
-         InterfaceRepTemplate i = other as InterfaceRepTemplate;
-         if (i == null)
-         {
-            return false;                         
-         }
-         if (i.TypeName == this.TypeName)
-         {
-            return true;
-         }
-         return base.IsA(other,AppEnv);
-      }
-
+//       public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv) {
+//          InterfaceRepTemplate i = other as InterfaceRepTemplate;
+//          if (i == null)
+//          {
+//             return false;                         
+//          }
+//          if (i.TypeName == this.TypeName)
+//          {
+//             return true;
+//          }
+//          return base.IsA(other,AppEnv);
+//       }
+// 
       public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
@@ -3419,6 +3419,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public TypeVarRepTemplate (string typeName) : base(typeName)
       {
+         Inherits = new String[] { "System.Object" };
       }
 
       public TypeVarRepTemplate (TypeVarRepTemplate copyFrom) : base(copyFrom)
@@ -3442,7 +3443,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 		
       public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv) {
-         return false;                         
+         return base.IsA(other, AppEnv);                         
       }
 
       #region Equality
