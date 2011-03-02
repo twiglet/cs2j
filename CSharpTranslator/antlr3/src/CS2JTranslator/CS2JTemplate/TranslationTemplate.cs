@@ -35,15 +35,45 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          return ret;
       }
-      
+
+      private class TypeVarMapper
+      {
+         private Dictionary<string,TypeRepTemplate> myArgMap;
+
+         public TypeVarMapper(Dictionary<string,TypeRepTemplate> inArgMap)
+         {
+            myArgMap = inArgMap;
+         }
+
+         public string ReplaceFromMap(Match m)
+         {
+            if (myArgMap.ContainsKey(m.Value))
+            {
+               return myArgMap[m.Value].mkSafeTypeName();
+            }
+            return m.Value;
+         }
+      }
+
       public static string SubstituteInType(String type, Dictionary<string,TypeRepTemplate> argMap)
       {
          if (String.IsNullOrEmpty(type))
             return type;
 
+         TypeVarMapper mapper = new TypeVarMapper(argMap);
+         return Regex.Replace(type, @"([\w|\.]+)*", new MatchEvaluator(mapper.ReplaceFromMap));
+      }
+
+      
+      private static string OldSubstituteInType(String type, Dictionary<string,TypeRepTemplate> argMap)
+      {
+         if (String.IsNullOrEmpty(type))
+            return type;
+
          string ret = type;
-         // type is either "string" or "string<type,type,...>"
-         Match match = Regex.Match(type, @"^([\w|\.]+)(?:\s*\[\s*([\w|\.]+)(?:\s*,\s*([\w|\.]+))*\s*\])?$");
+         // type is either "string" or "string*[type,type,...]*" or string[]
+//         Match match = Regex.Match(type, @"^([\w|\.]+)(?:\s*\*\[\s*([\w|\.]+)(?:\s*,\s*([\w|\.]+))*\s*\]\*)?$");
+         Match match = Regex.Match(type, @"([\w|\.]+)*");
          if (match.Success)
          {
             CaptureCollection captures = match.Captures;
