@@ -19,6 +19,10 @@
     <Type>System.Collections.ICollection</Type>
     <Type>System.IEnumerable</Type>
   </Inherits>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
   <Methods>
     <Method>
       <Imports>

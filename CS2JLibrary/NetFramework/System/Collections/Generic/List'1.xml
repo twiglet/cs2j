@@ -21,6 +21,10 @@
 <!--    <Type>IList<T>, ICollection<T>, 
 	IEnumerable<T>, IList, ICollection, IEnumerable</Type> -->
   </Inherits>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
   <Methods>
     <Method>
       <Imports />
