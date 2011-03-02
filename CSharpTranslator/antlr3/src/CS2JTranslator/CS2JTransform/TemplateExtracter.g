@@ -945,7 +945,7 @@ default_argument:
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
 parameter_array returns [ParamRepTemplate param]:
-	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext + "[]", $i.text, false); } ;
+	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext, $i.text, false); } ;
 
 ///////////////////////////////////////////////////////
 interface_declaration 
