@@ -419,6 +419,24 @@
       <Return>System.String[]</Return>
     </Method>
     <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>StringSupport.Split(${this}, ${ss}, ${options})</Java>
+      <Params>
+        <Param>
+          <Type>System.String[]</Type>
+          <Name>ss</Name>
+        </Param>
+        <Param>
+          <Type>System.StringSplitOptions</Type>
+          <Name>options</Name>
+        </Param>
+      </Params>
+      <Name>Split</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
       <Imports />
       <Java>${this:16}.startsWith(${arg})</Java>
       <Params>
