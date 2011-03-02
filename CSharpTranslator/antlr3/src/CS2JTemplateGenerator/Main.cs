@@ -143,7 +143,7 @@ namespace Twiglet.CS2J.Utility
                 {
                     methRep.IsStatic = true;
                 }
-                methRep.SurroundingTypeName = iface.TypeName;
+                methRep.SurroundingType = iface;
                 iface.Methods.Add(methRep);
             }
 
@@ -177,7 +177,7 @@ namespace Twiglet.CS2J.Utility
             {
                 ConstructorRepTemplate consRep = new ConstructorRepTemplate();
                 buildParameters(consRep.Params, c);
-                consRep.SurroundingTypeName = klass.TypeName;
+                consRep.SurroundingType = klass;
                 klass.Constructors.Add(consRep);
             }
             // Grab Fields

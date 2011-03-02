@@ -1151,7 +1151,7 @@ conversion_operator_declarator:
 	(i='implicit' { Warning($i.line, "[UNSUPPORTED] implicit user defined casts,  an explicit cast is always required."); } | 'explicit')  'operator'   tt=type   '('   tf=type   identifier   ')' 
          {  
             CastRepTemplate kast = new CastRepTemplate($tf.thetext, $tt.thetext); 
-            kast.SurroundingTypeName = $NSContext::currentTypeRep.TypeName;
+            kast.SurroundingType = $NSContext::currentTypeRep;
             ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(kast);
             Debug("Processing conversion declaration");
         }
@@ -1166,7 +1166,7 @@ constructor_declarator:
 	identifier   '('   fpl=formal_parameter_list?   ')'   constructor_initializer? 
          {  
               ConstructorRepTemplate cRep = new ConstructorRepTemplate($fpl.paramlist);
-              cRep.SurroundingTypeName = $NSContext::currentTypeRep.TypeName;
+              cRep.SurroundingType = $NSContext::currentTypeRep;
               ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(cRep);
               Debug("Processing constructor declaration");
  }

@@ -306,12 +306,12 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 		
       // Optional,  but if present will let mkJava generate better java guess in some cases
-      private string _surroundingTypeName;
+      private TypeRepTemplate _surroundingType;
       [XmlIgnore]
-      public string SurroundingTypeName { 
-         get { return _surroundingTypeName; }
+      public TypeRepTemplate SurroundingType { 
+         get { return _surroundingType; }
          set {
-            _surroundingTypeName=value.Replace("<","*[").Replace(">","]*");
+            _surroundingType=value;
          }
       }		
       public virtual string[] mkImports() {
@@ -345,7 +345,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          Imports = null;
       }
 
-      protected TranslationBase(TranslationBase copyFrom)
+      protected TranslationBase(TypeRepTemplate parent, TranslationBase copyFrom)
       {
          int len = 0;
          if (copyFrom.Imports != null)
@@ -361,10 +361,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             Java = copyFrom.Java;
          }
-         if (!String.IsNullOrEmpty(copyFrom.SurroundingTypeName))
-         {
-            SurroundingTypeName = copyFrom.SurroundingTypeName;
-         }
+
+         SurroundingType = parent;
       }
 
       protected TranslationBase(string java)
@@ -484,8 +482,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
          ElementType = ty;
       }
 
-      public IterableRepTemplate(IterableRepTemplate copyFrom)
-         : base(copyFrom)
+      public IterableRepTemplate(TypeRepTemplate parent, IterableRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.ElementType))
          {
@@ -560,15 +558,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
 		
       public override string mkJava() {
          string constructorName = "CONSTRUCTOR";
-         if (!String.IsNullOrEmpty(SurroundingTypeName)) {
-            constructorName = SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1);
+         if (SurroundingType != null) {
+            constructorName = SurroundingType.TypeName.Substring(SurroundingType.TypeName.LastIndexOf('.') + 1);
+            if (SurroundingType.TypeParams != null && SurroundingType.TypeParams.Length > 0)
+            {
+                constructorName += mkTypeParams(SurroundingType.TypeParams);
+            }
          }
          return "new " + constructorName + mkJavaParams(Params);
       }
 		
       public override string[] mkImports() {
-         if (!String.IsNullOrEmpty(SurroundingTypeName)) {
-            return new string[] {SurroundingTypeName};
+         if (SurroundingType != null) {
+            return new string[] {SurroundingType.TypeName};
          }
          else {
             return null;
@@ -580,8 +582,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 
-      public ConstructorRepTemplate(ConstructorRepTemplate copyFrom)
-         : base(copyFrom)
+      public ConstructorRepTemplate(TypeRepTemplate parent, ConstructorRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          foreach (ParamRepTemplate p in copyFrom.Params)
          {
@@ -717,7 +719,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          IsStatic = false;
       }
 
-      public MethodRepTemplate(MethodRepTemplate copyFrom) : base(copyFrom)
+      public MethodRepTemplate(TypeRepTemplate parent, MethodRepTemplate copyFrom) : base(parent, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.Name))
          {
@@ -764,8 +766,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 		
       public override string[] mkImports() {
-         if (IsStatic && SurroundingTypeName != null) {
-            return new string[] {SurroundingTypeName};
+         if (IsStatic && SurroundingType != null) {
+            return new string[] {SurroundingType.TypeName};
          }
          else {
             return null;
@@ -775,8 +777,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override string mkJava() {
          StringBuilder methStr = new StringBuilder();
          if (IsStatic) {
-            if (!String.IsNullOrEmpty(SurroundingTypeName)) {
-               methStr.Append(SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1) + ".");
+            if (SurroundingType != null) {
+               methStr.Append(SurroundingType.TypeName.Substring(SurroundingType.TypeName.LastIndexOf('.') + 1) + ".");
             }
             else {
                methStr.Append("TYPENAME.");
@@ -899,8 +901,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 
-      public CastRepTemplate(CastRepTemplate copyFrom)
-         : base(copyFrom)
+      public CastRepTemplate(TypeRepTemplate parent, CastRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.From))
          {
@@ -924,8 +926,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 		
       public override string[] mkImports() {
-         if (!String.IsNullOrEmpty(SurroundingTypeName)) {
-            return new string[] {SurroundingTypeName};
+         if (SurroundingType != null) {
+            return new string[] {SurroundingType.TypeName};
          }
          else {
             return null;
@@ -937,8 +939,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
             return null;
          }
          else {
-            if (!String.IsNullOrEmpty(SurroundingTypeName)) {
-               String myType = SurroundingTypeName.Substring(SurroundingTypeName.LastIndexOf('.') + 1);
+            if (SurroundingType != null) {
+               String myType = SurroundingType.TypeName.Substring(SurroundingType.TypeName.LastIndexOf('.') + 1);
                String toType = To.Substring(To.LastIndexOf('.') + 1);
                if (myType == toType)
                {
@@ -1025,8 +1027,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 
-      public FieldRepTemplate(FieldRepTemplate copyFrom)
-         : base(copyFrom)
+      public FieldRepTemplate(TypeRepTemplate parent, FieldRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.Name))
          {
@@ -1171,8 +1173,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 
-      public PropRepTemplate(PropRepTemplate copyFrom)
-         : base(copyFrom)
+      public PropRepTemplate(TypeRepTemplate parent, PropRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.JavaGet))
          {
@@ -1305,8 +1307,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 
-      public IndexerRepTemplate(IndexerRepTemplate copyFrom)
-         : base(copyFrom)
+      public IndexerRepTemplate(TypeRepTemplate parent, IndexerRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          foreach (ParamRepTemplate p in copyFrom.Params)
          {
@@ -1421,8 +1423,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public EnumMemberRepTemplate() : base()
       {
       }
-      public EnumMemberRepTemplate(EnumMemberRepTemplate copyFrom)
-         : base(copyFrom)
+      public EnumMemberRepTemplate(TypeRepTemplate parent, EnumMemberRepTemplate copyFrom)
+         : base(parent, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.Name))
          {
@@ -1647,7 +1649,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
       protected TypeRepTemplate(TypeRepTemplate copyFrom)
-         :base(copyFrom)
+         :base(null, copyFrom)
       {
          if (!String.IsNullOrEmpty(copyFrom.TypeName)) 
          {
@@ -1697,7 +1699,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
          foreach (CastRepTemplate c in copyFrom.Casts)
          {
-            Casts.Add(new CastRepTemplate(c));
+            Casts.Add(new CastRepTemplate(this, c));
          }
          
          if (copyFrom.Inherits != null)
@@ -1724,10 +1726,15 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 		
       public override string mkJava() {
-         if (TypeName == null || TypeName == String.Empty) {
-            return null;
+         string ret = String.Empty;
+         if (TypeName != null && TypeName != String.Empty) {
+             ret = TypeName.Substring(TypeName.LastIndexOf('.') + 1);
+             if (TypeParams != null && TypeParams.Length > 0)
+             {
+                 ret += mkTypeParams(TypeParams);
+             }
          }
-         return TypeName.Substring(TypeName.LastIndexOf('.') + 1);
+         return ret;
       }
 
       public override string[] mkImports() {
@@ -2298,7 +2305,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          foreach (EnumMemberRepTemplate m in copyFrom.Members)
          {
-            Members.Add(new EnumMemberRepTemplate(m));
+            Members.Add(new EnumMemberRepTemplate(this, m));
          }
       }
 
@@ -2572,27 +2579,27 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          foreach (MethodRepTemplate m in copyFrom.Methods)
          {
-            Methods.Add(new MethodRepTemplate(m));
+            Methods.Add(new MethodRepTemplate(this, m));
          }
 
          foreach (PropRepTemplate p in copyFrom.Properties)
          {
-            Properties.Add(new PropRepTemplate(p));
+            Properties.Add(new PropRepTemplate(this, p));
          }
 
          foreach (FieldRepTemplate e in copyFrom.Events)
          {
-            Events.Add(new FieldRepTemplate(e));
+            Events.Add(new FieldRepTemplate(this, e));
          }
 
          foreach (IndexerRepTemplate i in copyFrom.Indexers)
          {
-            Indexers.Add(new IndexerRepTemplate(i));
+            Indexers.Add(new IndexerRepTemplate(this, i));
          }
 
          if (copyFrom.Iterable != null)
          {
-            Iterable = new IterableRepTemplate(copyFrom.Iterable);
+            Iterable = new IterableRepTemplate(this, copyFrom.Iterable);
          }
       }
 
@@ -2954,22 +2961,22 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          foreach (ConstructorRepTemplate c in copyFrom.Constructors)
          {
-            Constructors.Add(new ConstructorRepTemplate(c));
+            Constructors.Add(new ConstructorRepTemplate(this, c));
          }
 
          foreach (FieldRepTemplate f in copyFrom.Fields)
          {
-            Fields.Add(new FieldRepTemplate(f));
+            Fields.Add(new FieldRepTemplate(this, f));
          }
 
          foreach (MethodRepTemplate u in copyFrom.UnaryOps)
          {
-            UnaryOps.Add(new MethodRepTemplate(u));
+            UnaryOps.Add(new MethodRepTemplate(this, u));
          }
 
          foreach (MethodRepTemplate b in copyFrom.BinaryOps)
          {
-            BinaryOps.Add(new MethodRepTemplate(b));
+            BinaryOps.Add(new MethodRepTemplate(this, b));
          }
 
       }
