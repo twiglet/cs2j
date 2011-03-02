@@ -172,6 +172,13 @@ while (<cond>)
 <block(statements = block)>
 >>
 
+do(comments,cond,block) ::= <<
+<comments; separator="\n">
+do
+<block(statements = block)>
+while (<cond>);
+>>
+
 for(comments,init,cond,iter,block,blockindent) ::= <<
 <comments; separator="\n">
 for (<init>;<cond>;<iter>)

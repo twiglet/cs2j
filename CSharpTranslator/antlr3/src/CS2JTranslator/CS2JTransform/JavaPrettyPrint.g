@@ -1278,7 +1278,7 @@ iteration_statement:
           -> foreach(type = { $local_variable_type.st }, loopid = { $identifier.st }, fromexp = { $expression.st },
                       block = { $embedded_statement.st }, blockindent = { $embedded_statement.indent });
 do_statement:
-	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
+	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' -> do(cond = { $boolean_expression.st }, block = { $embedded_statement.st }, blockindent = { $embedded_statement.indent });
 for_initializer:
 	(local_variable_declaration) => local_variable_declaration -> { $local_variable_declaration.st }
 	| statement_expression_list -> { $statement_expression_list.st }
