@@ -392,15 +392,22 @@ namespace Twiglet.CS2J.Translator.TypeRep
          parStr.Append(")");
          return parStr.ToString();
       }
-
+      protected string mkTypeParams(String[] pars) {
+         StringBuilder parStr = new StringBuilder();
+         parStr.Append("*[");
+         foreach (string p in pars) {
+            parStr.Append("${"+p+"},");
+         }
+         if (parStr[parStr.Length-1] == ',') {
+            parStr.Remove(parStr.Length-1,1);
+         }
+         parStr.Append("]*");
+         return parStr.ToString();
+      }
 
       // Instantiate type arguments
       public virtual void Apply(Dictionary<string,TypeRepTemplate> args)
       {
-         if (!String.IsNullOrEmpty(SurroundingTypeName))
-         {
-            SurroundingTypeName = TemplateUtilities.SubstituteInType(SurroundingTypeName, args);
-         }
       }
 
       #region Equality
@@ -2186,7 +2193,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       #endregion		
 		
       private string _formattedTypeName = null;
-      protected string mkFormattedTypeName(bool incNameSpace)
+      protected string mkFormattedTypeName(bool incNameSpace, string langle, string rangle)
       {
          if (_formattedTypeName == null)
          {
@@ -2194,7 +2201,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             StringBuilder fmt = new StringBuilder();
             if (TypeName == "System.Array")
             {
-               fmt.Append(InstantiatedTypes[0].mkFormattedTypeName(incNameSpace));
+               fmt.Append(InstantiatedTypes[0].mkFormattedTypeName(incNameSpace, langle, rangle));
                fmt.Append("[]");
             }
             else
@@ -2203,15 +2210,15 @@ namespace Twiglet.CS2J.Translator.TypeRep
                if (InstantiatedTypes != null && InstantiatedTypes.Length > 0)
                {
                   bool isFirst = true;
-                  fmt.Append("<");
+                  fmt.Append(langle);
                   foreach (TypeRepTemplate t in InstantiatedTypes)
                   {
                      if (!isFirst)
                         fmt.Append(", ");
-                     fmt.Append(t.mkFormattedTypeName(incNameSpace));
+                     fmt.Append(t.mkFormattedTypeName(incNameSpace, langle, rangle));
                      isFirst = false;
                   }
-                  fmt.Append(">");
+                  fmt.Append(rangle);
                }
             }
             _formattedTypeName = fmt.ToString();
@@ -2221,7 +2228,12 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       protected string mkFormattedTypeName()
       {
-         return mkFormattedTypeName(true);
+         return mkFormattedTypeName(true, "<", ">");
+      }
+
+      public string mkSafeTypeName()
+      {
+         return mkFormattedTypeName(true, "*[", "]*");
       }
 
       public override String ToString()
