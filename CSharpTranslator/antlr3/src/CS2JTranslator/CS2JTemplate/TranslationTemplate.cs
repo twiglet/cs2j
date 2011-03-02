@@ -2045,8 +2045,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
                      throw new Exception("buildTypeList: Cannot parse " + types);
                   }
                }
-               typeRep = AppEnv.Search(this.Uses, typeName + (tyArgs.Count > 0 ? "'" + tyArgs.Count.ToString() : ""));
-               if (typeRep != null && tyArgs.Count > 0)
+               typeRep = AppEnv.Search(this.Uses, typeName + (tyArgs.Count > 0 ? "'" + tyArgs.Count.ToString() : ""), new UnknownRepTemplate(typeName));
+               if (!typeRep.IsUnknownType && tyArgs.Count > 0)
                {
                    typeRep = typeRep.Instantiate(tyArgs);
                }
