@@ -2,19 +2,21 @@ Windows:
 
 git bash: 
 
--- cd My Documents\cs2jCentral
+-- cd My Documents/gitrepos/cs2jCentral
 -- git pull
 --- is it clean?
+-- cd CSharpTranslator/antlr3
 -- ./mkit (will fail after translating grammar files)
 -- Load solution in VS2010
--- Rebuild Solution (fails in UpdateTxFiles)
+-- Rebuild Solution
 
 DOS prompt:
 
 cd "C:\Documents and Settings\developer"
 
--- "My Documents\gitrepos\cs2jCentral\CSharpTranslator\antlr3\src\cs2j\bin\Debug\cs2j.exe" -translator-timestamp-files=false -translator-keep-parens=false -netdir=z:\keving\gitrepos\cs2j\CS2JLibrary\NetFramework -dumpxmls -xmldir=z:\keving\tmp\xml\se -odir=z:\keving\tmp\java\se\src -appdir="My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core" "My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core"
+-- "My Documents\gitrepos\cs2jCentral\CSharpTranslator\antlr3\src\CS2JTranslator\bin\Debug\cs2j.exe" -translator-timestamp-files=false -translator-keep-parens=false -netdir=z:\keving\gitrepos\cs2j\CS2JLibrary\NetFramework -dumpxmls -xmldir=z:\keving\tmp\xml\se -odir=z:\keving\tmp\java\se\src -appdir="My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core" "My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core"
 -- use git diff to check there are no differences (comments are diff actually)
+--- git diff --ignore-space-at-eol
 
 On mac:
 
@@ -39,7 +41,7 @@ git bash:
 
 cs2j\NetFramework
 cs2j\c2jTranslator\bin
-  -- copy from "My Documents\gitrepos\cs2jCentral\CSharpTranslator\antlr3\src\cs2j\bin"
+  -- copy from "My Documents\gitrepos\cs2jCentral\CSharpTranslator\antlr3\src\CS2JTranslator\bin\Debug"
      -- delete *vhost*
      -- rename cs2j.exe to cs2j.exe.removeme
 cs2j\cs2jlibrary-src-release2010.1.0.13824-197-gfd0bee8   (name changes depending on last tag)
