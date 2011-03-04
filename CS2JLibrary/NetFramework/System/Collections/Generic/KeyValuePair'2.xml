@@ -16,4 +16,18 @@
     <Name>K</Name>
     <Name>V</Name>
   </TypeParams>
+  <Properties>
+    <Property>
+      <Imports />
+      <Type>K</Type>
+      <Name>Key</Name>
+      <Get>${this:16}.getKey()</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>V</Type>
+      <Name>Value</Name>
+      <Get>${this:16}.getValue()</Get>
+    </Property>
+  </Properties>
 </Struct>
