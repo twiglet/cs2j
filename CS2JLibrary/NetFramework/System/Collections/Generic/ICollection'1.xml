@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Collection</Import>
+  </Imports>
+  <Java>Collection*[${T}]*</Java>
+  <Name>System.Collections.Generic.ICollection</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
+  <Properties>
+  </Properties>
+</Interface>

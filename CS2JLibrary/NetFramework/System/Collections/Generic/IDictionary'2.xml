@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Map</Import>
+  </Imports>
+  <Java>Map*[${K},${V}]*</Java>
+  <Name>System.Collections.Generic.IDictionary</Name>
+  <TypeParams>
+    <Name>K</Name>
+    <Name>V</Name>
+  </TypeParams>
+  <Iterable>
+    <ElementType>System.Collections.Generic.KeyValuePair*[K,V]*</ElementType>
+    <Java>${expr}.entrySet()</Java>
+  </Iterable>
+  <Properties>
+    <Property>
+      <Imports />
+      <Type>System.Collections.Generic.ICollection*[K]*</Type>
+      <Name>Keys</Name>
+      <Get>${this:16}.keySet()</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>System.Collections.Generic.ICollection*[V]*</Type>
+      <Name>Values</Name>
+      <Get>${this:16}.values()</Get>
+    </Property>
+  </Properties>
+</Interface>
