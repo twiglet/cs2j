@@ -1673,7 +1673,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             InstantiatedTypes = new TypeRepTemplate[len];
             for (int i = 0; i < len; i++)
             {
-               InstantiatedTypes[i] = copyFrom.InstantiatedTypes[i].Instantiate(null);
+               InstantiatedTypes[i] = copyFrom.InstantiatedTypes[i];
             }
          }
 
@@ -1746,7 +1746,6 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
              
-      // IMPORTANT: Call this on the fresh copy because it has the side effect of updating this type's TypeParams.         
       protected Dictionary<string,TypeRepTemplate> mkTypeMap(ICollection<TypeRepTemplate> args) { 
          Dictionary<string,TypeRepTemplate> ret = new Dictionary<string,TypeRepTemplate>();
          if (args == null)
@@ -1755,12 +1754,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          if (args.Count == TypeParams.Length)
          {
-            InstantiatedTypes = new TypeRepTemplate[args.Count];
             int i = 0;
             foreach (TypeRepTemplate sub in args)
             {   
                ret[TypeParams[i]] = sub;   
-               InstantiatedTypes[i] = sub;   
                i++;
             }
          }
@@ -1791,6 +1788,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
             {
                Inherits[i] = TemplateUtilities.SubstituteInType(Inherits[i],args);
             }
+         }
+         InstantiatedTypes = new TypeRepTemplate[args.Count];
+         for (int i = 0; i < TypeParams.Length; i++)
+         {
+             InstantiatedTypes[i] = args[TypeParams[i]];
          }
          base.Apply(args);
       }
@@ -2278,7 +2280,6 @@ namespace Twiglet.CS2J.Translator.TypeRep
 		
       protected string mkFormattedTypeName(bool incNameSpace, string langle, string rangle)
       {
-                            
          StringBuilder fmt = new StringBuilder();
          if (TypeName == "System.Array")
          {
