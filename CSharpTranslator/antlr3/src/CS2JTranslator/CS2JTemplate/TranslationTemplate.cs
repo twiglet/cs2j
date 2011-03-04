@@ -1749,7 +1749,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
       // IMPORTANT: Call this on the fresh copy because it has the side effect of updating this type's TypeParams.         
       protected Dictionary<string,TypeRepTemplate> mkTypeMap(ICollection<TypeRepTemplate> args) { 
          Dictionary<string,TypeRepTemplate> ret = new Dictionary<string,TypeRepTemplate>();
-         if (args != null && args.Count == TypeParams.Length)
+         if (args == null)
+         {
+             return ret;
+         }
+         if (args.Count == TypeParams.Length)
          {
             InstantiatedTypes = new TypeRepTemplate[args.Count];
             int i = 0;
