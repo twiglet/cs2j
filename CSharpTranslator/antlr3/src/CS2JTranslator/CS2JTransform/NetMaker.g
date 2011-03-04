@@ -33,6 +33,11 @@ scope SymTab {
     Dictionary<string,TypeRepTemplate> symtab;
 }
 
+// When this scope is true, then generate equivalent Object types instead of primitive types
+scope PrimitiveRep {
+    bool primitiveTypeAsObject;
+}
+
 @namespace { Twiglet.CS2J.Translator.Transform }
 
 @header
@@ -182,6 +187,20 @@ scope SymTab {
             return dateType;
         }
     }
+
+    // Map of Java built in types to their object based equivalents
+    Dictionary<string, string> primitive_to_object_type_map = new Dictionary<string, string>()
+    {
+        {"byte", "Byte"},
+        {"short", "Short"},
+        {"int", "Integer"},
+        {"long", "Long"},
+        {"float", "Float"},
+        {"double", "Double"},
+        {"boolean", "Boolean"},
+        {"char", "Character"}
+    };
+
 
     protected TypeRepTemplate SymTabLookup(string name) {
         return SymTabLookup(name, null);
@@ -444,10 +463,12 @@ scope SymTab {
 }
 
 public compilation_unit
-scope NSContext;
+scope NSContext, PrimitiveRep;
 @init {
 
     Imports = new Set<string>();
+
+    $PrimitiveRep::primitiveTypeAsObject = false;
 
     // TODO: Do we need to ensure we have access to System? If so, can add it here.
     $NSContext::namespaces = SearchPath ?? new List<string>();
@@ -1018,7 +1039,9 @@ qid_part:
 generic_argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees]: 
 	'<'   type_arguments   '>' { $argTypes = $type_arguments.tyTypes; $argTrees = $type_arguments.argTrees; };
 type_arguments  returns [List<TypeRepTemplate> tyTypes, List<CommonTree> argTrees]
+scope PrimitiveRep;
 @init {
+    $PrimitiveRep::primitiveTypeAsObject = true;
     $tyTypes = new List<TypeRepTemplate>();
     $argTrees = new List<CommonTree>();
 }: 
@@ -2133,6 +2156,12 @@ predefined_type returns [TypeRepTemplate dotNetType]
 @after {
     $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns));
     $dotNetType.IsUnboxedType = true;
+
+    // In certain contexts we must translate primitive types into their object based equivalent
+    string newText;
+    if ($PrimitiveRep::primitiveTypeAsObject && primitive_to_object_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
+        $predefined_type.tree.Token.Text = newText;
+    }
 }:
 	  'bool'    { ns = "System.Boolean"; }
     | 'byte'    { ns = "System.Byte"; }
