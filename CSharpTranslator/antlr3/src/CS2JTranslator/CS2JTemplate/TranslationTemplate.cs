@@ -2276,38 +2276,33 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
       #endregion		
 		
-      private string _formattedTypeName = null;
       protected string mkFormattedTypeName(bool incNameSpace, string langle, string rangle)
       {
-         if (_formattedTypeName == null)
-         {
                             
-            StringBuilder fmt = new StringBuilder();
-            if (TypeName == "System.Array")
-            {
-               fmt.Append(InstantiatedTypes[0].mkFormattedTypeName(incNameSpace, langle, rangle));
-               fmt.Append("[]");
-            }
-            else
-            {
-               fmt.Append(TypeName.Substring(incNameSpace ? 0 : TypeName.LastIndexOf('.')+1));
-               if (InstantiatedTypes != null && InstantiatedTypes.Length > 0)
-               {
-                  bool isFirst = true;
-                  fmt.Append(langle);
-                  foreach (TypeRepTemplate t in InstantiatedTypes)
-                  {
-                     if (!isFirst)
-                        fmt.Append(", ");
-                     fmt.Append(t.mkFormattedTypeName(incNameSpace, langle, rangle));
-                     isFirst = false;
-                  }
-                  fmt.Append(rangle);
-               }
-            }
-            _formattedTypeName = fmt.ToString();
+         StringBuilder fmt = new StringBuilder();
+         if (TypeName == "System.Array")
+         {
+            fmt.Append(InstantiatedTypes[0].mkFormattedTypeName(incNameSpace, langle, rangle));
+            fmt.Append("[]");
          }
-         return _formattedTypeName;
+         else
+         {
+            fmt.Append(TypeName.Substring(incNameSpace ? 0 : TypeName.LastIndexOf('.')+1));
+            if (InstantiatedTypes != null && InstantiatedTypes.Length > 0)
+            {
+               bool isFirst = true;
+               fmt.Append(langle);
+               foreach (TypeRepTemplate t in InstantiatedTypes)
+               {
+                  if (!isFirst)
+                     fmt.Append(", ");
+                  fmt.Append(t.mkFormattedTypeName(incNameSpace, langle, rangle));
+                  isFirst = false;
+               }
+               fmt.Append(rangle);
+            }
+         }
+         return fmt.ToString(); 
       }
 
       protected string mkFormattedTypeName()
