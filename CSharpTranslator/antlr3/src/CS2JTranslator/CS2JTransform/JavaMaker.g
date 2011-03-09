@@ -1213,7 +1213,8 @@ interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]
             identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list? magicThrowsException);
 interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
-	'event'   type   identifier   ';' ; 
+	e='event'   type   identifier   ';' -> ^(EVENT[$e.token, "EVENT"] { dupTree($atts) } { dupTree($mods) } type identifier)
+   ; 
 interface_indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
 	// attributes?    'new'?    type   
 	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts,mods,type,$formal_parameter_list.tree]   '}' ;

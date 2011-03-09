@@ -1826,7 +1826,7 @@ scope SymTab;
 @init {
     $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
 }:
-    ^(EVENT attributes? modifiers? event_declaration)
+    ^(EVENT attributes? modifiers? type identifier) 
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
 		;
 

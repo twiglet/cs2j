@@ -1010,7 +1010,7 @@ interface_method_declaration [string returnType]:
 ;
 interface_event_declaration: 
 	//attributes?   'new'?   
-	'event'   type   identifier  { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' 
+	'event'   type   identifier  { ((InterfaceRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' 
         { Debug("Processing interface event declaration: " + $identifier.text); }
 ; 
 interface_indexer_declaration [string returnType]: 
