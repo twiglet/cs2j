@@ -234,6 +234,11 @@ namespace Twiglet.CS2J.Translator
             lex.TraceDestination = Console.Error;
 
             CommonTokenStream tokens = new CommonTokenStream(lex);
+//            if (tokens.LT(1).Type == TokenTypes.EndOfFile)
+//            {
+//                Console.WriteLine("File is empty");
+//                return null;
+//            }
             csParser p = new csParser(tokens);
             p.TraceDestination = Console.Error;
 			
