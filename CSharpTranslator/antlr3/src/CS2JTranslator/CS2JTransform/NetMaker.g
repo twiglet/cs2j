@@ -585,7 +585,7 @@ scope {
             $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
             ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (methodResult != null) {
-               Debug($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
+               DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                if (!implicitThis) {
@@ -623,13 +623,13 @@ scope {
             if (expType != null &&
                 ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
-                Debug($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
+                DebugDetail($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
 
                 $dotNetType = new UnknownRepTemplate(expType.TypeName+".DOTACCESS."+ $i1.thetext);
 
                 ResolveResult fieldResult = expType.Resolve($i1.thetext, false, AppEnv);
                 if (fieldResult != null) {
-                    Debug($d1.token.Line + ": Found '" + $i1.thetext + "'");
+                    DebugDetail($d1.token.Line + ": Found '" + $i1.thetext + "'");
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["this"] = wrapExpression($e1.tree, $i1.tree.Token);
                     ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
@@ -681,10 +681,10 @@ scope {
                 if (thisType != null && !thisType.IsUnknownType &&
                     ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
-                    Debug($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
+                    DebugDetail($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
                     ResolveResult fieldResult = thisType.Resolve($identifier.thetext, false, AppEnv);
                     if (fieldResult != null) {
-                        Debug($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
+                        DebugDetail($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
                         ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
                         AddToImports(fieldResult.Result.Imports);
                         $dotNetType = fieldResult.ResultType; 
@@ -743,10 +743,9 @@ scope {
             }
         }
 	| 'new' (   
-				// try the simple one first, this has no argS and no expressions
-				// symantically could be object creation
-				 (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
-				| object_creation_expression
+				// (try the simple one first, this has no argS and no expressions
+				//  symantically could be object creation)
+				| (delegate_creation_expression) => delegate_creation_expression // new FooDelegate (MyFunction)
 				| anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
@@ -897,7 +896,7 @@ element_initializer:
 object_initializer: 
 	member_initializer_list?   ','?   '}' ;
 member_initializer_list: 
-	member_initializer  (',' member_initializer) ;
+	member_initializer  (',' member_initializer)* ;
 member_initializer: 
 	identifier   '='   initializer_value ;
 initializer_value: 
@@ -1422,7 +1421,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
          ->^($le $le1 $le2)
         | ^(INSTANCEOF non_assignment_expression non_nullable_type)           {$dotNetType = BoolType; }
         | ^('<<' n7=non_assignment_expression non_assignment_expression)      {$dotNetType = $n7.dotNetType; }
-        | ^('>>' n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
+        | ^(RIGHT_SHIFT n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
 // TODO: need to munge these numeric types
         | ^('+' n9=non_assignment_expression non_assignment_expression)       {$dotNetType = $n9.dotNetType; }
         | ^('-' n10=non_assignment_expression non_assignment_expression)      {$dotNetType = $n10.dotNetType; }
@@ -1766,15 +1765,38 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration:
-	^(DELEGATE attributes? modifiers?   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?  '('   formal_parameter_list?   ')' ) ;
+delegate_declaration
+scope NSContext,SymTab;
+@init {
+    $NSContext::namespaces = new List<string>();
+    $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
+    $NSContext::typeVariables = new List<string>();
+    $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
+    $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
+}
+:
+	^(DELEGATE attributes? modifiers?   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?  
+          { $NSContext::currentNS = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.thetext, $variant_generic_parameter_list.tyParams); 
+            if (CompUnitName == null) 
+               CompUnitName = $NSContext::currentNS; 
+            $NSContext::namespaces.Add($NSContext::currentNS);
+            $NSContext::globalNamespaces.Add($NSContext::currentNS);
+            if ($variant_generic_parameter_list.tyParams != null) {
+                $NSContext::typeVariables.AddRange($variant_generic_parameter_list.tyParams);
+                $NSContext::globalTypeVariables.AddRange($variant_generic_parameter_list.tyParams);
+            }
+         }
+       '('   formal_parameter_list?   ')' ) ;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
-variant_generic_parameter_list:
-	variant_type_variable_name+ ;
-variant_type_variable_name:
-	attributes?   variance_annotation?   type_variable_name ;
+variant_generic_parameter_list returns [List<string> tyParams]
+@init {
+    $tyParams = new List<string>();
+}:
+      (variant_type_variable_name {$tyParams.Add($variant_type_variable_name.thetext); })+ ;
+variant_type_variable_name returns [string thetext]:
+	attributes?   variance_annotation?   type_variable_name { $thetext = $type_variable_name.thetext; };
 variance_annotation:
 	IN | OUT ;
 
@@ -1784,8 +1806,8 @@ type_parameter_constraints_clause:
     // If there are no type constraints on this variable then drop this constraint
 	^(TYPE_PARAM_CONSTRAINT type_variable_name) -> 
     | ^(TYPE_PARAM_CONSTRAINT type_variable_name type_name+) ;
-type_variable_name: 
-	identifier ;
+type_variable_name returns [string thetext]: 
+	identifier { $thetext = $identifier.thetext; };
 constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
@@ -1826,7 +1848,9 @@ scope SymTab;
 @init {
     $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
 }:
-    ^(EVENT attributes? modifiers? type identifier) 
+    ^(e=EVENT attributes? modifiers? t=type i=identifier magicEventCollectionType[$t.tree.Token, $t.tree] )
+      { AddToImports("CS2JNet.JavaSupport.language.IEventCollection"); }
+      ->   ^(METHOD[$e.token, "METHOD"] attributes? modifiers? magicEventCollectionType identifier EXCEPTION[$i.tree.Token, "Exception"])
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
 		;
 
@@ -1896,7 +1920,7 @@ statement:
     (declaration_statement) => declaration_statement 
     | statement_plus;
 statement_plus:
-    (identifier   ':') => labeled_statement 
+    labeled_statement 
     | embedded_statement 
 	;
 embedded_statement:
@@ -1953,16 +1977,19 @@ fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
 labeled_statement:
-	identifier   ':'   statement ;
+	^(':' identifier statement) ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
 local_variable_declaration:
 	local_variable_type   local_variable_declarators[$local_variable_type.tree, $local_variable_type.dotNetType] ;
-local_variable_type returns [TypeRepTemplate dotNetType]:
+local_variable_type returns [bool isTypeNode, TypeRepTemplate dotNetType]
+@init {
+   $isTypeNode = false;
+}:
 	('var') => 'var'             { $dotNetType = new UnknownRepTemplate("System.Object"); }
 	| ('dynamic') => 'dynamic'   { $dotNetType = new UnknownRepTemplate("System.Object"); }
-	| type                       { $dotNetType = $type.dotNetType; };
+	| type                       { $dotNetType = $type.dotNetType; $isTypeNode = true; };
 local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
 	local_variable_declarator[$tyTree, $ty] (',' local_variable_declarator[$tyTree, $ty])* ;
 local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
@@ -2085,11 +2112,18 @@ scope SymTab;
                 }
             }
             bool needCast = true;
-            if (elType != null && $local_variable_type.dotNetType != null) {
-                if (elType.IsA($local_variable_type.dotNetType, AppEnv)) {
-                    needCast = false;
-                }
-            } 
+            if (!$local_variable_type.isTypeNode) {
+               // If local_type is var or dynamic then just leave it there, 
+               // TODO: var will be replaced by its type
+               needCast = false;
+            }
+            else {
+               if (elType != null && $local_variable_type.dotNetType != null) {
+                  if (elType.IsA($local_variable_type.dotNetType, AppEnv)) {
+                     needCast = false;
+                  }
+               } 
+            }
             // Construct new foreach using newExpression and needCast
             if (needCast) {
                 newType = $magicObjectType.tree;
@@ -2154,7 +2188,7 @@ predefined_type returns [TypeRepTemplate dotNetType]
     string ns = "";
 }
 @after {
-    $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns));
+    $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns, new UnknownRepTemplate(ns)));
     $dotNetType.IsUnboxedType = true;
 
     // In certain contexts we must translate primitive types into their object based equivalent
@@ -2288,4 +2322,8 @@ magicCatchVar:
 magicThrowableType[bool isOn, IToken tok]:
  -> {isOn}? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, Cfg.TranslatorExceptionIsThrowable ? "Throwable" : "Exception"])
  -> 
+;
+
+magicEventCollectionType[IToken tok, CommonTree type]:
+  -> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IEventCollection"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"] )
 ;

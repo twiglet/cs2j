@@ -103,9 +103,9 @@ scope NSContext;
     $NSContext::currentTypeRep = null;
 }
 :
-{ Debug("start template extraction"); }    
+{ DebugDetail("start template extraction"); }    
 	namespace_body
-{ Debug("end template extraction"); }    
+{ DebugDetail("end template extraction"); }    
 	;
 
 namespace_declaration
@@ -117,7 +117,7 @@ scope NSContext;
 }
 :
 	'namespace'   qi=qualified_identifier  
-        { Debug("namespace: " + $qi.thetext); 
+        { DebugDetail("namespace: " + $qi.thetext); 
           $NSContext::searchpath.Add($qi.thetext);
           // extend parent namespace
           $NSContext::currentNS = NSPrefix(ParentNameSpace) + $qi.thetext;
@@ -207,10 +207,12 @@ primary_expression:
 	| primary_expression_start   primary_expression_part*
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
 					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
-				// try the simple one first, this has no argS and no expressions
-				// symantically could be object creation
-				| (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
-				| object_creation_expression
+				// (try the simple one first, this has no argS and no expressions
+				//  symantically could be object creation)
+                // keving:  try object_creation_expression first, it could be new type ( xx ) {}  
+                // can also match delegate_creation, will have to distinguish in NetMaker.g
+				| (object_creation_expression) => object_creation_expression
+				| delegate_creation_expression // new FooDelegate (MyFunction)
 				| anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
@@ -366,7 +368,7 @@ element_initializer:
 object_initializer: 
 	member_initializer_list?   ','?   '}' ;
 member_initializer_list: 
-	member_initializer  (',' member_initializer) ;
+	member_initializer  (',' member_initializer)* ;
 member_initializer: 
 	identifier   '='   initializer_value ;
 initializer_value: 
@@ -682,7 +684,7 @@ scope NSContext;
 :
 	'class'  type_or_generic   
         { 
-            Debug("Processing class: " + $type_or_generic.type);
+            DebugDetail("Processing class: " + $type_or_generic.type);
             // For class System.Dictionary<K,V>
             // The Type Rep has TypeName "System.Dictionary", TypeArgs "K","V" is stored at System/Dictionary'2.xml 
             // and will be used as [System.]Dictionary[Type1,Type2] 
@@ -731,7 +733,7 @@ constant_declarators [string type]:
 	constant_declarator[$type] (',' constant_declarator[$type])* ;
 constant_declarator [string type]:
 	identifier   { ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(new FieldRepTemplate($type, $identifier.text)); } ('='   constant_expression)? 
-        { Debug("Processing constant declaration: " + $identifier.text); }
+        { DebugDetail("Processing constant declaration: " + $identifier.text); }
 ;
 constant_expression:
 	expression;
@@ -750,7 +752,7 @@ variable_declarator [string type, bool isEvent]:
         else {
              ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(f);
         }; } ('='   variable_initializer)? 
-    { Debug("Processing " + (isEvent ? "event" : "field") + " declaration: " + $type_name.text); }
+    { DebugDetail("Processing " + (isEvent ? "event" : "field") + " declaration: " + $type_name.text); }
 ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
@@ -760,7 +762,7 @@ method_header [string returnType]:
 	member_name  '('   fpl=formal_parameter_list?   ')'   
      {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist)); }
     type_parameter_constraints_clauses? 
-        { Debug("Processing method declaration: " + $member_name.name); }
+        { DebugDetail("Processing method declaration: " + $member_name.name); }
 ;
 method_body:
 	block ;
@@ -774,7 +776,7 @@ property_declaration[string type]:
             propRep.CanRead = $accessor_declarations.hasGetter;
             propRep.CanWrite = $accessor_declarations.hasSetter;
             ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
-        { Debug("Processing property declaration: " + $member_name.name); }
+        { DebugDetail("Processing property declaration: " + $member_name.name); }
 ;
 accessor_declarations returns [bool hasGetter, bool hasSetter]
 @int {
@@ -790,7 +792,7 @@ get_accessor_declaration:
 set_accessor_declaration:
 	accessor_modifier?   'set'   accessor_body ;
 accessor_modifier:
-	'public' | 'protected' | 'private' | 'internal' ;
+	'protected' 'internal'? | 'private' | 'internal' 'protected'? ;
 accessor_body:
 	block ;
 
@@ -799,7 +801,7 @@ event_declaration:
 	'event'   type
 		((member_name   '{') => member_name '{' event_accessor_declarations '}' { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $member_name.name)); } 
 		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
-        { Debug("Processing event declaration: " + $member_name.name); }
+        { DebugDetail("Processing event declaration: " + $member_name.name); }
 		;
 event_modifiers:
 	modifier+ ;
@@ -824,7 +826,7 @@ scope NSContext;
 :
 	'enum'   identifier   enum_base? 
         { 
-            Debug("Processing enum: " + $identifier.text);
+            DebugDetail("Processing enum: " + $identifier.text);
             eenum.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             // Nested types can see things in this space
             $NSContext::searchpath.Add(eenum.TypeName);
@@ -845,7 +847,7 @@ enum_member_declarations:
 enum_member_declaration:
 	attributes?   identifier   ('='   expression)? 
         { ((EnumRepTemplate)$NSContext::currentTypeRep).Members.Add(new EnumMemberRepTemplate($identifier.text, $expression.text)); } // todo:  are arbitrary expressions really allowed
-        { Debug("Processing enum member: " + $identifier.text); }
+        { DebugDetail("Processing enum member: " + $identifier.text); }
 ;
 //enum_modifiers:
 //	enum_modifier+ ;
@@ -866,7 +868,7 @@ scope NSContext;
 	'delegate'   return_type   identifier  variant_generic_parameter_list?   
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
         { 
-            Debug("Processing delegate: " + $identifier.text);
+            DebugDetail("Processing delegate: " + $identifier.text);
             String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
             dlegate.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
@@ -958,7 +960,7 @@ scope NSContext;
 :
 	'interface'   identifier   variant_generic_parameter_list?
         { 
-            Debug("Processing interface: " + $identifier.text);
+            DebugDetail("Processing interface: " + $identifier.text);
             String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
             iface.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
@@ -998,7 +1000,7 @@ interface_property_declaration [string returnType]:
             propRep.CanRead = $interface_accessor_declarations.hasGetter;
             propRep.CanWrite = $interface_accessor_declarations.hasSetter;
             ((InterfaceRepTemplate)$NSContext::currentTypeRep).Properties.Add(propRep); }
-        { Debug("Processing interface property declaration: " + $identifier.text); }
+        { DebugDetail("Processing interface property declaration: " + $identifier.text); }
     ;
 interface_method_declaration [string returnType]:
 	identifier   gal=generic_argument_list?
@@ -1006,18 +1008,18 @@ interface_method_declaration [string returnType]:
         {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist); 
            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
         type_parameter_constraints_clauses?   ';' 
-        { Debug("Processing interface method declaration: " + $identifier.text); }
+        { DebugDetail("Processing interface method declaration: " + $identifier.text); }
 ;
 interface_event_declaration: 
 	//attributes?   'new'?   
 	'event'   type   identifier  { ((InterfaceRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $identifier.text)); }  ';' 
-        { Debug("Processing interface event declaration: " + $identifier.text); }
+        { DebugDetail("Processing interface event declaration: " + $identifier.text); }
 ; 
 interface_indexer_declaration [string returnType]: 
 	// attributes?    'new'?    type   
 	'this'   '['   fpl=formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' 
          {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new IndexerRepTemplate($returnType, $fpl.paramlist)); }
-           { Debug("Processing interface indexer declaration"); }
+           { DebugDetail("Processing interface indexer declaration"); }
  ;
 interface_accessor_declarations returns [bool hasGetter, bool hasSetter]
 @int {
@@ -1046,7 +1048,7 @@ scope NSContext;
     :
 	'struct'   type_or_generic   
         { 
-            Debug("Processing struct: " + $type_or_generic.type);
+            DebugDetail("Processing struct: " + $type_or_generic.type);
             String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($type_or_generic.type, $type_or_generic.generic_arguments);
             strukt.TypeName = NSPrefix(ParentNameSpace) + $type_or_generic.type;
             if ($type_or_generic.generic_arguments.Count > 0) {
@@ -1109,7 +1111,7 @@ indexer_declarator [string returnType, string prefix]:
 	//(type_name '.')?   
 	'this'   '['   fpl=formal_parameter_list   ']' 
          {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new IndexerRepTemplate($returnType, $fpl.paramlist)); }
-        { Debug("Processing indexer declaration"); }
+        { DebugDetail("Processing indexer declaration"); }
     ;
 	
 ///////////////////////////////////////////////////////
@@ -1129,7 +1131,7 @@ operator_declarator [string returnType]
     else {
         ((ClassRepTemplate)$NSContext::currentTypeRep).BinaryOps.Add(meth);
     } 
-    Debug("Processing operator declaration: " + meth.Name);
+    DebugDetail("Processing operator declaration: " + meth.Name);
 }:
 	'operator'   
 		(('+' { opText = "+"; } | '-' { opText = "-"; })   '('   t0=type   i0=identifier { paramList.Add(new ParamRepTemplate($t0.thetext, $i0.text)); } (binary_operator_declarator[paramList] | unary_operator_declarator { unaryOp = true; })
@@ -1153,7 +1155,7 @@ conversion_operator_declarator:
             CastRepTemplate kast = new CastRepTemplate($tf.thetext, $tt.thetext); 
             kast.SurroundingType = $NSContext::currentTypeRep;
             ((ClassRepTemplate)$NSContext::currentTypeRep).Casts.Add(kast);
-            Debug("Processing conversion declaration");
+            DebugDetail("Processing conversion declaration");
         }
     ;
 operator_body:
@@ -1168,7 +1170,7 @@ constructor_declarator:
               ConstructorRepTemplate cRep = new ConstructorRepTemplate($fpl.paramlist);
               cRep.SurroundingType = $NSContext::currentTypeRep;
               ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(cRep);
-              Debug("Processing constructor declaration");
+              DebugDetail("Processing constructor declaration");
  }
 ;
 constructor_initializer:

@@ -135,6 +135,24 @@ scope TypeContext {
         return root;
     }
 
+    // embedded statement is ";", or, "{" ... "}", or a single statement. In the latter case we wrap with braces
+    protected CommonTree embeddedStatementToBlock(IToken tok, CommonTree embedStat) {
+
+        if ((!embedStat.IsNil && adaptor.GetType(embedStat) == SEMI) ||
+            (embedStat.IsNil && adaptor.GetChildCount(embedStat) >= 1 && adaptor.GetType(embedStat) == SEMI)) {
+           // Do Nothing, already a block
+           return embedStat;
+        }
+        CommonTree root = (CommonTree)adaptor.Nil;
+        
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+        adaptor.AddChild(root, dupTree(embedStat));
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
+
+        root = (CommonTree)adaptor.RulePostProcessing(root);
+        return root;
+    }
+
 // for ["conn", "conn1", "conn2"] generate:
 //
 //                   if (conn != null)
@@ -378,8 +396,10 @@ primary_expression:
 					(oc1=object_creation_expression -> $oc1)   (pp4=primary_expression_part[ $primary_expression.tree ] -> $pp4 )+ 		// new Foo(arg, arg).Member
 				// try the simple one first, this has no argS and no expressions
 				// symantically could be object creation
-				| (delegate_creation_expression) => delegate_creation_expression -> delegate_creation_expression // new FooDelegate (MyFunction)
-				| oc2=object_creation_expression -> $oc2
+                // keving:  No, try object_creation_expression first, it could be new type ( xx ) {}  
+                // can also match delegate_creation, will have to distinguish in NetMaker.g
+				| (object_creation_expression) => oc2=object_creation_expression -> $oc2
+				| delegate_creation_expression -> delegate_creation_expression // new FooDelegate (MyFunction)
 				| anonymous_object_creation_expression -> anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
@@ -557,7 +577,7 @@ element_initializer:
 object_initializer: 
 	member_initializer_list?   ','?   '}' ;
 member_initializer_list: 
-	member_initializer  (',' member_initializer) ;
+	member_initializer  (',' member_initializer)* ;
 member_initializer: 
 	identifier   '='   initializer_value ;
 initializer_value: 
@@ -1017,7 +1037,7 @@ accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, string 
                   | sb=block { propBlock = $sb.tree; } ) setm=magicPropSetter[atts, $la.tree, mods, $lm.tree, type, $s.token, propBlock, propName, mkBody, rawVarName] -> $setm)
     ;
 accessor_modifier:
-	'public' | 'protected' | 'private' | 'internal' ;
+	'protected' 'internal'? | 'private' | 'internal' 'protected'?;
 
 ///////////////////////////////////////////////////////
 event_declaration:
@@ -1239,7 +1259,7 @@ struct_body [string structName]:
 
 ///////////////////////////////////////////////////////
 indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
-	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts, mods, type, $formal_parameter_list.tree]   '}' ;
+	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts, mods, type, $formal_parameter_list.tree]   '}' -> indexer_accessor_declarations ;
 //indexer_declarator:
 	//(type_name '.')?   
 //	'this'   '['   formal_parameter_list   ']' ;
@@ -1489,6 +1509,7 @@ unchecked_statement:
 	'unchecked'   block ;
 lock_statement:
 	'lock'   '('  expression   ')'   embedded_statement ;
+// TODO: Can we avoid surrounding this with braces if not needed?
 using_statement
 @init {
     CommonTree disposers = null;
@@ -1497,7 +1518,7 @@ using_statement
 	u='using'   '('    resource_acquisition   c=')'    embedded_statement
      { disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames); } 
      f=magicFinally[$c.token, disposers]
-     magicTry[$u.token, $embedded_statement.tree, null, $f.tree] 
+     magicTry[$u.token, embeddedStatementToBlock($u.token, $embedded_statement.tree), null, $f.tree] 
      -> OPEN_BRACE[$u.token, "{"] 
             resource_acquisition SEMI[$c.token, ";"] 
             magicTry
@@ -1588,7 +1609,7 @@ magicPropGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTr
     CommonTree realBody = body;
     CommonTree exceptionList = null;
 }: 
-    ( { mkBody }? => b=magicGetterBody[getTok,varName] { realBody = $b.tree; } | e=magicThrowsException[true,getTok] { exceptionList = $e.tree; })
+    b=magicGetterBody[mkBody,getTok,varName] { if (mkBody) realBody = $b.tree; } e=magicThrowsException[!mkBody,getTok] { if (!mkBody) exceptionList = $e.tree; }
     -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } { exceptionList }) 
     ;
 magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, string propName, bool mkBody, string varName]
@@ -1596,7 +1617,7 @@ magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTr
     CommonTree realBody = body;
     CommonTree exceptionList = null;
 }: 
-    ( { mkBody }? => b=magicSetterBody[setTok,varName] { realBody = $b.tree; }| e=magicThrowsException[true,setTok] { exceptionList = $e.tree; } )
+    b=magicSetterBody[mkBody,setTok,varName] { if (mkBody) realBody = $b.tree; } e=magicThrowsException[!mkBody,setTok] { if (!mkBody) exceptionList = $e.tree; }
     -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } { exceptionList } ) 
     ;
 
@@ -1607,10 +1628,14 @@ magicMkPropertyVar[CommonTree type, string varText] :
  -> ^(FIELD[$type.token, "FIELD"] PRIVATE[$type.token, "private"] { dupTree(type) } IDENTIFIER[$type.token, varText])
     ; 
 
-magicGetterBody[IToken getTok, string varName]:    
- -> OPEN_BRACE[getTok,"{"] ^(RETURN[getTok, "return"] IDENTIFIER[getTok, varName]) CLOSE_BRACE[getTok,"}"];
-magicSetterBody[IToken setTok, string varName]:    
- -> OPEN_BRACE[setTok,"{"] IDENTIFIER[setTok, varName] ASSIGN[setTok,"="] IDENTIFIER[setTok, "value"] SEMI[setTok, ";"] CLOSE_BRACE[setTok,"}"] ;
+magicGetterBody[bool isOn, IToken getTok, string varName]:    
+ -> { isOn }? OPEN_BRACE[getTok,"{"] ^(RETURN[getTok, "return"] IDENTIFIER[getTok, varName]) CLOSE_BRACE[getTok,"}"]
+ ->
+   ;
+magicSetterBody[bool isOn, IToken setTok, string varName]:    
+ -> { isOn }? OPEN_BRACE[setTok,"{"] IDENTIFIER[setTok, varName] ASSIGN[setTok,"="] IDENTIFIER[setTok, "value"] SEMI[setTok, ";"] CLOSE_BRACE[setTok,"}"]
+ -> 
+   ;
 
 magicIdxGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken getTok, CommonTree body, CommonTree idxparams]
 : 

@@ -376,10 +376,9 @@ primary_expression returns [int precedence]
 //	| primary_expression_start   primary_expression_part*
     | ^(NEW type argument_list? object_or_collection_initializer?) { $precedence = precedence[NEW]; }-> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
 	| 'new' (   
-				// try the simple one first, this has no argS and no expressions
-				// symantically could be object creation
-				 (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
-				| object_creation_expression
+				// (try the simple one first, this has no argS and no expressions
+				//  symantically could be object creation)
+				| (delegate_creation_expression) => delegate_creation_expression // new FooDelegate (MyFunction)
 				| anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression      -> { $checked_expression.st }      		// checked (...
@@ -419,7 +418,7 @@ primary_expression_start:
 	;
 
 primary_expression_extalias:
-	i1=identifier '::'   i2=identifier -> op(pre={ $i1.st }, op = { "::" }, post={ $i2.st }) 
+	^('::' i1=identifier i2=identifier) -> op(pre={ $i1.st }, op = { "::" }, post={ $i2.st }) 
     ;
 
 
@@ -596,7 +595,7 @@ element_initializer:
 object_initializer: 
 	member_initializer_list?   ','?   '}' ;
 member_initializer_list: 
-	member_initializer  (',' member_initializer) ;
+	member_initializer  (',' member_initializer)* ;
 member_initializer: 
 	identifier   '='   initializer_value ;
 initializer_value: 
@@ -645,8 +644,8 @@ type_name
 namespace_or_type_name:
 	 t1=type_or_generic -> { $t1.st }
         // keving: external aliases not supported
-    | ^('::' n2=namespace_or_type_name t2=type_or_generic) -> { $t2.st }
-    | ^(op='.'  n3=namespace_or_type_name t3=type_or_generic)  -> op(pre={ $n3.st }, op = { "." }, post={ $t3.st });
+    | ^('::' n2=type_name t2=type_or_generic) -> { $t2.st }
+    | ^(op='.'  n3=type_name t3=type_or_generic)  -> op(pre={ $n3.st }, op = { "." }, post={ $t3.st });
 
 //	 t1=type_or_generic   ('::' t2=type_or_generic)? ('.'   ts+=type_or_generic)* -> namespace_or_type(type1={$t1.st}, type2={$t2.st}, types={$ts});
 type_or_generic returns [int precedence]
@@ -796,7 +795,7 @@ non_assignment_expression returns [int precedence]
                     elseparens = { comparePrecedence($cop.token, $ce3.precedence) <= 0 }) 
     | ^('??' non_assignment_expression non_assignment_expression)
     // All these operators have left to right associativity
-    | ^((op='=='|op='!='|op='||'|op='&&'|op='|'|op='^'|op='&'|op='>'|op='<'|op='>='|op='<='|op='<<'|op='>>'|op='+'|op='-'|op='*'|op='/'|op='%') 
+    | ^((op='=='|op='!='|op='||'|op='&&'|op='|'|op='^'|op='&'|op='>'|op='<'|op='>='|op='<='|op='<<'|op=RIGHT_SHIFT|op='+'|op='-'|op='*'|op='/'|op='%') 
         e1=non_assignment_expression e2=non_assignment_expression) { $precedence = precedence[$op.token.Type]; }
          -> op(pre={ $e1.st }, op = { $op.token.Text }, post = { $e2.st }, space = { " " },
                 preparen={ comparePrecedence($op.token, $e1.precedence) < 0 },
@@ -1057,7 +1056,7 @@ integral_type:
 
 // B.2.12 Delegates
 delegate_declaration:
-	^(DELEGATE attributes modifiers   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
+	^(DELEGATE attributes? modifiers?   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
 		'('   formal_parameter_list?   ')' );
 delegate_modifiers:
 	modifier+ ;
@@ -1180,7 +1179,7 @@ statement:
 	| statement_plus -> statement(statement = { $statement_plus.st })
 	;
 statement_plus:
-	(identifier   ':') => labeled_statement -> statement(statement = { $labeled_statement.st })
+	labeled_statement -> statement(statement = { $labeled_statement.st })
 	| embedded_statement  -> statement(statement = { $embedded_statement.st })
 	;
 embedded_statement returns [bool isSemi, bool isIf, bool indent]
@@ -1222,7 +1221,7 @@ fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
 labeled_statement:
-	identifier   ':'   statement ;
+	^(':' identifier statement) -> op(pre={ $identifier.st }, op= { ":" }, post = { $statement.st});
 declaration_statement
 @init {
     List<string> preComments = null;
