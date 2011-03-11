@@ -48,6 +48,7 @@ tokens {
             APPLY;
             ARGS;
             NEW;
+            NEWARRAY;
             STATIC_CONSTRUCTOR;
 
             RETURN = 'return';
@@ -257,10 +258,12 @@ public primary_expression:
 	| primary_expression_start   primary_expression_part*
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
 					object_creation_expression   primary_expression_part+ 		// new Foo(arg, arg).Member
-				// try the simple one first, this has no argS and no expressions
-				// symantically could be object creation
-				| (delegate_creation_expression) => delegate_creation_expression// new FooDelegate (MyFunction)
-				| object_creation_expression
+				// (try the simple one first, this has no argS and no expressions
+				//  symantically could be object creation)
+                // keving:  try object_creation_expression first, it could be new type ( xx ) {}  
+                // can also match delegate_creation, will have to distinguish in NetMaker.g
+				| (object_creation_expression) => object_creation_expression
+				| delegate_creation_expression // new FooDelegate (MyFunction)
 				| anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
@@ -407,7 +410,7 @@ public element_initializer:
 public object_initializer: 
 	member_initializer_list?   ','?   '}' ;
 public member_initializer_list: 
-	member_initializer  (',' member_initializer) ;
+	member_initializer  (',' member_initializer)* ;
 public member_initializer: 
 	identifier   '='   initializer_value ;
 public initializer_value: 
@@ -753,7 +756,7 @@ public get_accessor_declaration:
 public set_accessor_declaration:
 	accessor_modifier?   'set'   accessor_body ;
 public accessor_modifier:
-	'public' | 'protected' | 'private' | 'internal' ;
+	'protected' 'internal'? | 'private' | 'internal' 'protected'?;
 public accessor_body:
 	block ;
 
