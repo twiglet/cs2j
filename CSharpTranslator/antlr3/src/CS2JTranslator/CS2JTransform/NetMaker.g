@@ -831,7 +831,7 @@ primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, string
 	;
 // new Type[2] { }
 array_creation_expression returns [TypeRepTemplate dotNetType]:
-	^('new'   
+	^(NEWARRAY   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers[$type.dotNetType]?   array_initializer?	// new int[4]
 					// | invocation_part*

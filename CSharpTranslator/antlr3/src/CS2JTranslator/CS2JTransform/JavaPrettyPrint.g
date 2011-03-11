@@ -503,7 +503,7 @@ primary_or_array_creation_expression returns [int precedence]:
 	;
 // new Type[2] { }
 array_creation_expression returns [int precedence]:
-	^('new'   
+	^(NEWARRAY   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
 					// | invocation_part*

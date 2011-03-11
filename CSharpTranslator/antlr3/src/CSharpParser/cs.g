@@ -345,7 +345,7 @@ public primary_or_array_creation_expression:
 	;
 // new Type[2] { }
 public array_creation_expression:
-	'new'   
+	new_array  
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   array_initializer?	// new int[4]
 					// | invocation_part*
@@ -358,6 +358,8 @@ public array_creation_expression:
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
 		) ;
+public new_array:
+    n='new' -> NEWARRAY[$n, "newarray"]; 
 public array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 public variable_initializer_list:

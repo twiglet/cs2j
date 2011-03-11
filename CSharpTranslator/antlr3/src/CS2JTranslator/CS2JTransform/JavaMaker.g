@@ -492,8 +492,11 @@ primary_or_array_creation_expression:
 array_creation_expression
 @init {
     bool removeDimensions = false;
+    CommonTree ret = null;
 }
 @after {
+    if (ret != null)
+       $array_creation_expression.tree = (CommonTree)adaptor.RulePostProcessing(ret);
     if (removeDimensions) {
         if ($array_creation_expression.tree != null && 
             adaptor.GetChildCount($array_creation_expression.tree) > 3 &&
@@ -512,18 +515,20 @@ array_creation_expression
         }
     }
 }:
-	n='new'^   
-		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   (array_initializer { removeDimensions = true; /* If an initializer is provided then drop the dimensions */} )?	// new int[4]
+	n=NEWARRAY   
+		(type   ((o='['   expression_list   c=']' -> ^($n type $o expression_list $c))  { ret = (CommonTree)adaptor.RulePostProcessing($array_creation_expression.tree); }
+					(   (rank_specifiers { adaptor.AddChild(ret, $rank_specifiers.tree); })?   
+                        (ai1=array_initializer { adaptor.AddChild(ret, $ai1.tree); 
+                                             removeDimensions = true; /* If an initializer is provided then drop the dimensions */} )?	// new int[4]
 					// | invocation_part*
-					| ( ((arguments[null]   ('['|'.'|'->')) => arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]   invocation_part)// new object[2].GetEnumerator()
-					  | invocation_part)*   arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]
+					| ( ((arguments[null]   ('['|'.'|'->')) => as1=arguments[ ret ]   ip=invocation_part[ $as1.tree ] { ret = $ip.tree; })// new object[2].GetEnumerator()
+					  | ip2=invocation_part[ret] { ret = $ip2.tree; })*   as2=arguments[ ret ] { ret = $as2.tree; }
 					)							// new int[4]()
-				| array_initializer		
+				| array_initializer		-> ^($n type array_initializer)
 				)
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
-		    )
+		    ) -> ^($n rank_specifier array_initializer)
 		) ;
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
@@ -1333,20 +1338,20 @@ destructor_body:
 	block ;
 
 ///////////////////////////////////////////////////////
-invocation_expression:
-	invocation_start   (((arguments[null]   ('['|'.'|'->')) => arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]   invocation_part)
-						| invocation_part)*   arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
-invocation_start:
-	predefined_type 
-	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
-	| 'this' 
-	| b='base' -> SUPER[$b.token, "super"]
-	| identifier   ('::'   identifier)?
-	| typeof_expression             // typeof(Foo).Name
-	;
-invocation_part:
-	 access_identifier[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]
-	| brackets[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
+// invocation_expression:
+// 	invocation_start   (((arguments[null]   ('['|'.'|'->')) => arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ]   invocation_part)
+// 						| invocation_part)*   arguments[ (CommonTree)adaptor.Create(KGHOLE, "KGHOLE") ] ;
+// invocation_start:
+// 	predefined_type 
+// 	| (identifier    generic_argument_list)	=> identifier   generic_argument_list
+// 	| 'this' 
+// 	| b='base' -> SUPER[$b.token, "super"]
+// 	| identifier   ('::'   identifier)?
+// 	| typeof_expression             // typeof(Foo).Name
+// 	;
+invocation_part [CommonTree start]:
+	 access_identifier[ $start ]
+	| brackets[ $start ] ;
 
 ///////////////////////////////////////////////////////
 
