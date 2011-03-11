@@ -9,9 +9,9 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.io.*</Import>
+    <Import>CS2JNet.System.IO.FileStreamSupport</Import>
   </Imports>
-  <Java>OutputStream</Java>
+  <Java>FileStreamSupport</Java>
   <Name>System.IO.FileStream</Name>
   <Uses />
   <Inherits>
@@ -22,7 +22,28 @@
   <Properties />
   <Events />
   <Indexers />
-  <Constructors />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.IO.FileStreamSupport</Import>
+      </Imports>
+      <Java>new FileStreamSupport(${path}, ${mode}, ${access})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.IO.FileMode</Type>
+          <Name>mode</Name>
+        </Param>
+        <Param>
+          <Type>System.IO.FileAccess</Type>
+          <Name>access</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
   <Fields />
   <Casts />
   <UnaryOps />
