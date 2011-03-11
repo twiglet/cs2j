@@ -96,6 +96,12 @@
       <Name>Count</Name>
       <Get>${this:16}.size()</Get>
     </Property>
+    <Property>
+      <Imports />
+      <Type>System.Collections.Generic.KeyCollection*[K]*</Type>
+      <Name>Keys</Name>
+      <Get>${this:16}.keySet()</Get>
+    </Property>
   </Properties>
   <Events />
   <Indexers>
