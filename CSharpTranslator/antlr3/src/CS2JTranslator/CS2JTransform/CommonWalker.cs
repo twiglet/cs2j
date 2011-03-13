@@ -13,6 +13,12 @@ namespace Twiglet.CS2J.Translator.Transform
 {
     public class CommonWalker : TreeParser
     {
+       // CONSTANTS
+
+       // Max size of enum structure we will generate to match enums to arbitrary integer values
+       public const int MAX_DUMMY_ENUMS = 500;
+
+
         public CS2JSettings Cfg { get; set; }
         public string Filename { get; set; }
 

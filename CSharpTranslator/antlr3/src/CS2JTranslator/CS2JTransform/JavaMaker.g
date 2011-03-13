@@ -1079,15 +1079,23 @@ enum_member_declarations
 }
 @after{
     $enum_member_declarations.tree = (CommonTree)adaptor.Nil;
-    int dummyCounter = 0;
-    for (int i = 0; i < next; i++) {
-        if (members.ContainsKey(i)) {
-            adaptor.AddChild($enum_member_declarations.tree, members[i]);
-        }
-        else {
-            adaptor.AddChild($enum_member_declarations.tree, adaptor.Create(IDENTIFIER, $e.start.Token, "__dummyEnum__" + dummyCounter++));
-        }
-    };
+    if (next > 0 && next < MAX_DUMMY_ENUMS) {
+       int dummyCounter = 0;
+       for (int i = 0; i < next; i++) {
+          if (members.ContainsKey(i)) {
+             adaptor.AddChild($enum_member_declarations.tree, members[i]);
+          }
+          else {
+             adaptor.AddChild($enum_member_declarations.tree, adaptor.Create(IDENTIFIER, $e.start.Token, "__dummyEnum__" + dummyCounter++));
+          }
+       }
+    }
+    else {
+       Warning($e.tree.Line, "[UNSUPPORTED] We do not yet generate dummy enum members for enums that need more than " + MAX_DUMMY_ENUMS + " entries.");
+       foreach (CommonTree en in members.Values) {
+          adaptor.AddChild($enum_member_declarations.tree, en);
+       }
+    }
 }
 :
 	e=enum_member_declaration[members,ref next] (',' enum_member_declaration[members, ref next])* 
@@ -1100,7 +1108,7 @@ enum_member_declaration[ SortedList<int,CommonTree> members, ref int next]
         // Fill in members, a map from enum's value to AST
 	attributes?   identifier  { $members[$next] = $identifier.tree; $next++; } 
         ((eq='='   ( ((NUMBER | Hex_number) (','|'}')) => 
-                        { Console.Out.WriteLine($i); $members.Remove($next-1); } 
+                        { $members.Remove($next-1); } 
                            (i=NUMBER { calcValue = Int32.Parse($i.text); } 
                             | i=Hex_number { calcValue = Int32.Parse($i.text.Substring(2), NumberStyles.AllowHexSpecifier); } )  
                         { if (calcValue < 0 || calcValue > Int32.MaxValue) {
