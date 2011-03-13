@@ -1303,7 +1303,7 @@ cast_expression  returns [TypeRepTemplate dotNetType]
 ;         
 assignment_operator:
 	'=' | shortcut_assignment_operator ;
-shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>' '>=' ;
+shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | RIGHT_SHIFT_ASSIGN ;
 //pre_increment_expression: 
 //	'++'   unary_expression ;
 //pre_decrement_expression: 
