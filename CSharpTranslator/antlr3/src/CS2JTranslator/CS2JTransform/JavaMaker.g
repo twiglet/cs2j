@@ -1231,7 +1231,7 @@ interface_member_declaration:
 	a=attributes?    m=modifiers?
 		(vt=void_type   im1=interface_method_declaration[$a.tree, $m.tree, $vt.tree] -> $im1
 		| ie=interface_event_declaration[$a.tree, $m.tree] -> $ie
-		| t=type   ( (member_name   '(') => im2=interface_method_declaration[$a.tree, $m.tree, $t.tree] -> $im2
+		| t=type   ( (identifier type_parameter_list?  '(') => im2=interface_method_declaration[$a.tree, $m.tree, $t.tree] -> $im2
                    // property will rewrite to one, or two method headers
 		         | (member_name   '{') => ip=interface_property_declaration[$a.tree, $m.tree, $t.tree] -> $ip //^(PROPERTY[$t.start.Token, "PROPERTY"] $a? $m? $t interface_property_declaration)
 				 | ii=interface_indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ii)
@@ -1240,10 +1240,10 @@ interface_member_declaration:
 interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	i=identifier   '{'   iads=interface_accessor_declarations[atts, mods, type, $i.text]   '}' -> $iads ;
 interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
-	identifier   generic_argument_list?
+	identifier   type_parameter_list?
 	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    s=';' magicThrowsException[true,$s.token]
        -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            identifier type_parameter_constraints_clauses? generic_argument_list? formal_parameter_list? magicThrowsException);
+            identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? magicThrowsException);
 interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
 	e='event'   type   identifier   ';' -> ^(EVENT[$e.token, "EVENT"] { dupTree($atts) } { dupTree($mods) } type identifier)
