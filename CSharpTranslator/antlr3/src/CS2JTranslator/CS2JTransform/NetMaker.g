@@ -302,20 +302,45 @@ scope PrimitiveRep {
     protected int dummyForeachVarCtr = 0;
     protected int dummyStaticConstructorCatchVarCtr = 0;
 
-    protected CommonTree convertSectionsToITE(List sections) {
+    // It turns out that 'default:' doesn't have to be last in the switch statement, so
+    // we need some jiggery pokery when converting to if-then-else.
+    // If there was a default section then 'defaultTree' will be non-null and 'sections'
+    // will have a null entry (the hole where the default section appeared).
+    protected CommonTree convertSectionsToITE(List sections, CommonTree defaultTree) {
         CommonTree ret = null;
-        if (sections != null && sections.Count > 0) {
+        if ((sections == null || sections.Count == 1) && defaultTree != null) {
+           // We just had a default section, so emit it.
+           ret = dupTree(defaultTree);
+        }
+        else if (sections != null) {
+           int startidx = sections.Count - 2;
+           if (defaultTree != null) {
+              // must have at least if .. then .. else
+              // wrap default in else { }
+              IToken tok = defaultTree.Token;
+              CommonTree root = (CommonTree)adaptor.Nil;
+              adaptor.AddChild(root, (CommonTree)adaptor.Create(ELSE, tok, "else"));
+              adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+              adaptor.AddChild(root, dupTree(defaultTree));
+              adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
+              ret = root;
+              startidx = sections.Count - 1;
+           }
+           else {
             ret = dupTree((CommonTree)sections[sections.Count - 1]);
-            for(int i = sections.Count - 2; i >= 0; i--) {
-                CommonTree section = dupTree((CommonTree)sections[i]);
-                // section is either ^(IF ...) or "else ^(IF ....)" we need to insert ret into the IF
-                if (section.IsNil) {
+           }
+           for(int i = startidx; i >= 0; i--) {
+              if (sections[i] != null) {
+                 CommonTree section = dupTree((CommonTree)sections[i]);
+                 // section is either ^(IF ...) or "else ^(IF ....)" we need to insert ret into the IF
+                 if (section.IsNil) {
                     section.Children[section.Children.Count-1].AddChild(ret);
-                }
-                else {
+                 }
+                 else {
                     section.AddChild(ret);
-                }
-                ret = section;
+                 }
+                 ret = section;
+              }
             } 
         }
         return ret;
@@ -1944,12 +1969,14 @@ scope {
     bool convertToIfThenElse;
     string scrutVar;
     bool isFirstCase;
+    CommonTree defaultTree;
 }
 @init {
     $switch_statement::isEnum = false;
     $switch_statement::convertToIfThenElse = false;
     $switch_statement::scrutVar = "WHOOPS";
     $switch_statement::isFirstCase = true;
+    $switch_statement::defaultTree = null;
 }:
     ^(s='switch' se=expression sv=magicScrutineeVar[$s.token]
                 { 
@@ -1964,7 +1991,7 @@ scope {
                 // TODO: down the line, check if scrutinee is already a var and reuse that.
                 // TYPE{ String } ret ;
                 ^(TYPE[$s.token, "TYPE"] IDENTIFIER[$s.token,$expression.dotNetType.Java]) $sv ASSIGN[$s.token, "="] { dupTree($se.tree) } SEMI[$s.token, ";"]
-        { convertSectionsToITE($ss) } 
+                { convertSectionsToITE($ss, $switch_statement::defaultTree) } 
         -> ^($s expression $ss*) 
     ;
 fixed_statement:
@@ -2034,17 +2061,21 @@ else_statement:
 switch_section
 @init {
     bool defaultSection = false;
+    bool isFirstCase = $switch_statement::isFirstCase;
 }
-@after{
-    $switch_statement::isFirstCase = false;
-}:
-	^(s=SWITCH_SECTION ({$switch_statement::convertToIfThenElse}? ite_switch_labels | switch_labels) sl=statement_list) 
-      {
-            
-        }  
-    -> {$switch_statement::convertToIfThenElse && $switch_statement::isFirstCase && $ite_switch_labels.isDefault}? { stripFinalBreak($sl.tree) }
-    -> {$switch_statement::convertToIfThenElse && $ite_switch_labels.isDefault}? ELSE[$s.token, "else"]  OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"] 
-    -> {$switch_statement::convertToIfThenElse && $switch_statement::isFirstCase}? ^(IF[$s.token, "if"]  ite_switch_labels SEP OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"])
+:
+	^(s=SWITCH_SECTION ({$switch_statement::convertToIfThenElse}? ite_switch_labels | switch_labels) sl=statement_list 
+         { if ($switch_statement::convertToIfThenElse && $ite_switch_labels.isDefault) {
+               $switch_statement::defaultTree = stripFinalBreak($sl.tree);
+            } else {
+               $switch_statement::isFirstCase = false;
+            }
+          }
+      ) 
+
+    -> {$switch_statement::convertToIfThenElse && $ite_switch_labels.isDefault}?
+//    -> {$switch_statement::convertToIfThenElse && $ite_switch_labels.isDefault}? ELSE[$s.token, "else"]  OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"] 
+    -> {$switch_statement::convertToIfThenElse && isFirstCase}? ^(IF[$s.token, "if"]  ite_switch_labels SEP OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"])
     -> {$switch_statement::convertToIfThenElse}? ELSE[$s.token, "else"] ^(IF[$s.token, "if"]  ite_switch_labels SEP OPEN_BRACE[$s.token, "{"] { stripFinalBreak($sl.tree) } CLOSE_BRACE[$s.token, "}"])
     -> ^($s switch_labels statement_list)
     ;
