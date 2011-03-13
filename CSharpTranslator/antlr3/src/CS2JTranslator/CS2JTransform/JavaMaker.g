@@ -665,14 +665,14 @@ type_arguments returns [List<string> tyargs]
 	t1=type { $tyargs.Add($t1.thetext); } (',' tn=type { $tyargs.Add($tn.thetext); })* ;
 
 type returns [string thetext]:
-         ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } (s1+='*' { $thetext += "*"; })* -> ^(TYPE $p1? $tn1? $rs $s1*)
-       | ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   ((s2+='*' { $thetext += "*"; })+ | o2='?' { $thetext += "?"; }) -> ^(TYPE $p2? $tn2? $s2* $o2?)
+         ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } ('*' { $thetext += "*"; })* -> ^(TYPE $p1? $tn1? $rs '*'*)
+       | ((predefined_type | type_name)  ('*'+ | '?')) => (p2=predefined_type { $thetext = $p2.thetext; } | tn2=type_name { $thetext = $tn2.thetext; })   (('*' { $thetext += "*"; })+ | o2='?' { $thetext += "?"; }) -> ^(TYPE $p2? $tn2? '*'* $o2?)
        | (p3=predefined_type { $thetext = $p3.thetext; } | tn3=type_name { $thetext = $tn3.thetext; }) -> ^(TYPE $p3? $tn3?)
-       | v='void' { $thetext = "System.Void"; } (s+='*' { $thetext += "*"; })+  -> ^(TYPE[$v.token, "TYPE"] $v $s+)
+       | v='void' { $thetext = "System.Void"; } ('*' { $thetext += "*"; })+  -> ^(TYPE[$v.token, "TYPE"] $v '*'+)
        ;
 non_nullable_type:
-	(p=predefined_type | t=type_name) rs=rank_specifiers? (s+='*')* ->  ^(TYPE["TYPE"] $p? $t? $rs? $s*)
-       | v='void' (s+='*')+  -> ^(TYPE[$v.token,"TYPE"] $v $s+)
+	(p=predefined_type | t=type_name) rs=rank_specifiers? '*'* ->  ^(TYPE["TYPE"] $p? $t? $rs? '*'*)
+       | v='void' '*'+  -> ^(TYPE[$v.token,"TYPE"] $v '*'+)
        ;
 non_array_type:
 	type;
