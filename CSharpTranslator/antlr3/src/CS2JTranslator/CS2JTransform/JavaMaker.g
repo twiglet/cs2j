@@ -1536,7 +1536,7 @@ using_statement
 	u='using'   '('    resource_acquisition   c=')'    embedded_statement
      { disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames); } 
      f=magicFinally[$c.token, disposers]
-     magicTry[$u.token, embeddedStatementToBlock($u.token, $embedded_statement.tree), null, $f.tree] 
+     magicTry[$u.token, state.backtracking == 0 ? embeddedStatementToBlock($u.token, $embedded_statement.tree) : null, null, $f.tree] 
      -> OPEN_BRACE[$u.token, "{"] 
             resource_acquisition SEMI[$c.token, ";"] 
             magicTry
