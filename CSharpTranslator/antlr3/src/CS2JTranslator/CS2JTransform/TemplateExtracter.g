@@ -303,7 +303,7 @@ primary_or_array_creation_expression:
 	;
 // new Type[2] { }
 array_creation_expression:
-	NEWARRAY   
+	NEW_ARRAY   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   array_initializer?	// new int[4]
 					// | invocation_part*

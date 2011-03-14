@@ -48,7 +48,9 @@ tokens {
             APPLY;
             ARGS;
             NEW;
-            NEWARRAY;
+            NEW_ARRAY;
+            NEW_DELEGATE;
+            NEW_ANON_OBJECT;
             STATIC_CONSTRUCTOR;
 
             RETURN = 'return';
@@ -123,6 +125,8 @@ tokens {
             STAR = '*';
 
             TYPE;
+            TYPE_VAR;
+            TYPE_DYNAMIC;
             ENUM_BODY;
             TYPE_PARAM_CONSTRAINT;
             UNARY_EXPR;
@@ -359,7 +363,7 @@ public array_creation_expression:
 		    )
 		) ;
 public new_array:
-    n='new' -> NEWARRAY[$n, "newarray"]; 
+    n='new' -> NEW_ARRAY[$n, "newarray"]; 
 public array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 public variable_initializer_list:

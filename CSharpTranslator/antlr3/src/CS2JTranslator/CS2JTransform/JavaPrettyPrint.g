@@ -375,11 +375,8 @@ primary_expression returns [int precedence]
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
     | ^(NEW type argument_list? object_or_collection_initializer?) { $precedence = precedence[NEW]; }-> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
-	| 'new' (   
-				// (try the simple one first, this has no argS and no expressions
-				//  symantically could be object creation)
-				| (delegate_creation_expression) => delegate_creation_expression // new FooDelegate (MyFunction)
-				| anonymous_object_creation_expression)							// new {int X, string Y} 
+	| ^(NEW_DELEGATE delegate_creation_expression)  // new FooDelegate (MyFunction)
+	| ^(NEW_ANON_OBJECT anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression      -> { $checked_expression.st }      		// checked (...
 	| unchecked_expression     -> { $unchecked_expression.st }     		// unchecked {...}
@@ -503,7 +500,7 @@ primary_or_array_creation_expression returns [int precedence]:
 	;
 // new Type[2] { }
 array_creation_expression returns [int precedence]:
-	^(NEWARRAY   
+	^(NEW_ARRAY   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
 					// | invocation_part*
@@ -1231,8 +1228,8 @@ declaration_statement
 local_variable_declaration:
 	local_variable_type   local_variable_declarators -> local_variable_declaration(type={ $local_variable_type.st }, decs = { $local_variable_declarators.st } );
 local_variable_type:
-	('var') => 'var' -> unsupported(reason = {"'var' as type is unsupported"}, text = { "var" } )
-	| ('dynamic') => 'dynamic' -> unsupported(reason = {"'dynamic' as type is unsupported"}, text = { "dynamic" } )
+	TYPE_VAR -> unsupported(reason = {"'var' as type is unsupported"}, text = { "var" } )
+	| TYPE_DYNAMIC -> unsupported(reason = {"'dynamic' as type is unsupported"}, text = { "dynamic" } )
 	| type  -> { $type.st } ;
 local_variable_declarators:
 	vs+=local_variable_declarator (',' vs+=local_variable_declarator)* -> list(items={$vs}, sep={", "});

@@ -474,10 +474,10 @@ dim_separators
 
 delegate_creation_expression: 
 	// 'new'   
-	t1=type_name   '('   t2=type_name   ')' -> ^(NEW[$t1.start.Token, "new"] ^(TYPE[$t1.start.Token, "TYPE"] $t1) ^(ARGS[$t2.start.Token, "ARGS"] $t2));
+	t1=type_name   '('   t2=type_name   ')' -> ^(NEW_DELEGATE[$t1.start.Token, "new(delegate)"] ^(TYPE[$t1.start.Token, "TYPE"] $t1) ^(ARGS[$t2.start.Token, "ARGS"] $t2));
 anonymous_object_creation_expression: 
 	// 'new'
-	anonymous_object_initializer ;
+	i=anonymous_object_initializer -> ^(NEW_ANON_OBJECT[$i.tree.Token, "new(anonobj)"] anonymous_object_initializer);
 anonymous_object_initializer: 
 	'{'   (member_declarator_list   ','?)?   '}';
 member_declarator_list: 
@@ -515,7 +515,7 @@ array_creation_expression
         }
     }
 }:
-	n=NEWARRAY   
+	n=NEW_ARRAY   
 		(type   ((o='['   expression_list   c=']' -> ^($n type $o expression_list $c))  { ret = (CommonTree)adaptor.RulePostProcessing($array_creation_expression.tree); }
 					(   (rank_specifiers { adaptor.AddChild(ret, $rank_specifiers.tree); })?   
                         (ai1=array_initializer { adaptor.AddChild(ret, $ai1.tree); 
@@ -1402,8 +1402,8 @@ declaration_statement:
 local_variable_declaration returns [List<string> variableNames]:
 	local_variable_type   local_variable_declarators { $variableNames = $local_variable_declarators.variableNames; };
 local_variable_type:
-	('var') => 'var'
-	| ('dynamic') => 'dynamic'
+	('var') => v='var' -> TYPE_VAR[$v.token, "var"]
+	| ('dynamic') => d='dynamic' -> TYPE_DYNAMIC[$d.token,"dynamic"]
 	| type ;
 local_variable_declarators returns [List<string> variableNames]
 @init {

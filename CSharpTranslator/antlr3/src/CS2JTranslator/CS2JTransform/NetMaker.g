@@ -767,11 +767,8 @@ scope {
                WarningFailedResolve($n.token.Line, "Could not resolve constructor against " + conType.TypeName);
             }
         }
-	| 'new' (   
-				// (try the simple one first, this has no argS and no expressions
-				//  symantically could be object creation)
-				| (delegate_creation_expression) => delegate_creation_expression // new FooDelegate (MyFunction)
-				| anonymous_object_creation_expression)							// new {int X, string Y} 
+	| ^(NEW_DELEGATE delegate_creation_expression) // new FooDelegate (MyFunction)
+    | ^(NEW_ANON_OBJECT anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
 	| unchecked_expression          		// unchecked {...}
@@ -856,7 +853,7 @@ primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, string
 	;
 // new Type[2] { }
 array_creation_expression returns [TypeRepTemplate dotNetType]:
-	^(NEWARRAY   
+	^(NEW_ARRAY   
 		(type   ('['   expression_list   ']'   
 					( rank_specifiers[$type.dotNetType]?   array_initializer?	// new int[4]
 					// | invocation_part*
@@ -2014,8 +2011,8 @@ local_variable_type returns [bool isTypeNode, TypeRepTemplate dotNetType]
 @init {
    $isTypeNode = false;
 }:
-	('var') => 'var'             { $dotNetType = new UnknownRepTemplate("System.Object"); }
-	| ('dynamic') => 'dynamic'   { $dotNetType = new UnknownRepTemplate("System.Object"); }
+	TYPE_VAR                     { $dotNetType = new UnknownRepTemplate("System.Object"); }
+	| TYPE_DYNAMIC               { $dotNetType = new UnknownRepTemplate("System.Object"); }
 	| type                       { $dotNetType = $type.dotNetType; $isTypeNode = true; };
 local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
 	local_variable_declarator[$tyTree, $ty] (',' local_variable_declarator[$tyTree, $ty])* ;
