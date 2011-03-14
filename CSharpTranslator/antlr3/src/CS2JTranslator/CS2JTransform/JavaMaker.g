@@ -321,8 +321,13 @@ namespace_member_declaration
 }
 @after {
     if (isCompUnit) {
-        CUMap.Add(ns+"."+$ty.name, new CUnit($namespace_member_declaration.tree,CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
-        CUKeys.Add(ns+"."+$ty.name);
+       if (CUKeys.Contains(ns+"."+$ty.name)) {
+          { Warning($ty.start.Token.Line, "[UNSUPPORTED] Cannot have a class with multiple generic type overloadings: " + ns+"."+$ty.name); }
+       }
+       else {
+          CUMap.Add(ns+"."+$ty.name, new CUnit($namespace_member_declaration.tree,CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
+          CUKeys.Add(ns+"."+$ty.name);
+       }
     }; 
 }
 :
