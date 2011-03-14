@@ -1987,8 +1987,11 @@ scope {
         -> { $switch_statement::convertToIfThenElse }?
                 // TODO: down the line, check if scrutinee is already a var and reuse that.
                 // TYPE{ String } ret ;
+                // TODO: Can we remove these braces in the (usual) case where they aren't required
+                OPEN_BRACE[$s.token, "{"]
                 ^(TYPE[$s.token, "TYPE"] IDENTIFIER[$s.token,$expression.dotNetType.Java]) $sv ASSIGN[$s.token, "="] { dupTree($se.tree) } SEMI[$s.token, ";"]
                 { convertSectionsToITE($ss, $switch_statement::defaultTree) } 
+                CLOSE_BRACE[$s.token, "}"]
         -> ^($s expression $ss*) 
     ;
 fixed_statement:
