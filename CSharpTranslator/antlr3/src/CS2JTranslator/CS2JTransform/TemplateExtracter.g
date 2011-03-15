@@ -898,7 +898,7 @@ variance_annotation:
 	'in' | 'out' ;
 
 type_parameter_constraints_clauses:
-	type_parameter_constraints_clause   (','   type_parameter_constraints_clause)* ;
+	type_parameter_constraints_clause+ ; 
 type_parameter_constraints_clause:
 	'where'   type_variable_name   ':'   type_parameter_constraint_list ;
 // class, Circle, new()
