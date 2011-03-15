@@ -1598,11 +1598,34 @@ also_keyword:
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
 	| 'endif' | 'define' | 'undef';
 
-literal:
+literal
+@init {
+   string newText = null;
+}
+@after{
+   if (newText != null) {
+      $literal.tree.Token.Text = newText;
+   }
+}:
 	Real_literal
-	| n=NUMBER -> {UInt64.Parse($n.text) > Int32.MaxValue}? LONGNUMBER[$n.token, $n.text]
-               -> $n
-	| Hex_number
+	| n=NUMBER 
+      { 
+         // Remove '[uU]' from any trailing integer suffix
+         newText = $n.text.Replace("u","").Replace("U","");
+         if (newText.Length < $n.text.Length) {
+            { Warning($n.line, "[UNSUPPORTED] Unsigned number literal converted to signed number: " + $n.text + " -> " + newText); } ;
+         }
+      }
+      -> {UInt64.Parse($n.text.TrimEnd(new Char[] {'u','U','l','L'})) > Int32.MaxValue}? LONGNUMBER[$n.token, newText]
+      -> $n
+	| h=Hex_number
+      { 
+         // Remove '[uU]' from any trailing integer suffix
+         newText = $h.text.Replace("u","").Replace("U","");
+         if (newText.Length < $h.text.Length) {
+            { Warning($h.line, "[UNSUPPORTED] Unsigned number literal converted to signed number: " + $h.text + " -> " + newText); } ;
+         }
+      }
 	| Character_literal
 	| STRINGLITERAL
 	| Verbatim_string_literal
