@@ -1041,7 +1041,7 @@ enum_declaration
 enum_base:
 	':'   integral_type ;
 enum_body:
-	^(ENUM_BODY es+=enum_member_declaration+) -> enum_body(values={$es});
+	^(ENUM_BODY es+=enum_member_declaration*) -> enum_body(values={$es});
 enum_member_declaration:
 	attributes?   identifier -> enum_member(comments = { CollectedComments }, value={ $identifier.st });
 //enum_modifiers:

@@ -1076,7 +1076,7 @@ scope TypeContext;
 enum_base:
 	':'   integral_type ;
 enum_body:
-	'{' (enum_member_declarations ','?)?   '}' -> ^(ENUM_BODY enum_member_declarations) ;
+	'{' (enum_member_declarations ','?)?   '}' -> ^(ENUM_BODY enum_member_declarations? ) ;
 enum_member_declarations
 @init {
     SortedList<int,CommonTree> members = new SortedList<int,CommonTree>();
