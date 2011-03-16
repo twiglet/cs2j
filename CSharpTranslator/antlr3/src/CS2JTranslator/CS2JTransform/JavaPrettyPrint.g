@@ -1201,7 +1201,7 @@ embedded_statement returns [bool isSemi, bool isIf, bool indent]
 	| checked_statement -> { $checked_statement.st }
 	| unchecked_statement -> { $unchecked_statement.st }
 	| lock_statement -> { $lock_statement.st }
-	| yield_statement 
+	| yield_statement -> { $yield_statement.st } 
     | ^('unsafe'  { preComments = CollectedComments; }   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
       -> unsupported(comments = { preComments }, reason = {"unsafe blocks are not supported"}, text = { someText } )
 	| fixed_statement
@@ -1329,9 +1329,16 @@ lock_statement
           %{someText}.block = $embedded_statement.st;
           %{someText}.indent = $embedded_statement.indent; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } )
         ;
-yield_statement:
+yield_statement
+@init {
+    StringTemplate someText = null;
+}:
 	'yield'   ('return'   expression   ';'
-	          | 'break'   ';') ;
+	          | 'break'   ';')? 
+        { someText = %yield(); 
+          %{someText}.exp = $expression.st; 
+          } ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
+;
 
 ///////////////////////////////////////////////////////
 //	Lexar Section

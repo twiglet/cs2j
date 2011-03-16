@@ -238,6 +238,11 @@ lock(<exp>)
 <block(statements = block, indent = indent)>
 >>
 
+yield(comments,exp) ::= <<
+<comments; separator="\n">
+yield <if(exp)>return <exp><else>break<endif>;
+>>
+
 keyword_block(comments,keyword,block, indent) ::= <<
 <comments; separator="\n">
 <keyword>
