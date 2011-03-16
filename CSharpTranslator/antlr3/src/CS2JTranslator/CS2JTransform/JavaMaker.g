@@ -1255,7 +1255,7 @@ interface_event_declaration [CommonTree atts, CommonTree mods]:
    ; 
 interface_indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
 	// attributes?    'new'?    type   
-	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts,mods,type,$formal_parameter_list.tree]   '}' ;
+	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts,mods,type,$formal_parameter_list.tree]   '}' -> indexer_accessor_declarations ;
 interface_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, string propName]:
     interface_accessor_declaration[atts, mods, type, propName]+
     ;
