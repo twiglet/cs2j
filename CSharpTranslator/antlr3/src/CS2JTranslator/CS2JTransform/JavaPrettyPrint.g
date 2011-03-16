@@ -785,7 +785,7 @@ non_assignment_expression returns [int precedence]
 	//'non ASSIGNment'
 	(anonymous_function_signature   '=>')	=> lambda_expression
 	| (query_expression) => query_expression 
-	| ^(cop=COND_EXPR ce1=non_assignment_expression ce2=non_assignment_expression ce3=non_assignment_expression) { $precedence = precedence[$cop.token.Type]; } 
+	| ^(cop=COND_EXPR ce1=non_assignment_expression ce2=expression ce3=expression) { $precedence = precedence[$cop.token.Type]; } 
           -> cond( condexp = { $ce1.st }, thenexp = { $ce2.st }, elseexp = { $ce3.st },
                     condparens = { comparePrecedence($cop.token, $ce1.precedence) <= 0 }, 
                     thenparens = { comparePrecedence($cop.token, $ce2.precedence) <= 0 }, 
