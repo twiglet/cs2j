@@ -1774,7 +1774,7 @@ enum_declaration:
 enum_base:
 	':'   integral_type ;
 enum_body:
-	^(ENUM_BODY enum_member_declarations) ;
+	^(ENUM_BODY enum_member_declarations?) ;
 enum_member_declarations:
 	enum_member_declaration+ ;
 enum_member_declaration:
