@@ -531,9 +531,13 @@ array_creation_expression
 					)							// new int[4]()
 				| array_initializer		-> ^($n type array_initializer)
 				)
-		| rank_specifier   // [,]
+		| (rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
-		    ) -> ^($n rank_specifier array_initializer)
+		    ) -> ^($n rank_specifier array_initializer)) { ret = (CommonTree)adaptor.RulePostProcessing($array_creation_expression.tree); }
+            ( // optionally invoke methods/index array
+              ( ((arguments[null]   ('['|'.'|'->')) => as3=arguments[ret]   ip3=invocation_part[$as3.tree] { ret = $ip3.tree; })// new object[2].GetEnumerator()
+			    | ip4=invocation_part[ret] { ret = $ip4.tree; })*   as4=arguments[ret] {ret = $as4.tree; }
+            )?
 		) ;
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;

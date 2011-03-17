@@ -361,6 +361,10 @@ public array_creation_expression:
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
+            ( // optionally invoke methods/index array
+              ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
+			    | invocation_part)*   arguments
+            )?
 		) ;
 public new_array:
     n='new' -> NEW_ARRAY[$n, "newarray"]; 

@@ -501,18 +501,12 @@ primary_or_array_creation_expression returns [int precedence]:
 // new Type[2] { }
 array_creation_expression returns [int precedence]:
 	^(NEW_ARRAY   
-		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
-					// | invocation_part*
-					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
-					  | invocation_part)*   arguments
-					)							// new int[4]()
+		(type   ('['   expression_list   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
 				| ai2=array_initializer	-> 	array_construct(type = { $type.st }, inits = { $ai2.st })
 				)
-		| rank_specifier   // [,]
-			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
+		| rank_specifier  array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
-		)) { $precedence = precedence[NEW]; };
+		) { $precedence = precedence[NEW]; };
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' -> array_initializer(init = { $variable_initializer_list.st });
 variable_initializer_list:
