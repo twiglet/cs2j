@@ -1223,11 +1223,13 @@ SEMI: ';';
 RPAREN: ')';
 
 WS:
-    (' '  |  '\r'  |  '\t'  |  '\n'  ) 
+    // '\u00A0' is a non-breaking space
+    (' '  |  '\r'  |  '\t'  |  '\n' | '\u00A0' ) 
     { Skip(); } ;
 fragment
 TS:
-    (' '  |  '\t'  ) 
+    // '\u00A0' is a non-breaking space
+    (' '  |  '\t' | '\u00A0' ) 
     { Skip(); } ;
 DOC_LINE_COMMENT
     : 	('///' ~('\n'|'\r')*  ('\r' | '\n')+)
