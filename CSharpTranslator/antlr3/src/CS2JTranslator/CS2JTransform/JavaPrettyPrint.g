@@ -501,18 +501,12 @@ primary_or_array_creation_expression returns [int precedence]:
 // new Type[2] { }
 array_creation_expression returns [int precedence]:
 	^(NEW_ARRAY   
-		(type   ('['   expression_list   ']'   
-					( rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
-					// | invocation_part*
-					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
-					  | invocation_part)*   arguments
-					)							// new int[4]()
+		(type   ('['   expression_list   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
 				| ai2=array_initializer	-> 	array_construct(type = { $type.st }, inits = { $ai2.st })
 				)
-		| rank_specifier   // [,]
-			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
+		| rank_specifier  array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
-		)) { $precedence = precedence[NEW]; };
+		) { $precedence = precedence[NEW]; };
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' -> array_initializer(init = { $variable_initializer_list.st });
 variable_initializer_list:
@@ -1201,7 +1195,7 @@ embedded_statement returns [bool isSemi, bool isIf, bool indent]
 	| checked_statement -> { $checked_statement.st }
 	| unchecked_statement -> { $unchecked_statement.st }
 	| lock_statement -> { $lock_statement.st }
-	| yield_statement 
+	| yield_statement -> { $yield_statement.st } 
     | ^('unsafe'  { preComments = CollectedComments; }   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
       -> unsupported(comments = { preComments }, reason = {"unsafe blocks are not supported"}, text = { someText } )
 	| fixed_statement
@@ -1329,9 +1323,16 @@ lock_statement
           %{someText}.block = $embedded_statement.st;
           %{someText}.indent = $embedded_statement.indent; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } )
         ;
-yield_statement:
+yield_statement
+@init {
+    StringTemplate someText = null;
+}:
 	'yield'   ('return'   expression   ';'
-	          | 'break'   ';') ;
+	          | 'break'   ';')? 
+        { someText = %yield(); 
+          %{someText}.exp = $expression.st; 
+          } ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
+;
 
 ///////////////////////////////////////////////////////
 //	Lexar Section

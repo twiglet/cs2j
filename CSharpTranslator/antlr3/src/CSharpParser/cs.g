@@ -361,6 +361,10 @@ public array_creation_expression:
 		| rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
+            ( // optionally invoke methods/index array
+              ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
+			    | invocation_part)*   arguments
+            )?
 		) ;
 public new_array:
     n='new' -> NEW_ARRAY[$n, "newarray"]; 
@@ -1223,11 +1227,13 @@ SEMI: ';';
 RPAREN: ')';
 
 WS:
-    (' '  |  '\r'  |  '\t'  |  '\n'  ) 
+    // '\u00A0' is a non-breaking space
+    (' '  |  '\r'  |  '\t'  |  '\n' | '\u00A0' ) 
     { Skip(); } ;
 fragment
 TS:
-    (' '  |  '\t'  ) 
+    // '\u00A0' is a non-breaking space
+    (' '  |  '\t' | '\u00A0' ) 
     { Skip(); } ;
 DOC_LINE_COMMENT
     : 	('///' ~('\n'|'\r')*  ('\r' | '\n')+)
@@ -1439,7 +1445,7 @@ EscapeSequence
              |   'x'   HEX_DIGIT   HEX_DIGIT  HEX_DIGIT
              |   'x'   HEX_DIGIT   HEX_DIGIT  HEX_DIGIT  HEX_DIGIT
              |   'u'   HEX_DIGIT   HEX_DIGIT  HEX_DIGIT  HEX_DIGIT
-             |   'U'   HEX_DIGIT   HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT
+             |   'U'   HEX_DIGIT   HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT  HEX_DIGIT
              ) ;     
 fragment
 Decimal_integer_literal:

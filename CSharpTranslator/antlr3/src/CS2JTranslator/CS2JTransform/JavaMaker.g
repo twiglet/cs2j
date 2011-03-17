@@ -375,8 +375,8 @@ class_member_declaration:
 	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text] -> $m2
 		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
-		   | (member_name   '.'   'this') => type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree] -> $ix1
-		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree]	-> $ix2 //this
+		   | (type_name   '.'   'this') => tn=type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree, $tn.tree] -> $ix1
+		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree, null]	-> $ix2 //this
 	       | field_declaration     -> ^(FIELD[$t.start.Token, "FIELD"] $a? $m? $t field_declaration) // qid
 	       | operator_declaration -> ^(OPERATOR[$t.start.Token, "OPERATOR"] $a? $m? $t operator_declaration)
 	       )
@@ -531,9 +531,13 @@ array_creation_expression
 					)							// new int[4]()
 				| array_initializer		-> ^($n type array_initializer)
 				)
-		| rank_specifier   // [,]
+		| (rank_specifier   // [,]
 			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
-		    ) -> ^($n rank_specifier array_initializer)
+		    ) -> ^($n rank_specifier array_initializer)) { ret = (CommonTree)adaptor.RulePostProcessing($array_creation_expression.tree); }
+            ( // optionally invoke methods/index array
+              ( ((arguments[null]   ('['|'.'|'->')) => as3=arguments[ret]   ip3=invocation_part[$as3.tree] { ret = $ip3.tree; })// new object[2].GetEnumerator()
+			    | ip4=invocation_part[ret] { ret = $ip4.tree; })*   as4=arguments[ret] {ret = $as4.tree; }
+            )?
 		) ;
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
@@ -1255,7 +1259,7 @@ interface_event_declaration [CommonTree atts, CommonTree mods]:
    ; 
 interface_indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
 	// attributes?    'new'?    type   
-	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts,mods,type,$formal_parameter_list.tree]   '}' -> indexer_accessor_declarations ;
+	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts,mods,type,null,$formal_parameter_list.tree]   '}' -> indexer_accessor_declarations ;
 interface_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, string propName]:
     interface_accessor_declaration[atts, mods, type, propName]+
     ;
@@ -1276,25 +1280,25 @@ struct_body [string structName]:
 
 
 ///////////////////////////////////////////////////////
-indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type]: 
-	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts, mods, type, $formal_parameter_list.tree]   '}' -> indexer_accessor_declarations ;
+indexer_declaration [CommonTree atts, CommonTree mods, CommonTree type, CommonTree iface]: 
+	'this'   '['   formal_parameter_list   ']'   '{'   indexer_accessor_declarations[atts, mods, type, iface, $formal_parameter_list.tree]   '}' -> indexer_accessor_declarations ;
 //indexer_declarator:
 	//(type_name '.')?   
 //	'this'   '['   formal_parameter_list   ']' ;
 	
 
-indexer_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, CommonTree idxparams]:
-    indexer_accessor_declaration[atts, mods, type, idxparams]+;
+indexer_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, CommonTree iface, CommonTree idxparams]:
+    indexer_accessor_declaration[atts, mods, type, iface, idxparams]+;
 
-indexer_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, CommonTree idxparams]
+indexer_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, CommonTree iface, CommonTree idxparams]
 @init {
      CommonTree idxBlock = null; 
 }:
 	la=attributes? lm=accessor_modifier? 
       (g='get' ((';')=> gbe=';'  { idxBlock = $gbe.tree; } 
-                | gb=block { idxBlock = $gb.tree; } ) geti=magicIdxGetter[atts, $la.tree, mods, $lm.tree, type, $g.token, idxBlock, idxparams] -> $geti
+                | gb=block { idxBlock = $gb.tree; } ) geti=magicIdxGetter[atts, $la.tree, mods, $lm.tree, type, iface, $g.token, idxBlock, idxparams] -> $geti
        | s='set' ((';')=> sbe=';'  { idxBlock = $sbe.tree; }
-                  | sb=block { idxBlock = $sb.tree; } ) seti=magicIdxSetter[atts, $la.tree, mods, $lm.tree, type, $s.token, idxBlock, idxparams] -> $seti)
+                  | sb=block { idxBlock = $sb.tree; } ) seti=magicIdxSetter[atts, $la.tree, mods, $lm.tree, type, iface, $s.token, idxBlock, idxparams] -> $seti)
     ;
 
 ///////////////////////////////////////////////////////
@@ -1678,20 +1682,37 @@ magicSetterBody[bool isOn, IToken setTok, string varName]:
  -> 
    ;
 
-magicIdxGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken getTok, CommonTree body, CommonTree idxparams]
-: 
-    magicThrowsException[true,getTok]
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get___idx"] { dupTree(idxparams) } { dupTree(body) } magicThrowsException) 
-    ;
-magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, CommonTree idxparams]
+magicIdxGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, CommonTree iface, IToken getTok, CommonTree body, CommonTree idxparams]
 @init {
+    CommonTree name = (CommonTree)adaptor.Nil;
+    if (iface == null) {
+        name = (CommonTree)adaptor.Create(IDENTIFIER, getTok, "get___idx");
+    } else {
+        adaptor.AddChild(name, dupTree(iface));
+        adaptor.AddChild(name, (CommonTree)adaptor.Create(DOT, getTok, "."));
+        adaptor.AddChild(name, (CommonTree)adaptor.Create(IDENTIFIER, getTok, "get___idx"));
+    }
+}: 
+    magicThrowsException[true,getTok]
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} { name } { dupTree(idxparams) } { dupTree(body) } magicThrowsException) 
+    ;
+magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, CommonTree iface, IToken setTok, CommonTree body, CommonTree idxparams]
+@init {
+    CommonTree name = (CommonTree)adaptor.Nil;
+    if (iface == null) {
+        name = (CommonTree)adaptor.Create(IDENTIFIER, setTok, "set___idx");
+    } else {
+        adaptor.AddChild(name, dupTree(iface));
+        adaptor.AddChild(name, (CommonTree)adaptor.Create(DOT, setTok, "."));
+        adaptor.AddChild(name, (CommonTree)adaptor.Create(IDENTIFIER, setTok, "set___idx"));
+    }
     CommonTree augParams = dupTree(idxparams);
     adaptor.AddChild(augParams, dupTree($type));
     adaptor.AddChild(augParams, (CommonTree)adaptor.Create(IDENTIFIER, setTok, "value"));
 }
 :
     magicThrowsException[true,setTok] 
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set___idx"] { augParams } { dupTree(body) } magicThrowsException ) 
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) { name } { augParams } { dupTree(body) } magicThrowsException ) 
     ;
 
 // keving: can't get this to work reasonably

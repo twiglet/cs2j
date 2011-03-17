@@ -854,18 +854,12 @@ primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, string
 // new Type[2] { }
 array_creation_expression returns [TypeRepTemplate dotNetType]:
 	^(NEW_ARRAY   
-		(type   ('['   expression_list   ']'   
-					( rank_specifiers[$type.dotNetType]?   array_initializer?	// new int[4]
-					// | invocation_part*
-					| ( ((arguments   ('['|'.'|'->')) => arguments   invocation_part)// new object[2].GetEnumerator()
-					  | invocation_part)*   arguments
-					)							// new int[4]()
+		(type   ('['   expression_list   ']' rank_specifiers[$type.dotNetType]?   array_initializer?	// new int[4]
 				| array_initializer	{ $dotNetType = $type.dotNetType; } 	
 				)
-		| rank_specifier[null]   // [,]
-			(array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
-		    )
-		)) ;
+		| rank_specifier[null] array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
+		)
+     ) ;
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 variable_initializer_list:
