@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antlr3.Runtime", "Antlr.Run
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JTemplateGenerator", "CS2JTemplateGenerator\CS2JTemplateGenerator.csproj", "{B72D065B-862A-469B-87F1-2E521AC7CA08}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JTemplateSigner", "CS2JTemplateSigner\CS2JTemplateSigner.csproj", "{DF234BD4-A292-4C92-AC8E-F97D3E821079}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JKeyGenerator", "CS2JKeyGenerator\CS2JKeyGenerator.csproj", "{F294E768-56C3-438A-A3E5-8FA39825262E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,7 @@ Global
 		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Debug|x86.ActiveCfg = Debug|x86
 		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Debug|x86.Build.0 = Debug|x86
 		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Release|Any CPU.ActiveCfg = Release|x86
+		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Release|Any CPU.Build.0 = Release|x86
 		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Release|Mixed Platforms.Build.0 = Release|x86
 		{39949CE9-8C9D-46C2-BE90-37FEE97CCBF9}.Release|x86.ActiveCfg = Release|x86
@@ -51,6 +56,17 @@ Global
 		{CF15D0D5-BE72-4F98-B70F-229ABA1DF0E8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{CF15D0D5-BE72-4F98-B70F-229ABA1DF0E8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{CF15D0D5-BE72-4F98-B70F-229ABA1DF0E8}.Release|x86.ActiveCfg = Release|Any CPU
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Debug|Any CPU.Build.0 = Debug|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Debug|x86.ActiveCfg = Debug|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Debug|x86.Build.0 = Debug|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Release|Any CPU.ActiveCfg = Release|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Release|Mixed Platforms.Build.0 = Release|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Release|x86.ActiveCfg = Release|x86
+		{DF234BD4-A292-4C92-AC8E-F97D3E821079}.Release|x86.Build.0 = Release|x86
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -61,6 +77,18 @@ Global
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E6ACBB37-AF38-45E1-B399-0CEE63809A15}.Release|x86.ActiveCfg = Release|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Debug|x86.Build.0 = Debug|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Release|x86.ActiveCfg = Release|Any CPU
+		{F294E768-56C3-438A-A3E5-8FA39825262E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = CS2JTranslator\CS2JTranslator.csproj
