@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -140,4 +140,4 @@
   <Casts />
   <UnaryOps />
   <BinaryOps />
-</Class>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>Rnf8GowFFF9JUEkVxHIh7NNruxc=</DigestValue></Reference></SignedInfo><SignatureValue>D1rqx0ui7x+8pqBSgXVXYfSapffmCkR++UqTYmP36i443cLV2H02XPVocQDM/jW87GCPUkMmdioGxrCIWJbmcnrOepuw77qAFtzQuywTukaQLMk954f5apHzWQlzqzkcNLmWMjd5dviYDD7vGyEVBO2P6cg6m6/PoHqNppFKTZc=</SignatureValue></Signature></Class>

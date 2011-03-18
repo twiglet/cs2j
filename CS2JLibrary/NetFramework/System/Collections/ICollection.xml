@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -34,4 +34,4 @@
   </Properties>
   <Events />
   <Indexers />
-</Interface>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>9Jt0kUgRiw3ASza3GVrtvv9AjnM=</DigestValue></Reference></SignedInfo><SignatureValue>M3HMswA/hmG9awMSqjIP9Qcf6N9SsOprzwxZZ5S/HPhEbB9isPnNDvq7OHTzc9dahSSGpqDtqzSnpLHZ/CG9GW9jCaL6XoUaoS9i0P5cmssXqP/6tLdnBDYej4qI19rE+2r6trPtPXk23OvhQHUfJkB7eQqpZmGGWH8wOCIjFvM=</SignatureValue></Signature></Interface>

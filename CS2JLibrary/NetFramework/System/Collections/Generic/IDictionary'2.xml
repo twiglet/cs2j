@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -98,4 +98,4 @@
       <Get>${this:16}.values()</Get>
     </Property>
   </Properties>
-</Interface>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>cOvixXCOMP7Ngd/aln+bwdm1Kmw=</DigestValue></Reference></SignedInfo><SignatureValue>dGQ+QgNhHRbSE1yAfU+JBKTOL4fCH3Dkr1bcj69VWxDwTZ2Ig6nmd+g4Yd3l/aLOiijImnNsMFOn+QM7V610OnYMVpwb/Vhs3IqOI5YwaUYzSA12GNGt1BZGzV+o+dkH0aLSwUyAUaZ+HcfKnEl2TrFOxEpaRByyLDb8EYuS8P0=</SignatureValue></Signature></Interface>
