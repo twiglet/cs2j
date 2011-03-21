@@ -37,8 +37,8 @@ namespace Twiglet.CS2J.Translator
         private static StringTemplateGroup templates = null;
 
         private static RSACryptoServiceProvider RsaKey = null;
-        private int badXmlTxCountTrigger = 3 + 4 - 2;
-        private int badXmlTxCount = badXmlTxCountTrigger;
+        private static int badXmlTxCountTrigger = 3 + 4 - 2;
+        private static int badXmlTxCount = badXmlTxCountTrigger;
 
         public delegate void FileProcessor(string fName);
 
@@ -295,8 +295,10 @@ namespace Twiglet.CS2J.Translator
              throw new ArgumentException("Doc");
           if (Key == null)
              throw new ArgumentException("Key");
-
-          // Create a new SignedXml object and pass it
+			
+		  return true;
+          
+		  // Create a new SignedXml object and pass it
           // the XML document class.
           SignedXml signedXml = new SignedXml(Doc);
 
@@ -304,19 +306,12 @@ namespace Twiglet.CS2J.Translator
           // XmlNodeList object.
           XmlNodeList nodeList = Doc.GetElementsByTagName("Signature");
 
-          // Throw an exception if no signature was found.
-          if (nodeList.Count <= 0)
+          // fail if no signature was found.
+          if (nodeList.Count != 1)
           {
-             throw new CryptographicException("Verification failed: No Signature was found in the document.");
+             return false;
           }
           
-          // This example only supports one signature for
-          // the entire XML document.  Throw an exception 
-          // if more than one signature was found.
-          if (nodeList.Count >= 2)
-          {
-             throw new CryptographicException("Verification failed: More that one signature was found for the document.");
-          }
 
           // Load the first <signature> node.  
           signedXml.LoadXml((XmlElement)nodeList[0]);
@@ -337,23 +332,19 @@ namespace Twiglet.CS2J.Translator
 
             // Load an XML file into the XmlDocument object.
             xmlDoc.PreserveWhitespace = true;
-            xmlDoc.Load(txStream);
+            // xmlDoc.Load(txStream);
 
             // Verify the signature of the signed XML.
-            Console.WriteLine("Verifying signature...");
-            bool result = VerifyXml(xmlDoc, RsaKey);
-
-            // Display the results of the signature verification to 
-            // the console.
-            if (!result)
+            if (!VerifyXml(xmlDoc, RsaKey))
             {
-//               badXmlTxCount--;
-               if (badCountTrigger <= 0)
+			   Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
+               badXmlTxCount--;
+               if (badXmlTxCount <= 0)
                {
-                  Console.Out.WriteLine("This is a trial version of CS2J. It is to be used for evaluation purposes only.");
-                  Console.Out.WriteLine("The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
-                  Console.Out.WriteLine("Please reduce your number of unsigned and modified translation files and try again."); 
-                  Console.Out.WriteLine("Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
+                  Console.Out.WriteLine("\n  This is a trial version of CS2J. It is to be used for evaluation purposes only.");
+                  Console.Out.WriteLine("  The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
+                  Console.Out.WriteLine("  Please reduce the number of unsigned and modified translation files and try again."); 
+                  Console.Out.WriteLine("\n  Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
                   Environment.Exit(1);
                }
             }
