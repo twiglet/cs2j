@@ -39,7 +39,10 @@ namespace Twiglet.CS2J.Translator
         private static RSACryptoServiceProvider RsaKey = null;
         private static int badXmlTxCountTrigger = 3 + 4 - 2;
         private static int badXmlTxCount = badXmlTxCountTrigger;
-
+		
+		private static String[] newLines = new String[] { Environment.NewLine };
+		private static int numLines = 100;
+		
         public delegate void FileProcessor(string fName);
 
         private static void showVersion()
@@ -296,7 +299,8 @@ namespace Twiglet.CS2J.Translator
           if (Key == null)
              throw new ArgumentException("Key");
 			
-		  return true;
+		  if (numLines > numLines - 1)
+				return true;
           
 		  // Create a new SignedXml object and pass it
           // the XML document class.
@@ -380,6 +384,19 @@ namespace Twiglet.CS2J.Translator
             }
             cfg.DebugLevel = saveDebugLevel;
         }
+		
+		private static string limit(string inp) {
+			if (numLines > numLines - 1)
+			    return inp;
+			String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
+			if (lines.Length <= numLines) {
+				return inp;
+			}
+		    String[] res = new String[numLines+1];
+			Array.Copy(lines, res, numLines);
+			res[numLines] = "";
+			return String.Join(Environment.NewLine, res);
+		}
 
         // Here's where we do the real work...		
         public static void translateFile(string fullName)
@@ -405,7 +422,7 @@ namespace Twiglet.CS2J.Translator
                 javaMaker.CUMap = new Dictionary<string, CUnit>();
                 javaMaker.CUKeys = new List<string>();
 	    
-                if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} to Java", fullName);
+                if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Translating {0} to Java", fullName);
                 
                 javaMaker.compilation_unit();
                 
@@ -500,9 +517,9 @@ namespace Twiglet.CS2J.Translator
                     outputMaker.EmittedCommentTokenIdx = saveEmittedCommentTokenIdx;
                     outputMaker.IsLast = i == (javaMaker.CUKeys.Count - 1);
                     
-                    if (cfg.DebugLevel > 5) Console.Out.WriteLine("Writing out {0}", javaFName);
+                    if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", javaFName);
                     StreamWriter javaW = new StreamWriter(javaFName);
-                    javaW.Write(outputMaker.compilation_unit().ToString());
+                    javaW.Write(limit(outputMaker.compilation_unit().ToString()));
                     javaW.Close();
                     saveEmittedCommentTokenIdx = outputMaker.EmittedCommentTokenIdx;
                 }
