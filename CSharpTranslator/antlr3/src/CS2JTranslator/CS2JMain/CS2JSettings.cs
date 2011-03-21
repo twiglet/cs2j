@@ -33,6 +33,8 @@ namespace Twiglet.CS2J.Translator
             public string EnumDir { get; set; }
             public int Verbosity { get; set; }
             
+            public string KeyFile { get; set; }
+
             public bool DebugTemplateExtraction { get; set; }
             public int DebugLevel { get; set; }
             
@@ -76,6 +78,7 @@ namespace Twiglet.CS2J.Translator
 	        MacroDefines = new List<string>();
 	        XmlDir = Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs");
                 EnumDir = Path.Combine(Directory.GetCurrentDirectory(), "enums");
+                KeyFile = null;
 	        Verbosity = 0;	
                 DebugTemplateExtraction = true;	
 	        DebugLevel = 0;		

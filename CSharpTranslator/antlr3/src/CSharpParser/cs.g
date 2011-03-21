@@ -766,7 +766,7 @@ public get_accessor_declaration:
 public set_accessor_declaration:
 	accessor_modifier?   'set'   accessor_body ;
 public accessor_modifier:
-	'protected' 'internal'? | 'private' | 'internal' 'protected'?;
+	'protected' 'internal'? | 'private' | 'internal' 'protected'? ;
 public accessor_body:
 	block ;
 

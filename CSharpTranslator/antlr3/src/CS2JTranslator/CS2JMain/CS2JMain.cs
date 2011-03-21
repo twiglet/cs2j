@@ -11,6 +11,9 @@ using Antlr.Runtime.Tree;
 using Antlr.Runtime;
 using System.Xml.Serialization;
 
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+
 using Antlr.StringTemplate;
 
 using NDesk.Options;
@@ -31,8 +34,12 @@ namespace Twiglet.CS2J.Translator
         private const string VERSION = "2011.1.1.x";
         private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
         private static CS2JSettings cfg = new CS2JSettings();
- 		private static StringTemplateGroup templates = null;
-		
+        private static StringTemplateGroup templates = null;
+
+        private static RSACryptoServiceProvider RsaKey = null;
+        private int badXmlTxCountTrigger = 3 + 4 - 2;
+        private int badXmlTxCount = badXmlTxCountTrigger;
+
         public delegate void FileProcessor(string fName);
 
         private static void showVersion()
@@ -112,6 +119,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("appdir=", dirs => addDirectories(cfg.AppRoot, dirs))
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
                         .Add ("exclude=", dirs => addDirectories(cfg.Exclude, dirs))
+                        .Add ("keyfile=", v => cfg.KeyFile = v)
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
@@ -125,6 +133,19 @@ namespace Twiglet.CS2J.Translator
                         // No work
                         Environment.Exit(0);
  
+
+                    // Initialise RSA signing key so that we can verify signatures
+                    RsaKey = new RSACryptoServiceProvider();
+                    string rsaPubXml = RSAPubKey.PubKey;
+// Comment out code to read pub key from a file. To easy to re-sign xml files and import your own key!
+//                    if (!String.IsNullOrEmpty(cfg.KeyFile))
+//                    {
+//                       XmlReader reader =  XmlReader.Create(cfg.KeyFile);
+//                       reader.MoveToContent();
+//                       rsaPubXml = reader.ReadOuterXml();
+//                    }
+                    RsaKey.FromXmlString(rsaPubXml);
+
                     // Load .Net templates
                     foreach (string r in cfg.NetRoot)
                         doFile(r, ".xml", addNetTranslation, cfg.ExNetRoot);
@@ -263,11 +284,82 @@ namespace Twiglet.CS2J.Translator
             return nodes;
 
         }
+
+
+       // Verify the signature of an XML file against an asymmetric 
+       // algorithm and return the result.
+       public static Boolean VerifyXml(XmlDocument Doc, RSA Key)
+       {
+          // Check arguments.
+          if (Doc == null)
+             throw new ArgumentException("Doc");
+          if (Key == null)
+             throw new ArgumentException("Key");
+
+          // Create a new SignedXml object and pass it
+          // the XML document class.
+          SignedXml signedXml = new SignedXml(Doc);
+
+          // Find the "Signature" node and create a new
+          // XmlNodeList object.
+          XmlNodeList nodeList = Doc.GetElementsByTagName("Signature");
+
+          // Throw an exception if no signature was found.
+          if (nodeList.Count <= 0)
+          {
+             throw new CryptographicException("Verification failed: No Signature was found in the document.");
+          }
+          
+          // This example only supports one signature for
+          // the entire XML document.  Throw an exception 
+          // if more than one signature was found.
+          if (nodeList.Count >= 2)
+          {
+             throw new CryptographicException("Verification failed: More that one signature was found for the document.");
+          }
+
+          // Load the first <signature> node.  
+          signedXml.LoadXml((XmlElement)nodeList[0]);
+
+          // Check the signature and return the result.
+          return signedXml.CheckSignature(Key);
+       }
+
         // Here's where we do the real work...
         public static void addNetTranslation(string fullName)
         {
-            Stream s = new FileStream(fullName, FileMode.Open, FileAccess.Read);
-            TypeRepTemplate t = TypeRepTemplate.newInstance(s);
+			
+			// Suchk in translation file
+            Stream txStream = new FileStream(fullName, FileMode.Open, FileAccess.Read);
+
+			// Create a new XML document.
+            XmlDocument xmlDoc = new XmlDocument();
+
+            // Load an XML file into the XmlDocument object.
+            xmlDoc.PreserveWhitespace = true;
+            xmlDoc.Load(txStream);
+
+            // Verify the signature of the signed XML.
+            Console.WriteLine("Verifying signature...");
+            bool result = VerifyXml(xmlDoc, RsaKey);
+
+            // Display the results of the signature verification to 
+            // the console.
+            if (!result)
+            {
+//               badXmlTxCount--;
+               if (badCountTrigger <= 0)
+               {
+                  Console.Out.WriteLine("This is a trial version of CS2J. It is to be used for evaluation purposes only.");
+                  Console.Out.WriteLine("The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
+                  Console.Out.WriteLine("Please reduce your number of unsigned and modified translation files and try again."); 
+                  Console.Out.WriteLine("Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
+                  Environment.Exit(1);
+               }
+            }
+
+            txStream.Seek(0, SeekOrigin.Begin);
+            TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
             // Fullname has form: <path>/<key>.xml
             AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
         }
