@@ -4,6 +4,10 @@
     This build file builds a cs2j distribution archive
   </description>
 
+  <tstamp>
+    <format property="timestamp.isoformat" pattern="yyyy-MM-dd'T'HH:mm:ss" />
+  </tstamp>
+
   <property file="${user.home}/${ant.project.name}.build.properties"/>
   <property file="${user.home}/build.properties"/>
   <property file="local.build.properties"/>
@@ -45,13 +49,46 @@
       <git command = "pull" dir = "@{dest}" />
     </sequential>
   </macrodef>
-  
-  <target name="release" description="make a release archive" depends="clean,init,switch,buildgrammarfiles,buildapplication"/>
 
-  <target name="buildcs2j" description="builds cs2j and other utilities">
+  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,tagme,pushme"/>
+
+  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,switch,buildcs2j"/>
+
+  <target name="pushme" description="Push changes to remote" >
+    <git command = "push" failonerror="true">
+      <args>
+        <arg value = "origin"/>
+        <arg value = "HEAD"/>
+      </args>
+    </git>
+    <git command = "push" failonerror="true">
+      <args>
+        <arg value = "--tags"/>
+      </args>
+    </git>
   </target>
 
-  <target name="buildgrammarfiles" description="invokes ANTLR to convert grammar files to C# source">
+  <target name="tagme" description="Optionally, tag current state" if="cs2j.tag.name">
+    <git command = "tag" failonerror="true">
+      <args>
+        <arg value = "-a"/>
+        <arg value = "-m"/>
+        <arg value = "Tagging release"/>
+        <arg value = "${release.tagname}"/>
+      </args>
+    </git>
+  </target>
+
+  <target name="buildcs2j" depends="buildgrammars" description="builds all C# source in the solution">
+    <exec osfamily="windows" executable="${win.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+    </exec>
+    <exec osfamily="mac" executable="${other.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+    </exec>
+  </target>
+
+  <target name="buildgrammars" description="invokes ANTLR to convert grammar files to C# source">
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.parser.dir}/cs.g" 
                       make="true" />
@@ -73,34 +110,16 @@
                       make="true" />
   </target>
 
-
-
-  <target name="buildapplication" description="builds all C# source in the solution">
-    <exec osfamily="windows" executable="${win.msbuild.exe}">
-      <arg value = "${cs2j.sln}"/>
-      <arg value = "/t:Clean"/>
-    </exec>
-    <exec osfamily="windows" executable="${win.msbuild.exe}">
-      <arg value = "${cs2j.sln}"/>
-      <arg value = "/t:Build"/>
-    </exec>
-    <exec osfamily="mac" executable="${other.msbuild.exe}">
-      <arg value = "${cs2j.sln}"/>
-      <arg value = "/t:Clean"/>
-    </exec>
-    <exec osfamily="mac" executable="${other.msbuild.exe}">
-      <arg value = "${cs2j.sln}"/>
-      <arg value = "/t:Build"/>
-    </exec>
-  </target>
-
-  <target name="switch" description="switched to release branch and checks that the working copy is all committed">
+  <target name="switch" description="switched to release branch">
     <git command = "checkout" failonerror="true">
       <args>
         <arg value = "--quiet"/>
         <arg value = "${release.branch}"/>
       </args>
     </git>
+  </target>
+    
+  <target name="checkclean" description="fails if working copy is dirty">
     <git command = "diff-index" gitresult = "local.wc.isdirty">
       <args>
         <arg value = "--quiet"/>
@@ -116,6 +135,14 @@
 
   <target name="clean" depends="" description="Clean build directory">
     <delete failonerror="false" dir="${build.dir}" />
+    <exec osfamily="windows" executable="${win.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+      <arg value = "/t:Clean"/>
+    </exec>
+    <exec osfamily="mac" executable="${other.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+      <arg value = "/t:Clean"/>
+    </exec>
   </target>
     
   <target name="dumpProperties" description="output all set properties, a useful sanity check">
