@@ -1,6 +1,6 @@
 bin/
 obj/
-build/
+#build/
 test-results/
 *.csproj.user
 *.suo

@@ -1,0 +1,125 @@
+<project name="CS2JDist" default="release" basedir=".">
+
+  <description>
+    This build file builds a cs2j distribution archive
+  </description>
+
+  <property file="${user.home}/${ant.project.name}.build.properties"/>
+  <property file="${user.home}/build.properties"/>
+  <property file="local.build.properties"/>
+  <property file="build.properties"/>
+
+  <!-- load the ant-antlr task -->
+  <taskdef resource="org/apache/tools/ant/antlr/antlib.xml" classpath="${builder.ant.lib}/ant-antlr3.jar;${project.dir}/jar/antlr-3.3.jar" />
+  
+  <!-- git macros, stolen / based on http://tlrobinson.net/blog/2008/11/13/ant-tasks-for-git/ -->
+  <macrodef name = "git">
+    <attribute name = "command" />
+    <attribute name = "dir" default = "" />
+    <attribute name = "failonerror" default = "false" />
+    <attribute name = "gitresult" default = "gitresult" />
+    <attribute name = "gitresultsetonfail" default = "@{gitresult}.setonfail" />
+    <element name = "args" optional = "true" />
+    <sequential>
+      <echo message = "git @{command}" />
+      <exec executable = "git" dir = "@{dir}" failonerror="@{failonerror}" resultproperty = "@{gitresult}">
+        <arg value = "@{command}" />
+        <args/>
+      </exec>
+      <condition property="@{gitresultsetonfail}"> 
+        <equals arg1="${@{gitresult}}" arg2="1"/> 
+      </condition> 
+    </sequential>
+  </macrodef>
+
+  <macrodef name = "git-clone-pull">
+    <attribute name = "repository" />
+    <attribute name = "dest" />
+    <sequential>
+      <git command = "clone">
+        <args>
+          <arg value = "@{repository}" />
+          <arg value = "@{dest}" />
+        </args>
+      </git>
+      <git command = "pull" dir = "@{dest}" />
+    </sequential>
+  </macrodef>
+  
+  <target name="release" description="make a release archive" depends="clean,init,switch,buildgrammarfiles,buildapplication"/>
+
+  <target name="buildcs2j" description="builds cs2j and other utilities">
+  </target>
+
+  <target name="buildgrammarfiles" description="invokes ANTLR to convert grammar files to C# source">
+    <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
+                      target="${cs2j.parser.dir}/cs.g" 
+                      make="true" />
+    <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
+                      target="${cs2j.transform.dir}/TemplateExtracter.g" 
+                      libdirectory="${cs2j.parser.dir}" 
+                      make="true" />
+    <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
+                      target="${cs2j.transform.dir}/JavaMaker.g" 
+                      libdirectory="${cs2j.parser.dir}" 
+                      make="true" />
+    <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
+                      target="${cs2j.transform.dir}/NetMaker.g" 
+                      libdirectory="${cs2j.parser.dir}" 
+                      make="true" />
+    <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
+                      target="${cs2j.transform.dir}/JavaPrettyPrint.g" 
+                      libdirectory="${cs2j.parser.dir}" 
+                      make="true" />
+  </target>
+
+
+
+  <target name="buildapplication" description="builds all C# source in the solution">
+    <exec osfamily="windows" executable="${win.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+      <arg value = "/t:Clean"/>
+    </exec>
+    <exec osfamily="windows" executable="${win.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+      <arg value = "/t:Build"/>
+    </exec>
+    <exec osfamily="mac" executable="${other.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+      <arg value = "/t:Clean"/>
+    </exec>
+    <exec osfamily="mac" executable="${other.msbuild.exe}">
+      <arg value = "${cs2j.sln}"/>
+      <arg value = "/t:Build"/>
+    </exec>
+  </target>
+
+  <target name="switch" description="switched to release branch and checks that the working copy is all committed">
+    <git command = "checkout" failonerror="true">
+      <args>
+        <arg value = "--quiet"/>
+        <arg value = "${release.branch}"/>
+      </args>
+    </git>
+    <git command = "diff-index" gitresult = "local.wc.isdirty">
+      <args>
+        <arg value = "--quiet"/>
+        <arg value = "HEAD"/>
+      </args>
+    </git>
+    <fail message = "Working Copy is dirty.  Commit changes and try again." if="local.wc.isdirty.setonfail" />
+  </target>
+    
+  <target name="init" depends="">
+    <mkdir dir="${build.dir}" />
+  </target>
+
+  <target name="clean" depends="" description="Clean build directory">
+    <delete failonerror="false" dir="${build.dir}" />
+  </target>
+    
+  <target name="dumpProperties" description="output all set properties, a useful sanity check">
+    <echoproperties/>
+  </target>
+    
+</project>
