@@ -299,9 +299,6 @@ namespace Twiglet.CS2J.Translator
           if (Key == null)
              throw new ArgumentException("Key");
 			
-		  if (numLines > numLines - 1)
-				return true;
-          
 		  // Create a new SignedXml object and pass it
           // the XML document class.
           SignedXml signedXml = new SignedXml(Doc);
@@ -386,8 +383,6 @@ namespace Twiglet.CS2J.Translator
         }
 		
 		private static string limit(string inp) {
-			if (numLines > numLines - 1)
-			    return inp;
 			String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
 			if (lines.Length <= numLines) {
 				return inp;
