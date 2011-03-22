@@ -1553,8 +1553,8 @@ resource_acquisition returns [List<string> resourceNames]
                          IDENTIFIER[$expression.tree.Token, "__newVar"+newVarCtr++] ASSIGN[$expression.tree.Token, "="] expression //SEMI[$expression.tree.Token, ";"]
     ;
 yield_statement:
-	'yield'   ('return'   expression   ';'
-	          | 'break'   ';') ;
+	'yield'^   ('return'   expression   ';'!
+	          | 'break'   ';'!) ;
 
 ///////////////////////////////////////////////////////
 //	Lexar Section

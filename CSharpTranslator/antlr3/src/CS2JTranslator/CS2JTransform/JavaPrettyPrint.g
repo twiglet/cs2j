@@ -1327,8 +1327,10 @@ yield_statement
 @init {
     StringTemplate someText = null;
 }:
-	'yield'   ('return'   expression   ';'
-	          | 'break'   ';')? 
+	^('yield'   ('return'   expression
+	             | 'break'   
+                 |  )
+      ) 
         { someText = %yield(); 
           %{someText}.exp = $expression.st; 
           } ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
