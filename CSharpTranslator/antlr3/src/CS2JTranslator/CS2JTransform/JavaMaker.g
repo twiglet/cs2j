@@ -702,7 +702,7 @@ block:
 	';'
 	| '{'   statement_list?   '}';
 statement_list:
-	statement+ ;
+	statement[/* isStatementListCtxt */ true]+ ;
 	
 ///////////////////////////////////////////////////////
 //	Expression Section
@@ -1339,7 +1339,7 @@ constructor_initializer:
 constructor_body[CommonTree init]:
 	{init == null}?=> s=';' -> $s 
 	| s1=';' -> OPEN_BRACE[$s1.token, "{"] { dupTree(init) } CLOSE_BRACE[$s1.token, "}"]
-    | a='{' ss+=statement* b='}' -> $a { dupTree(init) } $ss* $b
+    | a='{' ss+=statement[/* isStatementListCtxt */ true]* b='}' -> $a { dupTree(init) } $ss* $b
     ;
 
 ///////////////////////////////////////////////////////
@@ -1372,12 +1372,12 @@ invocation_part [CommonTree start]:
 
 ///////////////////////////////////////////////////////
 
-statement:
+statement[bool isStatementListCtxt]:
 	(declaration_statement) => declaration_statement
-	| (identifier   ':') => labeled_statement
-	| embedded_statement 
+	| (identifier   ':') => labeled_statement[isStatementListCtxt]
+	| embedded_statement[isStatementListCtxt] 
 	;
-embedded_statement:
+embedded_statement[bool isStatementListCtxt]:
 	block
 	| selection_statement	// if, switch
 	| iteration_statement	// while, do, for, foreach
@@ -1386,14 +1386,14 @@ embedded_statement:
 	| checked_statement
 	| unchecked_statement
 	| lock_statement
-	| using_statement 
+	| using_statement[isStatementListCtxt] 
 	| yield_statement 
 	| unsafe_statement
 	| fixed_statement
 	| expression_statement	// expression!
 	;
 fixed_statement:
-	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
+	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
 fixed_pointer_declarators:
 	fixed_pointer_declarator   (','   fixed_pointer_declarator)* ;
 fixed_pointer_declarator:
@@ -1403,8 +1403,8 @@ fixed_pointer_initializer:
 	expression;
 unsafe_statement:
 	'unsafe'^   block;
-labeled_statement:
-	identifier   ':'^   statement ;
+labeled_statement[bool isStatementListCtxt]:
+	identifier   ':'^   statement[isStatementListCtxt] ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
@@ -1441,11 +1441,11 @@ selection_statement:
 	| switch_statement ;
 if_statement:
 	// else goes with closest if
-	i='if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)? -> ^(IF[$i.Token] boolean_expression SEP embedded_statement else_statement?)
+	i='if'   '('   boolean_expression   ')'   embedded_statement[/* isStatementListCtxt */ false] (('else') => else_statement)? -> ^(IF[$i.Token] boolean_expression SEP embedded_statement else_statement?)
 //	'if'   '('   boolean_expression   ')'   embedded_statement (('else') => else_statement)?
 	;
 else_statement:
-	'else'   embedded_statement	;
+	'else'   embedded_statement[/* isStatementListCtxt */ false]	;
 switch_statement:
 	s='switch'   '('   expression   ')'   switch_block -> ^($s expression switch_block);
 switch_block:
@@ -1465,11 +1465,11 @@ iteration_statement:
 	| for_statement
 	| foreach_statement ;
 while_statement:
-	w='while'   '('   boolean_expression   ')'   embedded_statement -> ^($w boolean_expression SEP embedded_statement);
+	w='while'   '('   boolean_expression   ')'   embedded_statement[/* isStatementListCtxt */ false] -> ^($w boolean_expression SEP embedded_statement);
 do_statement:
-	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
+	'do'   embedded_statement[/* isStatementListCtxt */ false]   'while'   '('   boolean_expression   ')'   ';' ;
 for_statement:
-	f='for'   '('   for_initializer?   ';'   for_condition?   ';'   for_iterator?   ')'   embedded_statement 
+	f='for'   '('   for_initializer?   ';'   for_condition?   ';'   for_iterator?   ')'   embedded_statement[/* isStatementListCtxt */ false] 
          -> ^($f for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement);
 for_initializer:
 	(local_variable_declaration) => local_variable_declaration
@@ -1482,7 +1482,7 @@ for_iterator:
 statement_expression_list:
 	statement_expression (',' statement_expression)* ;
 foreach_statement:
-	f='foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement 
+	f='foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement[/* isStatementListCtxt */ false] 
     -> ^($f local_variable_type   identifier  expression SEP  embedded_statement);
 jump_statement:
 	break_statement
@@ -1530,21 +1530,19 @@ checked_statement:
 unchecked_statement:
 	'unchecked'   block ;
 lock_statement:
-	'lock'   '('  expression   ')'   embedded_statement ;
+	'lock'   '('  expression   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
 // TODO: Can we avoid surrounding this with braces if not needed?
-using_statement
+using_statement[bool isStatementListCtxt]
 @init {
     CommonTree disposers = null;
 }:
 // see http://msdn.microsoft.com/en-us/library/yh598w02.aspx for translation
-	u='using'   '('    resource_acquisition   c=')'    embedded_statement
+	u='using'   '('    resource_acquisition   c=')'    embedded_statement[/* isStatementListCtxt */ false]
      { disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames); } 
      f=magicFinally[$c.token, disposers]
      magicTry[$u.token, state.backtracking == 0 ? embeddedStatementToBlock($u.token, $embedded_statement.tree) : null, null, $f.tree] 
-     -> OPEN_BRACE[$u.token, "{"] 
-            resource_acquisition SEMI[$c.token, ";"] 
-            magicTry
-        CLOSE_BRACE[$u.token, "}"] 
+     -> {isStatementListCtxt}? OPEN_BRACE[$u.token, "{"] resource_acquisition SEMI[$c.token, ";"] magicTry CLOSE_BRACE[$u.token, "}"] 
+     -> resource_acquisition SEMI[$c.token, ";"] magicTry 
      ;
 resource_acquisition returns [List<string> resourceNames]
 @init {

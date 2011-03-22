@@ -407,7 +407,7 @@ scope PrimitiveRep {
             // Make a { <cast> statement }
             adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
             adaptor.AddChild(root, vardec);
-            // todo: strip "{ }"
+
             adaptor.AddChild(root, stripPossibleBraces((CommonTree)adaptor.DupTree(embeddedStatement)));
             adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
         }
@@ -433,8 +433,6 @@ scope PrimitiveRep {
         }
     }
     
-
-    // if slist is a list of statements surrounded by braces, then strip them out. 
     protected CommonTree mkBoxedType(CommonTree ty, IToken tok) {
         CommonTree ret = ty;
         // Make sure its just  plain old predefined type
@@ -1095,7 +1093,7 @@ scope SymTab;
 	';'
 	| '{'   statement_list?   '}';
 statement_list:
-	statement+ ;
+	statement[/* isStatementListCtxt */ true]+ ;
 	
 ///////////////////////////////////////////////////////
 //	Expression Section
@@ -1932,17 +1930,17 @@ invocation_part:
 
 // keving: split statement into two parts, there seems to be a problem with the state
 // machine if we combine statement and statement_plus. (It fails to recognise dataHelper.Add();)
-statement:
+statement[bool isStatementListCtxt]:
     (declaration_statement) => declaration_statement 
-    | statement_plus;
-statement_plus:
-    labeled_statement 
-    | embedded_statement 
+    | statement_plus[isStatementListCtxt];
+statement_plus[bool isStatementListCtxt]:
+    labeled_statement[isStatementListCtxt] 
+    | embedded_statement[isStatementListCtxt] 
 	;
-embedded_statement:
+embedded_statement[bool isStatementListCtxt]:
       block
-	| ^(IF boolean_expression SEP embedded_statement else_statement?)
-    | switch_statement
+	| ^(IF boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
+    | switch_statement[isStatementListCtxt]
 	| iteration_statement	// while, do, for, foreach
 	| jump_statement		// break, continue, goto, return, throw
 	| ^('try' block catch_clauses? finally_clause?)
@@ -1954,7 +1952,7 @@ embedded_statement:
 	| fixed_statement
 	| expression_statement	// expression!
 	;
-switch_statement
+switch_statement[ bool isStatementListCtxt]
 scope {
     bool isEnum;
     bool convertToIfThenElse;
@@ -1978,10 +1976,12 @@ scope {
                     }
                 } 
             ss+=switch_section*) 
-        -> { $switch_statement::convertToIfThenElse }?
-                // TODO: down the line, check if scrutinee is already a var and reuse that.
+        -> { $switch_statement::convertToIfThenElse && isStatementListCtxt }?
                 // TYPE{ String } ret ;
-                // TODO: Can we remove these braces in the (usual) case where they aren't required
+                ^(TYPE[$s.token, "TYPE"] IDENTIFIER[$s.token,$expression.dotNetType.Java]) $sv ASSIGN[$s.token, "="] { dupTree($se.tree) } SEMI[$s.token, ";"]
+                { convertSectionsToITE($ss, $switch_statement::defaultTree) } 
+        -> { $switch_statement::convertToIfThenElse }?
+                // TYPE{ String } ret ;
                 OPEN_BRACE[$s.token, "{"]
                 ^(TYPE[$s.token, "TYPE"] IDENTIFIER[$s.token,$expression.dotNetType.Java]) $sv ASSIGN[$s.token, "="] { dupTree($se.tree) } SEMI[$s.token, ";"]
                 { convertSectionsToITE($ss, $switch_statement::defaultTree) } 
@@ -1989,7 +1989,7 @@ scope {
         -> ^($s expression $ss*) 
     ;
 fixed_statement:
-	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
+	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement[ /* isStatementListCtxt */ false] ;
 fixed_pointer_declarators:
 	fixed_pointer_declarator   (','   fixed_pointer_declarator)* ;
 fixed_pointer_declarator:
@@ -1997,8 +1997,8 @@ fixed_pointer_declarator:
 fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
-labeled_statement:
-	^(':' identifier statement) ;
+labeled_statement[bool isStatementListCtxt]:
+	^(':' identifier statement[isStatementListCtxt]) ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
@@ -2051,7 +2051,7 @@ statement_expression:
 	expression
 	;
 else_statement:
-	'else'   embedded_statement	;
+	'else'   embedded_statement[/* isStatementListCtxt */ false]	;
 switch_section
 @init {
     bool defaultSection = false;
@@ -2113,10 +2113,10 @@ scope SymTab;
     if (ret != null)
         $iteration_statement.tree = ret;
 }:
-	^('while' boolean_expression SEP embedded_statement)
+	^('while' boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false])
 	| do_statement
-	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement)
-	| ^(f='foreach' local_variable_type   identifier expression s=SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement)
+	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement[/* isStatementListCtxt */ false])
+	| ^(f='foreach' local_variable_type   identifier expression s=SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement[/* isStatementListCtxt */ false])
            magicObjectType[$f.token] magicForeachVar[$f.token]
         {
             newType = $local_variable_type.tree;
@@ -2159,7 +2159,7 @@ scope SymTab;
         -> ^($f { newType } { newIdentifier } { newExpression }  $s { newEmbeddedStatement })
     ;
 do_statement:
-	'do'   embedded_statement   'while'   '('   boolean_expression   ')'   ';' ;
+	'do'   embedded_statement[/* isStatementListCtxt */ false]   'while'   '('   boolean_expression   ')'   ';' ;
 for_initializer:
 	(local_variable_declaration) => local_variable_declaration
 	| statement_expression_list 
@@ -2199,7 +2199,7 @@ checked_statement:
 unchecked_statement:
 	'unchecked'   block ;
 lock_statement:
-	'lock'   '('  expression   ')'   embedded_statement ;
+	'lock'   '('  expression   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
 yield_statement:
 	'yield'   ('return'   expression   ';'
 	          | 'break'   ';') ;
