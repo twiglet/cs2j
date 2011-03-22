@@ -5,7 +5,7 @@
   </description>
 
   <tstamp>
-    <format property="timestamp.isoformat" pattern="yyyy-MM-dd'T'HH:mm:ss" />
+    <format property="timestamp.format" pattern="yyyy-MM-dd'T'HH'h'mm'm'ss" />
   </tstamp>
 
   <property file="${user.home}/${ant.project.name}.build.properties"/>
@@ -68,7 +68,7 @@
     </git>
   </target>
 
-  <target name="tagme" description="Optionally, tag current state" if="cs2j.tag.name">
+  <target name="tagme" description="tag current state">
     <git command = "tag" failonerror="true">
       <args>
         <arg value = "-a"/>
