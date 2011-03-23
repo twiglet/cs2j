@@ -31,19 +31,19 @@ namespace Twiglet.CS2J.Translator
 {
     class CS2J
     {
-        private const string VERSION = "2011.1.1.x";
-        private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
-        private static CS2JSettings cfg = new CS2JSettings();
-        private static StringTemplateGroup templates = null;
+       private const string VERSION = "2011.1.1.x";
+       private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
+       private static CS2JSettings cfg = new CS2JSettings();
+       private static StringTemplateGroup templates = null;
 
-        private static RSACryptoServiceProvider RsaKey = null;
-        private static int badXmlTxCountTrigger = 3 + 4 - 2;
-        private static int badXmlTxCount = badXmlTxCountTrigger;
+       private static RSACryptoServiceProvider RsaKey = null;
+       private static int badXmlTxCountTrigger = 3 + 4 - 2;
+       private static int badXmlTxCount = badXmlTxCountTrigger;
 		
-		private static String[] newLines = new String[] { Environment.NewLine };
-		private static int numLines = 100;
+       private static String[] newLines = new String[] { Environment.NewLine };
+       private static int numLines = (10 * 10) + 50 - 30;
 		
-        public delegate void FileProcessor(string fName);
+       public delegate void FileProcessor(string fName);
 
         private static void showVersion()
         {
@@ -57,21 +57,22 @@ namespace Twiglet.CS2J.Translator
             Console.Out.WriteLine(" [-v]                                                                        (be [somewhat more] verbose, repeat for more verbosity)");
             Console.Out.WriteLine(" [-D <macroVariable>]                                                        (define <macroVariable>, option can be repeated)");
             Console.Out.WriteLine(" [-showtokens]                                                               (the lexer prints the tokenized input to the console)");
-            Console.Out.WriteLine(" [-dumpcsharp] [-dumpjavasyntax] [-dumpjava]                                 (show parse tree at various stages of the translation)");
+            Console.Out.WriteLine(" [-showcsharp] [-showjavasyntax] [-showjava]                                 (show parse tree at various stages of the translation)");
             Console.Out.WriteLine(" [-dumpxml] [-xmldir <directory to dump xml database>]                       (dump the translation repository as xml files)");
             Console.Out.WriteLine(" [-dumpenums <enum xml file>]                                                (create an xml file documenting enums)");
-            Console.Out.WriteLine(" [-odir <root of translated classes>]");
-            Console.Out.WriteLine(" [-cheatdir <root of translation 'cheat' files>]");
             Console.Out.WriteLine(" [-netdir <root of .NET Framework Class Library translations>+]              (can be multiple directories, separated by semi-colons)");
             Console.Out.WriteLine(" [-exnetdir <directories/files to be excluded from translation repository>+] (can be multiple directories/files, separated by semi-colons)");
             Console.Out.WriteLine(" [-appdir <root of C# application>]");
             Console.Out.WriteLine(" [-exappdir <directories/files to be excluded from translation repository>+] (can be multiple directories/files, separated by semi-colons)");
-            Console.Out.WriteLine(" [-exclude <directories/files to be excluded from translation>+]             (can be multiple directories/files, separated by semi-colons)");
-            Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
+            Console.Out.WriteLine(" [-csdir <directories/files to be translated>+]                              (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-excsdir <directories/files to be excluded from translation>+]             (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-odir <root of translated classes>]");
+            Console.Out.WriteLine(" [-cheatdir <root of translation 'cheat' files>]");
             Console.Out.WriteLine(" [-debug <level>]                                                            (set debug level, default 0)");
             Console.Out.WriteLine(" [-debug-template-extraction <true/false>]                                   (show debug messages during template extraction, default true)");
             Console.Out.WriteLine(" [-warnings <true/false>]                                                    (show warnings, default true)");
             Console.Out.WriteLine(" [-warning-resolve-failures <true/false>]                                    (show warnings for resolve failures, default true)");
+            Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
             Console.Out.WriteLine(" <directory or file name to be translated>");
             Environment.Exit(0);
         }
@@ -85,7 +86,7 @@ namespace Twiglet.CS2J.Translator
         public static void CS2JMain(string[] args)
         {
             long startTime = DateTime.Now.Ticks;
-            IList<string> remArgs = new List<string>();
+            IList<string> csDir = new List<string>();
             XmlTextWriter enumXmlWriter = null;			
             AppEnv = new DirectoryHT<TypeRepTemplate>(null);
 			
@@ -106,10 +107,10 @@ namespace Twiglet.CS2J.Translator
                         .Add ("warnings-resolve-failures=", v => cfg.WarningsFailedResolves = Boolean.Parse(v))
                         .Add ("version", v => showVersion())
                         .Add ("help|h|?", v => showUsage())
-                        .Add ("dumpcsharp", v => cfg.DumpCSharp = true)
-                        .Add ("dumpjava", v => cfg.DumpJava = true)
-                        .Add ("dumpjavasyntax", v => cfg.DumpJavaSyntax = true)
-                        .Add ("dumptokens", v => cfg.DisplayTokens = true)
+                        .Add ("showcsharp", v => cfg.DumpCSharp = true)
+                        .Add ("showjava", v => cfg.DumpJava = true)
+                        .Add ("showjavasyntax", v => cfg.DumpJavaSyntax = true)
+                        .Add ("showtokens", v => cfg.DisplayTokens = true)
                         .Add ("D=", def => cfg.MacroDefines.Add(def)) 							
                         .Add ("dumpenums", v => cfg.DumpEnums = true)
                         .Add ("enumdir=", dir => cfg.EnumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
@@ -121,7 +122,8 @@ namespace Twiglet.CS2J.Translator
                         .Add ("exnetdir=", dirs => addDirectories(cfg.ExNetRoot, dirs))
                         .Add ("appdir=", dirs => addDirectories(cfg.AppRoot, dirs))
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
-                        .Add ("exclude=", dirs => addDirectories(cfg.Exclude, dirs))
+                        .Add ("csdir=", dirs => addDirectories(csDir, dirs))
+                        .Add ("excsdir=", dirs => addDirectories(cfg.Exclude, dirs))
                         .Add ("keyfile=", v => cfg.KeyFile = v)
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
@@ -130,9 +132,12 @@ namespace Twiglet.CS2J.Translator
 					
                     //TODO: fix enum dump
                     // Final argument is translation target
-                    remArgs = p.Parse (args);
+                    foreach (string s in p.Parse (args))
+                    {
+                       addDirectories(csDir, s);
+                    }
 
-                    if (remArgs == null || remArgs.Count == 0)
+                    if (csDir == null || csDir.Count == 0)
                         // No work
                         Environment.Exit(0);
  
@@ -155,8 +160,13 @@ namespace Twiglet.CS2J.Translator
 
                     // Load Application Class Signatures (i.e. generate templates)
                     if (cfg.AppRoot.Count == 0)
+                    {
                         // By default translation target is application root
-                        cfg.AppRoot.Add(remArgs[0]);
+                       foreach (string s in csDir)
+                       {
+                          cfg.AppRoot.Add(s);
+                       }
+                    }
                     foreach (string r in cfg.AppRoot)
                         doFile(r, ".cs", addAppSigTranslation, cfg.ExAppRoot); // parse it
                     if (cfg.DumpEnums) {
@@ -190,7 +200,10 @@ namespace Twiglet.CS2J.Translator
                     else {
                         templates = new StringTemplateGroup(new StringReader(Templates.JavaTemplateGroup));
                     }
-                    doFile(remArgs[0], ".cs", translateFile, cfg.Exclude); // parse it
+
+                    foreach (string r in csDir)
+                        doFile(r, ".cs", translateFile, cfg.Exclude); // translate it
+
                     if (cfg.DumpEnums)
                     {
                         enumXmlWriter.WriteEndElement();
