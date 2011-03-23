@@ -40,6 +40,11 @@
 
   <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,switch,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
 
+  <target name="dist" decsription="">
+    <copy todir="${release.dir}" file="${release.zip}"/>
+    <copy tofile="${release.dir}/cs2j-latest.zip" file="${release.zip}"/>
+  </target>
+
   <target name="mkarchive" description="builds a zip file containing the release">
     <mkdir dir="${build.dir}/archive/cs2j-${release.tagname}"/>
     <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
