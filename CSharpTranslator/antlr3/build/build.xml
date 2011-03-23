@@ -5,7 +5,7 @@
   </description>
 
   <tstamp>
-    <format property="timestamp.format" pattern="yyyy-MM-dd'T'HH'h'mm'm'ss" />
+    <format property="timestamp.format" pattern="yyMMdd" />
   </tstamp>
 
   <property file="${user.home}/${ant.project.name}.build.properties"/>
@@ -36,23 +36,39 @@
     </sequential>
   </macrodef>
 
-  <macrodef name = "git-clone-pull">
-    <attribute name = "repository" />
-    <attribute name = "dest" />
-    <sequential>
-      <git command = "clone">
-        <args>
-          <arg value = "@{repository}" />
-          <arg value = "@{dest}" />
-        </args>
-      </git>
-      <git command = "pull" dir = "@{dest}" />
-    </sequential>
-  </macrodef>
+  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,signtxfiles,tagme,mkcs2jlibprojsrc,mkarchive"/>
 
-  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,tagme,pushme"/>
+  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,switch,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
 
-  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,switch,buildcs2j"/>
+  <target name="mkarchive" description="builds a zip file containing the release">
+    <mkdir dir="${build.dir}/archive/cs2j-${release.tagname}"/>
+    <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
+      <fileset dir="${cs2j.library.project}" includes="NetFramework/**/*.xml"/>
+      <fileset dir="${project.dir}" includes="THIRDPARTY-LICENSES/**"/>
+      <fileset dir="${build.dir}/cs2jlibrary" includes="**/*.zip"/>
+    </copy>
+    <copy todir="${build.dir}/archive/cs2j-${release.tagname}/THIRDPARTY-LICENSES" file="${cs2j.parser.dir}/cs.g"/>
+    <copy todir="${build.dir}/archive/cs2j-${release.tagname}/CS2JTranslator/bin">
+      <fileset dir="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}">
+        <include name="*.exe"/>
+        <exclude name="*.vshost.*"/>
+        <include name="*.dll"/>
+      </fileset>
+    </copy>
+    <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
+      <fileset dir="${project.dir}/docs/external">
+        <include name="README"/>
+        <include name="*.pdf"/>
+      </fileset>
+    </copy>
+    <zip destfile="${release.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
+  </target>
+
+  <target name="mkcs2jlibprojsrc" description="Build CS2JLibrary Project source for distribution">
+    <ant dir="${cs2j.library.project}" target="src">
+      <property name="src.zip" value="${build.dir}/cs2jlibrary/cs2jlib-src-${release.tagname}.zip"/>
+    </ant>
+  </target>
 
   <target name="pushme" description="Push changes to remote" >
     <git command = "push" failonerror="true">
@@ -79,11 +95,35 @@
     </git>
   </target>
 
+  <target name="getuserguide" description="Downloads the user guide for Google Docs (need to install googlecl)">
+     <exec executable="google" failonerror="false">
+       <arg value = "docs"/>
+       <arg value = "--user=${google.docs.user}"/>
+       <arg value = "--folder=${google.docs.folder}"/>
+       <arg value = "--dest=${project.dir}/docs/external/${google.docs.title}.pdf"/>
+       <arg value = "get"/>
+       <arg value = "${google.docs.title}.doc"/>
+     </exec>
+  </target>
+  <target name="signtxfiles" description="Add / Update the signatures on the translation files in NetFrameworks">
+    <exec osfamily="windows" executable="${tx.signer.exe}">
+      <arg value = "-keyfile"/>
+      <arg value = "${tx.signer.keyfile}"/>
+      <arg value = "${tx.files.root}"/>
+    </exec>
+    <exec osfamily="mac" executable="mono">
+      <arg value = "${tx.signer.exe}"/>
+      <arg value = "-keyfile"/>
+      <arg value = "${tx.signer.keyfile}"/>
+      <arg value = "${tx.files.root}"/>
+    </exec>
+  </target>
+
   <target name="buildcs2j" depends="buildgrammars" description="builds all C# source in the solution">
-    <exec osfamily="windows" executable="${win.msbuild.exe}">
+    <exec osfamily="windows" executable="${win.msbuild.exe}" failonerror="true">
       <arg value = "${cs2j.sln}"/>
     </exec>
-    <exec osfamily="mac" executable="${other.msbuild.exe}">
+    <exec osfamily="mac" executable="${other.msbuild.exe}" failonerror="true">
       <arg value = "${cs2j.sln}"/>
     </exec>
   </target>
@@ -91,23 +131,23 @@
   <target name="buildgrammars" description="invokes ANTLR to convert grammar files to C# source">
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.parser.dir}/cs.g" 
-                      make="true" />
+                      make="true" conversiontimeout="15000" />
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/TemplateExtracter.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000" />
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/JavaMaker.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000" />
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/NetMaker.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000" />
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/JavaPrettyPrint.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000" />
   </target>
 
   <target name="switch" description="switched to release branch">
@@ -135,12 +175,16 @@
 
   <target name="clean" depends="" description="Clean build directory">
     <delete failonerror="false" dir="${build.dir}" />
+    <delete failonerror="false" dir="${cs2j.parser.dir}" includes="cs*.cs *.tokens"/>
+    <delete failonerror="false" dir="${cs2j.transform.dir}"  includes="*.cs *.tokens" excludes="CommonWalker.cs"/>
     <exec osfamily="windows" executable="${win.msbuild.exe}">
       <arg value = "${cs2j.sln}"/>
+      <arg value = "/verbosity:quiet"/>
       <arg value = "/t:Clean"/>
     </exec>
     <exec osfamily="mac" executable="${other.msbuild.exe}">
       <arg value = "${cs2j.sln}"/>
+      <arg value = "/verbosity:quiet"/>
       <arg value = "/t:Clean"/>
     </exec>
   </target>
