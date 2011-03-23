@@ -312,20 +312,22 @@ namespace Twiglet.CS2J.Translator
           if (Key == null)
              throw new ArgumentException("Key");
 			
-		  // Create a new SignedXml object and pass it
-          // the XML document class.
-          SignedXml signedXml = new SignedXml(Doc);
+          // Add the namespace.
+          XmlNamespaceManager nsmgr = new XmlNamespaceManager(Doc.NameTable);
+          nsmgr.AddNamespace("ss", "http://www.w3.org/2000/09/xmldsig#");
 
-          // Find the "Signature" node and create a new
-          // XmlNodeList object.
-          XmlNodeList nodeList = Doc.GetElementsByTagName("Signature");
-
+          XmlNode root = Doc.DocumentElement;
+          XmlNodeList nodeList = root.SelectNodes("/*/ss:Signature", nsmgr);
           // fail if no signature was found.
           if (nodeList.Count != 1)
           {
              return false;
           }
-          
+
+          // Create a new SignedXml object and pass it
+          // the XML document class.
+          SignedXml signedXml = new SignedXml(Doc);
+
 
           // Load the first <signature> node.  
           signedXml.LoadXml((XmlElement)nodeList[0]);
@@ -346,7 +348,7 @@ namespace Twiglet.CS2J.Translator
 
             // Load an XML file into the XmlDocument object.
             xmlDoc.PreserveWhitespace = true;
-            // xmlDoc.Load(txStream);
+            xmlDoc.Load(txStream);
 
             // Verify the signature of the signed XML.
             if (!VerifyXml(xmlDoc, RsaKey))
