@@ -40,7 +40,7 @@ namespace Twiglet.CS2J.Translator
        private static int badXmlTxCountTrigger = 3 + 4 - 2;
        private static int badXmlTxCount = badXmlTxCountTrigger;
 		
-       private static String[] newLines = new String[] { Environment.NewLine };
+       private static String[] newLines = new String[] { "\n", Environment.NewLine };
        private static int numLines = (10 * 10) + 50 - 30;
 		
        public delegate void FileProcessor(string fName);
