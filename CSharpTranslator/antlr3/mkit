@@ -2,24 +2,26 @@
 
 set -e
 
-cd src/CSharpParser
-java -Xmx512m -jar ../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose cs.g
-cd ../../
+ant -f build/build.xml buildcs2j
 
-cd src/CS2JTranslator/CS2JTransform
-#  echo TemplateExtracer.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser TemplateExtracter.g 
-#  echo JavaMaker.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser JavaMaker.g 
-#  echo NetMaker.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser NetMaker.g 
-#  echo JavaPrettyPrint.g
-java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser JavaPrettyPrint.g 
-cd ../../../
-
-cd src
-xbuild
-cd ../
-
+## cd src/CSharpParser
+## java -Xmx512m -jar ../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose cs.g
+## cd ../../
+## 
+## cd src/CS2JTranslator/CS2JTransform
+## #  echo TemplateExtracer.g
+## java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser TemplateExtracter.g 
+## #  echo JavaMaker.g
+## java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser JavaMaker.g 
+## #  echo NetMaker.g
+## java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser NetMaker.g 
+## #  echo JavaPrettyPrint.g
+## java -Xmx512m -jar ../../../jar/antlr-3.3.jar -Xconversiontimeout 15000 -make -verbose -lib ../../CSharpParser JavaPrettyPrint.g 
+## cd ../../../
+## 
+## cd src
+## xbuild
+## cd ../
+## 
 echo 'All Done'
 
