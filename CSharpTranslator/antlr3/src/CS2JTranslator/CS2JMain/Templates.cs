@@ -21,7 +21,7 @@ itsmine(now, includeDate) ::= <<
 //
 // This code is to be used for evaluation of the CS2J tool ONLY.
 //
-// For more information about CS2J please contact cs2jcontact@scorm.com
+// For more information about CS2J please contact info@twigletsoftware.com
 <if(includeDate)>
 //
 // Translated: <now><\n>
