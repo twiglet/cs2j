@@ -19,7 +19,7 @@ itsmine(now, includeDate) ::= <<
 //
 // This file was translated from C# to Java by CS2J (http://www.cs2j.com).
 //
-// For more information about CS2J please contact cs2jcontact@scorm.com
+// For more information about CS2J please contact info@twigletsoftware.com
 <if(includeDate)>
 //
 // Translated: <now><\n>
