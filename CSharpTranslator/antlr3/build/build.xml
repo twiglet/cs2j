@@ -136,23 +136,23 @@
   <target name="buildgrammars" description="invokes ANTLR to convert grammar files to C# source">
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.parser.dir}/cs.g" 
-                      make="true" />
+                      make="true" conversiontimeout="15000" />
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/TemplateExtracter.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000"/>
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/JavaMaker.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000"/>
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/NetMaker.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000"/>
     <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr" verbose="true"
                       target="${cs2j.transform.dir}/JavaPrettyPrint.g" 
                       libdirectory="${cs2j.parser.dir}" 
-                      make="true" />
+                      make="true" conversiontimeout="15000"/>
   </target>
 
   <target name="switch" description="switched to release branch">
