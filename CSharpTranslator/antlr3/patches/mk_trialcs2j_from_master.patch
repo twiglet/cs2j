@@ -1,0 +1,127 @@
+From 25947236fe2b7919330fde3aeabfd1ed6e39ae9f Mon Sep 17 00:00:00 2001
+From: Kevin Glynn <kevin.glynn@twigletsoftware.com>
+Date: Sun, 27 Mar 2011 14:44:47 +0200
+Subject: [PATCH] Make trial version from master branch
+
+---
+ .../antlr3/src/CS2JTranslator/CS2JMain/CS2JMain.cs |   64 +++++++++-----------
+ .../src/CS2JTranslator/CS2JMain/Templates.cs       |    2 +
+ 2 files changed, 30 insertions(+), 36 deletions(-)
+
+diff --git a/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/CS2JMain.cs b/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/CS2JMain.cs
+index a597c79..789a390 100644
+--- a/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/CS2JMain.cs
++++ b/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/CS2JMain.cs
+@@ -5,6 +5,7 @@
+ using System;
+ using System.Collections.Generic;
+ using System.Text;
++using System.Text.RegularExpressions;
+ using System.IO;
+ using System.Xml;
+ using Antlr.Runtime.Tree;
+@@ -315,7 +316,7 @@ namespace Twiglet.CS2J.Translator
+           // Add the namespace.
+           XmlNamespaceManager nsmgr = new XmlNamespaceManager(Doc.NameTable);
+           nsmgr.AddNamespace("ss", "http://www.w3.org/2000/09/xmldsig#");
+-
++
+           XmlNode root = Doc.DocumentElement;
+           XmlNodeList nodeList = root.SelectNodes("/*/ss:Signature", nsmgr);
+           // fail if no signature was found.
+@@ -342,35 +343,31 @@ namespace Twiglet.CS2J.Translator
+ 			
+ 			// Suck in translation file
+             Stream txStream = new FileStream(fullName, FileMode.Open, FileAccess.Read);
+-
+-             if (numLines < numLines - 1)
+-             {
+-                // TRIAL ONLY
+-                // Create a new XML document.
+-                XmlDocument xmlDoc = new XmlDocument();
+-
+-                // Load an XML file into the XmlDocument object.
+-                xmlDoc.PreserveWhitespace = true;
+-                xmlDoc.Load(txStream);
+-
+-                // Verify the signature of the signed XML.
+-                if (!VerifyXml(xmlDoc, RsaKey))
+-                {
+-		   Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
+-                   badXmlTxCount--;
+-                   if (badXmlTxCount <= 0)
+-                   {
+-                      Console.Out.WriteLine("\n  This is a trial version of CS2J. It is to be used for evaluation purposes only.");
+-                      Console.Out.WriteLine("  The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
+-                      Console.Out.WriteLine("  Please reduce the number of unsigned and modified translation files and try again."); 
+-                      Console.Out.WriteLine("\n  Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
+-                      Environment.Exit(1);
+-                   }
+-                }
+ 
+-                txStream.Seek(0, SeekOrigin.Begin);
+-             }
+-             TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
++			// Create a new XML document.
++            XmlDocument xmlDoc = new XmlDocument();
++
++            // Load an XML file into the XmlDocument object.
++            xmlDoc.PreserveWhitespace = true;
++            xmlDoc.Load(txStream);
++
++            // Verify the signature of the signed XML.
++            if (!VerifyXml(xmlDoc, RsaKey))
++            {
++			   Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
++               badXmlTxCount--;
++               if (badXmlTxCount <= 0)
++               {
++                  Console.Out.WriteLine("\n  This is a trial version of CS2J. It is to be used for evaluation purposes only.");
++                  Console.Out.WriteLine("  The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
++                  Console.Out.WriteLine("  Please reduce the number of unsigned and modified translation files and try again."); 
++                  Console.Out.WriteLine("\n  Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
++                  Environment.Exit(1);
++               }
++            }
++
++            txStream.Seek(0, SeekOrigin.Begin);
++            TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
+             // Fullname has form: <path>/<key>.xml
+             AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
+         }
+@@ -402,17 +399,12 @@ namespace Twiglet.CS2J.Translator
+         }
+ 		
+ 		private static string limit(string inp) {
+-			if (numLines > numLines - 1)
+-			    return inp;
+-                        // TRIAL ONLY
+ 			String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
+ 			if (lines.Length <= numLines) {
+ 				return inp;
+ 			}
+-		    String[] res = new String[numLines+1];
+-			Array.Copy(lines, res, numLines);
+-			res[numLines] = "";
+-			return String.Join(Environment.NewLine, res);
++                        lines[numLines] = Regex.Replace(lines[numLines], "\\w", "x");
++			return String.Join(Environment.NewLine, lines);
+ 		}
+ 
+         // Here's where we do the real work...		
+diff --git a/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/Templates.cs b/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/Templates.cs
+index 42eaa1c..760c1f6 100644
+--- a/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/Templates.cs
++++ b/CSharpTranslator/antlr3/src/CS2JTranslator/CS2JMain/Templates.cs
+@@ -19,6 +19,8 @@ itsmine(now, includeDate) ::= <<
+ //
+ // This file was translated from C# to Java by CS2J (http://www.cs2j.com).
+ //
++// This code is to be used for evaluation of the CS2J tool ONLY.
++//
+ // For more information about CS2J please contact info@twigletsoftware.com
+ <if(includeDate)>
+ //
+-- 
+1.7.4.1
+
