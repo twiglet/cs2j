@@ -271,6 +271,17 @@ scope PrimitiveRep {
         return t;
     }
 
+    protected CommonTree castToBoxedType(TypeRepTemplate ty, CommonTree exp, IToken tok) {
+       if (!String.IsNullOrEmpty(ty.BoxExpressionTemplate)) {
+          Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+          myMap["expr"] = wrapExpression(exp, tok);
+          return mkJavaWrapper(ty.BoxExpressionTemplate, myMap, tok);
+       }
+       else {
+          return dupTree(exp);
+       }
+    }
+
     protected CommonTree dupTree(CommonTree t) {
         return (CommonTree)adaptor.DupTree(t);
     }
@@ -597,7 +608,7 @@ scope {
             }
         }
     | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
-           ^(APPLY (^('.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
+           ^(APPLY (^(d0='.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
             if (expType == null) {
                expType = new UnknownRepTemplate("APPLY.BASE");
@@ -609,10 +620,15 @@ scope {
             ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (methodResult != null) {
                DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
+
+               // We are calling a method on an expression. If it has a primitive type then cast it to 
+               // the appropriate Object type.
+               CommonTree e2InBox = expType.IsUnboxedType ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
+
                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                if (!implicitThis) {
-                  myMap["this"] = wrapExpression($e2.tree, $i2.tree.Token);
+                  myMap["this"] = wrapExpression(e2InBox, $i2.tree.Token);
                }
                for (int idx = 0; idx < methodRep.Params.Count; idx++) {
                   myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
@@ -652,9 +668,13 @@ scope {
 
                 ResolveResult fieldResult = expType.Resolve($i1.thetext, false, AppEnv);
                 if (fieldResult != null) {
-                    DebugDetail($d1.token.Line + ": Found '" + $i1.thetext + "'");
+
+                    // We are calling a method on an expression. If it has a primitive type then cast it to 
+                    // the appropriate Object type.
+                    CommonTree e1InBox = $e1.dotNetType.IsUnboxedType ? castToBoxedType($e1.dotNetType, $e1.tree, $d1.token) : $e1.tree;
+
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                    myMap["this"] = wrapExpression($e1.tree, $i1.tree.Token);
+                    myMap["this"] = wrapExpression(e1InBox, $i1.tree.Token);
                     ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
                     AddToImports(fieldResult.Result.Imports);
                     $dotNetType = fieldResult.ResultType; 
@@ -2215,10 +2235,12 @@ predefined_type returns [TypeRepTemplate dotNetType]
 @after {
     $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns, new UnknownRepTemplate(ns)));
     $dotNetType.IsUnboxedType = true;
+    string newText = null;
+    if (primitive_to_object_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText))
+       $dotNetType.BoxedName = newText;
 
-    // In certain contexts we must translate primitive types into their object based equivalent
-    string newText;
-    if ($PrimitiveRep::primitiveTypeAsObject && primitive_to_object_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
+    // In certain contexts we must translate primitive types into their object based equivalent    
+    if ($PrimitiveRep::primitiveTypeAsObject && newText != null) {
         $predefined_type.tree.Token.Text = newText;
     }
 }:

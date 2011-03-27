@@ -1615,6 +1615,30 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
+      // Client can set BoxedName.  If so then we know how to cast an expression to its boxed type 
+      private string _boxedName = null;
+      [XmlIgnore]
+      public string BoxedName
+      {
+         get
+         {
+            return _boxedName;
+         }
+         set
+         {
+            _boxedName = value;
+         }
+      }
+
+      [XmlIgnore]
+      public string BoxExpressionTemplate
+      {
+         get
+         {
+            return (String.IsNullOrEmpty(BoxedName) ? "" : "((" + BoxedName + ")${expr})");
+         }
+      }
+
       // Equivalent to "this is TypeVarRepTemplate"
       [XmlIgnore]
       public virtual bool IsTypeVar
