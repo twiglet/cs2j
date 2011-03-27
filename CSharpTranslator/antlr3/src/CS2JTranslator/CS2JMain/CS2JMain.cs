@@ -348,7 +348,7 @@ namespace Twiglet.CS2J.Translator
 			// Suck in translation file
             Stream txStream = new FileStream(fullName, FileMode.Open, FileAccess.Read);
 
-             if (numLines < numLines - 1)
+             if (numLines < numLines + 1)
              {
                 // TRIAL ONLY
                 // Create a new XML document.
@@ -407,7 +407,7 @@ namespace Twiglet.CS2J.Translator
         }
 		
 		private static string limit(string inp) {
-			if (numLines > numLines - 1)
+			if (numLines > numLines + 1)
 			    return inp;
                         // TRIAL ONLY
 			String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
