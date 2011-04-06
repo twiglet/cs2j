@@ -128,6 +128,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
+                        .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))
                         ;
 					
                     //TODO: fix enum dump

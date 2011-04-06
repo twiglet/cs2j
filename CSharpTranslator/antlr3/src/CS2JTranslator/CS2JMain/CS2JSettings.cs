@@ -56,6 +56,11 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
+            public bool ExperimentalTransforms
+            {
+                get; set;
+            }
+
             public CS2JSettings ()
             {
 		
@@ -88,6 +93,8 @@ namespace Twiglet.CS2J.Translator
                 TranslatorKeepParens = true;
                 TranslatorAddTimeStamp = true;
                 TranslatorExceptionIsThrowable = false;
+
+                ExperimentalTransforms = false;
             }
 	}
 }

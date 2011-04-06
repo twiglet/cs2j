@@ -631,7 +631,7 @@ scope {
 
                // We are calling a method on an expression. If it has a primitive type then cast it to 
                // the appropriate Object type.
-               CommonTree e2InBox = expType.IsUnboxedType ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
+               CommonTree e2InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
 
                MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
@@ -679,7 +679,7 @@ scope {
 
                     // We are calling a method on an expression. If it has a primitive type then cast it to 
                     // the appropriate Object type.
-                    CommonTree e1InBox = $e1.dotNetType.IsUnboxedType ? castToBoxedType($e1.dotNetType, $e1.tree, $d1.token) : $e1.tree;
+                    CommonTree e1InBox = $e1.dotNetType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType($e1.dotNetType, $e1.tree, $d1.token) : $e1.tree;
 
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["this"] = wrapExpression(e1InBox, $i1.tree.Token);
