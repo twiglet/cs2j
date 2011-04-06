@@ -8,15 +8,15 @@
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.Collections.Generic.ICollectionSupport</Import>
+    <Import>java.lang.Iterable</Import>
   </Imports>
-  <Java>ICollectionSupport*[${T}]*</Java>
-  <Name>System.Collections.Generic.ICollection</Name>
+  <Java>Iterable*[${E}]*</Java>
+  <Name>System.Collections.Generic.IEnumerable</Name>
   <TypeParams>
-    <Name>T</Name>
+    <Name>E</Name>
   </TypeParams>
   <Iterable>
-    <ElementType>T</ElementType>
+    <ElementType>E</ElementType>
     <Java>${expr}</Java>
   </Iterable>
   <Properties>

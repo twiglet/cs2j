@@ -17,26 +17,27 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
-package CS2JNet.JavaSupport.language;
 
-import java.util.List;
+package CS2JNet.System.Collections.Generic;
 
-import CS2JNet.JavaSupport.CS2JRunTimeException;
 
-// TODO: T should implement a delegate type
-public class EventCollection<T> implements IEventCollection<T> {
+/**
+ * @author kevin.glynn@twigletsoftware.com
+ *
+ */
+public interface ICollectionSupport<T> extends Iterable<T> {
 	
-	List<T> listeners = null;
-	
-	/* (non-Javadoc)
-	 * @see CS2JNet.JavaSupport.language.IEventCollection#Invoke(java.lang.Object, CS2JNet.JavaSupport.language.EventArgs)
-	 */
-	@Override
-	public void Invoke(Object cause, EventArgs e) throws CS2JRunTimeException {
-	    if (listeners != null) {
-	    	// do something here
-	    	throw new CS2JRunTimeException("CS2J: Events are not yet implemented");
-	    }
-	}
+
+    public   boolean Contains(T x) throws Exception;
+    
+    public   void Add(T x) throws Exception;
+    
+    public   boolean Remove(T x) throws Exception;
+
+    public   void Clear() throws Exception;
+
+    public   IEnumeratorSupport<T> GetEnumerator() throws Exception;
+
+    public   void CopyTo(T[] arr,  int i) throws Exception;
 
 }
