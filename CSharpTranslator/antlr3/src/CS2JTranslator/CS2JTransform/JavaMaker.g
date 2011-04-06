@@ -135,6 +135,42 @@ scope TypeContext {
         return root;
     }
 
+    // We expect mods to be 
+    // null, or
+    // a single token, or
+    // a list of tokens (^(NIL ......))
+    protected CommonTree addModifier(IToken tok, CommonTree mods, CommonTree modToAdd) {
+       
+        CommonTree root = (CommonTree)adaptor.Nil;
+        
+        bool modSeen = false;
+
+        if (mods != null) {
+           // Is root node the one we are looking for?
+           if (!mods.IsNil) {
+              if (adaptor.GetType(mods) == adaptor.GetType(modToAdd)) {
+                 modSeen = true;
+              }
+              adaptor.AddChild(root, (CommonTree)adaptor.DupTree(mods));
+           }
+           else {
+              for (int i = 0; i < adaptor.GetChildCount(mods); i++) {
+                 CommonTree child = (CommonTree)adaptor.GetChild(mods,i);
+                 if (adaptor.GetType(child) == adaptor.GetType(modToAdd)) {
+                    modSeen = true;
+                 }
+                 adaptor.AddChild(root, (CommonTree)adaptor.DupTree(child));
+              } 
+           }
+        }
+        if (!modSeen) {
+           adaptor.AddChild(root, modToAdd);
+        }           
+
+        root = (CommonTree)adaptor.RulePostProcessing(root);
+        return root;
+    }
+
     // embedded statement is ";", or, "{" ... "}", or a single statement. In the latter case we wrap with braces
     protected CommonTree embeddedStatementToBlock(IToken tok, CommonTree embedStat) {
 
@@ -338,11 +374,11 @@ namespace_member_declaration
 type_declaration[CommonTree atts, CommonTree mods] returns [string name]
 :
     ('partial') => p='partial'!  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
-                                (pc=class_declaration[$atts, $mods] { $name=$pc.name; }
-								| ps=struct_declaration[$atts, $mods] { $name=$ps.name; }
+                                (pc=class_declaration[$atts, $mods, true /* toplevel */] { $name=$pc.name; }
+								| ps=struct_declaration[$atts, $mods, true /* toplevel */] { $name=$ps.name; }
 								| pi=interface_declaration[$atts, $mods] { $name=$pi.name; }) 
-	| c=class_declaration[$atts, $mods] { $name=$c.name; }
-	| s=struct_declaration[$atts, $mods] { $name=$s.name; }
+	| c=class_declaration[$atts, $mods, true /* toplevel */] { $name=$c.name; }
+	| s=struct_declaration[$atts, $mods, true /* toplevel */] { $name=$s.name; }
 	| i=interface_declaration[$atts, $mods] { $name=$i.name; }
 	| e=enum_declaration[$atts, $mods] { $name=$e.name; }
 	| d=delegate_declaration[$atts, $mods] { $name=$d.name; }
@@ -369,8 +405,8 @@ class_member_declaration:
 	| ev=event_declaration	-> ^(EVENT[$ev.start.Token, "EVENT"] $a? $m? $ev)
 	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 
 			   | pi=interface_declaration[$a.tree, $m.tree] -> $pi
-			   | pc=class_declaration[$a.tree, $m.tree] -> $pc
-			   | ps=struct_declaration[$a.tree, $m.tree] -> $ps)
+			   | pc=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $pc
+			   | ps=struct_declaration[$a.tree, $m.tree, false /* toplevel */] -> $ps)
 	| i=interface_declaration[$a.tree, $m.tree] -> $i
 	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text] -> $m2
@@ -382,8 +418,8 @@ class_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| cd=class_declaration[$a.tree, $m.tree] -> $cd
-	| sd=struct_declaration[$a.tree, $m.tree] -> $sd
+	| cd=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $cd
+	| sd=struct_declaration[$a.tree, $m.tree, false /* toplevel */] -> $sd
 	| ed=enum_declaration[$a.tree, $m.tree] -> $ed
 	| dd=delegate_declaration[$a.tree, $m.tree] -> $dd
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
@@ -907,11 +943,11 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration[CommonTree atts, CommonTree mods] returns [string name]
+class_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [string name]
 scope TypeContext;
 :
 	c='class' identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+    -> ^(CLASS[$c.Token] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($c.token, $mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 type_parameter_list returns [List<string> names] 
 @init {
@@ -1269,11 +1305,11 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
     ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration[CommonTree atts, CommonTree mods] returns [string name]
+struct_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [string name]
 scope TypeContext;
 :
 	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.text]   ';'? 
-    -> ^(CLASS[$c.Token, "class"] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
+    -> ^(CLASS[$c.Token, "class"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($c.token, $mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
 
 struct_body [string structName]:
 	o='{'  magicDefaultConstructor[$o.token, structName] class_member_declarations? '}' ;
