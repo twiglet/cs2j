@@ -38,6 +38,13 @@ scope PrimitiveRep {
     bool primitiveTypeAsObject;
 }
 
+// When this scope is true, then strip generic arguments from types 
+// (In Java the runtime doesn't know the generic types so e.g. instanceof Set<T> 
+// must be just instanceof Set).
+scope MkNonGeneric {
+    bool scrubGenericArgs;
+}
+
 @namespace { Twiglet.CS2J.Translator.Transform }
 
 @header
@@ -497,12 +504,13 @@ scope PrimitiveRep {
 }
 
 public compilation_unit
-scope NSContext, PrimitiveRep;
+scope NSContext, PrimitiveRep, MkNonGeneric;
 @init {
 
     Imports = new Set<string>();
 
     $PrimitiveRep::primitiveTypeAsObject = false;
+    $MkNonGeneric::scrubGenericArgs = false;
 
     // TODO: Do we need to ensure we have access to System? If so, can add it here.
     $NSContext::namespaces = SearchPath ?? new List<string>();
@@ -1020,7 +1028,7 @@ type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonT
       { 
          $dotNetType = findType(prefix+$t.thetext, $ga.argTypes); 
          if (!$dotNetType.IsUnknownType) {
-            if ($hasTyArgs && $dotNetType.TypeParams.Length == $ga.argTrees.Count) {
+            if (!$MkNonGeneric::scrubGenericArgs && $hasTyArgs && $dotNetType.TypeParams.Length == $ga.argTrees.Count) {
                int i = 0;
                foreach (CommonTree ty in $ga.argTrees) {
                   tyMap[$dotNetType.TypeParams[i]] = wrapType(ty, $t.tree.Token);
@@ -1323,7 +1331,9 @@ shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '
 //	'&'   unary_expression ;
 
 non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+scope MkNonGeneric;
 @init {
+    $MkNonGeneric::scrubGenericArgs = false;
     bool nullArg = false;
     bool stringArgs = false;
     bool dateArgs = false;
@@ -1453,7 +1463,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
         -> {dateArgs}? 
                $ople
          ->^($le $le1 $le2)
-        | ^(INSTANCEOF non_assignment_expression non_nullable_type)           {$dotNetType = BoolType; }
+        | ^(INSTANCEOF non_assignment_expression { $MkNonGeneric::scrubGenericArgs = true; } non_nullable_type)           {$dotNetType = BoolType; }
         | ^('<<' n7=non_assignment_expression non_assignment_expression)      {$dotNetType = $n7.dotNetType; }
         | ^(RIGHT_SHIFT n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
 // TODO: need to munge these numeric types

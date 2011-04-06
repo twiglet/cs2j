@@ -247,6 +247,10 @@ options {
             // (${var}) -> ()
             ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}", String.Empty);
         }
+        // If we have a generic type then we can scrub its generic arguments
+        // by susbstituting with an empty dictionary, now tidy up the brackets
+        // and commas
+        ret = Regex.Replace(ret, "\\s*<(\\s*,\\s*)*>\\s*", String.Empty);
         return ret;
     }
     
