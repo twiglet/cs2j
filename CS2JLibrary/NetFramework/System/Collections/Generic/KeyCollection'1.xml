@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+  </Imports>
+  <Java>Set*[${T}]*</Java>
+  <!-- Actually: System.Collections.Generic.Dictionary<TKey, TValue>.KeyCollection -->
+  <Name>System.Collections.Generic.KeyCollection</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+  </Inherits>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Collections.Generic.KeyCollectionSupport</Import>
+      </Imports>
+      <Java>KeyCollectionSupport.CopyTo(${this}, ${array}, ${index})</Java>
+      <Params>
+        <Param>
+          <Type>T[]</Type>
+          <Name>array</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+      </Params>
+      <Name>CopyTo</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+  </Indexers>
+  <Constructors>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>rUong3D9EauJhCA+cIiWlGuXn08=</DigestValue></Reference></SignedInfo><SignatureValue>esb0vH9iEN6TefBNnLiampoglnuOe2oggi0NVh+r9eoUKf6vzAQCfNGubdlKaf8IausdKZ3wS212MtQtXkJ8TFKPjK+gOpmoVhFKd/6rPnT5xt89+N7s5cByTPW8epjPNnAH7pEiRbzk5+JpH/xKeNCCoGoADV4L/E0TIsZRCH4=</SignatureValue></Signature></Class>
