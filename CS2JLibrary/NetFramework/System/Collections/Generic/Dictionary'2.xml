@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -19,6 +19,7 @@
   </TypeParams>
   <Uses />
   <Inherits>
+    <Type>System.Collections.Generic.IDictionary*[K,V]*</Type>
 <!--    <Type>IList<T>, ICollection<T>, 
 	IEnumerable<T>, IList, ICollection, IEnumerable</Type> -->
   </Inherits>
