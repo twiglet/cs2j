@@ -298,6 +298,23 @@ scope TypeContext {
         return (CommonTree)adaptor.DupTree(t);
     }
 
+    protected string mkTypeOrGenericString(string type, List<string> generic_arguments) {
+       StringBuilder ret = new StringBuilder();
+       ret.Append(type);
+       if (generic_arguments != null && generic_arguments.Count > 0) {
+          bool first = true;
+          ret.Append("<");
+          foreach (string a in generic_arguments) {
+             if (!first)
+                ret.Append(",");
+             ret.Append(a);
+             first = false;
+          }
+          ret.Append(">");
+       }
+       return ret.ToString();
+    }
+
 }
 
 /********************************************************************************************
@@ -1012,7 +1029,8 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
 }:
         // TODO:  According to the spec the C# Main() method should be static and not public.  We aren't checking for lack of public 
         // we can check the modifiers in modList if we want to enforce that.
-		member_name { isToString = $member_name.text == "ToString"; isMain &= $member_name.text == "Main"; } 
+		member_name { isToString = $member_name.text == "ToString"; isMain &= $member_name.text == "Main"; }
+        magicIdentifier[$member_name.tree.Token, $member_name.full_name.Replace(".","___")]
         (type_parameter_list { isToString = false; isMain = false; })? 
         '(' 
             // We are looking for ToString(), and Main(string[] args), where arg is optional.  
@@ -1059,7 +1077,7 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
        }
        -> $mainMethod?
           ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
+            magicIdentifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
 
 method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
 	{smotherExceptions}? b=block nb=magicSmotherExceptions[dupTree($b.tree) ]
@@ -1697,6 +1715,11 @@ literal
 void_type:
     v='void' -> ^(TYPE[$v.token, "TYPE"] $v);
 
+
+magicIdentifier[IToken tok, string text]:
+ -> IDENTIFIER[tok, text]
+ ;
+ 
 magicThrowableType[bool isOn, IToken tok]:
  -> {isOn}? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, Cfg.TranslatorExceptionIsThrowable ? "Throwable" : "Exception"])
  -> 
