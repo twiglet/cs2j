@@ -98,10 +98,12 @@
       <Get>${this:16}.size()</Get>
     </Property>
     <Property>
-      <Imports />
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.CollectionSupport</Import>
+      </Imports>
       <Type>System.Collections.Generic.KeyCollection*[K]*</Type>
       <Name>Keys</Name>
-      <Get>${this:16}.keySet()</Get>
+      <Get>CollectionSupport.mk(${this:16}.keySet())</Get>
     </Property>
   </Properties>
   <Events />

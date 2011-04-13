@@ -9,8 +9,9 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
+     <Import>CS2JNet.JavaSupport.Collections.Generic.CollectionSupport</Import>
   </Imports>
-  <Java>Set*[${T}]*</Java>
+  <Java>CollectionSupport*[${T}]*</Java>
   <!-- Actually: System.Collections.Generic.Dictionary<TKey, TValue>.KeyCollection -->
   <Name>System.Collections.Generic.KeyCollection</Name>
   <TypeParams>
@@ -28,7 +29,7 @@
       <Imports>
         <Import>CS2JNet.System.Collections.Generic.KeyCollectionSupport</Import>
       </Imports>
-      <Java>KeyCollectionSupport.CopyTo(${this}, ${array}, ${index})</Java>
+      <Java>${this:16}.CopyTo(${array}, ${index})</Java>
       <Params>
         <Param>
           <Type>T[]</Type>
