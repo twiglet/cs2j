@@ -15,7 +15,6 @@ tokens {
             INTERFACE;
             FINAL; /* final modifier */
             ANNOTATION;
-            IN;
             OUT;
             CONST;
             EVENT;
@@ -66,6 +65,9 @@ tokens {
             ELSE = 'else';
             BREAK = 'break';
             OBJECT = 'object';
+            THIS = 'this';
+            FOREACH = 'foreach';
+            IN = 'in';
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
@@ -176,6 +178,19 @@ tokens {
 	{
 		return false;
 	}
+
+    // We have a fragments library for strings that we want to splice in to the generated code.
+    // This is Java, so to parse it we need to set IsJavaish so that we are a bit more lenient ...
+    private bool isJavaish = false;
+ 	public bool IsJavaish 
+ 	{
+ 		get {
+            return isJavaish;
+         } 
+         set {
+            isJavaish = value;
+         }
+ 	}
 }
 
 public compilation_unit:
@@ -485,8 +500,16 @@ public qid_part:
 public generic_argument_list: 
 	'<'   type_arguments   '>' ;
 public type_arguments: 
-	type (',' type)* ;
-
+	type_argument (',' type_argument)* ;
+public type_argument:
+    {this.IsJavaish}?=> javaish_type_argument
+   | type
+;
+public javaish_type_argument:
+      ('?' 'extends')=> '?' 'extends' type
+   | '?'
+   | type
+;
 public type:
 	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
 	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?')
@@ -1127,7 +1150,10 @@ public for_iterator:
 public statement_expression_list:
 	statement_expression (',' statement_expression)* ;
 public foreach_statement:
-	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement ;
+	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement 
+   | {this.IsJavaish}? f='for'   '('   local_variable_type   identifier   i=':'   expression   ')'   embedded_statement 
+          -> FOREACH[$f,"foreach"] '(' local_variable_type identifier   IN[$i,"in"]   expression   ')'   embedded_statement 
+;
 public jump_statement:
 	break_statement
 	| continue_statement

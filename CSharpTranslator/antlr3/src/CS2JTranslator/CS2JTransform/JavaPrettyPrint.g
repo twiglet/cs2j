@@ -670,8 +670,13 @@ qid_part:
 generic_argument_list:
 	'<'   type_arguments   '>' -> generic_args(args={ $type_arguments.st });
 type_arguments:
-	ts+=type (',' ts+=type)* -> commalist(items = { $ts });
+	ts+=type_argument (',' ts+=type_argument)* -> commalist(items = { $ts });
 
+public type_argument:
+    ('?' 'extends')=> '?' 'extends' type -> op(pre={"?"},op={" extends "},post={$type.st})
+   | '?'  -> string(payload={"?"})
+   | type -> { $type.st }
+;
 type
 @init {
     StringTemplate nm = null;
@@ -1349,16 +1354,19 @@ predefined_type:
 	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') { collectComments($t.TokenStartIndex); } ->  string(payload={$t.text});
 
 identifier:
- 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> string(payload= { $IDENTIFIER.text }) | also_keyword -> string(payload= { $also_keyword.text });
+ 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> string(payload= { $IDENTIFIER.text }) | also_keyword -> { $also_keyword.st };
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;
 
 also_keyword:
-	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
-	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
-	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+   (
+	t='add' | t='alias' | t='assembly' | t='module' | t='field' | t='method' | t='param' | t='property' | t='type' | t='yield'
+	| t='from' | t='into' | t='join' | t='on' | t='where' | t='orderby' | t='group' | t='by' | t='ascending' | t='descending' 
+	| t='equals' | t='select' | t='pragma' | t='let' | t='remove' | t='get' | t='set' | t='var' | t='__arglist' | t='dynamic' | t='elif' 
+	| t='endif' | t='define' | t='undef'
+   ) -> string(payload={$t.text})
+;
 
 literal:
 	Real_literal -> string(payload={$Real_literal.text}) 

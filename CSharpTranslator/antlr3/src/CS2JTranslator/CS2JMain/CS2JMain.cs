@@ -129,6 +129,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
                         .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))
+                        .Add ("internal-isjavaish", v => cfg.InternalIsJavaish = true)
                         ;
 					
                     //TODO: fix enum dump
@@ -191,6 +192,7 @@ namespace Twiglet.CS2J.Translator
                             w.Close();
                         }
                     }
+
                     // load in T.stg template group, put in templates variable
                     string templateLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.Combine("templates", "java.stg"));
                     if (File.Exists(templateLocation)) {
@@ -279,6 +281,7 @@ namespace Twiglet.CS2J.Translator
 //            }
             csParser p = new csParser(tokens);
             p.TraceDestination = Console.Error;
+            p.IsJavaish = cfg.InternalIsJavaish;
 			
             csParser.compilation_unit_return parser_rt = p.compilation_unit();
 
@@ -439,6 +442,7 @@ namespace Twiglet.CS2J.Translator
                 javaMaker.Cfg = cfg;
                 javaMaker.CUMap = new Dictionary<string, CUnit>();
                 javaMaker.CUKeys = new List<string>();
+                javaMaker.IsJavaish = cfg.InternalIsJavaish;
 	    
                 if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Translating {0} to Java", fullName);
                 
@@ -513,6 +517,8 @@ namespace Twiglet.CS2J.Translator
                     netMaker.SearchPath = javaMaker.CUMap[typeName].SearchPath;
                     netMaker.AliasKeys = javaMaker.CUMap[typeName].NameSpaceAliasKeys;
                     netMaker.AliasNamespaces = javaMaker.CUMap[typeName].NameSpaceAliasValues;
+
+                    netMaker.IsJavaish = cfg.InternalIsJavaish;
 
                     if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} Net Calls to Java", javaFName);
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();

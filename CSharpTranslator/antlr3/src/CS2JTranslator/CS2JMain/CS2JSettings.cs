@@ -61,6 +61,11 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
+           public bool InternalIsJavaish
+           {
+              get; set;
+           }
+
             public CS2JSettings ()
             {
 		
@@ -95,6 +100,8 @@ namespace Twiglet.CS2J.Translator
                 TranslatorExceptionIsThrowable = false;
 
                 ExperimentalTransforms = false;
+
+                InternalIsJavaish = false;
             }
 	}
 }

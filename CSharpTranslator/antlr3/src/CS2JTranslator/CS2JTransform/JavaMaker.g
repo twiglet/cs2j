@@ -40,6 +40,7 @@ scope TypeContext {
 @header
 {
     using System;
+    using System.Text;
     using System.Globalization;
 }
 
@@ -707,7 +708,17 @@ type_arguments returns [List<string> tyargs]
     $tyargs = new List<string>();
 }
 : 
-	t1=type { $tyargs.Add($t1.thetext); } (',' tn=type { $tyargs.Add($tn.thetext); })* ;
+	t1=type_argument { $tyargs.Add($t1.thetext); } (',' tn=type_argument { $tyargs.Add($tn.thetext); })* ;
+
+public type_argument returns [string thetext]:
+    {this.IsJavaish}?=> javaish_type_argument {$thetext = $javaish_type_argument.thetext; }
+   | type {$thetext = $type.thetext; }
+;
+public javaish_type_argument returns [string thetext]:
+      ('?' 'extends')=> '?' 'extends' type  {$thetext = "? extends " + $type.thetext; }
+   | '?'  {$thetext = "?"; }
+   | type {$thetext = $type.thetext; }
+;
 
 type returns [string thetext]:
          ((predefined_type | type_name)  rank_specifiers) => (p1=predefined_type { $thetext = $p1.thetext; } | tn1=type_name { $thetext = $tn1.thetext; })   rs=rank_specifiers  { $thetext += $rs.text; } ('*' { $thetext += "*"; })* -> ^(TYPE $p1? $tn1? $rs '*'*)
@@ -1029,11 +1040,14 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
             )?   
         ')'  
         ( type_parameter_constraints_clauses { isToString = false; isMain = false; })?   
+        // Only have throw Exceptions if IsJavaish
+        throw_exceptions?
+
         b=method_body[isToString] 
 
         // build main method if required
         argParam=magicMainArgs[isMain && isMainHasArg, $member_name.tree.Token]
-        mainApply=magicMainApply[isMain, $member_name.tree.Token, $TypeContext::typeName, $argParam.tree]
+        mainApply=magicMainApply[isMain, $member_name.tree.Token, (isMain ? $TypeContext::typeName : null), $argParam.tree]
         mainCall=magicMainExit[isMain, isInt, $member_name.tree.Token, $mainApply.tree]
         mainMethod=magicMainWrapper[isMain, $member_name.tree.Token, $mainCall.tree]
     
@@ -1041,7 +1055,7 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
         { if (isToString) {
               $member_name.tree.Token.Text = "toString";
           }
-          exceptions = $b.exceptionList;
+          exceptions = IsJavaish ? $throw_exceptions.tree : $b.exceptionList;
        }
        -> $mainMethod?
           ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
@@ -1053,8 +1067,16 @@ method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
    | b=block el=magicThrowsException[true,$b.tree.Token] { $exceptionList=$el.tree; }   
        -> $b
          ;
-member_name returns [string rawId]:
-    (type_or_generic '.')* i=identifier { $rawId = $i.text; }
+
+throw_exceptions: 
+   {IsJavaish}?=> 'throws'! t1=identifier { $t1.tree.Type = EXCEPTION; } (','! tn=identifier { $tn.tree.Type = EXCEPTION; } )* 
+   ;
+member_name returns [string rawId, string full_name]
+@init {
+   $full_name = "";
+}:
+    (type_or_generic '.' {$full_name += mkTypeOrGenericString($type_or_generic.type, $type_or_generic.generic_arguments) + ".";})* 
+    i=identifier { $rawId = $i.text; $full_name += $i.text; }
    // keving [interface_type.identifier] | type_name '.' identifier 
     ;
 
