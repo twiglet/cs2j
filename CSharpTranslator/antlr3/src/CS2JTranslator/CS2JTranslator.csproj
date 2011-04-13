@@ -65,6 +65,7 @@
     <Compile Include="CS2JUtil\DirectoryHT.cs" />
     <Compile Include="CS2JUtil\Set.cs" />
     <Compile Include="CS2JMain\RSAPubKey.cs" />
+    <Compile Include="CS2JMain\Fragments.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CSharpParser\cs.g">
