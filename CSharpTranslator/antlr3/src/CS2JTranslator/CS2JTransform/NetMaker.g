@@ -26,6 +26,11 @@ scope NSContext {
     List<string> typeVariables;
     // all typevariables in all scopes
     List<string> globalTypeVariables;
+
+    // Does this type implement ICollection?
+    bool IsGenericICollection;
+    string GenericICollectionTyVar;
+    bool IsICollection;
 }
 
 // A scope to keep track of the mapping from variables to types
@@ -185,13 +190,32 @@ scope MkNonGeneric {
     }
 
     private ClassRepTemplate dateType = null;
-
     protected ClassRepTemplate DateType {
         get {
             if (dateType == null) {
                 dateType = (ClassRepTemplate)AppEnv.Search("System.DateTime", new UnknownRepTemplate("System.DateTime"));
             }
             return dateType;
+        }
+    }
+
+    private InterfaceRepTemplate iCollectionType = null;
+    protected InterfaceRepTemplate ICollectionType {
+        get {
+            if (iCollectionType == null) {
+                iCollectionType = (InterfaceRepTemplate)findType("System.Collections.ICollection");
+            }
+            return iCollectionType;
+        }
+    }
+
+    private InterfaceRepTemplate genericICollectionType = null;
+    protected InterfaceRepTemplate GenericICollectionType {
+        get {
+            if (genericICollectionType == null) {
+                genericICollectionType = (InterfaceRepTemplate)findType("System.Collections.Generic.ICollection", new TypeRepTemplate[] {ObjectType});
+            }
+            return genericICollectionType;
         }
     }
 
@@ -319,6 +343,7 @@ scope MkNonGeneric {
     protected int dummyScrutVarCtr = 0;
     protected int dummyForeachVarCtr = 0;
     protected int dummyStaticConstructorCatchVarCtr = 0;
+    protected int dummyTyVarCtr = 0;
 
     // It turns out that 'default:' doesn't have to be last in the switch statement, so
     // we need some jiggery pokery when converting to if-then-else.
@@ -518,6 +543,11 @@ scope NSContext, PrimitiveRep, MkNonGeneric;
 
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>();
+
+    $NSContext::IsGenericICollection = false;
+    $NSContext::GenericICollectionTyVar = "";
+    $NSContext::IsICollection = false;
+
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
     -> ^($pkg $ns  { mkImports() } $dec);
@@ -1630,6 +1660,11 @@ scope NSContext,SymTab;
     $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
+
+    $NSContext::IsGenericICollection = false;
+    $NSContext::GenericICollectionTyVar = "";
+    $NSContext::IsICollection = false;
+
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
@@ -1659,6 +1694,12 @@ scope NSContext,SymTab;
 				}
 				$SymTab::symtab["super"] = baseType;
 			}
+            if ($NSContext::IsICollection) {
+                Debug(10, $NSContext::currentNS + " is a Collection");
+            }
+            if ($NSContext::IsGenericICollection) {
+                Debug(10, $NSContext::currentNS + " is a Generic Collection");
+            }
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
@@ -1680,7 +1721,8 @@ class_extend:
 
 // If first implements type is a class then convert to extends
 class_implements returns [bool hasExtends, TypeRepTemplate extendDotNetType]:
-	class_implement_or_extend { $hasExtends = $class_implement_or_extend.hasExtends; $extendDotNetType = $class_implement_or_extend.extendDotNetType;  }class_implement* ;
+	class_implement_or_extend { $hasExtends = $class_implement_or_extend.hasExtends; $extendDotNetType = $class_implement_or_extend.extendDotNetType;  }
+    class_implement* ;
 
 class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNetType]
 @init {
@@ -1691,18 +1733,36 @@ class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNet
                     $hasExtends = true;
                     $extendDotNetType = $t.dotNetType;
                 }
+               if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
+               if($t.dotNetType.IsA(GenericICollectionType,AppEnv)) {
+                    $NSContext::IsGenericICollection = true;
+                    $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
+               }
             } ) 
               -> { $t.dotNetType is ClassRepTemplate }? ^(EXTENDS[$i.token, "extends"] type)
               -> ^($i $t);
 	
 class_implement:
-	^(IMPLEMENTS type) ;
+	^(IMPLEMENTS t=type 
+          { 
+             if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
+             if($t.dotNetType.IsA(GenericICollectionType,AppEnv)) {
+                $NSContext::IsGenericICollection = true;
+                $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
+             }
+          }) ;
 	
-interface_type_list:
-	type (','   type)* ;
-
-class_body:
-	'{'   class_member_declarations?   '}' ;
+class_body
+@init {
+    CommonTree collectorNodes = null;
+    if ($NSContext::IsGenericICollection) {
+        collectorNodes = this.parseString("class_member_declarations", Fragments.GenericCollectorMethods($NSContext::GenericICollectionTyVar, $NSContext::GenericICollectionTyVar + "__" + dummyTyVarCtr++));
+        AddToImports("java.util.Iterator");
+        AddToImports("java.util.Collection");
+        AddToImports("java.util.ArrayList");
+    }
+}:
+	'{' class_member_declarations? '}' -> '{' class_member_declarations? { dupTree(collectorNodes) } '}' ;
 class_member_declarations:
 	class_member_declaration+ ;
 
@@ -1816,6 +1876,10 @@ scope NSContext,SymTab;
     $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
+
+    $NSContext::IsGenericICollection = false;
+    $NSContext::IsICollection = false;
+
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
@@ -1881,8 +1945,6 @@ interface_declaration:
     	class_extends?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;
-interface_base: 
-   	':' interface_type_list ;
 interface_body:
 	'{'   interface_member_declarations?   '}' ;
 interface_member_declarations:
@@ -2384,3 +2446,185 @@ magicThrowableType[bool isOn, IToken tok]:
 magicEventCollectionType[IToken tok, CommonTree type]:
   -> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IEventCollection"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"] )
 ;
+
+// METHOD{ public TYPE{ Iterator < TYPE{ JAVAWRAPPER{ T } } > } kiterator { TYPE{ Iterator < TYPE{ JAVAWRAPPER{ T } } > } ret = null ; try{ { ret = APPLY{ .{ JAVAWRAPPER{ ${this:16}.GetEnumerator() this EXPRESSION{ this } } iterator } } ; } catch{ TYPE{ JAVAWRAPPER{ Exception } } e { APPLY{ .{ e printStackTrace } } ; } } } return{ ret } } Exception }
+//
+
+magicXXGenericIterator[bool isOn, IToken tok, String tyVar]
+@init {
+   if (isOn) AddToImports("java.util.Iterator");
+}
+:
+->    {isOn}? ^(METHOD[tok, "METHOD"]
+                PUBLIC[tok, "public"]
+                ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"] LTHAN[tok, "<"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, tyVar]) GT[tok, ">"])
+                IDENTIFIER[tok, "iterator"] 
+                OPEN_BRACE[tok, "{"]
+                // Iterator<T> ret = null;
+                ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"] LTHAN[tok, "<"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, tyVar]) GT[tok, ">"]) IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] NULL[tok,"null"] SEMI[tok, ";"]
+                // try { ret = this.GetEnumerator().iterator(); } catch (Exception e) { e.printstackTrace(); }}
+                ^(TRY[tok, "try"]
+                    OPEN_BRACE[tok, "{"]
+                      IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] THIS[tok, "this"] IDENTIFIER[tok, "GetEnumerator"])) IDENTIFIER[tok,"iterator"])) SEMI[tok,";"]
+                    CLOSE_BRACE[tok, "}"]
+                    ^(CATCH[tok, "catch"] ^(TYPE[tok,"TYPE"] IDENTIFIER[tok, "Exception"]) IDENTIFIER[tok, "e"] 
+                       OPEN_BRACE[tok, "{"]
+                         ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "e"] IDENTIFIER[tok,"printStackTrace"])) SEMI[tok,";"]
+                       CLOSE_BRACE[tok, "}"]
+                     )
+                )
+                // return ret;
+                ^(RETURN[tok, "return"] IDENTIFIER[tok, "ret"]) 
+                CLOSE_BRACE[tok, "}"]
+                )
+                
+->
+;
+
+//                       IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] THIS[tok, "this"] IDENTIFIER[tok, "GetEnumerator"])) IDENTIFIER[tok,"iterator"])) SEMI[tok,";"]
+
+magicGenericIterator[bool isOn, IToken tok, String tyVar]
+@init {
+   if (isOn) AddToImports("java.util.Iterator");
+}
+: 
+   magicType[isOn, tok, "Iterator", new string[\] {tyVar}]
+   n=magicToken[isOn, tok, NULL, "null"]
+   magicAssignment[isOn, tok, $magicType.tree, "ret", $n.tree]
+
+   thisT=magicToken[isOn, tok, THIS, "this"]
+   thisEnum=magicDot[isOn, tok, $thisT.tree, "GetEnumerator"]
+   mkIter=magicDot[isOn, tok, $thisEnum.tree, "iterator"]
+   tryBody=magicApply[isOn, tok, $mkIter.tree, null]
+
+   magicTryCatch[isOn, tok, $tryBody.tree]
+
+   magicMethod[isOn, tok, "iterator", $magicType.tree, null, $magicTryCatch.tree]
+
+->    {isOn}? magicMethod
+->
+;
+
+magicIterator[bool isOn, IToken tok]
+@init {
+   if (isOn) AddToImports("java.util.Iterator");
+}
+: 
+   magicType[isOn, tok, "Iterator", null]
+   n=magicToken[isOn, tok, NULL, "null"]
+   magicAssignment[isOn, tok, $magicType.tree, "ret", $n.tree]
+//   magicSmotherExceptions[isOn, tok, ]
+   magicMethod[isOn, tok, "iterator", $magicType.tree, null, $magicAssignment.tree]
+->    {isOn}? magicMethod
+//   ^(METHOD[tok, "METHOD"]
+//                 PUBLIC[tok, "public"]
+//                 ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"])
+//                 IDENTIFIER[tok, "iterator"] 
+//                 OPEN_BRACE[tok, "{"]
+//                 // Iterator ret = null;
+//                 ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"]) IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] NULL[tok,"null"] SEMI[tok, ";"]
+//                 // try { ret = this.GetEnumerator().iterator(); } catch (Exception e) { e.printstackTrace(); }}
+//                 ^(TRY[tok, "try"]
+//                     OPEN_BRACE[tok, "{"]
+//                       IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] THIS[tok, "this"] IDENTIFIER[tok, "GetEnumerator"])) IDENTIFIER[tok,"iterator"])) SEMI[tok,";"]
+//                     CLOSE_BRACE[tok, "}"]
+//                     ^(CATCH[tok, "catch"] ^(TYPE[tok,"TYPE"] IDENTIFIER[tok, "Exception"]) IDENTIFIER[tok, "e"] 
+//                        OPEN_BRACE[tok, "{"]
+//                          ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "e"] IDENTIFIER[tok,"printStackTrace"])) SEMI[tok,";"]
+//                        CLOSE_BRACE[tok, "}"]
+//                      )
+//                 )
+//                 // return ret;
+//                 ^(RETURN[tok, "return"] IDENTIFIER[tok, "ret"]) 
+//                 CLOSE_BRACE[tok, "}"]
+//                 )
+//                 
+->
+;
+
+magicToken[bool isOn, IToken tok, int tokenType, string text]
+@init {
+   CommonTree ret = null;
+   if (isOn)
+     ret = (CommonTree)adaptor.Create(tokenType, tok, text);
+}:
+-> {isOn}? { ret }
+->
+;
+
+// public <retType> <name> <args> { <body> }
+magicMethod[bool isOn, IToken tok, string name, CommonTree retType, CommonTree args, CommonTree body]:
+-> {isOn}? 
+            ^(METHOD[tok, "METHOD"]
+                PUBLIC[tok, "public"]
+                { dupTree(retType) }
+                IDENTIFIER[tok, name] 
+                { dupTree(args) }
+                OPEN_BRACE[tok, "{"]
+                { dupTree(body) }
+                CLOSE_BRACE[tok, "}"]
+             )
+->
+;
+
+magicType[bool isOn, IToken tok, string name, string[\] args]
+@init {
+   CommonTree argsTree = null;
+   if (args != null && args.Length > 0) {
+      CommonTree root = (CommonTree)adaptor.Nil;
+      adaptor.AddChild(root, (CommonTree)adaptor.Create(LTHAN, tok, "<"));
+      foreach (string a in args) {
+        CommonTree root0 = (CommonTree)adaptor.Nil;
+        root0 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), root0);
+        adaptor.AddChild(root0, (CommonTree)adaptor.Create(IDENTIFIER, tok, a));
+        adaptor.AddChild(root, root0);
+      }
+      adaptor.AddChild(root, (CommonTree)adaptor.Create(GT, tok, ">"));
+      argsTree = (CommonTree)adaptor.RulePostProcessing(root);
+   }
+}
+:
+-> {isOn}? 
+            ^(TYPE[tok, "TYPE"]
+                IDENTIFIER[tok, name]
+                { dupTree(argsTree) }
+             )
+->
+;
+
+// <type>? <name> = exp ;
+magicAssignment[bool isOn, IToken tok, CommonTree type, string name, CommonTree exp]:
+-> {isOn}? 
+                { dupTree(type) }
+                IDENTIFIER[tok, name] 
+                ASSIGN[tok, "="] 
+                { dupTree(exp) }
+                SEMI[tok, ";"]
+->
+;
+
+magicTryCatch[bool isOn, IToken tok, CommonTree body]:
+-> {isOn}?
+                 ^(TRY[tok, "try"]
+                     OPEN_BRACE[tok, "{"]
+                     { dupTree(body) }
+                     CLOSE_BRACE[tok, "}"]
+                     ^(CATCH[tok, "catch"] ^(TYPE[tok,"TYPE"] IDENTIFIER[tok, "Exception"]) IDENTIFIER[tok, "e"] 
+                        OPEN_BRACE[tok, "{"]
+                          ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "e"] IDENTIFIER[tok,"printStackTrace"])) SEMI[tok,";"]
+                        CLOSE_BRACE[tok, "}"]
+                      )
+                  )
+-> 
+;
+
+magicDot[bool isOn, IToken tok, CommonTree lhs, string rhs]:
+-> {isOn}?  ^(DOT[tok, "."] { dupTree(lhs) } IDENTIFIER[tok, rhs])
+-> 
+;
+
+magicApply[bool isOn, IToken tok, CommonTree methodExp, CommonTree args]:
+-> {isOn}?  ^(APPLY[tok, "APPLY"] { dupTree(methodExp) } { dupTree(args) })
+-> 
+;
+    

@@ -20,12 +20,14 @@
 
 package CS2JNet.System.Collections.Generic;
 
+import java.util.Collection;
+
 
 /**
  * @author kevin.glynn@twigletsoftware.com
  *
  */
-public interface ICollectionSupport<T> extends Iterable<T> {
+public interface ICollectionSupport<T> extends Collection<T> {
 	
 
     public   boolean Contains(T x) throws Exception;
