@@ -787,10 +787,20 @@ namespace Twiglet.CS2J.Translator.TypeRep
          else {
             methStr.Append("${this:16}.");
          }
-         // special for ToString -> tostring
+         // special for ToString -> toString
+         // special for Equals -> equals
+         // special for GetHashCode -> hashCode
          if (Name == "ToString" && Params.Count == 0)
          {
             methStr.Append("toString");
+         }  
+         else if (Name == "Equals" && Params.Count == 1)
+         {
+            methStr.Append("equals");
+         }  
+         else if (Name == "GetHashCode" && Params.Count == 0)
+         {
+            methStr.Append("hashCode");
          }  
          else
          {
