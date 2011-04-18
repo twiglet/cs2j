@@ -138,6 +138,7 @@ namespace Twiglet.CS2J.Translator
 		int i = 0;
 		for (Object el : this) {
 			ret[i] = el;
+                        i++;
 		}
 		return ret;
 	}
