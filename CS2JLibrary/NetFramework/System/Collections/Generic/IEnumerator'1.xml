@@ -20,8 +20,10 @@
     <Java>${expr}</Java>
   </Iterable>
   <Properties>
-    <Type>E</Type>
-    <Name>Current></Name>
-    <Get>${this:16}.getcurrent()</Get>
+    <Property>
+      <Type>E</Type>
+      <Name>Current</Name>
+      <Get>${this:16}.getCurrent()</Get>
+    </Property>
   </Properties>
 <Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>jEYi0rdl/kMLr7uBNG0M9LMlbCQ=</DigestValue></Reference></SignedInfo><SignatureValue>C/hbBQnMGlWnPvwE61XrMusMlyKT+K792pEYR7D7CnpO7Td1gFgCCfkSdFVZ1axk+sLzebWIQKH8+NFRC6+hlNpViODt46v/300e+fi2Yx8BWhpq5e51zfNAhHIdaUemMqHMHNG5BMOngpFx1yrO/zxHvj7HPJqGBwJV7w8yPtU=</SignatureValue></Signature></Interface>

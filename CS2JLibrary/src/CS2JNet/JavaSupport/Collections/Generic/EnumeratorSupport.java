@@ -20,6 +20,7 @@
 */
 package CS2JNet.JavaSupport.Collections.Generic;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import CS2JNet.JavaSupport.CS2JRunTimeException;
@@ -37,6 +38,10 @@ public class EnumeratorSupport<T> implements IEnumeratorSupport<T> {
 	private Iterator<T> myIterator = null;
 	private T myCurrent = null;
 	
+	public static <S> EnumeratorSupport<S> mk(Iterator<S> inIt) {
+		return new EnumeratorSupport<S>(inIt);
+	}
+
 	public EnumeratorSupport(Iterator<T> it) {
 		myIterator = it;
 	}

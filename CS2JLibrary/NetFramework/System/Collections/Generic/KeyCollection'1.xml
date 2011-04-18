@@ -47,7 +47,7 @@
       <Imports>
         <Import>CS2JNet.JavaSupport.Collections.Generic.EnumeratorSupport</Import>
       </Imports>
-      <Java>new EnumeratorSupport*[T]*(${this}.iterator())</Java>
+      <Java>new EnumeratorSupport*[T]*(${this:16}.iterator())</Java>
       <Params>
       </Params>
       <Name>GetEnumerator</Name>
