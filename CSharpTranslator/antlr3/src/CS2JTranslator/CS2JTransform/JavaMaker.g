@@ -1020,22 +1020,27 @@ variable_declarator:
 method_declaration [CommonTree atts, CommonTree mods, List<string> modList, CommonTree type, string typeText]
 @init {
     bool isToString = false;
+    bool isEquals = false;
+    bool isEqualsArg = false;
     CommonTree exceptions = null;
     CommonTree optMain = null;
     bool isVoid = $typeText == "void";
     bool isInt = $typeText == "int"  || $typeText == "System.Int32" || $typeText == "Int32";
+    bool isBool = $typeText == "bool"  || $typeText == "System.Boolean" || $typeText == "Boolean";
     bool isMain = isVoid || isInt;
     bool isMainHasArg = false;
+    bool isGetHashCode = isInt;
 }:
         // TODO:  According to the spec the C# Main() method should be static and not public.  We aren't checking for lack of public 
         // we can check the modifiers in modList if we want to enforce that.
-		member_name { isToString = $member_name.text == "ToString"; isMain &= $member_name.text == "Main"; }
+		member_name { isToString = $member_name.text == "ToString"; isGetHashCode &= $member_name.text == "GetHashCode"; isEquals = $member_name.text == "Equals"; isMain &= $member_name.text == "Main"; }
         magicIdentifier[$member_name.tree.Token, $member_name.full_name.Replace(".","___")]
         (type_parameter_list { isToString = false; isMain = false; })? 
         '(' 
             // We are looking for ToString(), and Main(string[] args), where arg is optional.  
             (formal_parameter_list 
-              { isToString = false; 
+              { isToString = false; isGetHashCode = false;
+                isEqualsArg = $formal_parameter_list.numArgs == 1;
                 if (isMain) {
                     isMain = false;
                     // since we have an argument, must check its an array of String
@@ -1057,11 +1062,11 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
               }
             )?   
         ')'  
-        ( type_parameter_constraints_clauses { isToString = false; isMain = false; })?   
+        ( type_parameter_constraints_clauses { isToString = false; isEquals = false; isMain = false; })?   
         // Only have throw Exceptions if IsJavaish
         throw_exceptions?
 
-        b=method_body[isToString] 
+        b=method_body[isToString || isGetHashCode || (isEquals && isEqualsArg)] 
 
         // build main method if required
         argParam=magicMainArgs[isMain && isMainHasArg, $member_name.tree.Token]
@@ -1071,7 +1076,13 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
     
 
         { if (isToString) {
-              $member_name.tree.Token.Text = "toString";
+              $magicIdentifier.tree.Token.Text = "toString";
+          }
+          if (isGetHashCode) {
+              $magicIdentifier.tree.Token.Text = "hashCode";
+          }
+          if (isEquals && isEqualsArg) {
+              $magicIdentifier.tree.Token.Text = "equals";
           }
           exceptions = IsJavaish ? $throw_exceptions.tree : $b.exceptionList;
        }
@@ -1261,8 +1272,11 @@ constructor_constraint:
 return_type:
 	type
 	|  void_type ;
-formal_parameter_list:
-	formal_parameter (',' formal_parameter)* -> ^(PARAMS formal_parameter+);
+formal_parameter_list returns [int numArgs]
+@init {
+    $numArgs = 0;
+}:
+	formal_parameter {$numArgs++;} (',' formal_parameter {$numArgs++;})* -> ^(PARAMS formal_parameter+);
 formal_parameter:
 	attributes?   (fixed_parameter | parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google
