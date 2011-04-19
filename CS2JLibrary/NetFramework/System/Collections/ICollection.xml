@@ -9,9 +9,9 @@
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.Collections.Generic.ICollectionSupport</Import>
+    <Import>java.util.Collection</Import>
   </Imports>
-  <Java>ICollectionSupport</Java>
+  <Java>Collection</Java>
   <Name>System.Collections.ICollection</Name>
   <Uses />
   <Inherits> <Type>System.Object</Type> </Inherits>
