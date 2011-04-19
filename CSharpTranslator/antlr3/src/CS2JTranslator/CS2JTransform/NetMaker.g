@@ -1120,11 +1120,17 @@ scope PrimitiveRep;
 
 // keving: TODO: Look for type vars
 type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
+@ init {
+   bool hasRank = false;
+}
 :
-    ^(TYPE (predefined_type { $dotNetType = $predefined_type.dotNetType; } 
+    ^(TYPE (p=predefined_type { $dotNetType = $predefined_type.dotNetType; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
-        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; })? '*'* '?'?);
+        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?)
+    -> { $PrimitiveRep::primitiveTypeAsObject && $p.tree != null && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedName) }? ^(TYPE IDENTIFIER[$p.tree.Token,$dotNetType.BoxedName] '*'* '?'?)
+    -> ^(TYPE predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
+;
 
 non_nullable_type returns [TypeRepTemplate dotNetType]:
     type { $dotNetType = $type.dotNetType; } ;
@@ -1361,9 +1367,10 @@ shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '
 //	'&'   unary_expression ;
 
 non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
-scope MkNonGeneric;
+scope MkNonGeneric, PrimitiveRep;
 @init {
     $MkNonGeneric::scrubGenericArgs = false;
+    $PrimitiveRep::primitiveTypeAsObject = false;
     bool nullArg = false;
     bool stringArgs = false;
     bool dateArgs = false;
@@ -1493,7 +1500,7 @@ scope MkNonGeneric;
         -> {dateArgs}? 
                $ople
          ->^($le $le1 $le2)
-        | ^(INSTANCEOF non_assignment_expression { $MkNonGeneric::scrubGenericArgs = true; } non_nullable_type)           {$dotNetType = BoolType; }
+        | ^(INSTANCEOF non_assignment_expression { $MkNonGeneric::scrubGenericArgs = true;  $PrimitiveRep::primitiveTypeAsObject = true; } non_nullable_type)           {$dotNetType = BoolType; }
         | ^('<<' n7=non_assignment_expression non_assignment_expression)      {$dotNetType = $n7.dotNetType; }
         | ^(RIGHT_SHIFT n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
 // TODO: need to munge these numeric types
@@ -2311,10 +2318,6 @@ predefined_type returns [TypeRepTemplate dotNetType]
     if (primitive_to_object_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText))
        $dotNetType.BoxedName = newText;
 
-    // In certain contexts we must translate primitive types into their object based equivalent    
-    if ($PrimitiveRep::primitiveTypeAsObject && newText != null) {
-        $predefined_type.tree.Token.Text = newText;
-    }
 }:
 	  'bool'    { ns = "System.Boolean"; }
     | 'byte'    { ns = "System.Byte"; }
