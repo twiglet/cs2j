@@ -625,6 +625,7 @@ scope {
             $dotNetType = new UnknownRepTemplate(expType.TypeName+".INDEXER");
             ResolveResult indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (indexerResult != null) {
+               if (!String.IsNullOrEmpty(indexerResult.Result.Warning)) Warning($index.line, indexerResult.Result.Warning);
                IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
                if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
@@ -657,6 +658,7 @@ scope {
             $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
             ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (methodResult != null) {
+               if (!String.IsNullOrEmpty(methodResult.Result.Warning)) Warning($d0.line, methodResult.Result.Warning);
                DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
 
                // We are calling a method on an expression. If it has a primitive type then cast it to 
@@ -706,6 +708,7 @@ scope {
 
                 ResolveResult fieldResult = expType.Resolve($i1.thetext, false, AppEnv);
                 if (fieldResult != null) {
+                   if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($d1.line, fieldResult.Result.Warning);
 
                     // We are calling a method on an expression. If it has a primitive type then cast it to 
                     // the appropriate Object type.
@@ -765,6 +768,7 @@ scope {
                     DebugDetail($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
                     ResolveResult fieldResult = thisType.Resolve($identifier.thetext, false, AppEnv);
                     if (fieldResult != null) {
+                       if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($i.tree.Token.Line, fieldResult.Result.Warning);
                         DebugDetail($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
                         ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
                         AddToImports(fieldResult.Result.Imports);
@@ -802,6 +806,7 @@ scope {
             }
             ResolveResult conResult = conType.Resolve($argument_list.argTypes, AppEnv);
             if (conResult != null) {
+               if (!String.IsNullOrEmpty(conResult.Result.Warning)) Warning($n.line, conResult.Result.Warning);
                 ConstructorRepTemplate conRep = conResult.Result as ConstructorRepTemplate;
                 Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                 for (int idx = 0; idx < conRep.Params.Count; idx++) {
@@ -1202,6 +1207,7 @@ assignment
                }
                ResolveResult fieldResult = seType.Resolve($i.thetext, true, AppEnv);
                if (fieldResult != null) {
+                  if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($i.tree.Token.Line, fieldResult.Result.Warning);
                   if (fieldResult.Result is PropRepTemplate) {
                      PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
                      if (!String.IsNullOrEmpty(propRep.JavaSet)) {
@@ -1213,6 +1219,7 @@ assignment
                            // different parent classes
                            ResolveResult readFieldResult = seType.Resolve($i.thetext, false, AppEnv);
                            if (readFieldResult.Result is PropRepTemplate) {
+                              if (!String.IsNullOrEmpty(readFieldResult.Result.Warning)) Warning($i.tree.Token.Line, readFieldResult.Result.Warning);
                               PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
 
                               if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
@@ -1254,6 +1261,7 @@ assignment
             }
             ResolveResult indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (indexerResult != null) {
+               if (!String.IsNullOrEmpty(indexerResult.Result.Warning)) Warning($ia.tree.Token.Line, indexerResult.Result.Warning);
                IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
                if (!String.IsNullOrEmpty(indexerRep.JavaSet)) {
                   CommonTree newRhsExp = $irhs.tree;
@@ -1342,6 +1350,7 @@ cast_expression  returns [TypeRepTemplate dotNetType]
                     kaster = $type.dotNetType.ResolveCastFrom($unary_expression.dotNetType, AppEnv);
                 }
                 if (kaster != null) {
+                    if (!String.IsNullOrEmpty(kaster.Result.Warning)) Warning($c.line, kaster.Result.Warning);
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["expr"] = wrapExpression($unary_expression.tree, $c.token);
                     myMap["TYPEOF_totype"] = wrapTypeOfType($type.dotNetType, $c.token);
@@ -2228,6 +2237,7 @@ scope SymTab;
             if (exprType != null) {
                 ResolveResult iterable = exprType.ResolveIterable(AppEnv);
                 if (iterable != null) {
+                    if (!String.IsNullOrEmpty(iterable.Result.Warning)) Warning($expression.tree.Token.Line, iterable.Result.Warning);
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["expr"] = wrapExpression($expression.tree, $expression.tree.Token);
                     newExpression = mkJavaWrapper(iterable.Result.Java, myMap, $expression.tree.Token);

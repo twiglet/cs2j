@@ -305,6 +305,13 @@ namespace Twiglet.CS2J.Translator.TypeRep
          set { _java = value; } 
       }
 		
+      // Emit this warning if we use this translation
+      protected string _warning = null; 		
+      public virtual string Warning { 
+         get { return _warning; }
+         set { _warning = value; } 
+      }
+		
       // Optional,  but if present will let mkJava generate better java guess in some cases
       private TypeRepTemplate _surroundingType;
       [XmlIgnore]
@@ -360,6 +367,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
          if (!String.IsNullOrEmpty(copyFrom.Java))
          {
             Java = copyFrom.Java;
+         }
+
+         if (!String.IsNullOrEmpty(copyFrom.Warning))
+         {
+            Warning = copyFrom.Warning;
          }
 
          SurroundingType = parent;
@@ -424,7 +436,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 			
-         return Java == other.Java;
+         return Java == other.Java && Warning == other.Warning;
       }
 
       public override bool Equals (object obj)
@@ -455,7 +467,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                hashCode ^= e.GetHashCode();
             }
          }
-         return (Java ?? String.Empty).GetHashCode () ^ hashCode;
+         return (Java ?? String.Empty).GetHashCode () ^ (Warning ?? String.Empty).GetHashCode () ^ hashCode;
       }
       #endregion
 		
