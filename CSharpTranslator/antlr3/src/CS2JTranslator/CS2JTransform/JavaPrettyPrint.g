@@ -360,7 +360,7 @@ primary_expression returns [int precedence]
       ^(JAVAWRAPPER t=identifier 
                   (k=identifier v=wrapped 
                        {
-                         templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "<sorry, untranslated expression>", $v.precedence); 
+                         templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "/* CS2J: <sorry, untranslated expression> */", $v.precedence); 
                        }
                   )*) 
              -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
