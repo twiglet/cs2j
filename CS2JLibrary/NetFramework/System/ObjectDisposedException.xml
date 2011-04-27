@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.ObjectDisposedException</Import>
+  </Imports>
+  <Java>ObjectDisposedException</Java>
+  <Name>System.ObjectDisposedException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Exception</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.ObjectDisposedException</Import>
+      </Imports>
+      <Java>new ObjectDisposedException()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.ObjectDisposedException</Import>
+      </Imports>
+      <Java>new ObjectDisposedException(${message})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.ObjectDisposedException</Import>
+      </Imports>
+      <Java>new ObjectDisposedException(${info},${ctxt})</Java>
+      <Params>
+        <Param>
+          <Type>System.SerializationInfo</Type>
+          <Name>info</Name>
+        </Param>
+        <Param>
+          <Type>System.StreamingContext</Type>
+          <Name>ctxt</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.ObjectDisposedException</Import>
+      </Imports>
+      <Java>new ObjectDisposedException(${message}, ${inner})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+        <Param>
+          <Type>System.Exception</Type>
+          <Name>inner</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>yu2wOTyUyadVCuq3eoz/y2QNoGs=</DigestValue></Reference></SignedInfo><SignatureValue>ZdPXY6PcJn6yuDYvUzlFwxVDdR1r5a+dX1bLKQnRZKq7e8TV/K5ObmfbOkAvmqd+eIBWUlUSHbCPMoRlhYW8BQFIYcOf2YvItZLn9QWO1PWlvkNYPVmmofT9OCupVfRAB+ZIL10fi1NvAE65S24UqVpSAuk6qXrOqFvRyvhBQ00=</SignatureValue></Signature></Class>
