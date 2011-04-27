@@ -236,7 +236,7 @@ namespace Twiglet.CS2J.Translator
         {
             string canonicalPath = Path.GetFullPath(root);
             // If this is a directory, walk each file/dir in that directory
-            if (!excludes.Contains(canonicalPath.ToLower()))
+            if (!excludes.Contains(canonicalPath))
             {
                 if (Directory.Exists(canonicalPath))
                 {
