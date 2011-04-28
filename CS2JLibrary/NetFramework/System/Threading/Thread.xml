@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -35,6 +35,12 @@
     </Method>
   </Methods>
   <Properties>
+    <Property>
+      <Imports />
+      <Type>System.Threading.Thread</Type>
+      <Name>CurrentThread</Name>
+      <Get>${this:16}.currentThread()</Get>
+    </Property>
     <Property>
       <Imports />
       <Java>${this:16}.isAlive()</Java>
