@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -32,11 +32,18 @@
       <Imports>
         <Import>CS2JNet.System.Text.EncodingSupport</Import>
       </Imports>
-      <Java>(new EncodingSupport("UTF-8"))</Java>
       <Type>System.Text.Encoding</Type>
       <Name>UTF8</Name>
-      <Get>(new EncodingSupport("UTF-8"))</Get>
+      <Get>EncodingSupport.GetEncoder("UTF-8")</Get>
       <Set>${this:16}.setUTF8(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Text.EncodingSupport</Import>
+      </Imports>
+      <Type>System.Text.Encoding</Type>
+      <Name>ASCII</Name>
+      <Get>EncodingSupport.GetEncoder("ASCII")</Get>
     </Property>
   </Properties>
   <Events />
