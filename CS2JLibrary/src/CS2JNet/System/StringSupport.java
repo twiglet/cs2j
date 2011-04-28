@@ -361,7 +361,14 @@ public class StringSupport {
         }
         return new String(chars);
 	}
-    
+	
+    // Takes a C# format string and converts it to a Java format string
+	public static String CSFmtStrToJFmtStr(String fmt)
+	{
+		return fmt.replaceAll("\\{(\\d)+\\}", "%$1\\$s");		
+	}
+	
+
 	public static void Testmain(String[] args)
 	{
 		System.out.println("**" + Trim("") + "**");
@@ -396,7 +403,13 @@ public class StringSupport {
 		splitFred = Split("=fred",'=');
 		System.out.println("Split(\"=fred\", '=') = [\"" + splitFred[0] + "\", \"" + splitFred[1] + "\"]");
 		
-}
+		System.out.printf(CSFmtStrToJFmtStr("DECLARATION: {0}={1}") + "\n", "Kevin", "Great");
+		System.out.printf(CSFmtStrToJFmtStr("DECLARATION: {0}={1}"), "Kevin", "Great");
+		
+	}
 
+	public static void main(String[] args) {
+		Testmain(args);
+	}
 
 }

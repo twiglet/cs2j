@@ -23,15 +23,5 @@ package CS2JNet.System;
 
 public class ConsoleSupport {
 
-	// Takes a C# format string and vonverts it to a Java format string
-	public static String CSFmtStrToJFmtStr(String fmt)
-	{
-		return fmt.replaceAll("\\{(\\d)+\\}", "%$1\\$s");		
-	}
-	
-	public static void testMain(String[] args)
-	{
-		System.out.printf(CSFmtStrToJFmtStr("DECLARATION: {0}={1}") + "\n", "Kevin", "Great");
-		System.out.printf(CSFmtStrToJFmtStr("DECLARATION: {0}={1}"), "Kevin", "Great");
-	}
+
 }
