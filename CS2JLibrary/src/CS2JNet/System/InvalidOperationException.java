@@ -24,21 +24,21 @@ package CS2JNet.System;
  * @author keving
  *
  */
-public class ObjectDisposedException extends InvalidOperationException {
+public class InvalidOperationException extends Exception {
 	
-	public ObjectDisposedException() {
+	public InvalidOperationException() {
 		
 	}
 	
-	public ObjectDisposedException(String msg) {
+	public InvalidOperationException(String msg) {
 		super(msg);
 	}
 	
-	public ObjectDisposedException(Throwable inner) {
+	public InvalidOperationException(Throwable inner) {
 		super(inner);
 	}
 	
-	public ObjectDisposedException(String msg, Throwable inner) {
+	public InvalidOperationException(String msg, Throwable inner) {
 		super(msg, inner);
 	}
 	

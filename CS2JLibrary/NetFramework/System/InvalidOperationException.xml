@@ -8,13 +8,13 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.ObjectDisposedException</Import>
+    <Import>CS2JNet.System.InvalidOperationException</Import>
   </Imports>
-  <Java>ObjectDisposedException</Java>
-  <Name>System.ObjectDisposedException</Name>
+  <Java>InvalidOperationException</Java>
+  <Name>System.InvalidOperationException</Name>
   <Uses />
   <Inherits>
-    <Type>System.InvalidOperationException</Type>
+    <Type>System.Exception</Type>
   </Inherits>
   <Methods />
   <Properties />
@@ -23,16 +23,16 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <Import>CS2JNet.System.ObjectDisposedException</Import>
+        <Import>CS2JNet.System.InvalidOperationException</Import>
       </Imports>
-      <Java>new ObjectDisposedException()</Java>
+      <Java>new InvalidOperationException()</Java>
       <Params />
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>CS2JNet.System.ObjectDisposedException</Import>
+        <Import>CS2JNet.System.InvalidOperationException</Import>
       </Imports>
-      <Java>new ObjectDisposedException(${message})</Java>
+      <Java>new InvalidOperationException(${message})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -42,9 +42,9 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>CS2JNet.System.ObjectDisposedException</Import>
+        <Import>CS2JNet.System.InvalidOperationException</Import>
       </Imports>
-      <Java>new ObjectDisposedException(${info},${ctxt})</Java>
+      <Java>new InvalidOperationException(${info},${ctxt})</Java>
       <Params>
         <Param>
           <Type>System.SerializationInfo</Type>
@@ -58,9 +58,9 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>CS2JNet.System.ObjectDisposedException</Import>
+        <Import>CS2JNet.System.InvalidOperationException</Import>
       </Imports>
-      <Java>new ObjectDisposedException(${message}, ${inner})</Java>
+      <Java>new InvalidOperationException(${message}, ${inner})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
