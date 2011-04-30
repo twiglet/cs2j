@@ -1622,6 +1622,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
+      // Set if value is wrapped in a RefSupport object (used for ref and out params) 
+      private bool _isWrapped = false;
+      [XmlIgnore]
+      public bool IsWrapped
+      {
+         get
+         {
+            return _isWrapped;
+         }
+         set
+         {
+            _isWrapped = value;
+         }
+      }
+
       // Client can set _isUnboxedType.  If so then we know the expression / type is inboxed 
       private bool _isUnboxedType = false;
       [XmlIgnore]
@@ -1677,6 +1692,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
          get
          {
             return (this is UnknownRepTemplate);
+         }
+      }
+
+      // Ugly, keep a copy of the tree. Its convenient if these are passed around with the type
+      private object _tree = null;
+      [XmlIgnore]
+      public object Tree
+      {
+         get
+         {
+            return _tree;
+         }
+         set
+         {
+            _tree = value;
          }
       }
 

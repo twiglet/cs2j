@@ -334,6 +334,7 @@ scope MkNonGeneric {
     protected int dummyForeachVarCtr = 0;
     protected int dummyStaticConstructorCatchVarCtr = 0;
     protected int dummyTyVarCtr = 0;
+    protected int dummyRefVarCtr = 0;
 
     // It turns out that 'default:' doesn't have to be last in the switch statement, so
     // we need some jiggery pokery when converting to if-then-else.
@@ -742,6 +743,12 @@ scope {
             bool found = false;
             TypeRepTemplate idType = SymTabLookup($identifier.thetext);
             if (idType != null) {
+               // Is this a wrapped parameter?
+               if (idType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                  ret = mkJavaWrapper("${this}.getValue()", myMap, $i.tree.Token);
+                }
                 $dotNetType = idType;
                 found = true;
             }
@@ -861,15 +868,38 @@ argument returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
     ;
 argument_name:
 	identifier   ':';
-argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
+argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
+@init {
+   string refVar = null;
+}:
 	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
 	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; $typeofType = $ref_variable_reference.typeofType; } 
-	| 'out'   variable_reference { $dotNetType = $variable_reference.dotNetType; $typeofType = $variable_reference.typeofType; } ;
-ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
-	'ref' 
+	| o='out'   variable_reference { refVar = "refVar___" + dummyRefVarCtr++; } 
+      magicCreateOutVar[$o.token, refVar, ($variable_reference.dotNetType != null ? (CommonTree)$variable_reference.dotNetType.Tree : null)] magicUpdateFromRefVar[$o.token, refVar, $variable_reference.tree]
+      { $dotNetType = $variable_reference.dotNetType;
+        $typeofType = $variable_reference.typeofType; 
+        adaptor.AddChild($embedded_statement::preStatements, $magicCreateOutVar.tree);
+        adaptor.AddChild($embedded_statement::postStatements, $magicUpdateFromRefVar.tree);
+      } 
+       -> IDENTIFIER[$o.token, refVar]
+    ;
+ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
+@init {
+   string refVar = null;
+}:
+	r='ref' 
 		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference) { $dotNetType = $type.dotNetType; }   // SomeFunc(ref (int) ref foo)
 																									// SomeFunc(ref (int) foo)
-		| v1=variable_reference { $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType; });	// SomeFunc(ref foo)
+		| v1=variable_reference 	// SomeFunc(ref foo)
+            { refVar = "refVar___" + dummyRefVarCtr++; } 
+            magicCreateRefVar[$r.token, refVar, ($v1.dotNetType != null ? (CommonTree)$v1.dotNetType.Tree : null), $v1.tree] magicUpdateFromRefVar[$r.token, refVar, $v1.tree]
+            { 
+              $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType;
+              adaptor.AddChild($embedded_statement::preStatements, $magicCreateRefVar.tree);
+              adaptor.AddChild($embedded_statement::postStatements, $magicUpdateFromRefVar.tree);
+            } 
+       -> IDENTIFIER[$r.token, refVar])
+     ;
 // lvalue
 variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
 	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; };
@@ -1115,13 +1145,23 @@ scope PrimitiveRep;
 type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
 @ init {
    bool hasRank = false;
+   bool isPredefined = false;
+   CommonTree pTree = null;
+   string boxedName = null;
+}
+@after {
+   if ($dotNetType.Tree == null) {
+      $dotNetType.Tree = $type.tree;
+   }
 }
 :
-    ^(TYPE (p=predefined_type { $dotNetType = $predefined_type.dotNetType; } 
+    ^(TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; boxedName = $predefined_type.dotNetType.BoxedName; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
-        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?)
-    -> { $PrimitiveRep::primitiveTypeAsObject && $p.tree != null && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedName) }? ^(TYPE IDENTIFIER[$p.tree.Token,$dotNetType.BoxedName] '*'* '?'?)
+        (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
+        magicBoxedType[isPredefined && pTree != null && !String.IsNullOrEmpty(boxedName), (pTree != null ? pTree.Token : null), boxedName]
+       { $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
+    -> { $PrimitiveRep::primitiveTypeAsObject && $p.tree != null && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedName) }? ^(TYPE[$p.tree.Token, "TYPE"] IDENTIFIER[$p.tree.Token,$dotNetType.BoxedName] '*'* '?'?)
     -> ^(TYPE predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
 
@@ -1183,6 +1223,14 @@ assignment
         (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a=assignment_operator rhs=expression 
         {
             if (isThis && SymTabLookup($i.thetext) != null) {
+               // Is this a wrapped parameter?
+               TypeRepTemplate idType = SymTabLookup($i.thetext);
+               if (idType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                  myMap["value"] = wrapExpression($rhs.tree, $rhs.tree.Token);
+                  ret = mkJavaWrapper("${this}.setValue(${value})", myMap, $i.tree.Token);
+                }
                // a simple variable assignment
             }
             else {
@@ -1932,13 +1980,25 @@ formal_parameter:
 fixed_parameters:
 	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
-fixed_parameter:
-	parameter_modifier?   type   identifier  { $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  default_argument? ;
+fixed_parameter
+scope PrimitiveRep;
+@init {
+    $PrimitiveRep::primitiveTypeAsObject = false;
+    bool isRefOut = false;
+}:
+      (parameter_modifier { isRefOut = $parameter_modifier.isRefOut; if (isRefOut) { $PrimitiveRep::primitiveTypeAsObject = true; AddToImports("CS2JNet.JavaSupport.language.RefSupport");} })?   
+            type   identifier  { $type.dotNetType.IsWrapped = isRefOut; $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  default_argument? magicRef[isRefOut, $type.tree.Token, $type.tree]
+   -> {isRefOut}? magicRef identifier default_argument?
+   -> parameter_modifier? type identifier default_argument?
+   ;
 // 4.0
 default_argument:
 	'=' expression;
-parameter_modifier:
-	'ref' | 'out' | 'this' ;
+parameter_modifier returns [bool isRefOut]
+@init {
+   $isRefOut = true;
+}:
+	'ref' -> | 'out' -> | 'this' { $isRefOut = false;};
 parameter_array:
 	^(p='params'   type   identifier { $SymTab::symtab[$identifier.thetext] = findType("System.Array", new TypeRepTemplate[] {$type.dotNetType}); }) ;
 
@@ -2031,9 +2091,16 @@ statement[bool isStatementListCtxt]:
     | statement_plus[isStatementListCtxt];
 statement_plus[bool isStatementListCtxt]:
     labeled_statement[isStatementListCtxt] 
-    | embedded_statement[isStatementListCtxt] 
+    | embedded_statement[isStatementListCtxt]
 	;
-embedded_statement[bool isStatementListCtxt]:
+embedded_statement[bool isStatementListCtxt]scope {
+   CommonTree preStatements;
+   CommonTree postStatements;
+}
+@init {
+   $embedded_statement::preStatements = (CommonTree)adaptor.Nil;
+   $embedded_statement::postStatements = (CommonTree)adaptor.Nil;
+}:
       block
 	| ^(IF boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
     | switch_statement[isStatementListCtxt]
@@ -2046,7 +2113,8 @@ embedded_statement[bool isStatementListCtxt]:
 	| yield_statement 
     | ^('unsafe'   block)
 	| fixed_statement
-	| expression_statement	// expression!
+	| expression_statement	-> {isStatementListCtxt}? { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements }
+                            -> OPEN_BRACE[$expression_statement.tree.Token, "{"] { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements } CLOSE_BRACE[$expression_statement.tree.Token, "}"] // expression!
 	;
 switch_statement[ bool isStatementListCtxt]
 scope {
@@ -2629,3 +2697,28 @@ magicApply[bool isOn, IToken tok, CommonTree methodExp, CommonTree args]:
 -> 
 ;
     
+magicRef[bool isOn, IToken tok, CommonTree ty]:
+-> {isOn}?  ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(ty) } GT[tok, ">"])
+-> 
+;
+
+magicCreateRefVar[IToken tok, String id, CommonTree type, CommonTree value]:
+-> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) ^(ARGS[tok, "ARGS"] { dupTree(value) }))
+    SEMI[tok,";"]
+;
+
+magicCreateOutVar[IToken tok, String id, CommonTree type]:
+-> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]))
+    SEMI[tok,";"]
+;
+
+magicUpdateFromRefVar[IToken tok, String id, CommonTree variable_ref]:
+-> { dupTree(variable_ref) } ASSIGN[tok, "="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, id] IDENTIFIER[tok, "getValue"])) SEMI[tok,";"]
+;
+
+magicBoxedType[bool isOn, IToken tok, String boxedName]:
+    -> { isOn }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, boxedName])
+    ->
+;

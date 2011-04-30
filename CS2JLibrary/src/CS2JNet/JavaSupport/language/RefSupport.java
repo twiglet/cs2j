@@ -25,6 +25,12 @@ public class RefSupport<T> {
 
 	private T value;
 
+	public RefSupport(T inValue) {
+		value = inValue;
+	}
+	public RefSupport() {
+	}
+	
 	/**
 	 * @param value the value to set
 	 */
