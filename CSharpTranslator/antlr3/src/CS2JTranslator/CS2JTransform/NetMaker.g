@@ -75,8 +75,6 @@ scope MkNonGeneric {
     public List<string> AliasKeys { get; set; }
     public List<string> AliasNamespaces { get; set; }
 
-    private Set<string> Imports { get; set; }
-
     protected CommonTree mkImports() {
     
         CommonTree root = (CommonTree)adaptor.Nil;
@@ -93,21 +91,13 @@ scope MkNonGeneric {
 
     }
 
-    public void AddToImports(string imp) {
+    public override void AddToImports(string imp) {
         // Don't add import if its namespace is within our type
 //       if (!imp.StartsWith($NSContext::currentNS+".")) {
         if (imp != null && (CompUnitName == null || CompUnitName.Length == 0 || !imp.StartsWith(NSPrefix(CompUnitName)))) { 
             Imports.Add(imp);
         }
   //      }
-    }
-
-    public void AddToImports(ICollection<string> imps) {
-        if (imps != null) {
-            foreach (string imp in imps) {
-                AddToImports(imp);
-            }
-        }
     }
 
     protected string ParentNameSpace {
@@ -531,8 +521,6 @@ scope MkNonGeneric {
 public compilation_unit
 scope NSContext, PrimitiveRep, MkNonGeneric;
 @init {
-
-    Imports = new Set<string>();
 
     $PrimitiveRep::primitiveTypeAsObject = false;
     $MkNonGeneric::scrubGenericArgs = false;

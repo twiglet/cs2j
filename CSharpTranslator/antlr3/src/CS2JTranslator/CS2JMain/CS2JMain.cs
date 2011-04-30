@@ -519,6 +519,7 @@ namespace Twiglet.CS2J.Translator
                     netMaker.AliasNamespaces = javaMaker.CUMap[typeName].NameSpaceAliasValues;
 
                     netMaker.IsJavaish = cfg.InternalIsJavaish;
+                    netMaker.Imports = javaMaker.Imports;
 
                     if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} Net Calls to Java", javaFName);
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();

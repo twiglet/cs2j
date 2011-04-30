@@ -201,6 +201,34 @@ namespace Twiglet.CS2J.Translator.Transform
         }
 	}
 
+       private Set<string> imports = new Set<string>();
+       public Set<string> Imports 
+       { 
+          get
+          {
+             return imports;
+          }
+          set
+          {
+             imports = value;
+          }
+       }
+
+       public virtual void AddToImports(string imp) {
+          if (!String.IsNullOrEmpty(imp))
+          {
+             Imports.Add(imp);     
+          }
+       }
+
+       public void AddToImports(ICollection<string> imps) {
+          if (imps != null) {
+             foreach (string imp in imps) {
+                AddToImports(imp);
+             }
+          }
+       }
+
     }
 
     // Wraps a compilation unit with its imports search path
