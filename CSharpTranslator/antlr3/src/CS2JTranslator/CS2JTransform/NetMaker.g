@@ -335,6 +335,7 @@ scope MkNonGeneric {
     protected int dummyStaticConstructorCatchVarCtr = 0;
     protected int dummyTyVarCtr = 0;
     protected int dummyRefVarCtr = 0;
+    protected int dummyVarCtr = 0;
 
     // It turns out that 'default:' doesn't have to be last in the switch statement, so
     // we need some jiggery pokery when converting to if-then-else.
@@ -878,6 +879,7 @@ argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
       magicCreateOutVar[$o.token, refVar, ($variable_reference.dotNetType != null ? (CommonTree)$variable_reference.dotNetType.Tree : null)] magicUpdateFromRefVar[$o.token, refVar, $variable_reference.tree]
       { $dotNetType = $variable_reference.dotNetType;
         $typeofType = $variable_reference.typeofType; 
+        AddToImports("CS2JNet.JavaSupport.language.RefSupport");
         adaptor.AddChild($embedded_statement::preStatements, $magicCreateOutVar.tree);
         adaptor.AddChild($embedded_statement::postStatements, $magicUpdateFromRefVar.tree);
       } 
@@ -895,6 +897,7 @@ ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate type
             magicCreateRefVar[$r.token, refVar, ($v1.dotNetType != null ? (CommonTree)$v1.dotNetType.Tree : null), $v1.tree] magicUpdateFromRefVar[$r.token, refVar, $v1.tree]
             { 
               $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType;
+              AddToImports("CS2JNet.JavaSupport.language.RefSupport");
               adaptor.AddChild($embedded_statement::preStatements, $magicCreateRefVar.tree);
               adaptor.AddChild($embedded_statement::postStatements, $magicUpdateFromRefVar.tree);
             } 
@@ -2100,9 +2103,25 @@ embedded_statement[bool isStatementListCtxt]scope {
 @init {
    $embedded_statement::preStatements = (CommonTree)adaptor.Nil;
    $embedded_statement::postStatements = (CommonTree)adaptor.Nil;
+   bool hasPreOrPost = false;
+   string idName = null;
+}
+@after {
 }:
       block
-	| ^(IF boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
+	| ^(ift=IF boolean_expression 
+                  { hasPreOrPost = adaptor.GetChildCount($embedded_statement::preStatements) > 0 || adaptor.GetChildCount($embedded_statement::postStatements) > 0; 
+                    if (hasPreOrPost) {
+                        idName = "boolVar___" + dummyVarCtr++;
+                    }
+                  } 
+            SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
+            magicType[hasPreOrPost, $ift.token, "boolean", null]
+            magicAssignment[hasPreOrPost, $ift.token, $magicType.tree, idName, $boolean_expression.tree]
+          -> {!hasPreOrPost }? ^($ift boolean_expression SEP embedded_statement else_statement?)
+          -> {isStatementListCtxt}? 
+                 { $embedded_statement::preStatements } magicAssignment  { $embedded_statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?)
+          -> OPEN_BRACE[$ift.token, "{"] { $embedded_statement::preStatements } magicAssignment  { $embedded_statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?) CLOSE_BRACE[$ift.token, "}"]
     | switch_statement[isStatementListCtxt]
 	| iteration_statement	// while, do, for, foreach
 	| jump_statement		// break, continue, goto, return, throw
@@ -2113,8 +2132,9 @@ embedded_statement[bool isStatementListCtxt]scope {
 	| yield_statement 
     | ^('unsafe'   block)
 	| fixed_statement
-	| expression_statement	-> {isStatementListCtxt}? { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements }
-                            -> OPEN_BRACE[$expression_statement.tree.Token, "{"] { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements } CLOSE_BRACE[$expression_statement.tree.Token, "}"] // expression!
+	| expression_statement { hasPreOrPost = adaptor.GetChildCount($embedded_statement::preStatements) > 0 || adaptor.GetChildCount($embedded_statement::postStatements) > 0; } 
+          -> {isStatementListCtxt || !hasPreOrPost }? { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements }
+          -> OPEN_BRACE[$expression_statement.tree.Token, "{"] { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements } CLOSE_BRACE[$expression_statement.tree.Token, "}"] // expression!
 	;
 switch_statement[ bool isStatementListCtxt]
 scope {
@@ -2703,12 +2723,18 @@ magicRef[bool isOn, IToken tok, CommonTree ty]:
 ;
 
 magicCreateRefVar[IToken tok, String id, CommonTree type, CommonTree value]:
+-> { type == null }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]) ^(ARGS[tok, "ARGS"] { dupTree(value) }))
+    SEMI[tok,";"]
 -> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
        ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) ^(ARGS[tok, "ARGS"] { dupTree(value) }))
     SEMI[tok,";"]
 ;
 
 magicCreateOutVar[IToken tok, String id, CommonTree type]:
+-> {type == null}? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]))
+    SEMI[tok,";"]
 -> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
        ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]))
     SEMI[tok,";"]
