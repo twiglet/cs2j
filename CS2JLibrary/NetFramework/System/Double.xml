@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -42,6 +42,50 @@
       </Params>
       <Name>Parse</Name>
       <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.tryParse(${dStr}, ${result})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>result</Name>
+        </Param>
+      </Params>
+      <Name>TryParse</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.tryParse(${dStr}, ${style}, ${provider}, ${result})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.Globalization.NumberStyles</Type>
+          <Name>style</Name>
+        </Param>
+       <Param>
+          <Type>System.IFormatProvider</Type>
+          <Name>provider</Name>
+        </Param>
+       <Param>
+          <Type>System.Double</Type>
+          <Name>result</Name>
+        </Param>
+      </Params>
+      <Name>TryParse</Name>
+      <Return>System.Boolean</Return>
     </Method>
     <Method>
       <Imports>
