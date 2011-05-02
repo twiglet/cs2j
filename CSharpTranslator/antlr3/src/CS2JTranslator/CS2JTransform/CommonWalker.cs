@@ -221,7 +221,7 @@ namespace Twiglet.CS2J.Translator.Transform
           }
        }
 
-       public void AddToImports(ICollection<string> imps) {
+       public void AddToImports(IEnumerable<string> imps) {
           if (imps != null) {
              foreach (string imp in imps) {
                 AddToImports(imp);
