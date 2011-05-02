@@ -193,15 +193,15 @@ scope TypeContext {
 // for ["conn", "conn1", "conn2"] generate:
 //
 //                   if (conn != null)
-//                      ((IDisposable)conn).Dispose();
+//                      Disposable.mkDisposable(conn).Dispose();
 // 
 //                   
 //                  if (conn2 != null)
-//                      ((IDisposable)conn2).Dispose();
+//                      Disposable.mkDisposable(conn2).Dispose();
 // 
 //                   
 //                  if (conn3 != null)
-//                      ((IDisposable)conn3).Dispose();
+//                      Disposable.mkDisposable(conn3).Dispose();
 // used in the finally block of the using translation
     protected CommonTree addDisposeVars(IToken tok, List<string> vars) {
                 	
@@ -222,26 +222,35 @@ scope TypeContext {
 
             adaptor.AddChild(root_1, (CommonTree)adaptor.Create(SEP, "SEP"));
 
+            // Disposable.mkDisposable(var).Dispose()
             root_2 = (CommonTree)adaptor.Nil;
             root_2 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(APPLY, tok, "APPLY"), root_2);
 
+            // Disposable.mkDisposable(var).Dispose
             CommonTree root_3 = (CommonTree)adaptor.Nil;
             root_3 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(DOT, tok, "."), root_3);
 
+            // Disposable.mkDisposable(var)
             CommonTree root_4 = (CommonTree)adaptor.Nil;
-            root_4 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(CAST_EXPR, tok, "CAST"), root_4);
+            root_4 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(APPLY, tok, "APPLY"), root_4);
 
+            // Disposable.mkDisposable
             CommonTree root_5 = (CommonTree)adaptor.Nil;
-            root_5 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), root_5);
+            root_5 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(DOT, tok, "."), root_5);
 
-            adaptor.AddChild(root_5, (CommonTree)adaptor.Create(IDENTIFIER, tok, "IDisposable"));
+            adaptor.AddChild(root_5, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Disposable"));
+            adaptor.AddChild(root_5, (CommonTree)adaptor.Create(IDENTIFIER, tok, "mkDisposable"));
+
+            CommonTree root_6 = (CommonTree)adaptor.Nil;
+            root_6 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), root_6);
+
+            adaptor.AddChild(root_6, (CommonTree)adaptor.Create(IDENTIFIER, tok, var));
 
             adaptor.AddChild(root_4, root_5);
+            adaptor.AddChild(root_4, root_6);
 
-            adaptor.AddChild(root_4, (CommonTree)adaptor.Create(IDENTIFIER, tok, var));
 
             adaptor.AddChild(root_3, root_4);
-
             adaptor.AddChild(root_3, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Dispose"));
 
             adaptor.AddChild(root_2, root_3);
@@ -1628,7 +1637,8 @@ using_statement[bool isStatementListCtxt]
 }:
 // see http://msdn.microsoft.com/en-us/library/yh598w02.aspx for translation
 	u='using'   '('    resource_acquisition   c=')'    embedded_statement[/* isStatementListCtxt */ false]
-     { disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames); } 
+     { disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames);
+        AddToImports("CS2JNet.System.Disposable"); } 
      f=magicFinally[$c.token, disposers]
      magicTry[$u.token, state.backtracking == 0 ? embeddedStatementToBlock($u.token, $embedded_statement.tree) : null, null, $f.tree] 
      -> {isStatementListCtxt}? OPEN_BRACE[$u.token, "{"] resource_acquisition SEMI[$c.token, ";"] magicTry CLOSE_BRACE[$u.token, "}"] 
@@ -1869,7 +1879,7 @@ magicTry[IToken tok, CommonTree body, CommonTree catches, CommonTree fin]:
 
 magicDispose[IToken tok, string var]:
 -> ^(IF[tok, "if"] ^(NOT_EQUAL[tok, "!="] IDENTIFIER[tok, var] NULL[tok, "null"]) SEP 
-         ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(CAST_EXPR[tok, "CAST"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IDisposable"]) IDENTIFIER[tok, var]) IDENTIFIER[tok, "Dispose"])) SEMI[tok, ";"])
+         ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "Disposable"] IDENTIFIER[tok, "mkDisposable"]) ^(ARGS[tok,"ARGS"] IDENTIFIER[tok, var])) IDENTIFIER[tok, "Dispose"])) SEMI[tok, ";"])
 ;
 
 magicFinally[IToken tok, CommonTree statement_list]:

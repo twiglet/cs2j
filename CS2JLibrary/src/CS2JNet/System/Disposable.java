@@ -1,5 +1,4 @@
 /*
-   Copyright 2007,2008,2009,2010 Rustici Software, LLC
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +17,39 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
+
 package CS2JNet.System;
 
-public interface IDisposable {
-	void Dispose() throws Exception;
+import java.io.Closeable;
 
-	//void close() throws Exception;
+/**
+ * @author keving
+ *
+ */
+public class Disposable implements IDisposable {
+
+	private Closeable closerVal = null;
+	private IDisposable dispVal = null;
+	
+	public static Disposable mkDisposable(Closeable obj) {
+		Disposable ret = new Disposable();
+		ret.closerVal = obj;
+		return ret;
+	}
+	public static Disposable mkDisposable(IDisposable obj) {
+		Disposable ret = new Disposable();
+		ret.dispVal = obj;
+		return ret;
+	}
+	/* (non-Javadoc)
+	 * @see CS2JNet.System.IDisposable#Dispose()
+	 */
+	@Override
+	public void Dispose() throws Exception {
+		if (dispVal != null)
+			dispVal.Dispose();
+		else if (closerVal != null)
+			closerVal.close();
+	}
+
 }
