@@ -501,19 +501,18 @@ scope MkNonGeneric {
         }
     }
     
-    // Converts <OP>= to <OP>
-    protected CommonTree mkOpExp(CommonTree assTok) {
-        CommonTree ret = assTok;
-        if (AssOpMap.ContainsKey(assTok.Token.Type)) {
-            ret = (CommonTree)adaptor.Create(AssOpMap[assTok.Token.Type], assTok.Token, assTok.Token.Text != null && assTok.Token.Text.EndsWith("=") ? assTok.Token.Text.Substring(0, assTok.Token.Text.Length - 1) : assTok.Token.Text);
+    protected CommonTree mkOpExp(CommonTree assTree) {
+        CommonTree ret = assTree;
+        if (AssOpMap.ContainsKey(assTree.Token.Type)) {
+            ret = (CommonTree)adaptor.Create(AssOpMap[assTree.Token.Type], assTree.Token, assTree.Token.Text != null && assTree.Token.Text.EndsWith("=") ? assTree.Token.Text.Substring(0, assTree.Token.Text.Length - 1) : assTree.Token.Text);
         }
         return ret;
     }
 
     // make ^(op lhs rhs)
-    protected CommonTree mkOpExp(CommonTree opTok, CommonTree lhs, CommonTree rhs) {
+    protected CommonTree mkOpExp(CommonTree opTree, CommonTree lhs, CommonTree rhs) {
         CommonTree root = (CommonTree)adaptor.Nil;
-        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.DupTree(opTok), root);
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.DupTree(opTree), root);
         adaptor.AddChild(root, (CommonTree)adaptor.DupTree(lhs));
         adaptor.AddChild(root, (CommonTree)adaptor.DupTree(rhs));
         return root;
@@ -601,6 +600,7 @@ scope {
     TypeRepTemplate expType = SymTabLookup("this");
     bool implicitThis = true;
     $thedottedtext = null;
+    string popstr = null;
 }
 @after {
     if (ret != null)
@@ -676,6 +676,73 @@ scope {
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
+    | (^((POSTINC|POSTDEC) (^('.' expression identifier) | identifier))) =>
+      (^(POSTINC {popstr = "+";} (^('.' pse=expression pi=identifier {implicitThis = false;}) | pi=identifier))
+      | ^(POSTDEC {popstr = "-";} (^('.' pse=expression pi=identifier {implicitThis = false;}) | pi=identifier)))
+      {
+            if (implicitThis && SymTabLookup($pi.thetext) != null) {
+               // Is this a wrapped parameter?
+               TypeRepTemplate idType = SymTabLookup($pi.thetext);
+               if (idType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($pi.tree, $pi.tree.Token);
+                  ret = mkJavaWrapper("${this}.setValue(${this}.getvalue() " + popstr + " 1)", myMap, $pi.tree.Token);
+                }
+                $dotNetType = idType;
+               // a simple variable 
+            }
+            else {
+               TypeRepTemplate seType = (implicitThis ? SymTabLookup("this") : $pse.dotNetType);
+               if (seType == null) {
+                  seType = new UnknownRepTemplate("FIELD.BASE");
+               }
+               if (seType.IsUnknownType) {
+                  WarningFailedResolve($pi.tree.Token.Line, "Could not find type of expression for field /property access");
+               }
+               ResolveResult fieldResult = seType.Resolve($pi.thetext, true, AppEnv);
+               if (fieldResult != null) {
+                  if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($pi.tree.Token.Line, fieldResult.Result.Warning);
+                  if (fieldResult.Result is PropRepTemplate) {
+                     PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
+                     if (!String.IsNullOrEmpty(propRep.JavaSet)) {
+                        // only translate if we also have JavaGet  
+
+                        // We have to resolve property reads and writes separately, because they may come from 
+                        // different parent classes
+                        ResolveResult readFieldResult = seType.Resolve($pi.thetext, false, AppEnv);
+                        if (readFieldResult.Result is PropRepTemplate) {
+                           if (!String.IsNullOrEmpty(readFieldResult.Result.Warning)) Warning($pi.tree.Token.Line, readFieldResult.Result.Warning);
+                           PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
+
+                           if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
+                              // we have prop (++/--)
+                              // need to translate to setProp(getProp (+/-) 1)
+                              Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                              if (!implicitThis)
+                                 rhsMap["this"] = wrapExpression($pse.tree, $pi.tree.Token);
+                              CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, $pi.tree.Token);
+                              CommonTree newRhsExp = (CommonTree)adaptor.Nil;
+                              newRhsExp = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(popstr == "+" ? PLUS : MINUS, $pi.tree.Token, popstr), newRhsExp);
+                              adaptor.AddChild(newRhsExp, (CommonTree)adaptor.DupTree(rhsPropTree));
+                              adaptor.AddChild(newRhsExp, (CommonTree)adaptor.Create(NUMBER,$pi.tree.Token, "1"));
+
+                              Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
+                              if (!implicitThis)
+                                 valMap["this"] = wrapExpression($pse.tree, $pi.tree.Token);
+                              valMap["value"] = wrapExpression(newRhsExp, $pi.tree.Token);
+                              ret = mkJavaWrapper(propRep.JavaSet, valMap, $pi.tree.Token);
+                              AddToImports(propRep.Imports);
+                           }
+                        }
+                     }
+                  }
+               }
+               else {
+                  WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
+               }
+            }
+   }
+
     | ^(POSTINC expression)    { $dotNetType = $expression.dotNetType; }
     | ^(POSTDEC expression)    { $dotNetType = $expression.dotNetType; }
     | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
