@@ -19,35 +19,6 @@
 */
 package CS2JNet.JavaSupport.language;
 
-
-// Wraps a parameter so that it can be used as a ref or out param.
-public class RefSupport<T> {
-
-	private T value;
-
-	public RefSupport(T inValue) {
-		value = inValue;
-	}
-	public RefSupport() {
-	}
-	
-	/**
-	 * @param value the value to set
-	 */
-	public void setValue(T value) {
-		this.value = value;
-	}
-
-	public T setValue(T value, ReturnPreOrPostValue preOrPost) {
-		T preValue = this.value;
-		this.value = value;
-		return (preOrPost == ReturnPreOrPostValue.POST ? this.value : preValue);
-	}
-
-	/**
-	 * @return the value
-	 */
-	public T getValue() {
-		return this.value;
-	}
+public enum ReturnPreOrPostValue {
+	PRE, POST
 }
