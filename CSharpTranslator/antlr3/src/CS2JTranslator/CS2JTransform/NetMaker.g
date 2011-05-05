@@ -686,7 +686,8 @@ scope {
                if (idType.IsWrapped) {
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                   myMap["this"] = wrapExpression($pi.tree, $pi.tree.Token);
-                  ret = mkJavaWrapper("${this}.setValue(${this}.getvalue() " + popstr + " 1)", myMap, $pi.tree.Token);
+                  AddToImports("CS2JNet.JavaSupport.language.ReturnPreOrPostValue");
+                  ret = mkJavaWrapper("${this}.setValue(${this}.getValue() " + popstr + " 1, ReturnPreOrPostValue.POST)", myMap, $pi.tree.Token);
                 }
                 $dotNetType = idType;
                // a simple variable 
@@ -943,12 +944,13 @@ argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
 	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
 	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; $typeofType = $ref_variable_reference.typeofType; } 
 	| o='out'   variable_reference { refVar = "refVar___" + dummyRefVarCtr++; } 
-      magicCreateOutVar[$o.token, refVar, ($variable_reference.dotNetType != null ? (CommonTree)$variable_reference.dotNetType.Tree : null)] magicUpdateFromRefVar[$o.token, refVar, $variable_reference.tree]
+      magicCreateOutVar[$o.token, refVar, ($variable_reference.dotNetType != null ? (CommonTree)$variable_reference.dotNetType.Tree : null)] 
+      magicUpdateFromRefVar[$o.token, refVar, $variable_reference.tree, $variable_reference.dotNetType != null && $variable_reference.dotNetType.IsWrapped]
       { $dotNetType = $variable_reference.dotNetType;
         $typeofType = $variable_reference.typeofType; 
         AddToImports("CS2JNet.JavaSupport.language.RefSupport");
-        adaptor.AddChild($embedded_statement::preStatements, $magicCreateOutVar.tree);
-        adaptor.AddChild($embedded_statement::postStatements, $magicUpdateFromRefVar.tree);
+        adaptor.AddChild($statement::preStatements, $magicCreateOutVar.tree);
+        adaptor.AddChild($statement::postStatements, $magicUpdateFromRefVar.tree);
       } 
        -> IDENTIFIER[$o.token, refVar]
     ;
@@ -961,12 +963,13 @@ ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate type
 																									// SomeFunc(ref (int) foo)
 		| v1=variable_reference 	// SomeFunc(ref foo)
             { refVar = "refVar___" + dummyRefVarCtr++; } 
-            magicCreateRefVar[$r.token, refVar, ($v1.dotNetType != null ? (CommonTree)$v1.dotNetType.Tree : null), $v1.tree] magicUpdateFromRefVar[$r.token, refVar, $v1.tree]
+            magicCreateRefVar[$r.token, refVar, ($v1.dotNetType != null ? (CommonTree)$v1.dotNetType.Tree : null), $v1.tree] 
+            magicUpdateFromRefVar[$r.token, refVar, $v1.tree, $v1.dotNetType != null && $v1.dotNetType.IsWrapped]
             { 
               $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType;
               AddToImports("CS2JNet.JavaSupport.language.RefSupport");
-              adaptor.AddChild($embedded_statement::preStatements, $magicCreateRefVar.tree);
-              adaptor.AddChild($embedded_statement::postStatements, $magicUpdateFromRefVar.tree);
+              adaptor.AddChild($statement::preStatements, $magicCreateRefVar.tree);
+              adaptor.AddChild($statement::postStatements, $magicUpdateFromRefVar.tree);
             } 
        -> IDENTIFIER[$r.token, refVar])
      ;
@@ -2156,42 +2159,63 @@ invocation_part:
 
 // keving: split statement into two parts, there seems to be a problem with the state
 // machine if we combine statement and statement_plus. (It fails to recognise dataHelper.Add();)
-statement[bool isStatementListCtxt]:
-    (declaration_statement) => declaration_statement 
-    | statement_plus[isStatementListCtxt];
-statement_plus[bool isStatementListCtxt]:
-    labeled_statement[isStatementListCtxt] 
-    | embedded_statement[isStatementListCtxt]
-	;
-embedded_statement[bool isStatementListCtxt]scope {
+statement[bool isStatementListCtxt]
+scope {
    CommonTree preStatements;
    CommonTree postStatements;
 }
 @init {
-   $embedded_statement::preStatements = (CommonTree)adaptor.Nil;
-   $embedded_statement::postStatements = (CommonTree)adaptor.Nil;
+   $statement::preStatements = (CommonTree)adaptor.Nil;
+   $statement::postStatements = (CommonTree)adaptor.Nil;
    bool hasPreOrPost = false;
-   string idName = null;
-}
-@after {
+   CommonTree statTree = null;
 }:
+      ((declaration_statement) => declaration_statement { statTree = dupTree($declaration_statement.tree); }
+        | statement_plus[isStatementListCtxt] { statTree = dupTree($statement_plus.tree); }) 
+                  { hasPreOrPost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; } 
+          -> {isStatementListCtxt || !hasPreOrPost }? { $statement::preStatements } { statTree } { $statement::postStatements }
+          -> OPEN_BRACE[statTree.Token, "{"] { $statement::preStatements } { statTree } { $statement::postStatements } CLOSE_BRACE[statTree.Token, "}"]
+;
+statement_plus[bool isStatementListCtxt]:
+    labeled_statement[isStatementListCtxt] 
+    | embedded_statement[isStatementListCtxt]
+	;
+embedded_statement[bool isStatementListCtxt]
+@init{
+   string idName = null;
+   bool emitPrePost = false;
+}
+@after{
+   if(emitPrePost) {
+      // reset (just in case) they have already been emitted
+      $statement::preStatements = (CommonTree)adaptor.Nil;
+      $statement::postStatements = (CommonTree)adaptor.Nil;
+   }
+}
+:
       block
 	| ^(ift=IF boolean_expression 
-                  { hasPreOrPost = adaptor.GetChildCount($embedded_statement::preStatements) > 0 || adaptor.GetChildCount($embedded_statement::postStatements) > 0; 
-                    if (hasPreOrPost) {
+                  { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; 
+                    if (emitPrePost) {
                         idName = "boolVar___" + dummyVarCtr++;
                     }
                   } 
             SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
-            magicType[hasPreOrPost, $ift.token, "boolean", null]
-            magicAssignment[hasPreOrPost, $ift.token, $magicType.tree, idName, $boolean_expression.tree]
-          -> {!hasPreOrPost }? ^($ift boolean_expression SEP embedded_statement else_statement?)
+            magicType[emitPrePost, $ift.token, "boolean", null]
+            magicAssignment[emitPrePost, $ift.token, $magicType.tree, idName, $boolean_expression.tree]
+          -> {!emitPrePost }? ^($ift boolean_expression SEP embedded_statement else_statement?)
           -> {isStatementListCtxt}? 
-                 { $embedded_statement::preStatements } magicAssignment  { $embedded_statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?)
-          -> OPEN_BRACE[$ift.token, "{"] { $embedded_statement::preStatements } magicAssignment  { $embedded_statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?) CLOSE_BRACE[$ift.token, "}"]
+                 { $statement::preStatements } magicAssignment  { $statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?)
+          -> OPEN_BRACE[$ift.token, "{"] { $statement::preStatements } magicAssignment  { $statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?) CLOSE_BRACE[$ift.token, "}"]
     | switch_statement[isStatementListCtxt]
 	| iteration_statement	// while, do, for, foreach
-	| jump_statement		// break, continue, goto, return, throw
+	| jump_statement	{ emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; }
+                // jump_statement transfers control, so we ignore any poststatements
+          -> {!emitPrePost }? jump_statement
+          -> {isStatementListCtxt}? { $statement::preStatements } jump_statement
+          -> OPEN_BRACE[$jump_statement.tree.Token, "{"] { $statement::preStatements } jump_statement CLOSE_BRACE[$jump_statement.tree.Token, "}"]	
+
+       // break, continue, goto, return, throw
 	| ^('try' block catch_clauses? finally_clause?)
 	| checked_statement
 	| unchecked_statement
@@ -2199,9 +2223,11 @@ embedded_statement[bool isStatementListCtxt]scope {
 	| yield_statement 
     | ^('unsafe'   block)
 	| fixed_statement
-	| expression_statement { hasPreOrPost = adaptor.GetChildCount($embedded_statement::preStatements) > 0 || adaptor.GetChildCount($embedded_statement::postStatements) > 0; } 
-          -> {isStatementListCtxt || !hasPreOrPost }? { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements }
-          -> OPEN_BRACE[$expression_statement.tree.Token, "{"] { $embedded_statement::preStatements } expression_statement { $embedded_statement::postStatements } CLOSE_BRACE[$expression_statement.tree.Token, "}"] // expression!
+	| expression_statement  { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; }
+          -> {!emitPrePost }? expression_statement
+          -> {isStatementListCtxt}? { $statement::preStatements } expression_statement  { $statement::postStatements }
+          -> OPEN_BRACE[$expression_statement.tree.Token, "{"] { $statement::preStatements } expression_statement  { $statement::postStatements } CLOSE_BRACE[$expression_statement.tree.Token, "}"]
+    // expression!
 	;
 switch_statement[ bool isStatementListCtxt]
 scope {
@@ -2807,7 +2833,8 @@ magicCreateOutVar[IToken tok, String id, CommonTree type]:
     SEMI[tok,";"]
 ;
 
-magicUpdateFromRefVar[IToken tok, String id, CommonTree variable_ref]:
+magicUpdateFromRefVar[IToken tok, String id, CommonTree variable_ref, bool isWrapped]:
+-> {isWrapped}? ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] { dupTree((CommonTree)adaptor.GetChild((CommonTree)adaptor.GetChild(variable_ref, 2),0)) } IDENTIFIER[tok, "setValue"]) ^(ARGS[tok, "ARGS"] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, id] IDENTIFIER[tok, "getValue"]) ))) SEMI[tok,";"]
 -> { dupTree(variable_ref) } ASSIGN[tok, "="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, id] IDENTIFIER[tok, "getValue"])) SEMI[tok,";"]
 ;
 
