@@ -739,7 +739,7 @@ scope {
                   }
                }
                else {
-                  WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
+                  WarningFailedResolve($pi.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
                }
             }
    }
