@@ -2184,6 +2184,7 @@ embedded_statement[bool isStatementListCtxt]
 @init{
    string idName = null;
    bool emitPrePost = false;
+   bool jumpStatementHasExpression = false;
 }
 @after{
    if(emitPrePost) {
@@ -2209,11 +2210,18 @@ embedded_statement[bool isStatementListCtxt]
           -> OPEN_BRACE[$ift.token, "{"] { $statement::preStatements } magicAssignment  { $statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?) CLOSE_BRACE[$ift.token, "}"]
     | switch_statement[isStatementListCtxt]
 	| iteration_statement	// while, do, for, foreach
-	| jump_statement	{ emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; }
+	| jump_statement
+    | 	(^(('return' | 'throw') expression?)) => (^(jt='return' (je=expression {jumpStatementHasExpression = true;})?) | ^(jt='throw' (je=expression{ jumpStatementHasExpression = true; })?)) 
+	     { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0;
+           if (emitPrePost) {
+              idName = "resVar___" + dummyVarCtr++;
+           }
+         }
+         magicAssignment[emitPrePost, $jt.token, jumpStatementHasExpression ? ($je.dotNetType != null ? (CommonTree)$je.dotNetType.Tree : null) : null, idName, $je.tree]
                 // jump_statement transfers control, so we ignore any poststatements
-          -> {!emitPrePost }? jump_statement
-          -> {isStatementListCtxt}? { $statement::preStatements } jump_statement
-          -> OPEN_BRACE[$jump_statement.tree.Token, "{"] { $statement::preStatements } jump_statement CLOSE_BRACE[$jump_statement.tree.Token, "}"]	
+          -> {!emitPrePost }? ^($jt $je?)
+          -> {isStatementListCtxt}? { $statement::preStatements } magicAssignment { $statement::postStatements } ^($jt IDENTIFIER[$jt.token, idName])
+          -> OPEN_BRACE[$jt.token, "{"] { $statement::preStatements } magicAssignment { $statement::postStatements } ^($jt IDENTIFIER[$jt.token, idName]) CLOSE_BRACE[$jt.token, "}"]	
 
        // break, continue, goto, return, throw
 	| ^('try' block catch_clauses? finally_clause?)
@@ -2452,8 +2460,7 @@ jump_statement:
 	break_statement
 	| continue_statement
 	| goto_statement
-	| ^('return' expression?)
-	| ^('throw'  expression?);
+;
 break_statement:
 	'break'   ';' ;
 continue_statement:
