@@ -840,8 +840,8 @@ relational_expression:
 		(	((o='<'|o='>'|o='>='|o='<=')	s2=shift_expression -> ^($o $relational_expression $s2))
 			| (i='is'  t=non_nullable_type -> ^(INSTANCEOF[$i.Token,"instanceof"] $relational_expression $t) 
                 | i1='as' t1=non_nullable_type -> ^(COND_EXPR[$i1.Token, "?:"] 
-                                                        ^(INSTANCEOF[$i1.Token,"instanceof"] { dupTree($relational_expression.tree) } { dupTree($t1.tree) } ) 
-                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { dupTree($t1.tree) } { dupTree($relational_expression.tree) }) 
+                                                        ^(INSTANCEOF[$i1.Token,"instanceof"] { dupTree($s1.tree) } { dupTree($t1.tree) } ) 
+                                                        ^(CAST_EXPR[$i1.Token, "(cast)"] { dupTree($t1.tree) } { dupTree($s1.tree) }) 
                                                         ^(CAST_EXPR[$i1.Token, "(cast)"] { dupTree($t1.tree) } NULL[$i1.Token, "null"])))
 		)* ;
 equality_expression:

@@ -1448,28 +1448,28 @@ cast_expression  returns [TypeRepTemplate dotNetType]
     if (ret != null)
         $cast_expression.tree = ret;
 }:
-    ^(c=CAST_EXPR type unary_expression) 
+    ^(c=CAST_EXPR type expression) 
        { 
             $dotNetType = $type.dotNetType;
-            if ($type.dotNetType != null && $unary_expression.dotNetType != null) {
+            if ($type.dotNetType != null && $expression.dotNetType != null) {
                 // see if expression's type has a cast to type
-                ResolveResult kaster = $unary_expression.dotNetType.ResolveCastTo($type.dotNetType, AppEnv);
+                ResolveResult kaster = $expression.dotNetType.ResolveCastTo($type.dotNetType, AppEnv);
                 if (kaster == null) {
                     // see if type has a cast from expression's type
-                    kaster = $type.dotNetType.ResolveCastFrom($unary_expression.dotNetType, AppEnv);
+                    kaster = $type.dotNetType.ResolveCastFrom($expression.dotNetType, AppEnv);
                 }
                 if (kaster != null) {
                     if (!String.IsNullOrEmpty(kaster.Result.Warning)) Warning($c.line, kaster.Result.Warning);
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                    myMap["expr"] = wrapExpression($unary_expression.tree, $c.token);
+                    myMap["expr"] = wrapExpression($expression.tree, $c.token);
                     myMap["TYPEOF_totype"] = wrapTypeOfType($type.dotNetType, $c.token);
-                    myMap["TYPEOF_expr"] = wrapTypeOfType($unary_expression.dotNetType, $c.token);
+                    myMap["TYPEOF_expr"] = wrapTypeOfType($expression.dotNetType, $c.token);
                     ret = mkJavaWrapper(kaster.Result.Java, myMap, $c.token);
                     AddToImports(kaster.Result.Imports);
                 }
             }
        }
-         ->  ^($c  { ($unary_expression.dotNetType != null && $unary_expression.dotNetType.TypeName == "System.Object" ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
+         ->  ^($c  { ($expression.dotNetType != null && $expression.dotNetType.TypeName == "System.Object" ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  expression)         
 //         ->  ^($c  { ($type.dotNetType.IsUnboxedType && !$unary_expression.dotNetType.IsUnboxedType ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
 ;         
 assignment_operator:

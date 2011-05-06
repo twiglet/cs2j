@@ -734,7 +734,7 @@ unary_expression returns [int precedence]
 }: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
 //	^(CAST_EXPR type expression) 
-	^(CAST_EXPR type u0=unary_expression)  { $precedence = precedence[CAST_EXPR]; } -> cast_expr(type= { $type.st}, exp = { $u0.st})
+	^(CAST_EXPR type u0=expression)  { $precedence = precedence[CAST_EXPR]; } -> cast_expr(type= { $type.st}, exp = { $u0.st})
 	| primary_or_array_creation_expression { $precedence = $primary_or_array_creation_expression.precedence; } -> { $primary_or_array_creation_expression.st }
 	| ^((op=MONOPLUS | op=MONOMINUS | op=MONONOT | op=MONOTWIDDLE | op=PREINC | op=PREDEC)  u1=unary_expression) { $precedence = precedence[$op.token.Type]; }
           -> op(postparen={ comparePrecedence($op.token, $u1.precedence) <= 0 }, op={ $op.token.Text }, post={$u1.st})
