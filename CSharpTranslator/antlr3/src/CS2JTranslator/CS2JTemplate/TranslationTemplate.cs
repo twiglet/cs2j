@@ -2561,6 +2561,20 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
+      protected string _javaInvoke = null;		
+      [XmlElementAttribute("Invoke")]
+      public virtual string JavaInvoke {
+         get {
+            if (_javaInvoke == null) {
+               return "${this:16}.Invoke" +  mkJavaParams(Params);
+            }
+            else {
+               return _javaInvoke;
+            }
+         }
+         set { _javaInvoke = value; }
+      }
+
       public DelegateRepTemplate()
          : base()
       {
@@ -2578,6 +2592,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             Return = copyFrom.Return;
          }
+         if (!String.IsNullOrEmpty(copyFrom.JavaInvoke))
+         {
+            JavaInvoke = copyFrom.JavaInvoke;
+         }
       }
 
       public DelegateRepTemplate(string retType, List<ParamRepTemplate> args)
@@ -2586,11 +2604,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          Return = retType;
          _params = args;
       }
-
-      public override string mkJava() {
-         return "${delegate:16}.Invoke" + mkJavaParams(Params);
-      }
-
+ 
       public override void Apply(Dictionary<string,TypeRepTemplate> args)
       {
          if (Params != null)
@@ -2628,7 +2642,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 			
-         return Return == other.Return && base.Equals(other);
+         return Return == other.Return && JavaInvoke == other.JavaInvoke && base.Equals(other);
       }
 
       public override bool Equals (object obj)
@@ -2659,7 +2673,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                hashCode ^= e.GetHashCode();
             }
          }
-         return (Return ?? String.Empty).GetHashCode() ^ hashCode;
+         return (Return ?? String.Empty).GetHashCode() ^ (JavaInvoke ?? String.Empty).GetHashCode() ^ hashCode;
       }
       #endregion	
    }
