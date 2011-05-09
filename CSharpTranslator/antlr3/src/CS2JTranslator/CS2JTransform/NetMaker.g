@@ -545,7 +545,7 @@ type_declaration:
 	class_declaration
 	| interface_declaration
 	| enum_declaration
-	| delegate_declaration ;
+   ;
 // Identifiers
 qualified_identifier:
 	identifier ('.' identifier)*;
@@ -568,7 +568,6 @@ class_member_declaration:
     | ^(FIELD attributes? modifiers? type field_declaration[$type.tree, $type.dotNetType])
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | enum_declaration
-    | delegate_declaration
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration[$attributes.tree, $modifiers.tree]) -> conversion_operator_declaration
     | constructor_declaration
     ;
@@ -639,40 +638,61 @@ scope {
     | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
            ^(APPLY (^(d0='.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
         {
-            if (expType == null) {
-               expType = new UnknownRepTemplate("APPLY.BASE");
-            }
-            if (expType.IsUnknownType) {
-               WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
-            }
-            $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
-            ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
-            if (methodResult != null) {
-               if (!String.IsNullOrEmpty(methodResult.Result.Warning)) Warning($d0.line, methodResult.Result.Warning);
-               DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
-
-               // We are calling a method on an expression. If it has a primitive type then cast it to 
-               // the appropriate Object type.
-               CommonTree e2InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
-
-               MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
-               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-               if (!implicitThis) {
-                  myMap["this"] = wrapExpression(e2InBox, $i2.tree.Token);
-               }
-               for (int idx = 0; idx < methodRep.Params.Count; idx++) {
-                  myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
-                  if (methodRep.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
-                     // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                     myMap[methodRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+            if (implicitThis && SymTabLookup($i2.thetext) != null) {
+               // we have a delegate reference (I hope ...)?
+               DelegateRepTemplate idType = SymTabLookup($i2.thetext) as DelegateRepTemplate;
+               if (idType != null) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i2.tree, $i2.tree.Token);
+                  for (int idx = 0; idx < idType.Params.Count; idx++) {
+                     myMap[idType.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
+                     if (idType.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
+                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                        myMap[idType.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+                     }
                   }
-               }
-               ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
-               AddToImports(methodResult.Result.Imports);
-               $dotNetType = methodResult.ResultType; 
+                  AddToImports(idType.Imports);
+                  ret = mkJavaWrapper(idType.JavaInvoke, myMap, $i2.tree.Token);
+                  $dotNetType = AppEnv.Search(idType.Return);
+                }
             }
             else {
-               WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application of " + $i2.thetext + " against " + expType.TypeName);
+
+               if (expType == null) {
+                  expType = new UnknownRepTemplate("APPLY.BASE");
+               }
+               if (expType.IsUnknownType) {
+                  WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
+               }
+               $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
+               ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
+               if (methodResult != null) {
+                  if (!String.IsNullOrEmpty(methodResult.Result.Warning)) Warning($d0.line, methodResult.Result.Warning);
+                  DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
+   
+                  // We are calling a method on an expression. If it has a primitive type then cast it to 
+                  // the appropriate Object type.
+                  CommonTree e2InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
+   
+                  MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  if (!implicitThis) {
+                     myMap["this"] = wrapExpression(e2InBox, $i2.tree.Token);
+                  }
+                  for (int idx = 0; idx < methodRep.Params.Count; idx++) {
+                     myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
+                     if (methodRep.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
+                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                        myMap[methodRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+                     }
+                  }
+                  ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
+                  AddToImports(methodResult.Result.Imports);
+                  $dotNetType = methodResult.ResultType; 
+               }
+               else {
+                  WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application of " + $i2.thetext + " against " + expType.TypeName);
+               }
             }
         }
     | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
@@ -1918,7 +1938,7 @@ variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
         zeroEnum = enumRep.Members[0].Name;
     }
 }:
-	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } 
+	identifier 
        (e='='   variable_initializer { hasInit = true; constructStruct = false; constructEnum = false; } )?
         magicConstructStruct[constructStruct, $tyTree, $identifier.tree != null ? $identifier.tree.Token : null]
         magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
@@ -1993,35 +2013,6 @@ enum_member_declaration:
 integral_type: 
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
-// B.2.12 Delegates
-delegate_declaration
-scope NSContext,SymTab;
-@init {
-    $NSContext::namespaces = new List<string>();
-    $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
-    $NSContext::typeVariables = new List<string>();
-    $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
-
-    $NSContext::IsGenericICollection = false;
-    $NSContext::IsICollection = false;
-
-    $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
-}
-:
-	^(DELEGATE attributes? modifiers?   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?  
-          { $NSContext::currentNS = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.thetext, $variant_generic_parameter_list.tyParams); 
-            if (CompUnitName == null) 
-               CompUnitName = $NSContext::currentNS; 
-            $NSContext::namespaces.Add($NSContext::currentNS);
-            $NSContext::globalNamespaces.Add($NSContext::currentNS);
-            if ($variant_generic_parameter_list.tyParams != null) {
-                $NSContext::typeVariables.AddRange($variant_generic_parameter_list.tyParams);
-                $NSContext::globalTypeVariables.AddRange($variant_generic_parameter_list.tyParams);
-            }
-         }
-       '('   formal_parameter_list?   ')' ) ;
-delegate_modifiers:
-	modifier+ ;
 // 4.0
 variant_generic_parameter_list returns [List<string> tyParams]
 @init {

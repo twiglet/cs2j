@@ -307,7 +307,7 @@ type_declaration:
 	| interface_declaration -> { $interface_declaration.st }
 	| enum_declaration -> { $enum_declaration.st }
 	| annotation_declaration -> { $annotation_declaration.st }
-	| delegate_declaration -> { $delegate_declaration.st };
+   ;
 // Identifiers
 qualified_identifier:
 	identifier ('.' identifier)*;
@@ -342,7 +342,6 @@ class_member_declaration returns [List<string> preComments]:
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
     | enum_declaration -> { $enum_declaration.st }
     | annotation_declaration -> { $annotation_declaration.st }
-    | delegate_declaration -> { $delegate_declaration.st }
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block exception*)
        -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
@@ -1054,12 +1053,6 @@ enum_member_declaration:
 integral_type: 
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
-// B.2.12 Delegates
-delegate_declaration:
-	^(DELEGATE attributes? modifiers?   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
-		'('   formal_parameter_list?   ')' );
-delegate_modifiers:
-	modifier+ ;
 // 4.0
 variant_generic_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
 	(ps+=variant_generic_parameter[$tpConstraints])+ -> type_parameter_list(items={$ps});

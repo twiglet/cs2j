@@ -1238,9 +1238,10 @@ delegate_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
 	d='delegate'   return_type   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' -> 
-    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')' );
+		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' magicInvoker[$d.token, $return_type.tree, $identifier.tree, $formal_parameter_list.tree] -> 
+//    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
+//		'('   formal_parameter_list?   ')' );
+    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { dupTree($mods) }  identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?  magicInvoker);
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -1324,7 +1325,7 @@ scope TypeContext;
 :
 	c='interface'   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list? 
     	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
-    -> ^(INTERFACE[$c.Token] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
+    -> ^(INTERFACE[$c.Token, "interface"] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
 interface_base:
 	c=':'   ts+=type (','   ts+=type)* -> ^(EXTENDS[$c.token,"extends"] $ts)*;
@@ -1916,3 +1917,9 @@ magicThrowsException[bool isOn, IToken tok]:
 -> 
 ;
 
+magicInvoker[IToken tok, CommonTree return_type, CommonTree identifier, CommonTree formal_parameter_list]:
+ magicThrowsException[true, tok] 
+-> OPEN_BRACE[tok, "{"] 
+         ^(METHOD[tok, "METHOD"] { dupTree(return_type) } IDENTIFIER[tok,"Invoke"] { dupTree(formal_parameter_list) } magicThrowsException)
+   CLOSE_BRACE[tok, "}"]
+;
