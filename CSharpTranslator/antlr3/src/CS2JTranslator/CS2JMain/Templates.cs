@@ -52,9 +52,9 @@ class(modifiers, comments, attributes, name, typeparams, extends, imps, body) ::
 }
 >>
 
-iface(modifiers, comments, attributes, name, imps, body) ::= <<
+iface(modifiers, comments, attributes, name, typeparams, imps, body) ::= <<
 <comments; separator=""\n"">
-<modifiers(modifiers)>interface <name> <imps>
+<modifiers(modifiers)>interface <name> <typeparams> <imps>
 {
     <body>
 }

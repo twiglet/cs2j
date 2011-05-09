@@ -1062,9 +1062,9 @@ delegate_modifiers:
 	modifier+ ;
 // 4.0
 variant_generic_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
-	(ps+=variant_generic_parameter[$tpConstraints])+ -> commalist(items={$ps});
+	(ps+=variant_generic_parameter[$tpConstraints])+ -> type_parameter_list(items={$ps});
 variant_generic_parameter [Dictionary<string,StringTemplate> tpConstraints]:
-    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] ->  parameter(param={$t.st}, annotation={$variance_annotation.st});
+    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] -> { $t.st };
 variance_annotation:
 	IN -> string(payload={ "in" }) | OUT -> string(payload={ "out" }) ;
 
