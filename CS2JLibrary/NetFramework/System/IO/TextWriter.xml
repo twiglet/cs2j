@@ -112,7 +112,7 @@
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
-      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\\n", ${arg})</Java>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n", ${arg})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -130,7 +130,7 @@
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
-      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\\n", ${arg1}, ${arg2})</Java>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n", ${arg1}, ${arg2})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
