@@ -508,7 +508,7 @@ type_declaration[CommonTree atts, CommonTree mods] returns [Dictionary<String,Co
 	| s=struct_declaration[$atts, $mods, true /* toplevel */]       { $compUnits.Add($s.name, $s.tree); }
 	| i=interface_declaration[$atts, $mods]                         { $compUnits.Add($i.name, $i.tree); }
 	| e=enum_declaration[$atts, $mods]                              { $compUnits.Add($e.name, $e.tree); }
-	| d=delegate_declaration[$atts, $mods]                          { $compUnits = $d.compUnits; }
+	| d=delegate_declaration[$atts, $mods, true /* toplevel */]     { $compUnits = $d.compUnits; }
     ;
 // Identifiers
 qualified_identifier returns [string thetext]:
@@ -548,7 +548,7 @@ class_member_declaration:
 	| cd=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $cd
 	| sd=struct_declaration[$a.tree, $m.tree, false /* toplevel */] -> $sd
 	| ed=enum_declaration[$a.tree, $m.tree] -> $ed
-	| dd=delegate_declaration[$a.tree, $m.tree] -> { mkFlattenDictionary($dd.tree.Token,$dd.compUnits) }
+	| dd=delegate_declaration[$a.tree, $m.tree, false /* toplevel */] -> { mkFlattenDictionary($dd.tree.Token,$dd.compUnits) }
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
 	| con3=constructor_declaration[$a.tree, $m.tree, $m.modList]	-> $con3
 	| de3=destructor_declaration -> $de3
@@ -1335,7 +1335,7 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration[CommonTree atts, CommonTree mods] returns [Dictionary<String, CommonTree> compUnits]
+delegate_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [Dictionary<String, CommonTree> compUnits]
 scope TypeContext;
 @init {
     $compUnits = new Dictionary<String,CommonTree>();
@@ -1359,14 +1359,14 @@ scope TypeContext;
          AddToImports("java.util.ArrayList");
          AddToImports("CS2JNet.JavaSupport.util.ListSupport");
       }
-      magicMultiDelClass[$d.token, $atts, $mods, multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
+      magicMultiDelClass[$d.token, $atts, toplevel ? dupTree($mods) : addModifier($d.token, $mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")), multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
       {
          $compUnits.Add(multiDelName, $magicMultiDelClass.tree);
       }
       -> 
 //    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
 //		'('   formal_parameter_list?   ')' );
-    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { dupTree($mods) }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
+    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($d.token, $mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")) }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
     ;
 delegate_modifiers:
 	modifier+ ;
