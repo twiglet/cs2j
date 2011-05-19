@@ -224,8 +224,9 @@ namespace Twiglet.CS2J.Utility
             MethodInfo invoker = t.GetMethod("Invoke");
             if (invoker == null)
                 throw new Exception("Unexpected: class " + t.FullName + " inherits from System.Delegate but doesn't have an Invoke method");
-            buildParameters(d.Params, invoker);
-            d.Return = TypeHelper.buildTypeName(invoker.ReturnType);
+            List<ParamRepTemplate> pars = new List<ParamRepTemplate>();
+            buildParameters(pars, invoker);
+            d.Invoke = new InvokeRepTemplate(TypeHelper.buildTypeName(invoker.ReturnType), "Invoke", null, pars);
         }
 
         private IList<TypeRepTemplate> mkTemplates(string typeName)

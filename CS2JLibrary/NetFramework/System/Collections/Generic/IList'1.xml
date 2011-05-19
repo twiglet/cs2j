@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.List</Import>
+  </Imports>
+  <Java>List*[${T}]*</Java>
+  <Name>System.Collections.Generic.IList</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+<!--    <Type>IList<T>, ICollection<T>, 
+	IEnumerable<T>, IList, ICollection, IEnumerable</Type> -->
+  </Inherits>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.add(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <!-- TODO: this.add(e) actually always returns true -->
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.util.Arrays</Import>
+      </Imports>
+      <Java>${this:16}.addAll(Arrays.asList(${arg}))</Java>
+      <Params>
+        <Param>
+          <Type>T[]</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>AddRange</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.addAll(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Collections.Generic.IEnumerable*[T]*</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>AddRange</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.clear()</Java>
+      <Params />
+      <Name>Clear</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.contains(${key})</Java>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.add(${index}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+        <Param>
+          <Type>T</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Insert</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.remove(${value})</Java>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.remove((int)${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+      </Params>
+      <Name>RemoveAt</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Java>${this:16}.toArray(new ${T}[${this}.size()])</Java>
+      <Params>
+      </Params>
+      <Name>ToArray</Name>
+      <Return>T[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.util.Collections</Import>
+      </Imports>
+      <Java>Collections.sort(${this})</Java>
+      <Params />
+      <Name>Sort</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+      <Type>T</Type>
+      <Get>${this:16}.get(${i})</Get>
+      <Set>${this:16}.add(${i}, ${value})</Set>
+    </Indexer>
+  </Indexers>
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new ArrayList*[${T}]*()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new ArrayList*[${T}]*(${length})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Java>new ArrayList*[${T}]*(Arrays.asList(${collection}))</Java>
+      <Params>
+        <Param>
+          <Type>T[]</Type>
+          <Name>collection</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new ArrayList*[${T}]*(${collection})</Java>
+      <Params>
+        <Param>
+          <Type>System.IEnumerable[T]</Type>
+          <Name>collection</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>rUong3D9EauJhCA+cIiWlGuXn08=</DigestValue></Reference></SignedInfo><SignatureValue>esb0vH9iEN6TefBNnLiampoglnuOe2oggi0NVh+r9eoUKf6vzAQCfNGubdlKaf8IausdKZ3wS212MtQtXkJ8TFKPjK+gOpmoVhFKd/6rPnT5xt89+N7s5cByTPW8epjPNnAH7pEiRbzk5+JpH/xKeNCCoGoADV4L/E0TIsZRCH4=</SignatureValue></Signature></Interface>

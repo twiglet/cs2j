@@ -24,7 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/se -odir=/Users/keving/tmp/java/se/src -appdir=/Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core /Users/keving/svnrepos/ScormEngineNet/src/app/ScormEngine.Core/Logic/Integration/IntegrationInterface.cs</Commandlineparameters>
+    <Commandlineparameters>--debug 5 -experimental-transforms=true -translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/libomv -odir=/Users/keving/tmp/java/libomv/src -csdir=/Users/keving/Projects/libomv-0.8.3-source/Programs/VisualParamGenerator/ -excsdir=/Users/keving/Projects/libomv-0.8.3-source/Programs/VisualParamGenerator/template.cs</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>

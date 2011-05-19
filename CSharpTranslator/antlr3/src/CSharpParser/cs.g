@@ -30,6 +30,7 @@ tokens {
             DESTRUCTOR;
             METHOD_HEADER;
             PARAMS;
+            PARAMS_TYPELESS;
             SWITCH_SECTION;
 
             MONOPLUS;
@@ -125,6 +126,9 @@ tokens {
             DIV = '/';
             MOD = '%';
             STAR = '*';
+
+            LAMBDA = '=>';
+            COMMA = ',';
 
             TYPE;
             TYPE_VAR;
@@ -270,6 +274,9 @@ public class_member_declaration:
 	| destructor_declaration
 	) 
 	;
+
+public java_delegate_creation_expression:
+     'new' type '(' ')' '{' class_member_declaration '}';
 
 public primary_expression: 
 	('this'    brackets) => 'this'   brackets   primary_expression_part*
@@ -771,11 +778,18 @@ public variable_declarator:
 public method_declaration:
 	method_header   method_body ;
 public method_header:
-	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
+	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? 
+        // Only have throw Exceptions if IsJavaish
+        throw_exceptions?
+;
 public method_body:
 	block ;
 public member_name:
 	qid ;		// IInterface<int>.Method logic added.
+
+throw_exceptions: 
+   {IsJavaish}?=> 'throws' identifier (',' identifier)* 
+   ;
 
 ///////////////////////////////////////////////////////
 public property_declaration:

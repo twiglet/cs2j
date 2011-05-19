@@ -897,6 +897,22 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
    }
 
+   public class InvokeRepTemplate : MethodRepTemplate
+   {
+      public InvokeRepTemplate()
+      {
+         
+      }
+      public InvokeRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars) : base(retType, methodName, tParams, pars)
+      {
+      }
+
+      public override string mkJava()
+      {
+         return "${this:16}.Invoke" +  mkJavaParams(this.Params);
+      }
+   }
+
    //  A user-defined cast from one type to another
    public class CastRepTemplate : TranslationBase, IEquatable<CastRepTemplate>
    {
@@ -2540,39 +2556,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
    [XmlType("Delegate")]
    public class DelegateRepTemplate : TypeRepTemplate, IEquatable<DelegateRepTemplate>
    {
-      private List<ParamRepTemplate> _params = null;
-      [XmlArrayItem("Param")]
-      public List<ParamRepTemplate> Params {
+      private InvokeRepTemplate _invoke = null;
+      public InvokeRepTemplate Invoke {
          get {
-            if (_params == null)
-               _params = new List<ParamRepTemplate> ();
-            return _params;
+            return _invoke;
          }
          set {
-            _params = value;
+            _invoke = value;
          }
-      }
-
-      private string _return;
-      public string Return { 
-         get { return _return; }
-         set {
-            _return=value.Replace("<","*[").Replace(">","]*");
-         }
-      }
-
-      protected string _javaInvoke = null;		
-      [XmlElementAttribute("Invoke")]
-      public virtual string JavaInvoke {
-         get {
-            if (_javaInvoke == null) {
-               return "${this:16}.Invoke" +  mkJavaParams(Params);
-            }
-            else {
-               return _javaInvoke;
-            }
-         }
-         set { _javaInvoke = value; }
       }
 
       public DelegateRepTemplate()
@@ -2583,41 +2574,15 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public DelegateRepTemplate(DelegateRepTemplate copyFrom)
          : base(copyFrom)
       {
-         foreach (ParamRepTemplate p in copyFrom.Params)
+         if (copyFrom.Invoke != null)
          {
-            Params.Add(new ParamRepTemplate(p));
+            Invoke = copyFrom.Invoke;
          }
-
-         if (!String.IsNullOrEmpty(copyFrom.Return))
-         {
-            Return = copyFrom.Return;
-         }
-         if (!String.IsNullOrEmpty(copyFrom.JavaInvoke))
-         {
-            JavaInvoke = copyFrom.JavaInvoke;
-         }
-      }
-
-      public DelegateRepTemplate(string retType, List<ParamRepTemplate> args)
-         : base()
-      {
-         Return = retType;
-         _params = args;
       }
  
       public override void Apply(Dictionary<string,TypeRepTemplate> args)
       {
-         if (Params != null)
-         {
-            foreach(ParamRepTemplate p in Params)
-            {
-               p.Apply(args);
-            }
-         }
-         if (Return != null)
-         {
-            Return = TemplateUtilities.SubstituteInType(Return, args);
-         }
+         Invoke.Apply(args);
          base.Apply(args);
       }
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
@@ -2633,16 +2598,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          if (other == null)
             return false;
 			
-         if (Params != other.Params) {
-            if (Params == null || other.Params == null || Params.Count != other.Params.Count)
-               return false;
-            for (int i = 0; i < Params.Count; i++) {
-               if (Params[i] != other.Params[i])
-                  return false;
-            }
-         }
-			
-         return Return == other.Return && JavaInvoke == other.JavaInvoke && base.Equals(other);
+         return Invoke == other.Invoke && base.Equals(other);
       }
 
       public override bool Equals (object obj)
@@ -2668,12 +2624,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override int GetHashCode ()
       {
          int hashCode = base.GetHashCode ();
-         if (Params != null) {
-            foreach (ParamRepTemplate e in Params) {
-               hashCode ^= e.GetHashCode();
-            }
-         }
-         return (Return ?? String.Empty).GetHashCode() ^ (JavaInvoke ?? String.Empty).GetHashCode() ^ hashCode;
+
+         return (Invoke ?? new InvokeRepTemplate()).GetHashCode() ^ hashCode;
       }
       #endregion	
    }
@@ -2896,6 +2848,56 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   }
                }
             }
+         }
+         // Look for a property which holds a delegate with the right type
+         if (Properties != null)
+         {
+            foreach (PropRepTemplate p in Properties)
+            {
+               if (p.Name == name)
+               {
+                  // Is p's type a delegate?
+                  DelegateRepTemplate del = BuildType(p.Type, AppEnv, null) as DelegateRepTemplate;
+                  if (del != null)
+                  {
+                     bool matchingArgs = true;
+                     if (del.Invoke.Params == null || args == null)
+                     {
+                        // Are they both zero length?
+                        matchingArgs = (del.Invoke.Params == null || del.Invoke.Params.Count == 0) && (args == null || args.Count == 0);
+                     }
+                     else
+                     {
+                        // Are num args the same?
+                        if (del.Invoke.Params.Count != args.Count)
+                        {
+                           matchingArgs = false;
+                        }
+                        else
+                        {
+                           // check that for each argument in the caller its type 'IsA' the type of the formal argument
+                           for (int idx = 0; idx < del.Invoke.Params.Count; idx++) {
+                              if (args[idx] == null || !args[idx].IsA(BuildType(del.Invoke.Params[idx].Type, AppEnv, new UnknownRepTemplate(del.Invoke.Params[idx].Type)),AppEnv))
+                              {
+                                 matchingArgs = false;
+                                 break;
+                              }
+                           }
+                        }
+                     }
+                     if (matchingArgs)
+                     {
+                        ResolveResult delRes = new ResolveResult();
+                        delRes.Result = del;
+                        delRes.ResultType = BuildType(del.Invoke.Return, AppEnv);
+                        DelegateResolveResult res = new DelegateResolveResult();
+                        res.Result = p;
+                        res.ResultType = BuildType(p.Type, AppEnv);
+                        res.DelegateResult = delRes;
+                        return res;                     }
+                  }
+               }
+            }            
          }
          return base.Resolve(name, args, AppEnv);
       }
@@ -3201,6 +3203,63 @@ namespace Twiglet.CS2J.Translator.TypeRep
          base.Apply(args);
       }
 
+
+      public override ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+        
+         // Look for a property which holds a delegate with the right type
+         if (Fields != null)
+         {
+            foreach (FieldRepTemplate f in Fields)
+            {
+               if (f.Name == name)
+               {
+                  // Is f's type a delegate?
+                  DelegateRepTemplate del = BuildType(f.Type, AppEnv, null) as DelegateRepTemplate;
+                  if (del != null)
+                  {
+                     bool matchingArgs = true;
+                     if (del.Invoke.Params == null || args == null)
+                     {
+                        // Are they both zero length?
+                        matchingArgs = (del.Invoke.Params == null || del.Invoke.Params.Count == 0) && (args == null || args.Count == 0);
+                     }
+                     else
+                     {
+                        // Are num args the same?
+                        if (del.Invoke.Params.Count != args.Count)
+                        {
+                           matchingArgs = false;
+                        }
+                        else
+                        {
+                           // check that for each argument in the caller its type 'IsA' the type of the formal argument
+                           for (int idx = 0; idx < del.Invoke.Params.Count; idx++) {
+                              if (args[idx] == null || !args[idx].IsA(BuildType(del.Invoke.Params[idx].Type, AppEnv, new UnknownRepTemplate(del.Invoke.Params[idx].Type)),AppEnv))
+                              {
+                                 matchingArgs = false;
+                                 break;
+                              }
+                           }
+                        }
+                     }
+                     if (matchingArgs)
+                     {
+                        ResolveResult delRes = new ResolveResult();
+                        delRes.Result = del;
+                        delRes.ResultType = BuildType(del.Invoke.Return, AppEnv);
+                        DelegateResolveResult res = new DelegateResolveResult();
+                        res.Result = f;
+                        res.ResultType = BuildType(f.Type, AppEnv);
+                        res.DelegateResult = delRes;
+                        return res;
+                     }
+                  }
+               }
+            }            
+         }
+         return base.Resolve(name, args, AppEnv);
+      }
 
       public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
       {
@@ -3585,6 +3644,13 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
    }
 
-
+   // Used when the result of resolving the callee of an APPLY node is a pointer to a delegate
+   public class DelegateResolveResult : ResolveResult
+   {
+      public ResolveResult DelegateResult
+      {
+         get; set;
+      }
+   }
 
 }

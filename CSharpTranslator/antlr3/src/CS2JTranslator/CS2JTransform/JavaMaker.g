@@ -190,6 +190,99 @@ scope TypeContext {
         return root;
     }
 
+    protected CommonTree mkGenericArgs(IToken tok, List<string> tyVars) {
+       if (tyVars == null || tyVars.Count == 0) {
+          return null;
+       }
+
+       CommonTree root = (CommonTree)adaptor.Nil;
+       adaptor.AddChild(root, (CommonTree)adaptor.Create(LTHAN, tok, "<"));
+       bool isFirst = true;
+       foreach (string v in tyVars) {
+          if (!isFirst) {
+             adaptor.AddChild(root, (CommonTree)adaptor.Create(COMMA, tok, ","));
+          }
+          isFirst = false;
+          CommonTree ty = (CommonTree)adaptor.Nil;
+          ty = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), ty);
+          adaptor.AddChild(ty, (CommonTree)adaptor.Create(IDENTIFIER, tok, v));
+          adaptor.AddChild(root, ty);
+       }
+       adaptor.AddChild(root, (CommonTree)adaptor.Create(GT, tok, ">"));
+       return root;
+
+    }
+
+    protected CommonTree mkPackage(IToken tok, CommonTree tree, String nameSpace) {
+
+       CommonTree root = (CommonTree)adaptor.Nil;
+       root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(PACKAGE, tok, "package"), root);
+       adaptor.AddChild(root, (CommonTree)adaptor.Create(PAYLOAD, tok, nameSpace));
+       adaptor.AddChild(root, dupTree(tree));
+       return root;
+    }
+
+    protected CommonTree mkFlattenDictionary(IToken tok, Dictionary<string,CommonTree> treeDict) {
+
+       CommonTree root = (CommonTree)adaptor.Nil;
+       foreach (CommonTree tree in treeDict.Values) {
+          if (tree != null) {
+             adaptor.AddChild(root, dupTree(tree));
+          }
+       }
+       root = (CommonTree)adaptor.RulePostProcessing(root);
+       return root;
+    }
+
+    protected CommonTree mkArgsFromParams(IToken tok, CommonTree pars) {
+       CommonTree root = (CommonTree)adaptor.Nil;
+       root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), root);
+
+       // take every second child
+       for (int i = 1; i < adaptor.GetChildCount(pars); i+=2) {
+          adaptor.AddChild(root, dupTree((CommonTree)adaptor.GetChild(pars, i)));
+       }
+       root = (CommonTree)adaptor.RulePostProcessing(root);
+       return root;
+    }
+
+    protected CommonTree mkType(IToken tok, CommonTree id, List<String> tyVars) {
+
+       CommonTree root = (CommonTree)adaptor.Nil;
+       root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), root);
+       adaptor.AddChild(root, dupTree(id));
+
+       if (tyVars != null && tyVars.Count > 0) {
+          adaptor.AddChild(root, mkGenericArgs(tok, tyVars));
+       }
+
+       return root;
+    }
+    
+    protected string mkTypeString(string tyName, List<String> tyargs) {
+       StringBuilder ty = new StringBuilder();
+       ty.Append(tyName);
+       ty.Append(mkTypeArgString(tyargs));
+       return ty.ToString();
+    }
+
+    protected string mkTypeArgString(List<String> tyargs) {
+       StringBuilder ty = new StringBuilder();
+       if (tyargs != null && tyargs.Count > 0) {
+          ty.Append("<");
+          bool isFirst = true;
+          foreach (String v in tyargs) {
+             if (!isFirst) {
+                ty.Append(",");
+             }
+             isFirst = false;
+             ty.Append(v);
+          }
+          ty.Append(">");
+       }
+       return ty.ToString();
+    }
+
 // for ["conn", "conn1", "conn2"] generate:
 //
 //                   if (conn != null)
@@ -384,31 +477,38 @@ namespace_member_declaration
 }
 @after {
     if (isCompUnit) {
-       if (CUKeys.Contains(ns+"."+$ty.name)) {
-          { Warning($ty.start.Token.Line, "[UNSUPPORTED] Cannot have a class with multiple generic type overloadings: " + ns+"."+$ty.name); }
-       }
-       else {
-          CUMap.Add(ns+"."+$ty.name, new CUnit($namespace_member_declaration.tree,CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
-          CUKeys.Add(ns+"."+$ty.name);
-       }
-    }; 
-}
-:
+       foreach (KeyValuePair<String, CommonTree> treeEntry in $ty.compUnits) {
+          if (treeEntry.Value != null) {
+             if (CUKeys.Contains(ns+"."+treeEntry.Key)) {
+                { Warning(treeEntry.Value.Token.Line, "[UNSUPPORTED] Cannot have a class with multiple generic type overloadings: " + ns+"."+treeEntry.Key); }
+             }
+             else {
+                CUMap.Add(ns+"."+treeEntry.Key, new CUnit(mkPackage(treeEntry.Value.Token, treeEntry.Value, ns),CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
+                CUKeys.Add(ns+"."+treeEntry.Key);
+             }
+          }
+       }; 
+    }
+}:
 	namespace_declaration
-	| attributes?   modifiers?   ty=type_declaration[$attributes.tree, mangleModifiersForType($modifiers.tree)]  { isCompUnit = true; } ->  ^(PACKAGE[$ty.start.Token, "package"] PAYLOAD[ns] $ty);
+	| attributes?   modifiers?   ty=type_declaration[$attributes.tree, mangleModifiersForType($modifiers.tree)]  { isCompUnit = true; } 
+    ;
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
-type_declaration[CommonTree atts, CommonTree mods] returns [string name]
+type_declaration[CommonTree atts, CommonTree mods] returns [Dictionary<String,CommonTree> compUnits]
+@init {
+   $compUnits = new Dictionary<String,CommonTree>();
+}
 :
     ('partial') => p='partial'!  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
-                                (pc=class_declaration[$atts, $mods, true /* toplevel */] { $name=$pc.name; }
-								| ps=struct_declaration[$atts, $mods, true /* toplevel */] { $name=$ps.name; }
-								| pi=interface_declaration[$atts, $mods] { $name=$pi.name; }) 
-	| c=class_declaration[$atts, $mods, true /* toplevel */] { $name=$c.name; }
-	| s=struct_declaration[$atts, $mods, true /* toplevel */] { $name=$s.name; }
-	| i=interface_declaration[$atts, $mods] { $name=$i.name; }
-	| e=enum_declaration[$atts, $mods] { $name=$e.name; }
-	| d=delegate_declaration[$atts, $mods] { $name=$d.name; }
+                                (pc=class_declaration[$atts, $mods, true /* toplevel */]          { $compUnits.Add($pc.name, $pc.tree); }
+								| ps=struct_declaration[$atts, $mods, true /* toplevel */]        { $compUnits.Add($ps.name, $ps.tree); }
+								| pi=interface_declaration[$atts, $mods]                          { $compUnits.Add($pi.name, $pi.tree); } ) 
+	| c=class_declaration[$atts, $mods, true /* toplevel */]        { $compUnits.Add($c.name, $c.tree); }
+	| s=struct_declaration[$atts, $mods, true /* toplevel */]       { $compUnits.Add($s.name, $s.tree); }
+	| i=interface_declaration[$atts, $mods]                         { $compUnits.Add($i.name, $i.tree); }
+	| e=enum_declaration[$atts, $mods]                              { $compUnits.Add($e.name, $e.tree); }
+	| d=delegate_declaration[$atts, $mods]                          { $compUnits = $d.compUnits; }
     ;
 // Identifiers
 qualified_identifier returns [string thetext]:
@@ -448,7 +548,7 @@ class_member_declaration:
 	| cd=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $cd
 	| sd=struct_declaration[$a.tree, $m.tree, false /* toplevel */] -> $sd
 	| ed=enum_declaration[$a.tree, $m.tree] -> $ed
-	| dd=delegate_declaration[$a.tree, $m.tree] -> $dd
+	| dd=delegate_declaration[$a.tree, $m.tree] -> { mkFlattenDictionary($dd.tree.Token,$dd.compUnits) }
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
 	| con3=constructor_declaration[$a.tree, $m.tree, $m.modList]	-> $con3
 	| de3=destructor_declaration -> $de3
@@ -462,12 +562,8 @@ primary_expression:
 // keving:TODO fixup
 	| 'new' (   (object_creation_expression   ('.'|'->'|'[')) => 
 					(oc1=object_creation_expression -> $oc1)   (pp4=primary_expression_part[ $primary_expression.tree ] -> $pp4 )+ 		// new Foo(arg, arg).Member
-				// try the simple one first, this has no argS and no expressions
-				// symantically could be object creation
-                // keving:  No, try object_creation_expression first, it could be new type ( xx ) {}  
-                // can also match delegate_creation, will have to distinguish in NetMaker.g
 				| (object_creation_expression) => oc2=object_creation_expression -> $oc2
-				| delegate_creation_expression -> delegate_creation_expression // new FooDelegate (MyFunction)
+ //				| delegate_creation_expression -> delegate_creation_expression // new FooDelegate (MyFunction)
 				| anonymous_object_creation_expression -> anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
@@ -617,9 +713,9 @@ unchecked_expression:
 default_value_expression: 
 	'default'^   '('!   type   ')'! ;
 anonymous_method_expression:
-	'delegate'^   explicit_anonymous_function_signature?   block;
+	'delegate'^  explicit_anonymous_function_signature?  block;
 explicit_anonymous_function_signature:
-	'('   explicit_anonymous_function_parameter_list?   ')' ;
+	'('   explicit_anonymous_function_parameter_list?   ')' -> ^(PARAMS explicit_anonymous_function_parameter_list?);
 explicit_anonymous_function_parameter_list:
 	explicit_anonymous_function_parameter   (','   explicit_anonymous_function_parameter)* ;	
 explicit_anonymous_function_parameter:
@@ -875,16 +971,16 @@ conditional_expression:
 lambda_expression:
 	anonymous_function_signature   '=>'   anonymous_function_body;
 anonymous_function_signature:
-	'('	(explicit_anonymous_function_parameter_list
-		| implicit_anonymous_function_parameter_list)?	')'
-	| implicit_anonymous_function_parameter_list
+      '('     (explicit_anonymous_function_parameter_list -> ^(PARAMS explicit_anonymous_function_parameter_list)
+              | implicit_anonymous_function_parameter_list -> ^(PARAMS_TYPELESS implicit_anonymous_function_parameter_list))?  ')'
+	| implicit_anonymous_function_parameter_list -> ^(PARAMS_TYPELESS implicit_anonymous_function_parameter_list)
 	;
 implicit_anonymous_function_parameter_list:
 	implicit_anonymous_function_parameter   (','   implicit_anonymous_function_parameter)* ;
 implicit_anonymous_function_parameter:
 	identifier;
 anonymous_function_body:
-	expression
+	expression -> OPEN_BRACE[$expression.tree.Token, "{"] expression CLOSE_BRACE[$expression.tree.Token, "}"]
 	| block ;
 
 ///////////////////////////////////////////////////////
@@ -1107,8 +1203,13 @@ method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
          ;
 
 throw_exceptions: 
-   {IsJavaish}?=> 'throws'! t1=identifier { $t1.tree.Type = EXCEPTION; } (','! tn=identifier { $tn.tree.Type = EXCEPTION; } )* 
+   {IsJavaish}?=> 'throws'! javaException (','! javaException)* 
    ;
+
+javaException:
+    identifier -> EXCEPTION[$identifier.tree.Token, $identifier.tree.Token.Text]
+;
+
 member_name returns [string rawId, string full_name]
 @init {
    $full_name = "";
@@ -1234,14 +1335,39 @@ integral_type:
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
 // B.2.12 Delegates
-delegate_declaration[CommonTree atts, CommonTree mods] returns [string name]
+delegate_declaration[CommonTree atts, CommonTree mods] returns [Dictionary<String, CommonTree> compUnits]
 scope TypeContext;
+@init {
+    $compUnits = new Dictionary<String,CommonTree>();
+    CommonTree delClassMemberNodes = null;
+    CommonTree ifTree = null;
+    String delName = "";
+    String multiDelName = "";
+}
+@after {
+         $compUnits.Add(delName, dupTree($delegate_declaration.tree));
+}
 :
-	d='delegate'   return_type   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?   
-		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' magicInvoker[$d.token, $return_type.tree, $identifier.tree, $formal_parameter_list.tree] -> 
+	d='delegate'   return_type   identifier { delName = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?  {ifTree = mkType($d.token, $identifier.tree, $variant_generic_parameter_list.tyargs); } 
+		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
+            magicDelegateInterface[$d.token, $return_type.tree, $identifier.tree, $formal_parameter_list.tree, $variant_generic_parameter_list.tyargs] 
+            magicMultiInvokerMethod[$d.token, $return_type.tree, $return_type.thetext == "Void" || $return_type.thetext == "System.Void", ifTree, $formal_parameter_list.tree, mkArgsFromParams($d.token, $formal_parameter_list.tree), $variant_generic_parameter_list.tyargs] 
+      {
+         multiDelName = "__Multi" + delName;
+         delClassMemberNodes = this.parseString("class_member_declarations", Fragments.MultiDelegateMethods(mkTypeString(delName, $variant_generic_parameter_list.tyargs), mkTypeString(multiDelName, $variant_generic_parameter_list.tyargs),mkTypeArgString($variant_generic_parameter_list.tyargs)));
+         AddToImports("java.util.List");
+         AddToImports("java.util.ArrayList");
+         AddToImports("CS2JNet.JavaSupport.util.ListSupport");
+      }
+      magicMultiDelClass[$d.token, $atts, $mods, multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
+      {
+         $compUnits.Add(multiDelName, $magicMultiDelClass.tree);
+      }
+      -> 
 //    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
 //		'('   formal_parameter_list?   ')' );
-    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { dupTree($mods) }  identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?  magicInvoker);
+    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { dupTree($mods) }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
+    ;
 delegate_modifiers:
 	modifier+ ;
 // 4.0
@@ -1279,9 +1405,9 @@ type_variable_name:
 // keving: TOTEST we drop new constraints,  but what will happen in Java for this case? 
 constructor_constraint:
 	'new'   '('   ')' ;
-return_type:
-	type
-	|  void_type ;
+return_type returns [string thetext]:
+	type {$thetext = $type.thetext; }
+	|  void_type {$thetext = "System.Void"; };
 formal_parameter_list returns [int numArgs]
 @init {
     $numArgs = 0;
@@ -1917,9 +2043,59 @@ magicThrowsException[bool isOn, IToken tok]:
 -> 
 ;
 
-magicInvoker[IToken tok, CommonTree return_type, CommonTree identifier, CommonTree formal_parameter_list]:
- magicThrowsException[true, tok] 
--> OPEN_BRACE[tok, "{"] 
-         ^(METHOD[tok, "METHOD"] { dupTree(return_type) } IDENTIFIER[tok,"Invoke"] { dupTree(formal_parameter_list) } magicThrowsException)
+magicDelegateInterface[IToken tok, CommonTree return_type, CommonTree identifier, CommonTree formal_parameter_list, List<String> tyArgs]
+@init {
+    AddToImports("java.util.List");
+}:
+ e1=magicThrowsException[true, tok] 
+ e2=magicThrowsException[true, tok] 
+-> OPEN_BRACE[tok, "{"] // System.Collections.Generic.IList
+         ^(METHOD[tok, "METHOD"] { dupTree(return_type) } IDENTIFIER[tok,"Invoke"] { dupTree(formal_parameter_list) } $e1)
+         ^(METHOD[tok, "METHOD"] ^(TYPE ^(DOT[tok, "."] ^(DOT[tok, "."] ^(DOT[tok, "."] IDENTIFIER[tok, "System"]  IDENTIFIER[tok, "Collections"]) IDENTIFIER[tok, "Generic"]) IDENTIFIER[tok, "IList"]  LTHAN[tok,"<"] ^(TYPE { dupTree( identifier) } { mkGenericArgs(tok, tyArgs) }) GT[tok,">"])) IDENTIFIER[tok,"GetInvocationList"] $e2)
    CLOSE_BRACE[tok, "}"]
 ;
+
+// First execute all but the last one, then execute the last one and (if non-void) return its result. 
+magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, CommonTree type, CommonTree formal_parameter_list, CommonTree argument_list, List<String> tyArgs]
+:
+ e1=magicThrowsException[true, tok] 
+-> {retIsVoid}?
+   ^(METHOD[tok, "METHOD"] PUBLIC[tok, "public"] { dupTree($return_type) } IDENTIFIER[tok,"Invoke"] { dupTree($formal_parameter_list) }
+      OPEN_BRACE[tok, "{"] 
+           ^(FOREACH[tok, "foreach"]
+            { $type } IDENTIFIER[tok, "d"]  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] THIS[tok,"this"] IDENTIFIER[tok,"GetInvocationList"]))
+               SEP[tok, "SEP"]
+                OPEN_BRACE[tok, "{"]
+                  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"d"] IDENTIFIER[tok,"Invoke"]) { $argument_list }) SEMI[tok, ";"]
+                CLOSE_BRACE[tok, "}"]
+            ) 
+      CLOSE_BRACE[tok, "}"]
+      magicThrowsException
+    )
+-> ^(METHOD[tok, "METHOD"] PUBLIC[tok, "public"] { dupTree($return_type) } IDENTIFIER[tok,"Invoke"] { dupTree($formal_parameter_list) }
+      OPEN_BRACE[tok, "{"] 
+         { $type } IDENTIFIER[tok, "prev"] ASSIGN[tok, "="] NULL[tok, "null"] SEMI[tok,";"]
+           ^(FOREACH[tok, "foreach"]
+            { $type } IDENTIFIER[tok, "d"]  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] THIS[tok,"this"] IDENTIFIER[tok,"GetInvocationList"]))
+               SEP[tok, "SEP"]
+                OPEN_BRACE[tok, "{"]
+                  ^(IF[tok, "if"] ^(NOT_EQUAL[tok, "!="] IDENTIFIER[tok,"prev"] NULL[tok, "null"]) SEP ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,"Invoke"]) { $argument_list }) SEMI[tok, ";"])
+                  IDENTIFIER[tok, "prev"] ASSIGN[tok, "="] IDENTIFIER[tok, "d"] SEMI[tok,";"]
+                CLOSE_BRACE[tok, "}"]
+            ) 
+         ^(RETURN[tok, "return"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,"Invoke"]) { $argument_list }))
+      CLOSE_BRACE[tok, "}"]
+      magicThrowsException
+    )
+;
+
+magicPackage[IToken tok, CommonTree cu, String ns]:
+-> { $cu != null }? ^(PACKAGE[tok, "package"] PAYLOAD[tok, ns] { dupTree(cu) })
+->
+;
+
+magicMultiDelClass[IToken tok, CommonTree atts, CommonTree mods, string className, CommonTree delIface, CommonTree paramConstraints, CommonTree tyParamList, CommonTree invokeMethod, CommonTree members]:
+->    ^(CLASS[tok, "class"] { dupTree($atts) } { dupTree($mods) }  IDENTIFIER[tok, className] { dupTree(paramConstraints) }  { dupTree(tyParamList) } ^(IMPLEMENTS[tok, "implements"] { dupTree(delIface) })  
+         OPEN_BRACE[tok, "{"] {dupTree(invokeMethod)} { dupTree(members) } CLOSE_BRACE[tok, "}"])
+;
+

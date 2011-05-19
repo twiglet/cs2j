@@ -156,6 +156,7 @@ options {
             precedence[i] =  int.MaxValue;
         }
         precedence[ASSIGN] = 1;
+        precedence[LAMBDA] = 1;
         precedence[PLUS_ASSIGN] = 1;
         precedence[MINUS_ASSIGN] = 1;
         precedence[STAR_ASSIGN] = 1;
@@ -378,7 +379,7 @@ primary_expression returns [int precedence]
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
     | ^(NEW type argument_list? object_or_collection_initializer?) { $precedence = precedence[NEW]; }-> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
-	| ^(NEW_DELEGATE delegate_creation_expression)  // new FooDelegate (MyFunction)
+	| ^(NEW_DELEGATE type argument_list? class_body)  -> delegate(type = {$type.st}, args = {$argument_list.st}, body={$class_body.st})
 	| ^(NEW_ANON_OBJECT anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression      -> { $checked_expression.st }      		// checked (...
@@ -430,7 +431,7 @@ primary_expression_part:
 access_identifier:
 	access_operator   type_or_generic ;
 access_operator returns [int precedence]:
-	(op='.'  |  op='->') { $precedence = precedence[$op.token.Type]; } -> string(payload = { $op.token.Text }) ;
+	(op=DOT  |  op='->') { $precedence = precedence[$op.token.Type]; } -> string(payload = { $op.token.Text }) ;
 brackets_or_arguments:
 	brackets | arguments ;
 brackets:
@@ -479,15 +480,25 @@ rank_specifier:
 // dim_separators: 
 //	','+ ;
 
-wrapped returns [int precedence]:
+wrapped returns [int precedence]
+@init {
+    $precedence = int.MaxValue;
+    Dictionary<string,ReplacementDescriptor> templateMap = new Dictionary<string,ReplacementDescriptor>();
+}:
     ^(JAVAWRAPPEREXPRESSION expression) { $precedence = $expression.precedence; } -> { $expression.st } 
     | ^(JAVAWRAPPERARGUMENT argument_value) { $precedence = $argument_value.precedence; } -> { $argument_value.st } 
-    | ^(JAVAWRAPPERTYPE type) { $precedence = int.MaxValue; } -> { $type.st } 
+    | ^(JAVAWRAPPERTYPE type) -> { $type.st } 
+    | ^(JAVAWRAPPER t=identifier 
+         (k=identifier v=wrapped 
+            {
+               templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "<sorry, untranslated expression>", $v.precedence); 
+            }
+          )*) -> string(payload = {fillTemplate($t.st.ToString(), templateMap)})
     ;
 
-delegate_creation_expression: 
+//delegate_creation_expression: 
 	// 'new'   
-	type_name   '('   type_name   ')' ;
+//	type_name   '('   type_name   ')' ;
 anonymous_object_creation_expression: 
 	// 'new'
 	anonymous_object_initializer ;
@@ -504,7 +515,7 @@ primary_or_array_creation_expression returns [int precedence]:
 // new Type[2] { }
 array_creation_expression returns [int precedence]:
 	^(NEW_ARRAY   
-		(type   ('['   expression_list   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
+		(type   ('['   expression_list?   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
 				| ai2=array_initializer	-> 	array_construct(type = { $type.st }, inits = { $ai2.st })
 				)
 		| rank_specifier  array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
@@ -552,16 +563,7 @@ default_value_expression
         } ->  unsupported(reason = {"default expressions are not yet supported"}, text = { someText } )
 ;
 anonymous_method_expression:
-	^('delegate'   explicit_anonymous_function_signature?   block);
-explicit_anonymous_function_signature:
-	'('   explicit_anonymous_function_parameter_list?   ')' ;
-explicit_anonymous_function_parameter_list:
-	explicit_anonymous_function_parameter   (','   explicit_anonymous_function_parameter)* ;	
-explicit_anonymous_function_parameter:
-	anonymous_function_parameter_modifier?   type   identifier;
-anonymous_function_parameter_modifier:
-	'ref' | 'out';
-
+	^('delegate'   formal_parameter_list?   block);
 
 ///////////////////////////////////////////////////////
 object_creation_expression: 
@@ -785,7 +787,7 @@ non_assignment_expression returns [int precedence]
     $precedence = int.MaxValue;
 }: 
 	//'non ASSIGNment'
-	(anonymous_function_signature   '=>')	=> lambda_expression
+	(anonymous_function_signature   '=>')	=> lambda_expression { $precedence = precedence[LAMBDA]; } -> { $lambda_expression.st; }
 	| (query_expression) => query_expression 
 	| ^(cop=COND_EXPR ce1=non_assignment_expression ce2=expression ce3=expression) { $precedence = precedence[$cop.token.Type]; } 
           -> cond( condexp = { $ce1.st }, thenexp = { $ce2.st }, elseexp = { $ce3.st },
@@ -809,19 +811,20 @@ non_assignment_expression returns [int precedence]
 //	lambda Section
 ///////////////////////////////////////////////////////
 lambda_expression:
-	anonymous_function_signature   '=>'   anonymous_function_body;
+	anonymous_function_signature?   '=>'   block 
+        { 
+            StringTemplate lambdaText = %lambda();
+            %{lambdaText}.args = $anonymous_function_signature.st;
+            %{lambdaText}.body = $block.st;
+            $st = %unsupported();
+            %{$st}.reason = "to translate lambda expressions we need an explicit delegate type, try adding a cast";
+            %{$st}.text = lambdaText;
+        }
+   ;
 anonymous_function_signature:
-	'('	(explicit_anonymous_function_parameter_list
-		| implicit_anonymous_function_parameter_list)?	')'
-	| implicit_anonymous_function_parameter_list
+	^(PARAMS fps+=formal_parameter+) -> list(items= {$fps}, sep={", "})
+	| ^(PARAMS_TYPELESS ids+=identifier+) -> list(items= {$ids}, sep={", "})
 	;
-implicit_anonymous_function_parameter_list:
-	implicit_anonymous_function_parameter   (','   implicit_anonymous_function_parameter)* ;
-implicit_anonymous_function_parameter:
-	identifier;
-anonymous_function_body:
-	expression
-	| block ;
 
 ///////////////////////////////////////////////////////
 //	LINQ Section
@@ -1286,9 +1289,9 @@ jump_statement:
 	| ^('return'   expression?) -> return(exp = { $expression.st })
 	| ^('throw'   expression?) -> throw(exp = { $expression.st });
 goto_statement:
-	'goto'   ( identifier
-			 | 'case'   constant_expression
-			 | 'default')   ';' ;
+	'goto'   ( identifier -> op(op={"goto"}, post={$identifier.st})
+			 | 'case'   constant_expression  -> op(op={"goto case"}, post={$constant_expression.st})
+			 | 'default' -> string(payload={"goto default"}) )   ';' ;
 catch_clauses:
     c+=catch_clause+ -> seplist(items={ $c }, sep = { "\n" }) ;
 catch_clause:

@@ -279,7 +279,16 @@ braceblock(statements) ::= <<
 
 cast_expr(type, exp) ::= ""(<type>)<exp>""
 construct(type, args, inits) ::= ""new <type>(<args>)<if(inits)> /* [UNIMPLEMENTED] <inits> */<endif>""
-array_construct(type, args, inits) ::= ""new <type><if(args)>[<args>]<endif><if(inits)><inits><endif>""
+delegate(type, args, body) ::= <<
+new <type>(<args>) 
+  { 
+    <body>
+  }
+>>
+lambda(args, body) ::= <<
+(<args>) => <body>
+>>
+array_construct(type, args, inits) ::= ""new <type>[<if(args)><args><endif>]<if(inits)><inits><endif>""
 array_initializer(init) ::= ""{ <init> }""
 application(func, funcparens, args) ::= ""<optparens(parens=funcparens,e=func)>(<args>)"" 
 index(func, funcparens, args) ::= ""<optparens(parens=funcparens,e=func)>[<args>]"" 
