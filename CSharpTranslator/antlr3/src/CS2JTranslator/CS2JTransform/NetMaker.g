@@ -1298,9 +1298,9 @@ array_creation_expression returns [TypeRepTemplate dotNetType]:
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 variable_initializer_list:
-	variable_initializer (',' variable_initializer)* ;
-variable_initializer:
-	expression[ObjectType]	| array_initializer ;
+	variable_initializer[ObjectType] (',' variable_initializer[ObjectType])* ;
+variable_initializer[TypeRepTemplate typeCtxt]:
+	expression[$typeCtxt]	| array_initializer ;
 sizeof_expression:
 	^('sizeof'  unmanaged_type );
 checked_expression: 
@@ -2189,9 +2189,9 @@ constant_declaration:
 constant_declarators[TypeRepTemplate ty]:
 	constant_declarator[$ty] (',' constant_declarator[$ty])* ;
 constant_declarator[TypeRepTemplate ty]:
-	identifier  { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   constant_expression)? ;
-constant_expression returns [string rmId]:
-	expression[ObjectType] {$rmId = $expression.rmId; };
+	identifier  { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   constant_expression[$ty])? ;
+constant_expression[TypeRepTemplate tyCtxt] returns [string rmId]:
+	expression[$tyCtxt] {$rmId = $expression.rmId; };
 
 ///////////////////////////////////////////////////////
 field_declaration[CommonTree tyTree, TypeRepTemplate ty]:
@@ -2211,7 +2211,7 @@ variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
     }
 }:
 	identifier 
-       (e='='   variable_initializer { hasInit = true; constructStruct = false; constructEnum = false; } )?
+       (e='='   variable_initializer[$ty] { hasInit = true; constructStruct = false; constructEnum = false; } )?
         magicConstructStruct[constructStruct, $tyTree, $identifier.tree != null ? $identifier.tree.Token : null]
         magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
         		// eg. event EventHandler IInterface.VariableName = Foo;
@@ -2640,7 +2640,7 @@ switch_label returns [bool isDefault]
 @init {
     $isDefault = false;
 }:
-    ^(c='case'  ce=constant_expression ) 
+    ^(c='case'  ce=constant_expression[ObjectType] ) 
         -> { $switch_statement::convertToIfThenElse }? 
                // scrutVar.equals(ce)
                ^(APPLY[$c.token, "APPLY"] ^(DOT[$c.token, "."] IDENTIFIER[$c.token, $switch_statement::scrutVar] IDENTIFIER[$c.token, "equals"]) ^(ARGS[$c.token, "ARGS"] $ce))
@@ -2730,7 +2730,7 @@ continue_statement:
 	'continue'   ';' ;
 goto_statement:
 	'goto'   ( identifier
-			 | 'case'   constant_expression
+			 | 'case'   constant_expression[ObjectType]
 			 | 'default')   ';' ;
 catch_clauses:
     catch_clause+ ;
