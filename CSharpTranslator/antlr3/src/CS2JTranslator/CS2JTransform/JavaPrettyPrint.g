@@ -516,7 +516,7 @@ primary_or_array_creation_expression returns [int precedence]:
 array_creation_expression returns [int precedence]:
 	^(NEW_ARRAY   
 		(type   ('['   expression_list?   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
-				| ai2=array_initializer	-> 	array_construct(type = { $type.st }, inits = { $ai2.st })
+				| ai2=array_initializer	-> 	array_construct_nobracks(type = { $type.st }, inits = { $ai2.st })
 				)
 		| rank_specifier  array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )

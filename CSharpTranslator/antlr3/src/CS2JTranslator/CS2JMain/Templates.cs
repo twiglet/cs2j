@@ -289,6 +289,7 @@ lambda(args, body) ::= <<
 (<args>) => <body>
 >>
 array_construct(type, args, inits) ::= ""new <type>[<if(args)><args><endif>]<if(inits)><inits><endif>""
+array_construct_nobracks(type, inits) ::= ""new <type><if(inits)><inits><endif>""
 array_initializer(init) ::= ""{ <init> }""
 application(func, funcparens, args) ::= ""<optparens(parens=funcparens,e=func)>(<args>)"" 
 index(func, funcparens, args) ::= ""<optparens(parens=funcparens,e=func)>[<args>]"" 

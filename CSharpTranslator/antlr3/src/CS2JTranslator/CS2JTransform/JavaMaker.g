@@ -474,6 +474,8 @@ namespace_member_declarations:
 namespace_member_declaration
 @init { string ns = $NSContext::currentNS; 
         bool isCompUnit = false;
+        CommonTree atts = null;
+        CommonTree mods = null;
 }
 @after {
     if (isCompUnit) {
@@ -491,7 +493,7 @@ namespace_member_declaration
     }
 }:
 	namespace_declaration
-	| attributes?   modifiers?   ty=type_declaration[$attributes.tree, mangleModifiersForType($modifiers.tree)]  { isCompUnit = true; } 
+	| attributes?  { atts = dupTree($attributes.tree); } modifiers? { mods = dupTree($modifiers.tree); }  ty=type_declaration[atts, mangleModifiersForType(mods)]  { isCompUnit = true; } 
     ;
 // type_declaration is only called at the top level, so each of the types declared
 // here will become a Java compilation unit (and go to its own file)
