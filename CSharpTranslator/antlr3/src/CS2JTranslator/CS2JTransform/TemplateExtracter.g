@@ -85,6 +85,30 @@ scope NSContext {
         }
     }
 
+    protected string mkTypeString(string tyName, List<String> tyargs) {
+       StringBuilder ty = new StringBuilder();
+       ty.Append(tyName);
+       ty.Append(mkTypeArgString(tyargs));
+       return ty.ToString();
+    }
+
+    protected string mkTypeArgString(List<String> tyargs) {
+       StringBuilder ty = new StringBuilder();
+       if (tyargs != null && tyargs.Count > 0) {
+          ty.Append("*[");
+          bool isFirst = true;
+          foreach (String v in tyargs) {
+             if (!isFirst) {
+                ty.Append(",");
+             }
+             isFirst = false;
+             ty.Append(v);
+          }
+          ty.Append("]*");
+       }
+       return ty.ToString();
+    }
+
 }
 
 /********************************************************************************************
@@ -888,12 +912,13 @@ scope NSContext;
             // now add a class for the MultiDelegateClass that we will be generating
             genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias("__Multi"+$identifier.text, $variant_generic_parameter_list.tyargs);
             multiDelegateClass.TypeName = NSPrefix(ParentNameSpace) + "__Multi" + $identifier.text;
-            multiDelegateClass.Inherits = new String[] { dlegate.TypeName };
+            String delIfaceName = mkTypeString(dlegate.TypeName, $variant_generic_parameter_list.tyargs);
+            multiDelegateClass.Inherits = new String[] { delIfaceName };
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 multiDelegateClass.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
             multiDelegateClass.Methods.Add(new MethodRepTemplate($return_type.thetext, "Invoke", null, $formal_parameter_list.paramlist));
-            multiDelegateClass.Methods.Add(new MethodRepTemplate("System.Collections.Generic.List*[" + dlegate.TypeName + "]*", "GetInvocationList", null, null));
+            multiDelegateClass.Methods.Add(new MethodRepTemplate("System.Collections.Generic.List*[" + delIfaceName + "]*", "GetInvocationList", null, null));
             AppEnv[genericNameSpace] = multiDelegateClass;
             multiDelegateClass.Uses = this.CollectUses;
             multiDelegateClass.Aliases = this.CollectAliases;
