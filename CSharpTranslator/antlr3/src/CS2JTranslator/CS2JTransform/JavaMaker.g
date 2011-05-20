@@ -982,7 +982,7 @@ implicit_anonymous_function_parameter_list:
 implicit_anonymous_function_parameter:
 	identifier;
 anonymous_function_body:
-	expression -> OPEN_BRACE[$expression.tree.Token, "{"] ^(RETURN[$expression.tree.Token, "return"] expression) CLOSE_BRACE[$expression.tree.Token, "}"]
+	expression 
 	| block ;
 
 ///////////////////////////////////////////////////////

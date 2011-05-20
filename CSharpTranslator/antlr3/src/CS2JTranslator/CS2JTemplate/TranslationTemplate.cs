@@ -2370,7 +2370,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
       #endregion		
 		
-      protected string mkFormattedTypeName(bool incNameSpace, string langle, string rangle)
+      public string mkFormattedTypeName(bool incNameSpace, string langle, string rangle)
       {
          StringBuilder fmt = new StringBuilder();
          if (TypeName == "System.Array")

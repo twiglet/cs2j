@@ -579,7 +579,7 @@ scope MkNonGeneric {
         }
         else {
            delTypeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), delTypeRoot);
-           adaptor.AddChild(delTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, delType.Java));
+           adaptor.AddChild(delTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, delType.mkFormattedTypeName(false, "<",">")));
            AddToImports(delType.Imports);
         }
         adaptor.AddChild(retTypeRoot, delTypeRoot);
@@ -664,7 +664,7 @@ scope MkNonGeneric {
         else {
            CommonTree delTyTree = (CommonTree)adaptor.Nil;
            delTyTree = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), delTyTree);
-           adaptor.AddChild(delTyTree, (CommonTree)adaptor.Create(IDENTIFIER, tok, delg.Java));
+           adaptor.AddChild(delTyTree, (CommonTree)adaptor.Create(IDENTIFIER, tok, delg.mkFormattedTypeName(false, "<",">")));
            AddToImports(delg.Imports);
            adaptor.AddChild(root, delTyTree);
         }
@@ -728,7 +728,7 @@ scope MkNonGeneric {
         else {
            CommonTree delTyTree = (CommonTree)adaptor.Nil;
            delTyTree = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), delTyTree);
-           adaptor.AddChild(delTyTree, (CommonTree)adaptor.Create(IDENTIFIER, tok, delg.Java));
+           adaptor.AddChild(delTyTree, (CommonTree)adaptor.Create(IDENTIFIER, tok, delg.mkFormattedTypeName(false, "<",">")));
            AddToImports(delg.Imports);
            adaptor.AddChild(root, delTyTree);
         }
@@ -1564,14 +1564,16 @@ assignment
 
     ResolveResult fieldResult = null;
     ResolveResult indexerResult = null;
+
+    CommonTree lhsTree = null;
 }
 @after {
     if (ret != null)
         $assignment.tree = ret;
 }:
     ((^('.' expression[ObjectType] identifier generic_argument_list?) | identifier) assignment_operator)  => 
-        (^('.' se=expression[ObjectType] i=identifier generic_argument_list?) 
-          | i=identifier { isThis = true; })  
+        (^(d0='.' se=expression[ObjectType] i=identifier generic_argument_list?)  {lhsTree = dupTree($d0.tree); }
+          | i=identifier { isThis = true; lhsTree = dupTree($i.tree); })  
             {
                 TypeRepTemplate varType = SymTabLookup($i.thetext);
                 if (isThis && varType != null) {
@@ -1594,12 +1596,70 @@ assignment
             }
          a=assignment_operator rhs=expression[lhsType] 
         {
+            CommonTree assignmentOp = $a.tree;
+            CommonTree rhsTree = $rhs.tree;
+            TypeRepTemplate rhsType = $rhs.dotNetType ?? ObjectType;
+            // Is lhs a delegate and assignment one of += -=?
+            if (lhsType is DelegateRepTemplate && (assignmentOp.Token.Type == PLUS_ASSIGN || assignmentOp.Token.Type == MINUS_ASSIGN)) {
+               // rewrite to lhs = <op>(lhs,rhs)
+               // First calculate new rhs
+               CommonTree lhsGetter = lhsTree;
+               // Do we have a getter for lhs
+               if (isLocalVar && lhsType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                  lhsGetter = mkJavaWrapper("${this}.getValue()", myMap, $i.tree.Token);
+               }
+               else if (expType != null) {
+                  // Is lhs a property?
+                  ResolveResult readFieldResult = expType.Resolve($i.thetext, false, AppEnv);
+                  if (readFieldResult.Result is PropRepTemplate) {
+                     if (!String.IsNullOrEmpty(readFieldResult.Result.Warning)) Warning($i.tree.Token.Line, readFieldResult.Result.Warning);
+                     PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
+                  
+                     if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
+                        // need to translate to setProp(getProp <op> rhs)
+                        Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                        if (!isThis)
+                           rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                        lhsGetter = mkJavaWrapper(readPropRep.JavaGet, rhsMap, assignmentOp.Token);
+                        lhsType = readFieldResult.ResultType;
+                     }
+                  }
+               }
+               // OK, lhsGetter is good for use.
+               List<TypeRepTemplate> args = new List<TypeRepTemplate>();
+               args.Add(lhsType);
+               args.Add(rhsType == null ? lhsType : rhsType);
+               ResolveResult calleeResult = lhsType.Resolve(assignmentOp.Token.Type == PLUS_ASSIGN ? "Combine" : "Remove", args, AppEnv);
+               if (calleeResult != null) {
+                  if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning(assignmentOp.Token.Line, calleeResult.Result.Warning);
+                  
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
+                  myMap[calleeMethod.Params[0].Name] = wrapArgument(lhsGetter, assignmentOp.token);
+                  myMap[calleeMethod.Params[1].Name] = wrapArgument(rhsTree, assignmentOp.token);
+                  rhsTree = mkJavaWrapper(calleeMethod.Java, myMap, assignmentOp.token);
+                  AddToImports(calleeMethod.Imports);
+                  rhsType = calleeResult.ResultType; 
+                  assignmentOp = (CommonTree)adaptor.Create(ASSIGN, assignmentOp.Token, "=");
+                  
+                  // set up a default ret
+                  ret = (CommonTree)adaptor.Nil;
+                  adaptor.AddChild(ret, dupTree(lhsTree));
+                  adaptor.AddChild(ret, dupTree(assignmentOp));
+                  adaptor.AddChild(ret, dupTree(rhsTree));
+               }
+               else {
+                  WarningFailedResolve(assignmentOp.Token.Line, "Could not resolve method application of " + (assignmentOp.Token.Type == PLUS_ASSIGN ? "Combine" : "Remove") + " against " + lhsType.TypeName);
+               }
+            } 
             if (isLocalVar) {
                // Is this a wrapped parameter?
                if (lhsType.IsWrapped) {
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                   myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
-                  myMap["value"] = wrapExpression($rhs.tree, $rhs.tree.Token);
+                  myMap["value"] = wrapExpression(rhsTree, rhsTree.Token);
                   ret = mkJavaWrapper("${this}.setValue(${value})", myMap, $i.tree.Token);
                 }
                // a simple variable assignment
@@ -1610,10 +1670,10 @@ assignment
                   if (fieldResult.Result is PropRepTemplate) {
                      PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
                      if (!String.IsNullOrEmpty(propRep.JavaSet)) {
-                        CommonTree newRhsExp = $rhs.tree;
+                        CommonTree newRhsExp = rhsTree;
                         // if assignment operator is a short cut operator then only translate if we also have JavaGet  
                         bool goodTx = true;
-                        if ($a.tree.Token.Type != ASSIGN) {
+                        if (assignmentOp.Token.Type != ASSIGN) {
                            // We have to resolve property reads and writes separately, because they may come from 
                            // different parent classes
                            ResolveResult readFieldResult = expType.Resolve($i.thetext, false, AppEnv);
@@ -1627,8 +1687,8 @@ assignment
                                  Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
                                  if (!isThis)
                                     rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                                 CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, $a.tree.Token);
-                                 newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                                 CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, assignmentOp.Token);
+                                 newRhsExp = mkOpExp(mkOpExp(assignmentOp), rhsPropTree, rhsTree);
                               }
                               else {
                                  goodTx = false;
@@ -1640,7 +1700,7 @@ assignment
                            valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
                         valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
                         if (goodTx) {
-                           ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
+                           ret = mkJavaWrapper(propRep.JavaSet, valMap, assignmentOp.Token);
                            AddToImports(propRep.Imports);
                         }
                      }
@@ -1997,13 +2057,13 @@ lambda_expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType]
     if (ret != null)
         $lambda_expression.tree = ret;
 }:
-	anonymous_function_signature[$typeCtxt]?   d='=>'   block
+	anonymous_function_signature[$typeCtxt]?   d='=>'   anonymous_function_body
       {
          if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate && $anonymous_function_signature.isTypedParams) {
             // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
             // new <delegate_name>() { public void Invoke(<formal args>) throw exception <block> }
             DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
-            ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $anonymous_function_signature.tree, $block.tree, delType, $d.token);
+            ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $anonymous_function_signature.tree, $anonymous_function_body.tree, delType, $d.token);
             $dotNetType = $typeCtxt;
          }
       }
@@ -2029,6 +2089,11 @@ anonymous_function_signature[TypeRepTemplate typeCtxt] returns [bool isTypedPara
          }
       }
 	;
+anonymous_function_body:
+	expression[ObjectType] 
+      -> {$expression.dotNetType != null && $expression.dotNetType.IsA(VoidType, AppEnv)}? OPEN_BRACE[$expression.tree.Token, "{"] expression SEMI[$expression.tree.Token, ";"] CLOSE_BRACE[$expression.tree.Token, "}"]
+      -> OPEN_BRACE[$expression.tree.Token, "{"] ^(RETURN[$expression.tree.Token, "return"] expression) CLOSE_BRACE[$expression.tree.Token, "}"]
+	| block ;
 
 ///////////////////////////////////////////////////////
 //	LINQ Section
