@@ -699,7 +699,7 @@ scope MkNonGeneric {
         if (delg.Invoke.Params.Count > 0) {
            adaptor.AddChild(call, mkParams(delg.Invoke.Params, false, tok));
         }
-        if (returnType.IsA(voidType, AppEnv)) {
+        if (returnType.IsA(VoidType, AppEnv)) {
            adaptor.AddChild(ret, call);
            adaptor.AddChild(method, ret);
         }
@@ -2369,9 +2369,7 @@ member_name
 ///////////////////////////////////////////////////////
 
 event_declaration:
-	'event'   type
-		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators[$type.tree, $type.dotNetType]   ';')	// typename=foo;
+	type member_name   '{'   event_accessor_declarations   '}'
 		;
 event_modifiers:
 	modifier+ ;

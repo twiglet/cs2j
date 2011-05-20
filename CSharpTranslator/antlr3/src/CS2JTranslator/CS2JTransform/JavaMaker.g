@@ -717,9 +717,12 @@ default_value_expression:
 anonymous_method_expression:
 	'delegate'^  explicit_anonymous_function_signature?  block;
 explicit_anonymous_function_signature:
-	'('   explicit_anonymous_function_parameter_list?   ')' -> ^(PARAMS explicit_anonymous_function_parameter_list?);
+	'('   explicit_anonymous_function_parameter_list?   ')' 
+-> {$explicit_anonymous_function_parameter_list.tree != null}? ^(PARAMS explicit_anonymous_function_parameter_list?)
+->
+;
 explicit_anonymous_function_parameter_list:
-	explicit_anonymous_function_parameter   (','   explicit_anonymous_function_parameter)* ;	
+	explicit_anonymous_function_parameter   (','!   explicit_anonymous_function_parameter)* ;	
 explicit_anonymous_function_parameter:
 	anonymous_function_parameter_modifier?   type   identifier;
 anonymous_function_parameter_modifier:
@@ -978,7 +981,7 @@ anonymous_function_signature:
 	| implicit_anonymous_function_parameter_list -> ^(PARAMS_TYPELESS implicit_anonymous_function_parameter_list)
 	;
 implicit_anonymous_function_parameter_list:
-	implicit_anonymous_function_parameter   (','   implicit_anonymous_function_parameter)* ;
+	implicit_anonymous_function_parameter   (','!   implicit_anonymous_function_parameter)* ;
 implicit_anonymous_function_parameter:
 	identifier;
 anonymous_function_body:

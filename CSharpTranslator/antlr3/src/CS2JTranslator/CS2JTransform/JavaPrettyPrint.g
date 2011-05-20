@@ -787,7 +787,7 @@ non_assignment_expression returns [int precedence]
     $precedence = int.MaxValue;
 }: 
 	//'non ASSIGNment'
-	(anonymous_function_signature   '=>')	=> lambda_expression { $precedence = precedence[LAMBDA]; } -> { $lambda_expression.st; }
+	(anonymous_function_signature?  '=>')	=> lambda_expression { $precedence = precedence[LAMBDA]; } -> { $lambda_expression.st; }
 	| (query_expression) => query_expression 
 	| ^(cop=COND_EXPR ce1=non_assignment_expression ce2=expression ce3=expression) { $precedence = precedence[$cop.token.Type]; } 
           -> cond( condexp = { $ce1.st }, thenexp = { $ce2.st }, elseexp = { $ce3.st },
@@ -1009,9 +1009,7 @@ member_name
 
 ///////////////////////////////////////////////////////
 event_declaration:
-	'event'   type
-		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators   ';')	// typename=foo;
+	type member_name   '{'   event_accessor_declarations   '}'
 		;
 event_modifiers:
 	modifier+ ;
