@@ -1215,7 +1215,7 @@ fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
 labeled_statement:
-	^(':' identifier statement) -> op(pre={ $identifier.st }, op= { ":" }, post = { $statement.st});
+	identifier ':' statement -> op(pre={ $identifier.st }, op= { ":" }, post = { $statement.st});
 declaration_statement
 @init {
     List<string> preComments = null;
@@ -1310,7 +1310,7 @@ unchecked_statement
 @init {
     StringTemplate someText = null;
 }:
-	'unchecked'   block 
+	^(UNCHECKED   block) 
         { someText = %keyword_block(); 
           %{someText}.keyword = "unchecked"; 
           %{someText}.block = $block.st;
@@ -1329,14 +1329,11 @@ lock_statement
 yield_statement
 @init {
     StringTemplate someText = null;
+    someText = %yield(); 
 }:
-	^('yield'   ('return'   expression
-	             | 'break'   
-                 |  )
-      ) 
-        { someText = %yield(); 
-          %{someText}.exp = $expression.st; 
-          } ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
+    ^(YIELD_RETURN expression { %{someText}.exp = $expression.st; })
+    | YIELD_BREAK {%{someText}.exp = "break"; } 
+         ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
 ;
 
 ///////////////////////////////////////////////////////

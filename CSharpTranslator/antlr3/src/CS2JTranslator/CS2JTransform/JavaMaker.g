@@ -236,11 +236,13 @@ scope TypeContext {
 
     protected CommonTree mkArgsFromParams(IToken tok, CommonTree pars) {
        CommonTree root = (CommonTree)adaptor.Nil;
-       root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), root);
+       if (adaptor.GetChildCount(pars) > 0) {
+          root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), root);
 
-       // take every second child
-       for (int i = 1; i < adaptor.GetChildCount(pars); i+=2) {
-          adaptor.AddChild(root, dupTree((CommonTree)adaptor.GetChild(pars, i)));
+          // take every second child
+          for (int i = 1; i < adaptor.GetChildCount(pars); i+=2) {
+             adaptor.AddChild(root, dupTree((CommonTree)adaptor.GetChild(pars, i)));
+          }
        }
        root = (CommonTree)adaptor.RulePostProcessing(root);
        return root;
@@ -1635,7 +1637,7 @@ fixed_pointer_initializer:
 unsafe_statement:
 	'unsafe'^   block;
 labeled_statement[bool isStatementListCtxt]:
-	identifier   ':'^   statement[isStatementListCtxt] ;
+	identifier   ':'   statement[isStatementListCtxt] ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
@@ -1759,7 +1761,7 @@ finally_clause:
 checked_statement:
 	'checked'   block ;
 unchecked_statement:
-	'unchecked'   block ;
+	'unchecked'   block -> ^(UNCHECKED block);
 lock_statement:
 	'lock'   '('  expression   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
 // TODO: Can we avoid surrounding this with braces if not needed?
@@ -1773,7 +1775,7 @@ using_statement[bool isStatementListCtxt]
         AddToImports("CS2JNet.System.Disposable"); } 
      f=magicFinally[$c.token, disposers]
      magicTry[$u.token, state.backtracking == 0 ? embeddedStatementToBlock($u.token, $embedded_statement.tree) : null, null, $f.tree] 
-     -> {isStatementListCtxt}? OPEN_BRACE[$u.token, "{"] resource_acquisition SEMI[$c.token, ";"] magicTry CLOSE_BRACE[$u.token, "}"] 
+     -> {!isStatementListCtxt}? OPEN_BRACE[$u.token, "{"] resource_acquisition SEMI[$c.token, ";"] magicTry CLOSE_BRACE[$u.token, "}"] 
      -> resource_acquisition SEMI[$c.token, ";"] magicTry 
      ;
 resource_acquisition returns [List<string> resourceNames]
@@ -1785,8 +1787,8 @@ resource_acquisition returns [List<string> resourceNames]
                          IDENTIFIER[$expression.tree.Token, "__newVar"+newVarCtr++] ASSIGN[$expression.tree.Token, "="] expression //SEMI[$expression.tree.Token, ";"]
     ;
 yield_statement:
-	'yield'^   ('return'   expression   ';'!
-	          | 'break'   ';'!) ;
+	'yield'   ('return'   expression   ';' -> ^(YIELD_RETURN expression)
+	          | 'break'   ';' -> YIELD_BREAK) ;
 
 ///////////////////////////////////////////////////////
 //	Lexar Section

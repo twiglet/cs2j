@@ -1026,7 +1026,7 @@ scope {
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
-    | (^(d1='.' e1=expression[ObjectType] {expType = $e1.dotNetType; implicitThis = false;} i=identifier)|i=identifier) generic_argument_list? magicInputPeId[$d1.tree,$i.tree,$generic_argument_list.tree]
+    | (^(d1='.' e1=expression[ObjectType] {expType = $e1.dotNetType; implicitThis = false;} i=identifier dgal=generic_argument_list?)|i=identifier dgal=generic_argument_list?)  magicInputPeId[$d1.tree,$i.tree,$dgal.tree]
         { 
             // TODO: generic_argument_list is ignored ....
 
@@ -2607,7 +2607,7 @@ embedded_statement[bool isStatementListCtxt]
 	| checked_statement
 	| unchecked_statement
 	| lock_statement
-	| yield_statement 
+    | yield_statement
     | ^('unsafe'   block)
 	| fixed_statement
 	| expression_statement  { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; }
@@ -2662,7 +2662,7 @@ fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression[ObjectType];
 labeled_statement[bool isStatementListCtxt]:
-	^(':' identifier statement[isStatementListCtxt]) ;
+	identifier ':' statement[isStatementListCtxt] ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
@@ -2861,12 +2861,13 @@ finally_clause:
 checked_statement:
 	'checked'   block ;
 unchecked_statement:
-	'unchecked'   block ;
+	^(UNCHECKED block) ;
 lock_statement:
 	'lock'   '('  expression[ObjectType]   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
+
 yield_statement:
-	'yield'   ('return'   expression[ObjectType]   ';'
-	          | 'break'   ';') ;
+    ^(YIELD_RETURN expression[ObjectType])
+    | YIELD_BREAK ;
 
 ///////////////////////////////////////////////////////
 //	Lexar Section

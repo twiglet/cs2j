@@ -32,6 +32,9 @@ tokens {
             PARAMS;
             PARAMS_TYPELESS;
             SWITCH_SECTION;
+            YIELD_RETURN;
+            YIELD_BREAK;
+            UNCHECKED;
 
             MONOPLUS;
             MONOMINUS;
