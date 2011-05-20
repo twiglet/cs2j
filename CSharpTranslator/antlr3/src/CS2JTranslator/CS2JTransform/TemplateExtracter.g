@@ -898,21 +898,11 @@ scope NSContext;
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
         { 
             DebugDetail("Processing delegate: " + $identifier.text);
-            String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
-            dlegate.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
-            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
-                dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
-            }
-            dlegate.Invoke = new InvokeRepTemplate($return_type.thetext, "Invoke", null, $formal_parameter_list.paramlist);
-            AppEnv[genericNameSpace] = dlegate;
-            dlegate.Uses = this.CollectUses;
-            dlegate.Aliases = this.CollectAliases;
-            dlegate.Imports = new string[] {dlegate.TypeName};
-            
-            // now add a class for the MultiDelegateClass that we will be generating
-            genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias("__Multi"+$identifier.text, $variant_generic_parameter_list.tyargs);
+
+            // Add a class for the MultiDelegateClass that we will be generating
+            String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias("__Multi"+$identifier.text, $variant_generic_parameter_list.tyargs);
             multiDelegateClass.TypeName = NSPrefix(ParentNameSpace) + "__Multi" + $identifier.text;
-            String delIfaceName = mkTypeString(dlegate.TypeName, $variant_generic_parameter_list.tyargs);
+            String delIfaceName = mkTypeString(NSPrefix(ParentNameSpace) + $identifier.text, $variant_generic_parameter_list.tyargs);
             multiDelegateClass.Inherits = new String[] { delIfaceName };
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 multiDelegateClass.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
@@ -924,6 +914,57 @@ scope NSContext;
             multiDelegateClass.Aliases = this.CollectAliases;
             multiDelegateClass.Imports = new string[] {multiDelegateClass.TypeName};
 
+
+            genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
+            dlegate.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
+            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
+                dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
+            }
+            dlegate.Invoke = new InvokeRepTemplate($return_type.thetext, "Invoke", null, $formal_parameter_list.paramlist);
+            AppEnv[genericNameSpace] = dlegate;
+            dlegate.Uses = this.CollectUses;
+            dlegate.Aliases = this.CollectAliases;
+            dlegate.Imports = new string[] {dlegate.TypeName};
+            // Add Combine and Remove translations
+            MethodRepTemplate adder = new MethodRepTemplate();
+            adder.Name = "Combine";
+            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
+                adder.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
+            }
+            ParamRepTemplate param = new ParamRepTemplate();
+            param.Name = "a";
+            param.Type = delIfaceName;
+            adder.Params.Add(param);
+            param = new ParamRepTemplate();
+            param.Name = "b";
+            param.Type = delIfaceName;
+            adder.Params.Add(param);
+
+            adder.Return = delIfaceName;
+            adder.IsStatic = true;
+            adder.Java = "__Multi"+$identifier.text + ".Combine(${a},${b})";
+            adder.Imports = new string[] {multiDelegateClass.TypeName};
+            dlegate.Methods.Add(adder);
+
+            MethodRepTemplate remover = new MethodRepTemplate();
+            remover.Name = "Remove";
+            if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
+                remover.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
+            }
+            param = new ParamRepTemplate();
+            param.Name = "a";
+            param.Type = delIfaceName;
+            remover.Params.Add(param);
+            param = new ParamRepTemplate();
+            param.Name = "b";
+            param.Type = delIfaceName;
+            remover.Params.Add(param);
+
+            remover.Return = delIfaceName;
+            remover.IsStatic = true;
+            remover.Java = "__Multi"+$identifier.text + ".Remove(${a},${b})";
+            remover.Imports = new string[] {multiDelegateClass.TypeName};
+            dlegate.Methods.Add(remover);
         } 
 ;
 delegate_modifiers:

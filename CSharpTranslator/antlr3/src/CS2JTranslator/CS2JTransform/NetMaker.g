@@ -1789,6 +1789,11 @@ scope MkNonGeneric, PrimitiveRep;
     bool stringArgs = false;
     bool dateArgs = false;
     $thedottedtext = null;
+    CommonTree ret = null;
+}
+@after{
+   if (ret != null)
+      $non_assignment_expression.tree = ret;
 }:
 	//'non ASSIGNment'
 	(anonymous_function_signature[null]?   '=>')	=> lambda_expression[$typeCtxt] { $dotNetType = $lambda_expression.dotNetType; } 
@@ -1918,8 +1923,56 @@ scope MkNonGeneric, PrimitiveRep;
         | ^('<<' n7=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n7.dotNetType; }
         | ^(RIGHT_SHIFT n8=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n8.dotNetType; }
 // TODO: need to munge these numeric types
-        | ^('+' n9=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])       {$dotNetType = $n9.dotNetType; }
-        | ^('-' n10=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n10.dotNetType; }
+        | ^(pl='+' n9=non_assignment_expression[ObjectType] n92=non_assignment_expression[ObjectType])       
+        {
+         // Are we adding two delegates?
+         if ($n9.dotNetType != null && $n9.dotNetType is DelegateRepTemplate) {
+            List<TypeRepTemplate> args = new List<TypeRepTemplate>();
+            args.Add($n9.dotNetType);
+            args.Add($n92.dotNetType == null ? $n9.dotNetType : $n92.dotNetType);
+            ResolveResult calleeResult = $n9.dotNetType.Resolve("Combine", args, AppEnv);
+            if (calleeResult != null) {
+               if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($pl.line, calleeResult.Result.Warning);
+                  
+               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+               MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
+               myMap[calleeMethod.Params[0].Name] = wrapArgument($n9.tree, $pl.token);
+               myMap[calleeMethod.Params[1].Name] = wrapArgument($n92.tree, $pl.token);
+               ret = mkJavaWrapper(calleeMethod.Java, myMap, $pl.token);
+               AddToImports(calleeMethod.Imports);
+               $dotNetType = calleeResult.ResultType; 
+            }
+            else {
+               WarningFailedResolve($pl.line, "Could not resolve method application of Combine against " + $n9.dotNetType.TypeName);
+            }
+         }
+         $dotNetType = $n9.dotNetType; 
+        }
+        | ^(ne='-' n10=non_assignment_expression[ObjectType] n102=non_assignment_expression[ObjectType])      {$dotNetType = $n10.dotNetType; }
+        {
+         // Are we adding two delegates?
+         if ($n10.dotNetType != null && $n10.dotNetType is DelegateRepTemplate) {
+            List<TypeRepTemplate> args = new List<TypeRepTemplate>();
+            args.Add($n10.dotNetType);
+            args.Add($n102.dotNetType == null ? $n10.dotNetType : $n102.dotNetType);
+            ResolveResult calleeResult = $n10.dotNetType.Resolve("Remove", args, AppEnv);
+            if (calleeResult != null) {
+               if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($ne.line, calleeResult.Result.Warning);
+                  
+               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+               MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
+               myMap[calleeMethod.Params[0].Name] = wrapArgument($n10.tree, $ne.token);
+               myMap[calleeMethod.Params[1].Name] = wrapArgument($n102.tree, $ne.token);
+               ret = mkJavaWrapper(calleeMethod.Java, myMap, $ne.token);
+               AddToImports(calleeMethod.Imports);
+               $dotNetType = calleeResult.ResultType; 
+            }
+            else {
+               WarningFailedResolve($ne.line, "Could not resolve method application of Remove against " + $n10.dotNetType.TypeName);
+            }
+         }
+         $dotNetType = $n10.dotNetType; 
+        }
         | ^('*' n11=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n11.dotNetType; }
         | ^('/' n12=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n12.dotNetType; }
         | ^('%' n13=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n13.dotNetType; }

@@ -2554,7 +2554,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
    }
 
    [XmlType("Delegate")]
-   public class DelegateRepTemplate : TypeRepTemplate, IEquatable<DelegateRepTemplate>
+   public class DelegateRepTemplate : InterfaceRepTemplate, IEquatable<DelegateRepTemplate>
    {
       private InvokeRepTemplate _invoke = null;
       public InvokeRepTemplate Invoke {
