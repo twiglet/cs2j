@@ -171,6 +171,8 @@ namespace Twiglet.CS2J.Translator
     	private System.Collections.Generic.IList<${Del}> _invocationList = new ArrayList<${Del}>();
     	
     	public static ${Del} Combine ${TyArgs} (${Del} a, ${Del} b) throws Exception {
+            if (a == null) return b;
+            if (b == null) return a;
     	    ${DelClass} ret = new ${DelClass}();
     	    ret._invocationList = a.GetInvocationList();
     	    ret._invocationList.addAll(b.GetInvocationList());
@@ -178,6 +180,7 @@ namespace Twiglet.CS2J.Translator
     	}
     	
         public static ${Del} Remove ${TyArgs} (${Del} a, ${Del} b) throws Exception {
+            if (a == null || b == null) return a;
 	    System.Collections.Generic.IList<${Del}> aInvList = a.GetInvocationList();
 	    System.Collections.Generic.IList<${Del}> newInvList = ListSupport.removeFinalStretch(aInvList, b.GetInvocationList());
 	    if (aInvList == newInvList) {
