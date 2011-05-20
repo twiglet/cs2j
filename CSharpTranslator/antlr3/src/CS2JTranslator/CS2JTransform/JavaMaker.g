@@ -531,7 +531,7 @@ class_member_declaration:
 	a=attributes?
 	m=modifiers?
 	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, $m.modList) } $ct constant_declarators)
-	| ev=event_declaration	-> ^(EVENT[$ev.start.Token, "EVENT"] $a? $m? $ev)
+	| ev=event_declaration[$a.tree, $m.tree] -> $ev 
 	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 
 			   | pi=interface_declaration[$a.tree, $m.tree] -> $pi
 			   | pc=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $pc
@@ -1253,10 +1253,10 @@ accessor_modifier:
 	'protected' 'internal'? | 'private' | 'internal' 'protected'?;
 
 ///////////////////////////////////////////////////////
-event_declaration:
-	'event'   type
-		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators   ';')	// typename=foo;
+event_declaration[CommonTree atts, CommonTree mods]:
+	e='event'   type
+		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}' -> ^(EVENT[$e.token, "EVENT"] { dupTree(atts) } { dupTree(mods) } type member_name   '{'   event_accessor_declarations   '}')
+		| variable_declarators   ';' -> ^(FIELD[$e.token,"FIELD"] { dupTree(atts) } { dupTree(mods) } type variable_declarators))	// typename=foo;
 		;
 event_modifiers:
 	modifier+ ;

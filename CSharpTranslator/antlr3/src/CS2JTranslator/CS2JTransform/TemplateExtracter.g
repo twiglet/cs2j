@@ -828,7 +828,7 @@ accessor_body:
 event_declaration:
 	'event'   type
 		((member_name   '{') => member_name '{' event_accessor_declarations '}' { ((ClassRepTemplate)$NSContext::currentTypeRep).Events.Add(new FieldRepTemplate($type.thetext, $member_name.name)); } 
-		| variable_declarators[$type.thetext, true]   ';')	// typename=foo;
+		| variable_declarators[$type.thetext, false]   ';')	// typename=foo;
         { DebugDetail("Processing event declaration: " + $member_name.name); }
 		;
 event_modifiers:
