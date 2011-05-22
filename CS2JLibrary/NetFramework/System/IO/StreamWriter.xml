@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -9,7 +9,7 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.io.*</Import>
+    <Import>java.io.BufferedWriter</Import>
   </Imports>
   <Java>BufferedWriter</Java>
   <Name>System.IO.StreamWriter</Name>
@@ -24,7 +24,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <Import>java.io.*</Import>
+        <Import>java.io.BufferedWriter</Import>
       </Imports>
       <Java>new BufferedWriter(new FileWriter(${path}))</Java>
       <Params>
@@ -36,7 +36,7 @@
     </Constructor>
     <Constructor>
       <Imports>
-        <Import>java.io.*</Import>
+        <Import>java.io.BufferedWriter</Import>
       </Imports>
       <Java>new BufferedWriter(new FileWriter(${path},${append}))</Java>
       <Params>
@@ -47,6 +47,18 @@
         <Param>
           <Type>System.Boolean</Type>
           <Name>append</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>java.io.OutputStreamWriter</Import>
+      </Imports>
+      <Java>new OutputStreamWriter(${stream}.getOutputStream())</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.FileStream</Type>
+          <Name>stream</Name>
         </Param>
       </Params>
     </Constructor>

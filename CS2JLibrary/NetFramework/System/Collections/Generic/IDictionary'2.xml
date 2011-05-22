@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -86,10 +86,12 @@
   </Indexers>
   <Properties>
     <Property>
-      <Imports />
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.CollectionSupport</Import>
+      </Imports>
       <Type>System.Collections.Generic.ICollection*[K]*</Type>
       <Name>Keys</Name>
-      <Get>${this:16}.keySet()</Get>
+      <Get>CollectionSupport.mk(${this:16}.keySet())</Get>
     </Property>
     <Property>
       <Imports />

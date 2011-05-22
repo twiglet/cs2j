@@ -1,5 +1,4 @@
 /*
-   Copyright 2007,2008,2009,2010 Rustici Software, LLC
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +17,8 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
-package CS2JNet.System;
+package CS2JNet.JavaSupport.language;
 
-public interface IDisposable {
-	void Dispose() throws Exception;
-
-	//void close() throws Exception;
+public enum ReturnPreOrPostValue {
+	PRE, POST
 }

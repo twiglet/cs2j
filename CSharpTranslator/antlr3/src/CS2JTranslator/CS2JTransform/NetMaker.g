@@ -26,6 +26,11 @@ scope NSContext {
     List<string> typeVariables;
     // all typevariables in all scopes
     List<string> globalTypeVariables;
+
+    // Does this type implement ICollection?
+    bool IsGenericICollection;
+    string GenericICollectionTyVar;
+    bool IsICollection;
 }
 
 // A scope to keep track of the mapping from variables to types
@@ -36,6 +41,13 @@ scope SymTab {
 // When this scope is true, then generate equivalent Object types instead of primitive types
 scope PrimitiveRep {
     bool primitiveTypeAsObject;
+}
+
+// When this scope is true, then strip generic arguments from types 
+// (In Java the runtime doesn't know the generic types so e.g. instanceof Set<T> 
+// must be just instanceof Set).
+scope MkNonGeneric {
+    bool scrubGenericArgs;
 }
 
 @namespace { Twiglet.CS2J.Translator.Transform }
@@ -63,8 +75,6 @@ scope PrimitiveRep {
     public List<string> AliasKeys { get; set; }
     public List<string> AliasNamespaces { get; set; }
 
-    private Set<string> Imports { get; set; }
-
     protected CommonTree mkImports() {
     
         CommonTree root = (CommonTree)adaptor.Nil;
@@ -81,21 +91,13 @@ scope PrimitiveRep {
 
     }
 
-    public void AddToImports(string imp) {
+    public override void AddToImports(string imp) {
         // Don't add import if its namespace is within our type
 //       if (!imp.StartsWith($NSContext::currentNS+".")) {
         if (imp != null && (CompUnitName == null || CompUnitName.Length == 0 || !imp.StartsWith(NSPrefix(CompUnitName)))) { 
             Imports.Add(imp);
         }
   //      }
-    }
-
-    public void AddToImports(ICollection<string> imps) {
-        if (imps != null) {
-            foreach (string imp in imps) {
-                AddToImports(imp);
-            }
-        }
     }
 
     protected string ParentNameSpace {
@@ -178,13 +180,32 @@ scope PrimitiveRep {
     }
 
     private ClassRepTemplate dateType = null;
-
     protected ClassRepTemplate DateType {
         get {
             if (dateType == null) {
                 dateType = (ClassRepTemplate)AppEnv.Search("System.DateTime", new UnknownRepTemplate("System.DateTime"));
             }
             return dateType;
+        }
+    }
+
+    private InterfaceRepTemplate iCollectionType = null;
+    protected InterfaceRepTemplate ICollectionType {
+        get {
+            if (iCollectionType == null) {
+                iCollectionType = (InterfaceRepTemplate)findType("System.Collections.ICollection");
+            }
+            return iCollectionType;
+        }
+    }
+
+    private InterfaceRepTemplate genericICollectionType = null;
+    protected InterfaceRepTemplate GenericICollectionType {
+        get {
+            if (genericICollectionType == null) {
+                genericICollectionType = (InterfaceRepTemplate)findType("System.Collections.Generic.ICollection", new TypeRepTemplate[] {ObjectType});
+            }
+            return genericICollectionType;
         }
     }
 
@@ -312,6 +333,9 @@ scope PrimitiveRep {
     protected int dummyScrutVarCtr = 0;
     protected int dummyForeachVarCtr = 0;
     protected int dummyStaticConstructorCatchVarCtr = 0;
+    protected int dummyTyVarCtr = 0;
+    protected int dummyRefVarCtr = 0;
+    protected int dummyVarCtr = 0;
 
     // It turns out that 'default:' doesn't have to be last in the switch statement, so
     // we need some jiggery pokery when converting to if-then-else.
@@ -477,32 +501,273 @@ scope PrimitiveRep {
         }
     }
     
-    // Converts <OP>= to <OP>
-    protected CommonTree mkOpExp(CommonTree assTok) {
-        CommonTree ret = assTok;
-        if (AssOpMap.ContainsKey(assTok.Token.Type)) {
-            ret = (CommonTree)adaptor.Create(AssOpMap[assTok.Token.Type], assTok.Token, assTok.Token.Text != null && assTok.Token.Text.EndsWith("=") ? assTok.Token.Text.Substring(0, assTok.Token.Text.Length - 1) : assTok.Token.Text);
+    protected CommonTree mkOpExp(CommonTree assTree) {
+        CommonTree ret = assTree;
+        if (AssOpMap.ContainsKey(assTree.Token.Type)) {
+            ret = (CommonTree)adaptor.Create(AssOpMap[assTree.Token.Type], assTree.Token, assTree.Token.Text != null && assTree.Token.Text.EndsWith("=") ? assTree.Token.Text.Substring(0, assTree.Token.Text.Length - 1) : assTree.Token.Text);
         }
         return ret;
     }
 
     // make ^(op lhs rhs)
-    protected CommonTree mkOpExp(CommonTree opTok, CommonTree lhs, CommonTree rhs) {
+    protected CommonTree mkOpExp(CommonTree opTree, CommonTree lhs, CommonTree rhs) {
         CommonTree root = (CommonTree)adaptor.Nil;
-        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.DupTree(opTok), root);
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.DupTree(opTree), root);
         adaptor.AddChild(root, (CommonTree)adaptor.DupTree(lhs));
         adaptor.AddChild(root, (CommonTree)adaptor.DupTree(rhs));
         return root;
     }
+
+    // either ^(PARAMS (type identifier)*) or ^(ARGS identifier*) depending on value of formal
+    protected CommonTree mkParams(List<ParamRepTemplate> inParams, bool formal, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(formal ? PARAMS : ARGS, tok, formal ? "PARAMS" : "ARGS"), root);
+        foreach (ParamRepTemplate p in inParams) {
+           if (formal) {
+              TypeRepTemplate ty = findType(p.Type);
+              CommonTree typeRoot = (CommonTree)adaptor.Nil;
+              typeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), typeRoot);
+              adaptor.AddChild(typeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, ty.Java));
+              adaptor.AddChild(root, typeRoot);
+              AddToImports(ty.Imports);
+           }
+           adaptor.AddChild(root, (CommonTree)adaptor.Create(IDENTIFIER, tok, p.Name));
+        }
+        return root;
+    }
+
+    // make ^(PARAMS (type identifier)*) from a List<ParamRepTemplate (for the types) and List<IDENTIFIER> for the names 
+    protected CommonTree mkTypedParams(List<ParamRepTemplate> inParams, List<CommonTree> ids, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(PARAMS, tok, "PARAMS"), root);
+        CommonTree[] idsArray = ids.ToArray();
+        int i = 0;
+        foreach (ParamRepTemplate p in inParams) {
+           TypeRepTemplate ty = findType(p.Type);
+           CommonTree typeRoot = (CommonTree)adaptor.Nil;
+           typeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), typeRoot);
+           adaptor.AddChild(typeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, ty.Java));
+           adaptor.AddChild(root, typeRoot);
+           AddToImports(ty.Imports);
+           adaptor.AddChild(root, dupTree(idsArray[i]));
+           i++;
+        }
+        return root;
+    }
+
+    //  public List<delegate_type> GetInvocationList() throws Exception {
+    //        	List<delegate_type> ret = new ArrayList<delegate_type>();
+    //        	ret.add(this);
+    //          return ret;
+    //   }
+    protected CommonTree mkDelegateGetInvocationList(CommonTree delTree, TypeRepTemplate delType, IToken tok) {
+
+//     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
+        CommonTree method = (CommonTree)adaptor.Nil;
+        method = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(METHOD, tok, "METHOD"), method);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(PUBLIC, tok, "public"));
+
+        CommonTree retTypeRoot = (CommonTree)adaptor.Nil;
+        retTypeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), retTypeRoot);
+        adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, "List"));
+        AddToImports("java.util.List");
+        adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(LTHAN, tok, "<"));
+        CommonTree delTypeRoot = (CommonTree)adaptor.Nil;
+        if (delTree != null) {
+           delTypeRoot = dupTree(delTree);
+        }
+        else {
+           delTypeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), delTypeRoot);
+           adaptor.AddChild(delTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, delType.mkFormattedTypeName(false, "<",">")));
+           AddToImports(delType.Imports);
+        }
+        adaptor.AddChild(retTypeRoot, delTypeRoot);
+
+        adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(GT, tok, ">"));
+
+        adaptor.AddChild(method, retTypeRoot);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "GetInvocationList"));
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+
+
+        CommonTree body = (CommonTree)adaptor.Nil;
+
+        // List<delegate_type> ret = new ArrayList<delegate_type>();
+        CommonTree retdecl = (CommonTree)adaptor.Nil;
+
+        adaptor.AddChild(retdecl, dupTree(retTypeRoot));
+        adaptor.AddChild(retdecl, (CommonTree)adaptor.Create(IDENTIFIER, tok, "ret"));
+        adaptor.AddChild(retdecl, (CommonTree)adaptor.Create(ASSIGN, tok, "="));
+
+        CommonTree newA = (CommonTree)adaptor.Nil;
+        newA = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(NEW, tok, "new"), newA);
+
+        CommonTree alTypeRoot = (CommonTree)adaptor.Nil;
+        alTypeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), alTypeRoot);
+        adaptor.AddChild(alTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, "ArrayList"));
+        AddToImports("java.util.ArrayList");
+        adaptor.AddChild(alTypeRoot, (CommonTree)adaptor.Create(LTHAN, tok, "<"));
+  
+        adaptor.AddChild(alTypeRoot, dupTree(delTypeRoot));
+
+        adaptor.AddChild(alTypeRoot, (CommonTree)adaptor.Create(GT, tok, ">"));
+
+        adaptor.AddChild(newA, alTypeRoot);
+        adaptor.AddChild(retdecl, newA);
+        adaptor.AddChild(body, retdecl);
+        adaptor.AddChild(body, (CommonTree)adaptor.Create(SEMI, tok, ";"));
+
+        // ret.add(this)
+        CommonTree retaddcall = (CommonTree)adaptor.Nil;
+        retaddcall = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(APPLY, tok, "APPLY"), retaddcall);
+
+        CommonTree retadd = (CommonTree)adaptor.Nil;
+        retadd = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(DOT, tok, "."), retadd);
+        adaptor.AddChild(retadd, (CommonTree)adaptor.Create(IDENTIFIER, tok, "ret"));
+        adaptor.AddChild(retadd, (CommonTree)adaptor.Create(IDENTIFIER, tok, "add"));
+
+        adaptor.AddChild(retaddcall, retadd);
+
+        CommonTree arg = (CommonTree)adaptor.Nil;
+        arg = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), arg);
+
+        adaptor.AddChild(arg, (CommonTree)adaptor.Create(THIS, tok, "this"));
+        adaptor.AddChild(retaddcall, arg);
+        adaptor.AddChild(body,retaddcall);
+        adaptor.AddChild(body, (CommonTree)adaptor.Create(SEMI, tok, ";"));
+
+        // return ret;
+        CommonTree ret = (CommonTree)adaptor.Nil;
+        ret = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(RETURN, tok, "return"), ret);
+        adaptor.AddChild(ret, (CommonTree)adaptor.Create(IDENTIFIER, tok, "ret"));
+        adaptor.AddChild(body,ret);
+
+        adaptor.AddChild(method, body);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(EXCEPTION, tok, "Exception"));
+
+        return method;
+    }
+
+    // new <delegate_type>() { public void Invoke(<formal args>) throws Exception { [return] arg[0](<args>); }
+    //                         public List<delegate_type> GetInvocationList() throws Exception { ... }}
+    protected CommonTree mkDelegateObject(CommonTree delTree, CommonTree methTree, DelegateRepTemplate delg, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(NEW_DELEGATE, tok, "NEW_DELEGATE"), root);
+        if (delTree != null) {
+           adaptor.AddChild(root, dupTree(delTree));
+        }
+        else {
+           CommonTree delTyTree = (CommonTree)adaptor.Nil;
+           delTyTree = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), delTyTree);
+           adaptor.AddChild(delTyTree, (CommonTree)adaptor.Create(IDENTIFIER, tok, delg.mkFormattedTypeName(false, "<",">")));
+           AddToImports(delg.Imports);
+           adaptor.AddChild(root, delTyTree);
+        }
+
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+
+//     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
+        CommonTree method = (CommonTree)adaptor.Nil;
+        method = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(METHOD, tok, "METHOD"), method);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(PUBLIC, tok, "public"));
+
+        TypeRepTemplate returnType = findType(delg.Invoke.Return);
+        AddToImports(returnType.Imports);
+        CommonTree retTypeRoot = (CommonTree)adaptor.Nil;
+        retTypeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), retTypeRoot);
+        adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, returnType.Java));
+        adaptor.AddChild(method, retTypeRoot);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Invoke"));
+        if (delg.Invoke.Params.Count > 0) {
+           adaptor.AddChild(method, mkParams(delg.Invoke.Params, true, tok));
+        }
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+
+        CommonTree ret = (CommonTree)adaptor.Nil;
+        ret = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(RETURN, tok, "return"), ret);
+
+        CommonTree call = (CommonTree)adaptor.Nil;
+        call = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(APPLY, tok, "APPLY"), call);
+        adaptor.AddChild(call, dupTree(methTree));
+        if (delg.Invoke.Params.Count > 0) {
+           adaptor.AddChild(call, mkParams(delg.Invoke.Params, false, tok));
+        }
+        if (returnType.IsA(VoidType, AppEnv)) {
+           adaptor.AddChild(ret, call);
+           adaptor.AddChild(method, ret);
+        }
+        else {
+           adaptor.AddChild(method, call);
+           adaptor.AddChild(method, (CommonTree)adaptor.Create(SEMI, tok, ";"));
+        }
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(EXCEPTION, tok, "Exception"));
+        adaptor.AddChild(root, method);
+        adaptor.AddChild(root, mkDelegateGetInvocationList(delTree, delg, tok));
+
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
+
+        return root;
+    }
+
+    // new <delegate_type>() { public void Invoke(<formal args>) throw exception <body> }
+    protected CommonTree mkDelegateObject(CommonTree delTree, CommonTree argsTree, CommonTree bodyTree, DelegateRepTemplate delg, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(NEW_DELEGATE, tok, "NEW_DELEGATE"), root);
+        if (delTree != null) {
+           adaptor.AddChild(root, dupTree(delTree));
+        }
+        else {
+           CommonTree delTyTree = (CommonTree)adaptor.Nil;
+           delTyTree = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), delTyTree);
+           adaptor.AddChild(delTyTree, (CommonTree)adaptor.Create(IDENTIFIER, tok, delg.mkFormattedTypeName(false, "<",">")));
+           AddToImports(delg.Imports);
+           adaptor.AddChild(root, delTyTree);
+        }
+
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
+
+//     | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
+        CommonTree method = (CommonTree)adaptor.Nil;
+        method = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(METHOD, tok, "METHOD"), method);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(PUBLIC, tok, "public"));
+
+        TypeRepTemplate returnType = findType(delg.Invoke.Return);
+        AddToImports(returnType.Imports);
+        CommonTree retTypeRoot = (CommonTree)adaptor.Nil;
+        retTypeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), retTypeRoot);
+        adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, returnType.Java));
+        adaptor.AddChild(method, retTypeRoot);
+
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Invoke"));
+        adaptor.AddChild(method, dupTree(argsTree));
+        adaptor.AddChild(method, dupTree(bodyTree));
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(EXCEPTION, tok, "Exception"));
+        adaptor.AddChild(root, method);
+        adaptor.AddChild(root, mkDelegateGetInvocationList(delTree, delg, tok));
+
+        adaptor.AddChild(root, (CommonTree)adaptor.Create(CLOSE_BRACE, tok, "}"));
+
+        return root;
+    }
+
 }
 
 public compilation_unit
-scope NSContext, PrimitiveRep;
+scope NSContext, PrimitiveRep, MkNonGeneric;
 @init {
 
-    Imports = new Set<string>();
-
     $PrimitiveRep::primitiveTypeAsObject = false;
+    $MkNonGeneric::scrubGenericArgs = false;
 
     // TODO: Do we need to ensure we have access to System? If so, can add it here.
     $NSContext::namespaces = SearchPath ?? new List<string>();
@@ -510,6 +775,11 @@ scope NSContext, PrimitiveRep;
 
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>();
+
+    $NSContext::IsGenericICollection = false;
+    $NSContext::GenericICollectionTyVar = "";
+    $NSContext::IsICollection = false;
+
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
     -> ^($pkg $ns  { mkImports() } $dec);
@@ -518,7 +788,7 @@ type_declaration:
 	class_declaration
 	| interface_declaration
 	| enum_declaration
-	| delegate_declaration ;
+   ;
 // Identifiers
 qualified_identifier:
 	identifier ('.' identifier)*;
@@ -541,7 +811,6 @@ class_member_declaration:
     | ^(FIELD attributes? modifiers? type field_declaration[$type.tree, $type.dotNetType])
     | ^(OPERATOR attributes? modifiers? type operator_declaration)
     | enum_declaration
-    | delegate_declaration
     | ^(CONVERSION_OPERATOR attributes? modifiers? conversion_operator_declaration[$attributes.tree, $modifiers.tree]) -> conversion_operator_declaration
     | constructor_declaration
     ;
@@ -563,7 +832,7 @@ constructor_declaration
 // rmId is the rightmost ID in an expression like fdfd.dfdsf.returnme, otherwise it is null
 // used in switch labels to strip down qualified types, which Java doesn't grok
 // thedottedtext is the text read so far that *might* be part of a qualified type  
-primary_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+primary_expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
 scope {
     bool parentIsApply;
 }
@@ -573,12 +842,14 @@ scope {
     TypeRepTemplate expType = SymTabLookup("this");
     bool implicitThis = true;
     $thedottedtext = null;
+    string popstr = null;
+    CommonTree e1Tree = null;
 }
 @after {
     if (ret != null)
         $primary_expression.tree = ret;
 }:
-    ^(index=INDEX ie=expression expression_list?)
+    ^(index=INDEX ie=expression[ObjectType] expression_list?)
         {
             expType = $ie.dotNetType ?? (new UnknownRepTemplate("INDEXER.BASE"));
             if (expType.IsUnknownType) {
@@ -587,6 +858,7 @@ scope {
             $dotNetType = new UnknownRepTemplate(expType.TypeName+".INDEXER");
             ResolveResult indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (indexerResult != null) {
+               if (!String.IsNullOrEmpty(indexerResult.Result.Warning)) Warning($index.line, indexerResult.Result.Warning);
                IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
                if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
@@ -607,137 +879,211 @@ scope {
                WarningFailedResolve($index.token.Line, "Could not resolve index expression against " + expType.TypeName);
             }
         }
-    | (^(APPLY (^('.' expression identifier)|identifier) argument_list?)) => 
-           ^(APPLY (^(d0='.' e2=expression {expType = $e2.dotNetType; implicitThis = false;} i2=identifier)|i2=identifier) argument_list?)
+    | (^(APPLY (^('.' expression[ObjectType] identifier generic_argument_list?)|(identifier generic_argument_list?)) argument_list?)) => 
+           ^(APPLY (^(d0='.' e2=expression[ObjectType] {expType = $e2.dotNetType; implicitThis = false;} i2=identifier generic_argument_list?)|(i2=identifier generic_argument_list?)) argument_list?)
         {
-            if (expType == null) {
-               expType = new UnknownRepTemplate("APPLY.BASE");
-            }
-            if (expType.IsUnknownType) {
-               WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
-            }
-            $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
-            ResolveResult methodResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
-            if (methodResult != null) {
-               DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
-
-               // We are calling a method on an expression. If it has a primitive type then cast it to 
-               // the appropriate Object type.
-               CommonTree e2InBox = expType.IsUnboxedType ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
-
-               MethodRepTemplate methodRep = methodResult.Result as MethodRepTemplate;
-               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-               if (!implicitThis) {
-                  myMap["this"] = wrapExpression(e2InBox, $i2.tree.Token);
-               }
-               for (int idx = 0; idx < methodRep.Params.Count; idx++) {
-                  myMap[methodRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
-                  if (methodRep.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
-                     // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                     myMap[methodRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+            if (implicitThis && SymTabLookup($i2.thetext) != null) {
+               // we have a local var with a delegate reference (I hope ...)?
+               DelegateRepTemplate idType = SymTabLookup($i2.thetext) as DelegateRepTemplate;
+               if (idType != null) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i2.tree, $i2.tree.Token);
+                  for (int idx = 0; idx < idType.Invoke.Params.Count; idx++) {
+                     myMap[idType.Invoke.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
+                     if (idType.Invoke.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
+                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                        myMap[idType.Invoke.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+                     }
                   }
+                  AddToImports(idType.Invoke.Imports);
+                  ret = mkJavaWrapper(idType.Invoke.Java, myMap, $i2.tree.Token);
+                  $dotNetType = AppEnv.Search(idType.Invoke.Return);
                }
-               ret = mkJavaWrapper(methodResult.Result.Java, myMap, $i2.tree.Token);
-               AddToImports(methodResult.Result.Imports);
-               $dotNetType = methodResult.ResultType; 
             }
             else {
-               WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application of " + $i2.thetext + " against " + expType.TypeName);
+
+               if (expType == null) {
+                  expType = new UnknownRepTemplate("APPLY.BASE");
+               }
+               if (expType.IsUnknownType) {
+                  WarningFailedResolve($i2.tree.Token.Line, "Could not find type needed to resolve method application");
+               }
+               $dotNetType = new UnknownRepTemplate(expType.TypeName+".APPLY");
+               ResolveResult calleeResult = expType.Resolve($i2.thetext, $argument_list.argTypes ?? new List<TypeRepTemplate>(), AppEnv);
+               if (calleeResult != null) {
+                  if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($d0.line, calleeResult.Result.Warning);
+                  DebugDetail($i2.tree.Token.Line + ": Found '" + $i2.thetext + "'");
+                  
+                  // We are calling a method or a delegate on an expression. If it has a primitive type then cast it to 
+                  // the appropriate Object type.
+                  CommonTree e2InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, $e2.tree, $d0.token) : $e2.tree;
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  MethodRepTemplate calleeMethod = null;
+                  
+                  if (calleeResult is DelegateResolveResult) {
+                     // We have a field/property that is pointing at a delegate, first extract the delegate ...
+                    Dictionary<string,CommonTree> delMap = new Dictionary<string,CommonTree>();
+                    if (!implicitThis) {
+                       delMap["this"] = wrapExpression(e2InBox, $i2.tree.Token);
+                    }
+                    myMap["this"] = mkJavaWrapper(calleeResult.Result.Java, delMap, $i2.tree.Token);
+                    AddToImports(calleeResult.Result.Imports);
+                    calleeMethod = ((DelegateRepTemplate)((DelegateResolveResult)calleeResult).DelegateResult.Result).Invoke;
+                  }
+                  else {  
+                     if (!implicitThis) {
+                        myMap["this"] = wrapExpression(e2InBox, $i2.tree.Token);
+                     }
+                    calleeMethod = calleeResult.Result as MethodRepTemplate;
+                  }
+
+                  for (int idx = 0; idx < calleeMethod.Params.Count; idx++) {
+                     myMap[calleeMethod.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
+                     if (calleeMethod.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
+                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+                        myMap[calleeMethod.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
+                     }
+                  }
+                  ret = mkJavaWrapper(calleeMethod.Java, myMap, $i2.tree.Token);
+                  AddToImports(calleeMethod.Imports);
+                  $dotNetType = calleeResult.ResultType; 
+               }
+               else {
+                  WarningFailedResolve($i2.tree.Token.Line, "Could not resolve method application of " + $i2.thetext + " against " + expType.TypeName);
+               }
             }
         }
-    | ^(APPLY {$primary_expression::parentIsApply = true; } expression {$primary_expression::parentIsApply = false; } argument_list?)
-    | ^(POSTINC expression)    { $dotNetType = $expression.dotNetType; }
-    | ^(POSTDEC expression)    { $dotNetType = $expression.dotNetType; }
-    | ^(d1='.' e1=expression i1=identifier generic_argument_list?)
+    | ^(APPLY {$primary_expression::parentIsApply = true; } expression[ObjectType] {$primary_expression::parentIsApply = false; } argument_list?)
+    | (^((POSTINC|POSTDEC) (^('.' expression[objectType] identifier) | identifier))) =>
+      (^(POSTINC {popstr = "+";} (^('.' pse=expression[ObjectType] pi=identifier {implicitThis = false;}) | pi=identifier))
+      | ^(POSTDEC {popstr = "-";} (^('.' pse=expression[ObjectType] pi=identifier {implicitThis = false;}) | pi=identifier)))
+      {
+            if (implicitThis && SymTabLookup($pi.thetext) != null) {
+               // Is this a wrapped parameter?
+               TypeRepTemplate idType = SymTabLookup($pi.thetext);
+               if (idType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($pi.tree, $pi.tree.Token);
+                  AddToImports("CS2JNet.JavaSupport.language.ReturnPreOrPostValue");
+                  ret = mkJavaWrapper("${this}.setValue(${this}.getValue() " + popstr + " 1, ReturnPreOrPostValue.POST)", myMap, $pi.tree.Token);
+                }
+                $dotNetType = idType;
+               // a simple variable 
+            }
+            else {
+               TypeRepTemplate seType = (implicitThis ? SymTabLookup("this") : $pse.dotNetType);
+               if (seType == null) {
+                  seType = new UnknownRepTemplate("FIELD.BASE");
+               }
+               if (seType.IsUnknownType) {
+                  WarningFailedResolve($pi.tree.Token.Line, "Could not find type of expression for field /property access");
+               }
+               ResolveResult fieldResult = seType.Resolve($pi.thetext, true, AppEnv);
+               if (fieldResult != null) {
+                  if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($pi.tree.Token.Line, fieldResult.Result.Warning);
+                  if (fieldResult.Result is PropRepTemplate) {
+                     PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
+                     if (!String.IsNullOrEmpty(propRep.JavaSet)) {
+                        // only translate if we also have JavaGet  
+
+                        // We have to resolve property reads and writes separately, because they may come from 
+                        // different parent classes
+                        ResolveResult readFieldResult = seType.Resolve($pi.thetext, false, AppEnv);
+                        if (readFieldResult.Result is PropRepTemplate) {
+                           if (!String.IsNullOrEmpty(readFieldResult.Result.Warning)) Warning($pi.tree.Token.Line, readFieldResult.Result.Warning);
+                           PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
+
+                           if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
+                              // we have prop (++/--)
+                              // need to translate to setProp(getProp (+/-) 1)
+                              Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                              if (!implicitThis)
+                                 rhsMap["this"] = wrapExpression($pse.tree, $pi.tree.Token);
+                              CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, $pi.tree.Token);
+                              CommonTree newRhsExp = (CommonTree)adaptor.Nil;
+                              newRhsExp = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(popstr == "+" ? PLUS : MINUS, $pi.tree.Token, popstr), newRhsExp);
+                              adaptor.AddChild(newRhsExp, (CommonTree)adaptor.DupTree(rhsPropTree));
+                              adaptor.AddChild(newRhsExp, (CommonTree)adaptor.Create(NUMBER,$pi.tree.Token, "1"));
+
+                              Dictionary<string,CommonTree> valMap = new Dictionary<string,CommonTree>();
+                              if (!implicitThis)
+                                 valMap["this"] = wrapExpression($pse.tree, $pi.tree.Token);
+                              valMap["value"] = wrapExpression(newRhsExp, $pi.tree.Token);
+                              ret = mkJavaWrapper(propRep.JavaSet, valMap, $pi.tree.Token);
+                              AddToImports(propRep.Imports);
+                           }
+                        }
+                     }
+                  }
+               }
+               else {
+                  WarningFailedResolve($pi.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
+               }
+            }
+      }
+    | ^(POSTINC expression[ObjectType])    { $dotNetType = $expression.dotNetType; }
+    | ^(POSTDEC expression[ObjectType])    { $dotNetType = $expression.dotNetType; }
+    | ^('->' expression[ObjectType] identifier generic_argument_list?)
+	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
+	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
+	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
+    | (^(d1='.' e1=expression[ObjectType] {expType = $e1.dotNetType; implicitThis = false; e1Tree = dupTree($e1.tree); /* keving: yuk, shouldn't be necessary but $e1.tree was also capturing i=identifier */} i=identifier dgal=generic_argument_list?)
+        |(i=identifier dgal=generic_argument_list?))  magicInputPeId[$d1.tree,$i.tree,$dgal.tree]
         { 
             // TODO: generic_argument_list is ignored ....
 
             // Possibilities:
-            // - accessing a property/field of some object
-            // - a qualified type name
-            // - part of a qualified type name
-            expType = $e1.dotNetType;
-            
-            // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
-            if (expType != null &&
-                ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
-                    
-                DebugDetail($d1.token.Line + ": '" + $i1.thetext + "' might be a property");
-
-                $dotNetType = new UnknownRepTemplate(expType.TypeName+".DOTACCESS."+ $i1.thetext);
-
-                ResolveResult fieldResult = expType.Resolve($i1.thetext, false, AppEnv);
-                if (fieldResult != null) {
-
-                    // We are calling a method on an expression. If it has a primitive type then cast it to 
-                    // the appropriate Object type.
-                    CommonTree e1InBox = $e1.dotNetType.IsUnboxedType ? castToBoxedType($e1.dotNetType, $e1.tree, $d1.token) : $e1.tree;
-
-                    Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                    myMap["this"] = wrapExpression(e1InBox, $i1.tree.Token);
-                    ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i1.tree.Token);
-                    AddToImports(fieldResult.Result.Imports);
-                    $dotNetType = fieldResult.ResultType; 
-                }
-                else if ($e1.thedottedtext != null) {
-                    string staticType = $e1.thedottedtext + "." + $i1.thetext;
-                    $dotNetType = findType(staticType);
-                    if (!$dotNetType.IsUnknownType) {
-                       AddToImports($dotNetType.Imports);
-                    }
-                    else {
-                       // remember text so far
-                       $thedottedtext = staticType;
-                    }
-                }
-                else {
-                   // Could not find identifier in e1's type and we aren't building up a static type reference, so emit warning
-                   WarningFailedResolve($i1.tree.Token.Line, "Could not resolve identifier " + $i1.thetext + " against " + expType.TypeName);
-                }
-
-            }
-            $rmId = $identifier.thetext;
-        }         
-    | ^('->' expression identifier generic_argument_list?)
-	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
-	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
-	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
-	| (identifier    generic_argument_list) => identifier   generic_argument_list
-    | i=identifier                                                     
-        { 
-            // Possibilities:
             // - a variable in scope.
-            // - a property/field of current object
+            // - a property/field of some object
             // - a type name
+            // - a method name if we are in a delegate type context then create a delegate (in C# it is an implicit cast) 
             // - part of a type name
             bool found = false;
-            TypeRepTemplate idType = SymTabLookup($identifier.thetext);
-            if (idType != null) {
-                $dotNetType = idType;
-                found = true;
+            if (implicitThis) {
+               // single identifier, might be a variable
+               TypeRepTemplate idType = SymTabLookup($i.thetext);
+               if (idType != null) {
+                  // Is this a wrapped parameter?
+                  if (idType.IsWrapped) {
+                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                     myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                     ret = mkJavaWrapper("${this}.getValue()", myMap, $i.tree.Token);
+                  }
+                  $dotNetType = idType;
+                  found = true;
+               }
             }
             if (!found) {
-                // Not a variable, is it a property?
-                TypeRepTemplate thisType = SymTabLookup("this");
+                // Not a variable, expType is the type of 'expression', or 'this'.
 
                 // Is it a property read? Ensure we are not being applied to arguments or about to be assigned
-                if (thisType != null && !thisType.IsUnknownType &&
+                if (expType != null && !expType.IsUnknownType &&
                     ($primary_expression.Count == 1 || !((primary_expression_scope)($primary_expression.ToArray()[1])).parentIsApply)) {
                     
-                    DebugDetail($identifier.tree.Token.Line + ": '" + $identifier.thetext + "' might be a property");
-                    ResolveResult fieldResult = thisType.Resolve($identifier.thetext, false, AppEnv);
+                    DebugDetail($i.tree.Token.Line + ": '" + $i.thetext + "' might be a property");
+                    ResolveResult fieldResult = expType.Resolve($i.thetext, false, AppEnv);
                     if (fieldResult != null) {
-                        DebugDetail($identifier.tree.Token.Line + ": Found '" + $identifier.thetext + "'");
-                        ret = mkJavaWrapper(fieldResult.Result.Java, null, $i.tree.Token);
+                       if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($i.tree.Token.Line, fieldResult.Result.Warning);
+                        DebugDetail($i.tree.Token.Line + ": Found '" + $i.thetext + "'");
+
+                        Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                        if (!implicitThis) {
+                           // We are accessing a field / property on an expression. If it has a primitive type then cast it to 
+                           // the appropriate Object type.
+                           CommonTree e1InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, e1Tree, $d1.token) : e1Tree;
+                           myMap["this"] = wrapExpression(e1InBox, $i.tree.Token);
+                        }
+                        ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i.tree.Token);
                         AddToImports(fieldResult.Result.Imports);
                         $dotNetType = fieldResult.ResultType; 
                         found = true;
                     }
                 }
             }
-            if (!found) {
+            if (!found && (implicitThis || $e1.thedottedtext != null)) {
+                String textSoFar = (implicitThis ? "" : $e1.thedottedtext + ".") + $i.thetext;
                 // Not a variable, not a property read, is it a type name?
-                TypeRepTemplate staticType = findType($i.thetext);
+                TypeRepTemplate staticType = findType(textSoFar);
                 if (!staticType.IsUnknownType) {
                     AddToImports(staticType.Imports);
                     $dotNetType = staticType;
@@ -745,10 +1091,25 @@ scope {
                 }
             }
             if (!found) {
-                // Not a variable, not a property read, not a type, is it part of a type name?
-                $dotNetType = new UnknownRepTemplate($identifier.thetext);
-                $thedottedtext = $identifier.thetext;
+               // Could be a reference to a method group. If we are in a Delegate Type context then create a delegate object.
+               if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate) {
+                  // Since 'type' is a delegate then we assume that argument_list[0] will be a method group name.
+                  // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
+                  // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
+                  DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
+                  ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $magicInputPeId.tree, delType, $i.tree.Token);
+                  $dotNetType = $typeCtxt;
+                  found = true;
+               }
             }
+            if (!found) {
+                // Not a variable, not a property read, not a type, is it part of a type name?
+                $dotNetType = new UnknownRepTemplate($i.thetext);
+                $thedottedtext =  (implicitThis || String.IsNullOrEmpty($e1.thedottedtext)  ? "" : $e1.thedottedtext + ".") + $i.thetext;
+            }
+            $rmId = $i.thetext;
+            if (ret == null)
+               ret = $magicInputPeId.tree;
         }         
     | primary_expression_start                        { $dotNetType = $primary_expression_start.dotNetType; }  
     | literal                                         { $dotNetType = $literal.dotNetType; }  
@@ -757,6 +1118,26 @@ scope {
 //	| primary_expression_start   primary_expression_part*
     | ^(n=NEW type argument_list? object_or_collection_initializer?)
         {
+         // look for delegate creation
+         if ($type.dotNetType is DelegateRepTemplate && $argument_list.argTypes != null && $argument_list.argTypes.Count > 0) {
+
+            // argument_list should consist of just a single expression, either a method group or a value of a delegate type.
+            // If its a delegate type, then that is the result of this expression otherwise we create a delegte object.
+            if ($argument_list.argTypes[0] is DelegateRepTemplate) {
+               ret = dupTree((CommonTree)adaptor.GetChild($argument_list.tree, 0));
+               $dotNetType = $argument_list.argTypes[0];
+            }
+            else {
+               // Since 'type' is a delegate then we assume that argument_list[0] will be a method group name.
+               // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
+               // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
+               DelegateRepTemplate delType = $type.dotNetType as DelegateRepTemplate;
+               ret = mkDelegateObject($type.tree, (CommonTree)adaptor.GetChild($argument_list.tree, 0), delType, $n.token);
+               $dotNetType = $type.dotNetType;
+            }
+         }
+         else {
+            // assume object constructor
             ClassRepTemplate conType = $type.dotNetType as ClassRepTemplate;
             $dotNetType = $type.dotNetType;
             if (conType == null) {
@@ -764,6 +1145,7 @@ scope {
             }
             ResolveResult conResult = conType.Resolve($argument_list.argTypes, AppEnv);
             if (conResult != null) {
+               if (!String.IsNullOrEmpty(conResult.Result.Warning)) Warning($n.line, conResult.Result.Warning);
                 ConstructorRepTemplate conRep = conResult.Result as ConstructorRepTemplate;
                 Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                 for (int idx = 0; idx < conRep.Params.Count; idx++) {
@@ -784,14 +1166,24 @@ scope {
             else if ($argument_list.argTypes != null && $argument_list.argTypes.Count > 0) { // assume we have a zero-arg constructor, so don't print warning 
                WarningFailedResolve($n.token.Line, "Could not resolve constructor against " + conType.TypeName);
             }
+         }
         }
-	| ^(NEW_DELEGATE delegate_creation_expression) // new FooDelegate (MyFunction)
     | ^(NEW_ANON_OBJECT anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression            		// checked (...
 	| unchecked_expression          		// unchecked {...}
 	| default_value_expression      		// default
-	| anonymous_method_expression			// delegate (int foo) {}
+	| ^(d='delegate'   formal_parameter_list?   block)
+      {
+         if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate) {
+            // Since 'type' is a delegate then we assume that argument_list[0] will be a method group name.
+            // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
+            // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
+            DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
+            ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $formal_parameter_list.tree, $block.tree, delType, $d.token);
+            $dotNetType = $typeCtxt;
+         }
+      }
 	| typeof_expression          { $dotNetType = $typeof_expression.dotNetType; $typeofType = $typeof_expression.typeofType; }   // typeof(Foo).Name
 	;
 
@@ -799,11 +1191,11 @@ primary_expression_start returns [TypeRepTemplate dotNetType]:
 	 ^('::' identifier identifier)
 	;
 
-primary_expression_part:
-	 access_identifier
-	| brackets_or_arguments 
-	| '++'
-	| '--' ;
+// primary_expression_part:
+// 	 access_identifier
+// 	| brackets_or_arguments 
+// 	| '++'
+// 	| '--' ;
 access_identifier:
 	access_operator   type_or_generic[""] ;
 access_operator:
@@ -812,8 +1204,8 @@ brackets_or_arguments:
 	brackets | arguments ;
 brackets:
 	'['   expression_list?   ']' ;	
-paren_expression:	
-	'('   expression   ')' ;
+paren_expression[TypeRepTemplate typeCtxt]:	
+	'('   expression[$typeCtxt]   ')' ;
 arguments: 
 	'('   argument_list?   ')' ;
 argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees, List<TypeRepTemplate> argTreeTypeofTypes]
@@ -830,18 +1222,45 @@ argument returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
     ;
 argument_name:
 	identifier   ':';
-argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
-	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
+argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
+@init {
+   string refVar = null;
+}:
+	expression[ObjectType] { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
 	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; $typeofType = $ref_variable_reference.typeofType; } 
-	| 'out'   variable_reference { $dotNetType = $variable_reference.dotNetType; $typeofType = $variable_reference.typeofType; } ;
-ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
-	'ref' 
+	| o='out'   variable_reference { refVar = "refVar___" + dummyRefVarCtr++; } 
+      magicCreateOutVar[$o.token, refVar, ($variable_reference.dotNetType != null ? (CommonTree)$variable_reference.dotNetType.Tree : null)] 
+      magicUpdateFromRefVar[$o.token, refVar, $variable_reference.tree, $variable_reference.dotNetType != null && $variable_reference.dotNetType.IsWrapped]
+      { $dotNetType = $variable_reference.dotNetType;
+        $typeofType = $variable_reference.typeofType; 
+        AddToImports("CS2JNet.JavaSupport.language.RefSupport");
+        adaptor.AddChild($statement::preStatements, $magicCreateOutVar.tree);
+        adaptor.AddChild($statement::postStatements, $magicUpdateFromRefVar.tree);
+      } 
+       -> IDENTIFIER[$o.token, refVar]
+    ;
+ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
+@init {
+   string refVar = null;
+}:
+	r='ref' 
 		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference) { $dotNetType = $type.dotNetType; }   // SomeFunc(ref (int) ref foo)
 																									// SomeFunc(ref (int) foo)
-		| v1=variable_reference { $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType; });	// SomeFunc(ref foo)
+		| v1=variable_reference 	// SomeFunc(ref foo)
+            { refVar = "refVar___" + dummyRefVarCtr++; } 
+            magicCreateRefVar[$r.token, refVar, ($v1.dotNetType != null ? (CommonTree)$v1.dotNetType.Tree : null), $v1.tree] 
+            magicUpdateFromRefVar[$r.token, refVar, $v1.tree, $v1.dotNetType != null && $v1.dotNetType.IsWrapped]
+            { 
+              $dotNetType = $v1.dotNetType; $typeofType = $v1.typeofType;
+              AddToImports("CS2JNet.JavaSupport.language.RefSupport");
+              adaptor.AddChild($statement::preStatements, $magicCreateRefVar.tree);
+              adaptor.AddChild($statement::postStatements, $magicUpdateFromRefVar.tree);
+            } 
+       -> IDENTIFIER[$r.token, refVar])
+     ;
 // lvalue
 variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]:
-	expression { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; };
+	expression[ObjectType] { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; };
 rank_specifiers[TypeRepTemplate inTy] returns [TypeRepTemplate dotNetType]
 @init {
     TypeRepTemplate ty = $inTy;
@@ -864,10 +1283,10 @@ anonymous_object_initializer:
 member_declarator_list: 
 	member_declarator  (',' member_declarator)* ; 
 member_declarator: 
-	qid   ('='   expression)? ;
-primary_or_array_creation_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]:
+	qid   ('='   expression[ObjectType])? ;
+primary_or_array_creation_expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]:
 	(array_creation_expression) => array_creation_expression { $dotNetType = $array_creation_expression.dotNetType; $thedottedtext = null; }
-	| primary_expression { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; $typeofType = $primary_expression.typeofType; $thedottedtext = $primary_expression.thedottedtext; }
+	| primary_expression[$typeCtxt] { $dotNetType = $primary_expression.dotNetType; $rmId = $primary_expression.rmId; $typeofType = $primary_expression.typeofType; $thedottedtext = $primary_expression.thedottedtext; }
 	;
 // new Type[2] { }
 array_creation_expression returns [TypeRepTemplate dotNetType]:
@@ -881,28 +1300,17 @@ array_creation_expression returns [TypeRepTemplate dotNetType]:
 array_initializer:
 	'{'   variable_initializer_list?   ','?   '}' ;
 variable_initializer_list:
-	variable_initializer (',' variable_initializer)* ;
-variable_initializer:
-	expression	| array_initializer ;
+	variable_initializer[ObjectType] (',' variable_initializer[ObjectType])* ;
+variable_initializer[TypeRepTemplate typeCtxt]:
+	expression[$typeCtxt]	| array_initializer ;
 sizeof_expression:
 	^('sizeof'  unmanaged_type );
 checked_expression: 
-	^('checked' expression ) ;
+	^('checked' expression[ObjectType] ) ;
 unchecked_expression: 
-	^('unchecked' expression ) ;
+	^('unchecked' expression[ObjectType] ) ;
 default_value_expression: 
 	^('default' type   ) ;
-anonymous_method_expression:
-	^('delegate'   explicit_anonymous_function_signature?   block);
-explicit_anonymous_function_signature:
-	'('   explicit_anonymous_function_parameter_list?   ')' ;
-explicit_anonymous_function_parameter_list:
-	explicit_anonymous_function_parameter   (','   explicit_anonymous_function_parameter)* ;	
-explicit_anonymous_function_parameter:
-	anonymous_function_parameter_modifier?   type   identifier;
-anonymous_function_parameter_modifier:
-	'ref' | 'out';
-
 
 ///////////////////////////////////////////////////////
 object_creation_expression: 
@@ -919,7 +1327,7 @@ collection_initializer:
 element_initializer_list: 
 	element_initializer  (',' element_initializer)* ;
 element_initializer: 
-	non_assignment_expression 
+	non_assignment_expression[ObjectType] 
 	| '{'   expression_list   '}' ;
 // object-initializer eg's
 //	Rectangle r = new Rectangle {
@@ -934,7 +1342,7 @@ member_initializer_list:
 member_initializer: 
 	identifier   '='   initializer_value ;
 initializer_value: 
-	expression 
+	expression[ObjectType] 
 	| object_or_collection_initializer ;
 
 ///////////////////////////////////////////////////////
@@ -1020,7 +1428,7 @@ type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonT
       { 
          $dotNetType = findType(prefix+$t.thetext, $ga.argTypes); 
          if (!$dotNetType.IsUnknownType) {
-            if ($hasTyArgs && $dotNetType.TypeParams.Length == $ga.argTrees.Count) {
+            if (!$MkNonGeneric::scrubGenericArgs && $hasTyArgs && $dotNetType.TypeParams.Length == $ga.argTrees.Count) {
                int i = 0;
                foreach (CommonTree ty in $ga.argTrees) {
                   tyMap[$dotNetType.TypeParams[i]] = wrapType(ty, $t.tree.Token);
@@ -1082,11 +1490,27 @@ scope PrimitiveRep;
 
 // keving: TODO: Look for type vars
 type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
+@ init {
+   bool hasRank = false;
+   bool isPredefined = false;
+   CommonTree pTree = null;
+   string boxedName = null;
+}
+@after {
+   if ($dotNetType.Tree == null) {
+      $dotNetType.Tree = $type.tree;
+   }
+}
 :
-    ^(TYPE (predefined_type { $dotNetType = $predefined_type.dotNetType; } 
+    ^(TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; boxedName = $predefined_type.dotNetType.BoxedName; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
-        (rank_specifiers[$dotNetType] { $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; })? '*'* '?'?);
+        (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
+        magicBoxedType[isPredefined && pTree != null && !String.IsNullOrEmpty(boxedName), (pTree != null ? pTree.Token : null), boxedName]
+       { $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
+    -> { $PrimitiveRep::primitiveTypeAsObject && $p.tree != null && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedName) }? ^(TYPE[$p.tree.Token, "TYPE"] IDENTIFIER[$p.tree.Token,$dotNetType.BoxedName] '*'* '?'?)
+    -> ^(TYPE predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
+;
 
 non_nullable_type returns [TypeRepTemplate dotNetType]:
     type { $dotNetType = $type.dotNetType; } ;
@@ -1118,10 +1542,10 @@ statement_list:
 ///////////////////////////////////////////////////////
 //	Expression Section
 ///////////////////////////////////////////////////////	
-expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
 : 
-	(unary_expression   assignment_operator) => assignment	    { $dotNetType = VoidType; $thedottedtext = null;}
-	| non_assignment_expression                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; $typeofType = $non_assignment_expression.typeofType; $thedottedtext = $non_assignment_expression.thedottedtext; }
+	(unary_expression[ObjectType]   assignment_operator) => assignment	    { $dotNetType = VoidType; $thedottedtext = null;}
+	| non_assignment_expression[$typeCtxt]                                 { $dotNetType = $non_assignment_expression.dotNetType; $rmId = $non_assignment_expression.rmId; $typeofType = $non_assignment_expression.typeofType; $thedottedtext = $non_assignment_expression.thedottedtext; }
 	;
 expression_list returns [List<TypeRepTemplate> expTypes, List<CommonTree> expTrees, List<TypeRepTemplate> expTreeTypeofTypes]
 @init {
@@ -1129,46 +1553,134 @@ expression_list returns [List<TypeRepTemplate> expTypes, List<CommonTree> expTre
     $expTrees = new List<CommonTree>();
     $expTreeTypeofTypes = new List<TypeRepTemplate>();
 }:
-	e1=expression { $expTypes.Add($e1.dotNetType); $expTrees.Add(dupTree($e1.tree)); $expTreeTypeofTypes.Add($e1.typeofType); }
-      (','   en=expression { $expTypes.Add($en.dotNetType); $expTrees.Add(dupTree($en.tree)); $expTreeTypeofTypes.Add($en.typeofType); })* ;
+	e1=expression[ObjectType] { $expTypes.Add($e1.dotNetType); $expTrees.Add(dupTree($e1.tree)); $expTreeTypeofTypes.Add($e1.typeofType); }
+      (','   en=expression[ObjectType] { $expTypes.Add($en.dotNetType); $expTrees.Add(dupTree($en.tree)); $expTreeTypeofTypes.Add($en.typeofType); })* ;
 
 assignment
 @init {
     CommonTree ret = null;
     bool isThis = false;
+    bool isLocalVar = false;
     TypeRepTemplate expType = null;
+    TypeRepTemplate lhsType = ObjectType;
+
+    ResolveResult fieldResult = null;
+    ResolveResult indexerResult = null;
+
+    CommonTree lhsTree = null;
 }
 @after {
     if (ret != null)
         $assignment.tree = ret;
 }:
-    ((^('.' expression identifier generic_argument_list?) | identifier) assignment_operator)  => 
-        (^('.' se=expression i=identifier generic_argument_list?) | i=identifier { isThis = true;})  a=assignment_operator rhs=expression 
+    ((^('.' expression[ObjectType] identifier generic_argument_list?) | identifier) assignment_operator)  => 
+        (^(d0='.' se=expression[ObjectType] i=identifier generic_argument_list?)  {lhsTree = dupTree($d0.tree); }
+          | i=identifier { isThis = true; lhsTree = dupTree($i.tree); })  
+            {
+                TypeRepTemplate varType = SymTabLookup($i.thetext);
+                if (isThis && varType != null) {
+                   isLocalVar = true;
+                   lhsType = varType;
+                }   
+                else {
+                   expType = (isThis ? SymTabLookup("this") : $se.dotNetType);
+                   if (expType == null) {
+                      expType = new UnknownRepTemplate("FIELD.BASE");
+                   }
+                   if (expType.IsUnknownType) {
+                      WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
+                   }
+                   fieldResult = expType.Resolve($i.thetext, true, AppEnv);
+                   if (fieldResult != null) {
+                      lhsType = fieldResult.ResultType ?? lhsType;
+                   }
+                }
+            }
+         a=assignment_operator rhs=expression[lhsType] 
         {
-            if (isThis && SymTabLookup($i.thetext) != null) {
+            CommonTree assignmentOp = $a.tree;
+            CommonTree rhsTree = $rhs.tree;
+            TypeRepTemplate rhsType = $rhs.dotNetType ?? ObjectType;
+            // Is lhs a delegate and assignment one of += -=?
+            if (lhsType is DelegateRepTemplate && (assignmentOp.Token.Type == PLUS_ASSIGN || assignmentOp.Token.Type == MINUS_ASSIGN)) {
+               // rewrite to lhs = <op>(lhs,rhs)
+               // First calculate new rhs
+               CommonTree lhsGetter = lhsTree;
+               // Do we have a getter for lhs
+               if (isLocalVar && lhsType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                  lhsGetter = mkJavaWrapper("${this}.getValue()", myMap, $i.tree.Token);
+               }
+               else if (expType != null) {
+                  // Is lhs a property?
+                  ResolveResult readFieldResult = expType.Resolve($i.thetext, false, AppEnv);
+                  if (readFieldResult.Result is PropRepTemplate) {
+                     if (!String.IsNullOrEmpty(readFieldResult.Result.Warning)) Warning($i.tree.Token.Line, readFieldResult.Result.Warning);
+                     PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
+                  
+                     if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
+                        // need to translate to setProp(getProp <op> rhs)
+                        Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                        if (!isThis)
+                           rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
+                        lhsGetter = mkJavaWrapper(readPropRep.JavaGet, rhsMap, assignmentOp.Token);
+                        lhsType = readFieldResult.ResultType;
+                     }
+                  }
+               }
+               // OK, lhsGetter is good for use.
+               List<TypeRepTemplate> args = new List<TypeRepTemplate>();
+               args.Add(lhsType);
+               args.Add(rhsType == null ? lhsType : rhsType);
+               ResolveResult calleeResult = lhsType.Resolve(assignmentOp.Token.Type == PLUS_ASSIGN ? "Combine" : "Remove", args, AppEnv);
+               if (calleeResult != null) {
+                  if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning(assignmentOp.Token.Line, calleeResult.Result.Warning);
+                  
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
+                  myMap[calleeMethod.Params[0].Name] = wrapArgument(lhsGetter, assignmentOp.token);
+                  myMap[calleeMethod.Params[1].Name] = wrapArgument(rhsTree, assignmentOp.token);
+                  rhsTree = mkJavaWrapper(calleeMethod.Java, myMap, assignmentOp.token);
+                  AddToImports(calleeMethod.Imports);
+                  rhsType = calleeResult.ResultType; 
+                  assignmentOp = (CommonTree)adaptor.Create(ASSIGN, assignmentOp.Token, "=");
+                  
+                  // set up a default ret
+                  ret = (CommonTree)adaptor.Nil;
+                  adaptor.AddChild(ret, dupTree(lhsTree));
+                  adaptor.AddChild(ret, dupTree(assignmentOp));
+                  adaptor.AddChild(ret, dupTree(rhsTree));
+               }
+               else {
+                  WarningFailedResolve(assignmentOp.Token.Line, "Could not resolve method application of " + (assignmentOp.Token.Type == PLUS_ASSIGN ? "Combine" : "Remove") + " against " + lhsType.TypeName);
+               }
+            } 
+            if (isLocalVar) {
+               // Is this a wrapped parameter?
+               if (lhsType.IsWrapped) {
+                  Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+                  myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                  myMap["value"] = wrapExpression(rhsTree, rhsTree.Token);
+                  ret = mkJavaWrapper("${this}.setValue(${value})", myMap, $i.tree.Token);
+                }
                // a simple variable assignment
             }
             else {
-               TypeRepTemplate seType = (isThis ? SymTabLookup("this") : $se.dotNetType);
-               if (seType == null) {
-                  seType = new UnknownRepTemplate("FIELD.BASE");
-               }
-               if (seType.IsUnknownType) {
-                  WarningFailedResolve($i.tree.Token.Line, "Could not find type of expression for field /property access");
-               }
-               ResolveResult fieldResult = seType.Resolve($i.thetext, true, AppEnv);
                if (fieldResult != null) {
+                  if (!String.IsNullOrEmpty(fieldResult.Result.Warning)) Warning($i.tree.Token.Line, fieldResult.Result.Warning);
                   if (fieldResult.Result is PropRepTemplate) {
                      PropRepTemplate propRep = fieldResult.Result as PropRepTemplate;
                      if (!String.IsNullOrEmpty(propRep.JavaSet)) {
-                        CommonTree newRhsExp = $rhs.tree;
+                        CommonTree newRhsExp = rhsTree;
                         // if assignment operator is a short cut operator then only translate if we also have JavaGet  
                         bool goodTx = true;
-                        if ($a.tree.Token.Type != ASSIGN) {
+                        if (assignmentOp.Token.Type != ASSIGN) {
                            // We have to resolve property reads and writes separately, because they may come from 
                            // different parent classes
-                           ResolveResult readFieldResult = seType.Resolve($i.thetext, false, AppEnv);
+                           ResolveResult readFieldResult = expType.Resolve($i.thetext, false, AppEnv);
                            if (readFieldResult.Result is PropRepTemplate) {
+                              if (!String.IsNullOrEmpty(readFieldResult.Result.Warning)) Warning($i.tree.Token.Line, readFieldResult.Result.Warning);
                               PropRepTemplate readPropRep = readFieldResult.Result as PropRepTemplate;
 
                               if (!String.IsNullOrEmpty(readPropRep.JavaGet)) {
@@ -1177,8 +1689,8 @@ assignment
                                  Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
                                  if (!isThis)
                                     rhsMap["this"] = wrapExpression($se.tree, $i.tree.Token);
-                                 CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, $a.tree.Token);
-                                 newRhsExp = mkOpExp(mkOpExp($a.tree), rhsPropTree, $rhs.tree);
+                                 CommonTree rhsPropTree = mkJavaWrapper(readPropRep.JavaGet, rhsMap, assignmentOp.Token);
+                                 newRhsExp = mkOpExp(mkOpExp(assignmentOp), rhsPropTree, rhsTree);
                               }
                               else {
                                  goodTx = false;
@@ -1190,26 +1702,33 @@ assignment
                            valMap["this"] = wrapExpression($se.tree, $i.tree.Token);
                         valMap["value"] = wrapExpression(newRhsExp, $i.tree.Token);
                         if (goodTx) {
-                           ret = mkJavaWrapper(propRep.JavaSet, valMap, $a.tree.Token);
+                           ret = mkJavaWrapper(propRep.JavaSet, valMap, assignmentOp.Token);
                            AddToImports(propRep.Imports);
                         }
                      }
                   }
                }
                else {
-                  WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + seType.ToString());
+                  WarningFailedResolve($i.tree.Token.Line, "Could not resolve field or property expression against " + expType.ToString());
                }
             }
         }
-    | (^(INDEX expression expression_list?) assignment_operator)  => 
-        ^(INDEX ie=expression expression_list?)   ia=assignment_operator irhs=expression 
-        {
+    | (^(INDEX expression[ObjectType] expression_list?) assignment_operator)  => 
+        ^(INDEX ie=expression[ObjectType] expression_list?)
+          {
             expType = $ie.dotNetType ?? (new UnknownRepTemplate("INDEXER.BASE"));
             if (expType.IsUnknownType) {
                WarningFailedResolve($ie.tree.Token.Line, "Could not find type of expression for Indexer");
             }
-            ResolveResult indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            indexerResult = expType.ResolveIndexer($expression_list.expTypes ?? new List<TypeRepTemplate>(), AppEnv);
             if (indexerResult != null) {
+               lhsType = indexerResult.ResultType ?? lhsType;
+            }
+          }   
+        ia=assignment_operator irhs=expression[lhsType] 
+        {
+            if (indexerResult != null) {
+               if (!String.IsNullOrEmpty(indexerResult.Result.Warning)) Warning($ia.tree.Token.Line, indexerResult.Result.Warning);
                IndexerRepTemplate indexerRep = indexerResult.Result as IndexerRepTemplate;
                if (!String.IsNullOrEmpty(indexerRep.JavaSet)) {
                   CommonTree newRhsExp = $irhs.tree;
@@ -1257,26 +1776,26 @@ assignment
                WarningFailedResolve($ie.tree.Token.Line, "Could not resolve index expression against " + expType.ToString());
             }
       }
-    | unary_expression   assignment_operator expression ;
+    | unary_expression[ObjectType]   assignment_operator expression[ObjectType] ;
 
 
-unary_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+unary_expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
 @init {
    $thedottedtext = null;
 }: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression	
 
     cast_expression                             { $dotNetType = $cast_expression.dotNetType; }
-	| primary_or_array_creation_expression      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; $typeofType = $primary_or_array_creation_expression.typeofType; $thedottedtext = $primary_or_array_creation_expression.thedottedtext; }
-	| ^(MONOPLUS u1=unary_expression)           { $dotNetType = $u1.dotNetType; }
-	| ^(MONOMINUS u2=unary_expression)          { $dotNetType = $u2.dotNetType; }
-	| ^(MONONOT u3=unary_expression)            { $dotNetType = $u3.dotNetType; }
-	| ^(MONOTWIDDLE u4=unary_expression)        { $dotNetType = $u4.dotNetType; }
-	| ^(PREINC u5=unary_expression)             { $dotNetType = $u5.dotNetType; }
-	| ^(PREDEC u6=unary_expression)             { $dotNetType = $u6.dotNetType; }
-	| ^(MONOSTAR unary_expression)              { $dotNetType = ObjectType; }
-	| ^(ADDRESSOF unary_expression)             { $dotNetType = ObjectType; }
-	| ^(PARENS expression)                      { $dotNetType = $expression.dotNetType; $rmId = $expression.rmId; $typeofType = $expression.typeofType; }
+	| primary_or_array_creation_expression[$typeCtxt]      { $dotNetType = $primary_or_array_creation_expression.dotNetType; $rmId = $primary_or_array_creation_expression.rmId; $typeofType = $primary_or_array_creation_expression.typeofType; $thedottedtext = $primary_or_array_creation_expression.thedottedtext; }
+	| ^(MONOPLUS u1=unary_expression[ObjectType])           { $dotNetType = $u1.dotNetType; }
+	| ^(MONOMINUS u2=unary_expression[ObjectType])          { $dotNetType = $u2.dotNetType; }
+	| ^(MONONOT u3=unary_expression[ObjectType])            { $dotNetType = $u3.dotNetType; }
+	| ^(MONOTWIDDLE u4=unary_expression[ObjectType])        { $dotNetType = $u4.dotNetType; }
+	| ^(PREINC u5=unary_expression[ObjectType])             { $dotNetType = $u5.dotNetType; }
+	| ^(PREDEC u6=unary_expression[ObjectType])             { $dotNetType = $u6.dotNetType; }
+	| ^(MONOSTAR unary_expression[ObjectType])              { $dotNetType = ObjectType; }
+	| ^(ADDRESSOF unary_expression[ObjectType])             { $dotNetType = ObjectType; }
+	| ^(PARENS expression[$typeCtxt])                      { $dotNetType = $expression.dotNetType; $rmId = $expression.rmId; $typeofType = $expression.typeofType; }
 	;
 
 cast_expression  returns [TypeRepTemplate dotNetType]
@@ -1287,27 +1806,28 @@ cast_expression  returns [TypeRepTemplate dotNetType]
     if (ret != null)
         $cast_expression.tree = ret;
 }:
-    ^(c=CAST_EXPR type unary_expression) 
+    ^(c=CAST_EXPR type expression[$type.dotNetType ?? ObjectType]) 
        { 
             $dotNetType = $type.dotNetType;
-            if ($type.dotNetType != null && $unary_expression.dotNetType != null) {
+            if ($type.dotNetType != null && $expression.dotNetType != null) {
                 // see if expression's type has a cast to type
-                ResolveResult kaster = $unary_expression.dotNetType.ResolveCastTo($type.dotNetType, AppEnv);
+                ResolveResult kaster = $expression.dotNetType.ResolveCastTo($type.dotNetType, AppEnv);
                 if (kaster == null) {
                     // see if type has a cast from expression's type
-                    kaster = $type.dotNetType.ResolveCastFrom($unary_expression.dotNetType, AppEnv);
+                    kaster = $type.dotNetType.ResolveCastFrom($expression.dotNetType, AppEnv);
                 }
                 if (kaster != null) {
+                    if (!String.IsNullOrEmpty(kaster.Result.Warning)) Warning($c.line, kaster.Result.Warning);
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                    myMap["expr"] = wrapExpression($unary_expression.tree, $c.token);
+                    myMap["expr"] = wrapExpression($expression.tree, $c.token);
                     myMap["TYPEOF_totype"] = wrapTypeOfType($type.dotNetType, $c.token);
-                    myMap["TYPEOF_expr"] = wrapTypeOfType($unary_expression.dotNetType, $c.token);
+                    myMap["TYPEOF_expr"] = wrapTypeOfType($expression.dotNetType, $c.token);
                     ret = mkJavaWrapper(kaster.Result.Java, myMap, $c.token);
                     AddToImports(kaster.Result.Imports);
                 }
             }
        }
-         ->  ^($c  { ($unary_expression.dotNetType != null && $unary_expression.dotNetType.TypeName == "System.Object" ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
+         ->  ^($c  { ($expression.dotNetType != null && $expression.dotNetType.TypeName == "System.Object" ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  expression)         
 //         ->  ^($c  { ($type.dotNetType.IsUnboxedType && !$unary_expression.dotNetType.IsUnboxedType ? mkBoxedType($type.tree, $type.tree.Token) : $type.tree) }  unary_expression)         
 ;         
 assignment_operator:
@@ -1322,24 +1842,32 @@ shortcut_assignment_operator: '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '
 //addressof_expression:
 //	'&'   unary_expression ;
 
-non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+non_assignment_expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType, string rmId, TypeRepTemplate typeofType, string thedottedtext]
+scope MkNonGeneric, PrimitiveRep;
 @init {
+    $MkNonGeneric::scrubGenericArgs = false;
+    $PrimitiveRep::primitiveTypeAsObject = false;
     bool nullArg = false;
     bool stringArgs = false;
     bool dateArgs = false;
     $thedottedtext = null;
+    CommonTree ret = null;
+}
+@after{
+   if (ret != null)
+      $non_assignment_expression.tree = ret;
 }:
 	//'non ASSIGNment'
-	(anonymous_function_signature   '=>')	=> lambda_expression
+	(anonymous_function_signature[null]?   '=>')	=> lambda_expression[$typeCtxt] { $dotNetType = $lambda_expression.dotNetType; } 
 	| (query_expression) => query_expression 
-	|     ^(COND_EXPR non_assignment_expression e1=expression e2=expression)  {$dotNetType = $e1.dotNetType; }
-        | ^('??' n1=non_assignment_expression non_assignment_expression)      {$dotNetType = $n1.dotNetType; }
-        | ^('||' n2=non_assignment_expression non_assignment_expression)      {$dotNetType = $n2.dotNetType; }
-        | ^('&&' n3=non_assignment_expression non_assignment_expression)      {$dotNetType = $n3.dotNetType; }
-        | ^('|' n4=non_assignment_expression non_assignment_expression)       {$dotNetType = $n4.dotNetType; }
-        | ^('^' n5=non_assignment_expression non_assignment_expression)       {$dotNetType = $n5.dotNetType; }
-        | ^('&' n6=non_assignment_expression non_assignment_expression)       {$dotNetType = $n6.dotNetType; }
-        | ^(eq='==' ne1=non_assignment_expression ne2=non_assignment_expression 
+	|     ^(COND_EXPR non_assignment_expression[ObjectType] e1=expression[ObjectType] e2=expression[ObjectType])  {$dotNetType = $e1.dotNetType; }
+        | ^('??' n1=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n1.dotNetType; }
+        | ^('||' n2=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n2.dotNetType; }
+        | ^('&&' n3=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n3.dotNetType; }
+        | ^('|' n4=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])       {$dotNetType = $n4.dotNetType; }
+        | ^('^' n5=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])       {$dotNetType = $n5.dotNetType; }
+        | ^('&' n6=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])       {$dotNetType = $n6.dotNetType; }
+        | ^(eq='==' ne1=non_assignment_expression[ObjectType] ne2=non_assignment_expression[ObjectType] 
             {
                 // if One arg is null then leave original operator
                 nullArg = $ne1.dotNetType != null && $ne2.dotNetType != null && ($ne1.dotNetType.IsExplicitNull || $ne2.dotNetType.IsExplicitNull);
@@ -1363,7 +1891,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
          -> {dateArgs}? 
                $opde
          ->^($eq $ne1 $ne2)
-        | ^(neq='!=' neqo1=non_assignment_expression neqo2=non_assignment_expression    
+        | ^(neq='!=' neqo1=non_assignment_expression[ObjectType] neqo2=non_assignment_expression[ObjectType]    
             {
                 // if One arg is null then leave original operator
                 nullArg = $neqo1.dotNetType != null && $neqo2.dotNetType != null && ($neqo1.dotNetType.IsExplicitNull || $neqo2.dotNetType.IsExplicitNull);
@@ -1389,7 +1917,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
          -> {dateArgs}? 
                $opdne
          ->^($neq $neqo1 $neqo2)
-        | ^(gt='>' gt1=non_assignment_expression gt2=non_assignment_expression
+        | ^(gt='>' gt1=non_assignment_expression[ObjectType] gt2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
                 nullArg = $gt1.dotNetType != null && $gt2.dotNetType != null && ($gt1.dotNetType.IsExplicitNull || $gt2.dotNetType.IsExplicitNull);
@@ -1405,7 +1933,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
         -> {dateArgs}? 
                $opgt
          ->^($gt $gt1 $gt2)
-        | ^(lt='<' lt1=non_assignment_expression lt2=non_assignment_expression
+        | ^(lt='<' lt1=non_assignment_expression[ObjectType] lt2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
                 nullArg = $lt1.dotNetType != null && $lt2.dotNetType != null && ($lt1.dotNetType.IsExplicitNull || $lt2.dotNetType.IsExplicitNull);
@@ -1421,7 +1949,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
         -> {dateArgs}? 
                $oplt
          ->^($lt $lt1 $lt2)
-        | ^(ge='>=' ge1=non_assignment_expression ge2=non_assignment_expression
+        | ^(ge='>=' ge1=non_assignment_expression[ObjectType] ge2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
                 nullArg = $ge1.dotNetType != null && $ge2.dotNetType != null && ($ge1.dotNetType.IsExplicitNull || $ge2.dotNetType.IsExplicitNull);
@@ -1437,7 +1965,7 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
         -> {dateArgs}? 
                $opge
          ->^($ge $ge1 $ge2)
-        | ^(le='<=' le1=non_assignment_expression le2=non_assignment_expression
+        | ^(le='<=' le1=non_assignment_expression[ObjectType] le2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
                 nullArg = $le1.dotNetType != null && $le2.dotNetType != null && ($le1.dotNetType.IsExplicitNull || $le2.dotNetType.IsExplicitNull);
@@ -1453,71 +1981,120 @@ non_assignment_expression returns [TypeRepTemplate dotNetType, string rmId, Type
         -> {dateArgs}? 
                $ople
          ->^($le $le1 $le2)
-        | ^(INSTANCEOF non_assignment_expression non_nullable_type)           {$dotNetType = BoolType; }
-        | ^('<<' n7=non_assignment_expression non_assignment_expression)      {$dotNetType = $n7.dotNetType; }
-        | ^(RIGHT_SHIFT n8=non_assignment_expression non_assignment_expression)      {$dotNetType = $n8.dotNetType; }
+        | ^(INSTANCEOF non_assignment_expression[ObjectType] { $MkNonGeneric::scrubGenericArgs = true;  $PrimitiveRep::primitiveTypeAsObject = true; } non_nullable_type)           {$dotNetType = BoolType; }
+        | ^('<<' n7=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n7.dotNetType; }
+        | ^(RIGHT_SHIFT n8=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n8.dotNetType; }
 // TODO: need to munge these numeric types
-        | ^('+' n9=non_assignment_expression non_assignment_expression)       {$dotNetType = $n9.dotNetType; }
-        | ^('-' n10=non_assignment_expression non_assignment_expression)      {$dotNetType = $n10.dotNetType; }
-        | ^('*' n11=non_assignment_expression non_assignment_expression)      {$dotNetType = $n11.dotNetType; }
-        | ^('/' n12=non_assignment_expression non_assignment_expression)      {$dotNetType = $n12.dotNetType; }
-        | ^('%' n13=non_assignment_expression non_assignment_expression)      {$dotNetType = $n13.dotNetType; }
+        | ^(pl='+' n9=non_assignment_expression[ObjectType] n92=non_assignment_expression[ObjectType])       
+        {
+         // Are we adding two delegates?
+         if ($n9.dotNetType != null && $n9.dotNetType is DelegateRepTemplate) {
+            List<TypeRepTemplate> args = new List<TypeRepTemplate>();
+            args.Add($n9.dotNetType);
+            args.Add($n92.dotNetType == null ? $n9.dotNetType : $n92.dotNetType);
+            ResolveResult calleeResult = $n9.dotNetType.Resolve("Combine", args, AppEnv);
+            if (calleeResult != null) {
+               if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($pl.line, calleeResult.Result.Warning);
+                  
+               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+               MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
+               myMap[calleeMethod.Params[0].Name] = wrapArgument($n9.tree, $pl.token);
+               myMap[calleeMethod.Params[1].Name] = wrapArgument($n92.tree, $pl.token);
+               ret = mkJavaWrapper(calleeMethod.Java, myMap, $pl.token);
+               AddToImports(calleeMethod.Imports);
+               $dotNetType = calleeResult.ResultType; 
+            }
+            else {
+               WarningFailedResolve($pl.line, "Could not resolve method application of Combine against " + $n9.dotNetType.TypeName);
+            }
+         }
+         $dotNetType = $n9.dotNetType; 
+        }
+        | ^(ne='-' n10=non_assignment_expression[ObjectType] n102=non_assignment_expression[ObjectType])      {$dotNetType = $n10.dotNetType; }
+        {
+         // Are we adding two delegates?
+         if ($n10.dotNetType != null && $n10.dotNetType is DelegateRepTemplate) {
+            List<TypeRepTemplate> args = new List<TypeRepTemplate>();
+            args.Add($n10.dotNetType);
+            args.Add($n102.dotNetType == null ? $n10.dotNetType : $n102.dotNetType);
+            ResolveResult calleeResult = $n10.dotNetType.Resolve("Remove", args, AppEnv);
+            if (calleeResult != null) {
+               if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($ne.line, calleeResult.Result.Warning);
+                  
+               Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
+               MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
+               myMap[calleeMethod.Params[0].Name] = wrapArgument($n10.tree, $ne.token);
+               myMap[calleeMethod.Params[1].Name] = wrapArgument($n102.tree, $ne.token);
+               ret = mkJavaWrapper(calleeMethod.Java, myMap, $ne.token);
+               AddToImports(calleeMethod.Imports);
+               $dotNetType = calleeResult.ResultType; 
+            }
+            else {
+               WarningFailedResolve($ne.line, "Could not resolve method application of Remove against " + $n10.dotNetType.TypeName);
+            }
+         }
+         $dotNetType = $n10.dotNetType; 
+        }
+        | ^('*' n11=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n11.dotNetType; }
+        | ^('/' n12=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n12.dotNetType; }
+        | ^('%' n13=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n13.dotNetType; }
  //       | ^(UNARY_EXPRESSION unary_expression)
-        | unary_expression                                                    {$dotNetType = $unary_expression.dotNetType; $rmId = $unary_expression.rmId; $typeofType = $unary_expression.typeofType; $thedottedtext = $unary_expression.thedottedtext; }
+        | unary_expression[$typeCtxt]
+              {
+                $dotNetType = $unary_expression.dotNetType; 
+                $rmId = $unary_expression.rmId; 
+                $typeofType = $unary_expression.typeofType; 
+                $thedottedtext = $unary_expression.thedottedtext; 
+              }
 	;
-
-// ///////////////////////////////////////////////////////
-// //	Conditional Expression Section
-// ///////////////////////////////////////////////////////
-// 
-// multiplicative_expression:
-// 	unary_expression (  ('*'|'/'|'%')   unary_expression)*	;
-// additive_expression:
-// 	multiplicative_expression (('+'|'-')   multiplicative_expression)* ;
-// // >> check needed (no whitespace)
-// shift_expression:
-// 	additive_expression (('<<'|'>' '>') additive_expression)* ;
-// relational_expression:
-// 	shift_expression
-// 		(	(('<'|'>'|'>='|'<=')	shift_expression)
-// 			| (('is'|'as')   non_nullable_type)
-// 		)* ;
-// equality_expression:
-// 	relational_expression
-// 	   (('=='|'!=')   relational_expression)* ;
-// and_expression:
-// 	equality_expression ('&'   equality_expression)* ;
-// exclusive_or_expression:
-// 	and_expression ('^'   and_expression)* ;
-// inclusive_or_expression:
-// 	exclusive_or_expression   ('|'   exclusive_or_expression)* ;
-// conditional_and_expression:
-// 	inclusive_or_expression   ('&&'   inclusive_or_expression)* ;
-// conditional_or_expression:
-// 	conditional_and_expression  ('||'   conditional_and_expression)* ;
-// 
-// null_coalescing_expression:
-// 	conditional_or_expression   ('??'   conditional_or_expression)* ;
-// conditional_expression:
-// 	null_coalescing_expression   ('?'   expression   ':'   expression)? ;
-//       
 
 ///////////////////////////////////////////////////////
 //	lambda Section
 ///////////////////////////////////////////////////////
-lambda_expression:
-	anonymous_function_signature   '=>'   anonymous_function_body;
-anonymous_function_signature:
-	'('	(explicit_anonymous_function_parameter_list
-		| implicit_anonymous_function_parameter_list)?	')'
-	| implicit_anonymous_function_parameter_list
+lambda_expression[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType]
+@init {
+   CommonTree ret = null;
+}
+@after {
+    if (ret != null)
+        $lambda_expression.tree = ret;
+}:
+	anonymous_function_signature[$typeCtxt]?   d='=>'   anonymous_function_body
+      {
+         if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate && $anonymous_function_signature.isTypedParams) {
+            // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
+            // new <delegate_name>() { public void Invoke(<formal args>) throw exception <block> }
+            DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
+            ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $anonymous_function_signature.tree, $anonymous_function_body.tree, delType, $d.token);
+            $dotNetType = $typeCtxt;
+         }
+      }
+   ;
+anonymous_function_signature[TypeRepTemplate typeCtxt] returns [bool isTypedParams]
+@init {
+    $isTypedParams = true;
+    CommonTree ret = null;
+    List<CommonTree> ids = new List<CommonTree>(); 
+}
+@after {
+    if (ret != null)
+        $anonymous_function_signature.tree = ret;
+}:
+	^(PARAMS (parameter_modifier? type identifier)+)
+	| ^(p=PARAMS_TYPELESS (identifier { ids.Add($identifier.tree); })+)
+      {
+         if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate && ids.Count == ((DelegateRepTemplate)$typeCtxt).Invoke.Params.Count) {
+            ret = mkTypedParams(((DelegateRepTemplate)$typeCtxt).Invoke.Params, ids, $p.token);
+         }
+         else {
+            $isTypedParams = false;
+         }
+      }
 	;
-implicit_anonymous_function_parameter_list:
-	implicit_anonymous_function_parameter   (','   implicit_anonymous_function_parameter)* ;
-implicit_anonymous_function_parameter:
-	identifier;
 anonymous_function_body:
-	expression
+	expression[ObjectType] 
+      -> {$expression.dotNetType != null && $expression.dotNetType.IsA(VoidType, AppEnv)}? OPEN_BRACE[$expression.tree.Token, "{"] expression SEMI[$expression.tree.Token, ";"] CLOSE_BRACE[$expression.tree.Token, "}"]
+      -> OPEN_BRACE[$expression.tree.Token, "{"] ^(RETURN[$expression.tree.Token, "return"] expression) CLOSE_BRACE[$expression.tree.Token, "}"]
 	| block ;
 
 ///////////////////////////////////////////////////////
@@ -1539,17 +2116,17 @@ query_body_clause:
 	| join_clause
 	| orderby_clause;
 from_clause:
-	'from'   type?   identifier   'in'   expression ;
+	'from'   type?   identifier   'in'   expression[ObjectType] ;
 join_clause:
-	'join'   type?   identifier   'in'   expression   'on'   expression   'equals'   expression ('into' identifier)? ;
+	'join'   type?   identifier   'in'   expression[ObjectType]   'on'   expression[ObjectType]   'equals'   expression[ObjectType] ('into' identifier)? ;
 let_clause:
-	'let'   identifier   '='   expression;
+	'let'   identifier   '='   expression[ObjectType];
 orderby_clause:
 	'orderby'   ordering_list ;
 ordering_list:
 	ordering   (','   ordering)* ;
 ordering:
-	expression    ordering_direction
+	expression[ObjectType]    ordering_direction
 	;
 ordering_direction:
 	'ascending'
@@ -1558,13 +2135,13 @@ select_or_group_clause:
 	select_clause
 	| group_clause ;
 select_clause:
-	'select'   expression ;
+	'select'   expression[ObjectType] ;
 group_clause:
-	'group'   expression   'by'   expression ;
+	'group'   expression[ObjectType]   'by'   expression[ObjectType] ;
 where_clause:
 	'where'   boolean_expression ;
 boolean_expression:
-	expression;
+	expression[ObjectType];
 
 ///////////////////////////////////////////////////////
 // B.2.13 Attributes
@@ -1572,7 +2149,7 @@ boolean_expression:
 global_attributes: 
 	global_attribute+ ;
 global_attribute: 
-	'['   global_attribute_target_specifier   attribute_list   ','?   ']' ;
+	^(GLOBAL_ATTRIBUTE global_attribute_target_specifier   attribute_list);
 global_attribute_target_specifier: 
 	global_attribute_target   ':' ;
 global_attribute_target: 
@@ -1582,7 +2159,7 @@ attributes:
 attribute_sections: 
 	attribute_section+ ;
 attribute_section: 
-	'['   attribute_target_specifier?   attribute_list   ','?   ']' ;
+	^(ATTRIBUTE attribute_target_specifier?   attribute_list) ;
 attribute_target_specifier: 
 	attribute_target   ':' ;
 attribute_target: 
@@ -1607,7 +2184,7 @@ named_argument_list:
 named_argument: 
 	identifier   '='   attribute_argument_expression ;
 attribute_argument_expression: 
-	expression ;
+	expression[ObjectType] ;
 
 ///////////////////////////////////////////////////////
 //	Class Section
@@ -1620,6 +2197,11 @@ scope NSContext,SymTab;
     $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
+
+    $NSContext::IsGenericICollection = false;
+    $NSContext::GenericICollectionTyVar = "";
+    $NSContext::IsICollection = false;
+
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
@@ -1649,6 +2231,12 @@ scope NSContext,SymTab;
 				}
 				$SymTab::symtab["super"] = baseType;
 			}
+            if ($NSContext::IsICollection) {
+                Debug(10, $NSContext::currentNS + " is a Collection");
+            }
+            if ($NSContext::IsGenericICollection) {
+                Debug(10, $NSContext::currentNS + " is a Generic Collection");
+            }
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
@@ -1670,7 +2258,8 @@ class_extend:
 
 // If first implements type is a class then convert to extends
 class_implements returns [bool hasExtends, TypeRepTemplate extendDotNetType]:
-	class_implement_or_extend { $hasExtends = $class_implement_or_extend.hasExtends; $extendDotNetType = $class_implement_or_extend.extendDotNetType;  }class_implement* ;
+	class_implement_or_extend { $hasExtends = $class_implement_or_extend.hasExtends; $extendDotNetType = $class_implement_or_extend.extendDotNetType;  }
+    class_implement* ;
 
 class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNetType]
 @init {
@@ -1681,18 +2270,36 @@ class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNet
                     $hasExtends = true;
                     $extendDotNetType = $t.dotNetType;
                 }
+               if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
+               if($t.dotNetType.IsA(GenericICollectionType,AppEnv) && $t.dotNetType.TypeParams.Length > 0) {
+                    $NSContext::IsGenericICollection = true;
+                    $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
+               }
             } ) 
               -> { $t.dotNetType is ClassRepTemplate }? ^(EXTENDS[$i.token, "extends"] type)
               -> ^($i $t);
 	
 class_implement:
-	^(IMPLEMENTS type) ;
+	^(IMPLEMENTS t=type 
+          { 
+             if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
+             if($t.dotNetType.IsA(GenericICollectionType,AppEnv) && $t.dotNetType.TypeParams.Length > 0) {
+                $NSContext::IsGenericICollection = true;
+                $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
+             }
+          }) ;
 	
-interface_type_list:
-	type (','   type)* ;
-
-class_body:
-	'{'   class_member_declarations?   '}' ;
+class_body
+@init {
+    CommonTree collectorNodes = null;
+    if ($NSContext::IsGenericICollection) {
+        collectorNodes = this.parseString("class_member_declarations", Fragments.GenericCollectorMethods($NSContext::GenericICollectionTyVar, $NSContext::GenericICollectionTyVar + "__" + dummyTyVarCtr++));
+        AddToImports("java.util.Iterator");
+        AddToImports("java.util.Collection");
+        AddToImports("java.util.ArrayList");
+    }
+}:
+	'{' class_member_declarations? '}' -> '{' class_member_declarations? { dupTree(collectorNodes) } '}' ;
 class_member_declarations:
 	class_member_declaration+ ;
 
@@ -1702,9 +2309,9 @@ constant_declaration:
 constant_declarators[TypeRepTemplate ty]:
 	constant_declarator[$ty] (',' constant_declarator[$ty])* ;
 constant_declarator[TypeRepTemplate ty]:
-	identifier  { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   constant_expression)? ;
-constant_expression returns [string rmId]:
-	expression {$rmId = $expression.rmId; };
+	identifier  { $SymTab::symtab[$identifier.thetext] = $ty; } ('='   constant_expression[$ty])? ;
+constant_expression[TypeRepTemplate tyCtxt] returns [string rmId]:
+	expression[$tyCtxt] {$rmId = $expression.rmId; };
 
 ///////////////////////////////////////////////////////
 field_declaration[CommonTree tyTree, TypeRepTemplate ty]:
@@ -1723,8 +2330,8 @@ variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
         zeroEnum = enumRep.Members[0].Name;
     }
 }:
-	identifier { $SymTab::symtab[$identifier.thetext] = $ty; } 
-       (e='='   variable_initializer { hasInit = true; constructStruct = false; constructEnum = false; } )?
+	identifier 
+       (e='='   variable_initializer[$ty] { hasInit = true; constructStruct = false; constructEnum = false; } )?
         magicConstructStruct[constructStruct, $tyTree, $identifier.tree != null ? $identifier.tree.Token : null]
         magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
         		// eg. event EventHandler IInterface.VariableName = Foo;
@@ -1764,9 +2371,7 @@ member_name
 ///////////////////////////////////////////////////////
 
 event_declaration:
-	'event'   type
-		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators[$type.tree, $type.dotNetType]   ';')	// typename=foo;
+	type member_name   '{'   event_accessor_declarations   '}'
 		;
 event_modifiers:
 	modifier+ ;
@@ -1798,31 +2403,6 @@ enum_member_declaration:
 integral_type: 
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
-// B.2.12 Delegates
-delegate_declaration
-scope NSContext,SymTab;
-@init {
-    $NSContext::namespaces = new List<string>();
-    $NSContext::globalNamespaces = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalNamespaces);
-    $NSContext::typeVariables = new List<string>();
-    $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
-    $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
-}
-:
-	^(DELEGATE attributes? modifiers?   return_type   identifier   type_parameter_constraints_clauses?  variant_generic_parameter_list?  
-          { $NSContext::currentNS = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.thetext, $variant_generic_parameter_list.tyParams); 
-            if (CompUnitName == null) 
-               CompUnitName = $NSContext::currentNS; 
-            $NSContext::namespaces.Add($NSContext::currentNS);
-            $NSContext::globalNamespaces.Add($NSContext::currentNS);
-            if ($variant_generic_parameter_list.tyParams != null) {
-                $NSContext::typeVariables.AddRange($variant_generic_parameter_list.tyParams);
-                $NSContext::globalTypeVariables.AddRange($variant_generic_parameter_list.tyParams);
-            }
-         }
-       '('   formal_parameter_list?   ')' ) ;
-delegate_modifiers:
-	modifier+ ;
 // 4.0
 variant_generic_parameter_list returns [List<string> tyParams]
 @init {
@@ -1851,16 +2431,28 @@ formal_parameter_list:
 formal_parameter:
 	attributes?   (fixed_parameter | parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google
-fixed_parameters:
-	fixed_parameter   (','   fixed_parameter)* ;
+//fixed_parameters:
+//	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
-fixed_parameter:
-	parameter_modifier?   type   identifier  { $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  default_argument? ;
+fixed_parameter
+scope PrimitiveRep;
+@init {
+    $PrimitiveRep::primitiveTypeAsObject = false;
+    bool isRefOut = false;
+}:
+      (parameter_modifier { isRefOut = $parameter_modifier.isRefOut; if (isRefOut) { $PrimitiveRep::primitiveTypeAsObject = true; AddToImports("CS2JNet.JavaSupport.language.RefSupport");} })?   
+            type   identifier  { $type.dotNetType.IsWrapped = isRefOut; $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  default_argument? magicRef[isRefOut, $type.tree != null ? $type.tree.Token : null, $type.tree]
+   -> {isRefOut}? magicRef identifier default_argument?
+   -> parameter_modifier? type identifier default_argument?
+   ;
 // 4.0
 default_argument:
-	'=' expression;
-parameter_modifier:
-	'ref' | 'out' | 'this' ;
+	'=' expression[ObjectType];
+parameter_modifier returns [bool isRefOut]
+@init {
+   $isRefOut = true;
+}:
+	'ref' -> | 'out' -> | 'this' { $isRefOut = false;};
 parameter_array:
 	^(p='params'   type   identifier { $SymTab::symtab[$identifier.thetext] = findType("System.Array", new TypeRepTemplate[] {$type.dotNetType}); }) ;
 
@@ -1871,8 +2463,6 @@ interface_declaration:
     	class_extends?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;
-interface_base: 
-   	':' interface_type_list ;
 interface_body:
 	'{'   interface_member_declarations?   '}' ;
 interface_member_declarations:
@@ -1950,27 +2540,83 @@ invocation_part:
 
 // keving: split statement into two parts, there seems to be a problem with the state
 // machine if we combine statement and statement_plus. (It fails to recognise dataHelper.Add();)
-statement[bool isStatementListCtxt]:
-    (declaration_statement) => declaration_statement 
-    | statement_plus[isStatementListCtxt];
+statement[bool isStatementListCtxt]
+scope {
+   CommonTree preStatements;
+   CommonTree postStatements;
+}
+@init {
+   $statement::preStatements = (CommonTree)adaptor.Nil;
+   $statement::postStatements = (CommonTree)adaptor.Nil;
+   bool hasPreOrPost = false;
+   CommonTree statTree = null;
+}:
+      ((declaration_statement) => declaration_statement { statTree = dupTree($declaration_statement.tree); }
+        | statement_plus[isStatementListCtxt] { statTree = dupTree($statement_plus.tree); }) 
+                  { hasPreOrPost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; } 
+          -> {isStatementListCtxt || !hasPreOrPost }? { $statement::preStatements } { statTree } { $statement::postStatements }
+          -> OPEN_BRACE[statTree.Token, "{"] { $statement::preStatements } { statTree } { $statement::postStatements } CLOSE_BRACE[statTree.Token, "}"]
+;
 statement_plus[bool isStatementListCtxt]:
     labeled_statement[isStatementListCtxt] 
-    | embedded_statement[isStatementListCtxt] 
+    | embedded_statement[isStatementListCtxt]
 	;
-embedded_statement[bool isStatementListCtxt]:
+embedded_statement[bool isStatementListCtxt]
+@init{
+   string idName = null;
+   bool emitPrePost = false;
+   bool jumpStatementHasExpression = false;
+}
+@after{
+   if(emitPrePost) {
+      // reset (just in case) they have already been emitted
+      $statement::preStatements = (CommonTree)adaptor.Nil;
+      $statement::postStatements = (CommonTree)adaptor.Nil;
+   }
+}
+:
       block
-	| ^(IF boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
+	| ^(ift=IF boolean_expression 
+                  { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; 
+                    if (emitPrePost) {
+                        idName = "boolVar___" + dummyVarCtr++;
+                    }
+                  } 
+            SEP embedded_statement[/* isStatementListCtxt */ false] else_statement?)
+            magicType[emitPrePost, $ift.token, "boolean", null]
+            magicAssignment[emitPrePost, $ift.token, $magicType.tree, idName, $boolean_expression.tree]
+          -> {!emitPrePost }? ^($ift boolean_expression SEP embedded_statement else_statement?)
+          -> {isStatementListCtxt}? 
+                 { $statement::preStatements } magicAssignment  { $statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?)
+          -> OPEN_BRACE[$ift.token, "{"] { $statement::preStatements } magicAssignment  { $statement::postStatements } ^($ift IDENTIFIER[$ift.token, idName] SEP embedded_statement else_statement?) CLOSE_BRACE[$ift.token, "}"]
     | switch_statement[isStatementListCtxt]
 	| iteration_statement	// while, do, for, foreach
-	| jump_statement		// break, continue, goto, return, throw
+	| jump_statement
+    | 	(^(('return' | 'throw') expression[ObjectType]?)) => (^(jt='return' (je=expression[ObjectType] {jumpStatementHasExpression = true;})?) | ^(jt='throw' (je=expression[ObjectType]{ jumpStatementHasExpression = true; })?)) 
+	     { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0;
+           if (emitPrePost) {
+              idName = "resVar___" + dummyVarCtr++;
+           }
+         }
+         magicAssignment[emitPrePost, $jt.token, jumpStatementHasExpression ? ($je.dotNetType != null ? (CommonTree)$je.dotNetType.Tree : null) : null, idName, $je.tree]
+                // jump_statement transfers control, so we ignore any poststatements
+          -> {!emitPrePost }? ^($jt $je?)
+          -> {isStatementListCtxt}? { $statement::preStatements } magicAssignment { $statement::postStatements } ^($jt IDENTIFIER[$jt.token, idName])
+          -> OPEN_BRACE[$jt.token, "{"] { $statement::preStatements } magicAssignment { $statement::postStatements } ^($jt IDENTIFIER[$jt.token, idName]) CLOSE_BRACE[$jt.token, "}"]	
+
+       // break, continue, goto, return, throw
 	| ^('try' block catch_clauses? finally_clause?)
 	| checked_statement
 	| unchecked_statement
 	| lock_statement
-	| yield_statement 
+    | yield_statement
     | ^('unsafe'   block)
 	| fixed_statement
-	| expression_statement	// expression!
+	| expression_statement  { emitPrePost = adaptor.GetChildCount($statement::preStatements) > 0 || adaptor.GetChildCount($statement::postStatements) > 0; }
+          -> {!emitPrePost }? expression_statement
+          -> {isStatementListCtxt}? { $statement::preStatements } expression_statement  { $statement::postStatements }
+          -> OPEN_BRACE[$expression_statement.tree.Token, "{"] { $statement::preStatements } expression_statement  { $statement::postStatements } CLOSE_BRACE[$expression_statement.tree.Token, "}"]
+    // expression!
 	;
 switch_statement[ bool isStatementListCtxt]
 scope {
@@ -1987,7 +2633,7 @@ scope {
     $switch_statement::isFirstCase = true;
     $switch_statement::defaultTree = null;
 }:
-    ^(s='switch' se=expression sv=magicScrutineeVar[$s.token]
+    ^(s='switch' se=expression[ObjectType] sv=magicScrutineeVar[$s.token]
                 { 
                     if ($expression.dotNetType != null) {
                         $switch_statement::isEnum = $expression.dotNetType.IsA(AppEnv.Search("System.Enum"), AppEnv); 
@@ -2016,9 +2662,9 @@ fixed_pointer_declarator:
 	identifier   '='   fixed_pointer_initializer ;
 fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
-	expression;
+	expression[ObjectType];
 labeled_statement[bool isStatementListCtxt]:
-	^(':' identifier statement[isStatementListCtxt]) ;
+	identifier ':' statement[isStatementListCtxt] ;
 declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
@@ -2046,7 +2692,7 @@ local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
     }
 }:
 	i=identifier { $SymTab::symtab[$i.thetext] = $ty; } 
-       (e='='   local_variable_initializer { hasInit = true; constructStruct = false; constructEnum = false; } )?
+       (e='='   local_variable_initializer[$ty ?? ObjectType] { hasInit = true; constructStruct = false; constructEnum = false; } )?
         magicConstructStruct[constructStruct, $tyTree, ($i.tree != null ? $i.tree.Token : null)]
         magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
         		// eg. event EventHandler IInterface.VariableName = Foo;
@@ -2055,20 +2701,20 @@ local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
     -> {constructEnum}? $i ASSIGN[$i.tree.Token, "="] magicConstructDefaultEnum
     -> $i
     ;
-local_variable_initializer:
-	expression
+local_variable_initializer[TypeRepTemplate typeCtxt]:
+	expression[$typeCtxt]
 	| array_initializer 
 	| stackalloc_initializer;
 stackalloc_initializer:
-	'stackalloc'   unmanaged_type   '['   expression   ']' ;
+	'stackalloc'   unmanaged_type   '['   expression[ObjectType]   ']' ;
 local_constant_declaration:
 	'const'   type   constant_declarators[$type.dotNetType] ;
 expression_statement:
-	expression   ';' ;
+	expression[ObjectType]   ';' ;
 
 // TODO: should be assignment, call, increment, decrement, and new object expressions
 statement_expression:
-	expression
+	expression[ObjectType]
 	;
 else_statement:
 	'else'   embedded_statement[/* isStatementListCtxt */ false]	;
@@ -2112,7 +2758,7 @@ switch_label returns [bool isDefault]
 @init {
     $isDefault = false;
 }:
-    ^(c='case'  ce=constant_expression ) 
+    ^(c='case'  ce=constant_expression[ObjectType] ) 
         -> { $switch_statement::convertToIfThenElse }? 
                // scrutVar.equals(ce)
                ^(APPLY[$c.token, "APPLY"] ^(DOT[$c.token, "."] IDENTIFIER[$c.token, $switch_statement::scrutVar] IDENTIFIER[$c.token, "equals"]) ^(ARGS[$c.token, "ARGS"] $ce))
@@ -2136,7 +2782,7 @@ scope SymTab;
 	^('while' boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false])
 	| do_statement
 	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement[/* isStatementListCtxt */ false])
-	| ^(f='foreach' local_variable_type   identifier expression s=SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement[/* isStatementListCtxt */ false])
+	| ^(f='foreach' local_variable_type   identifier expression[ObjectType] s=SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement[/* isStatementListCtxt */ false])
            magicObjectType[$f.token] magicForeachVar[$f.token]
         {
             newType = $local_variable_type.tree;
@@ -2149,6 +2795,7 @@ scope SymTab;
             if (exprType != null) {
                 ResolveResult iterable = exprType.ResolveIterable(AppEnv);
                 if (iterable != null) {
+                    if (!String.IsNullOrEmpty(iterable.Result.Warning)) Warning($expression.tree.Token.Line, iterable.Result.Warning);
                     Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                     myMap["expr"] = wrapExpression($expression.tree, $expression.tree.Token);
                     newExpression = mkJavaWrapper(iterable.Result.Java, myMap, $expression.tree.Token);
@@ -2194,15 +2841,14 @@ jump_statement:
 	break_statement
 	| continue_statement
 	| goto_statement
-	| ^('return' expression?)
-	| ^('throw'  expression?);
+;
 break_statement:
 	'break'   ';' ;
 continue_statement:
 	'continue'   ';' ;
 goto_statement:
 	'goto'   ( identifier
-			 | 'case'   constant_expression
+			 | 'case'   constant_expression[ObjectType]
 			 | 'default')   ';' ;
 catch_clauses:
     catch_clause+ ;
@@ -2217,12 +2863,13 @@ finally_clause:
 checked_statement:
 	'checked'   block ;
 unchecked_statement:
-	'unchecked'   block ;
+	^(UNCHECKED block) ;
 lock_statement:
-	'lock'   '('  expression   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
+	'lock'   '('  expression[ObjectType]   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
+
 yield_statement:
-	'yield'   ('return'   expression   ';'
-	          | 'break'   ';') ;
+    ^(YIELD_RETURN expression[ObjectType])
+    | YIELD_BREAK ;
 
 ///////////////////////////////////////////////////////
 //	Lexar Section
@@ -2239,10 +2886,6 @@ predefined_type returns [TypeRepTemplate dotNetType]
     if (primitive_to_object_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText))
        $dotNetType.BoxedName = newText;
 
-    // In certain contexts we must translate primitive types into their object based equivalent    
-    if ($PrimitiveRep::primitiveTypeAsObject && newText != null) {
-        $predefined_type.tree.Token.Text = newText;
-    }
 }:
 	  'bool'    { ns = "System.Boolean"; }
     | 'byte'    { ns = "System.Byte"; }
@@ -2273,7 +2916,7 @@ also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
 	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+	| 'endif' | 'define' | 'undef' | 'extends';
 
 literal returns [TypeRepTemplate dotNetType]
 @init {
@@ -2373,4 +3016,223 @@ magicThrowableType[bool isOn, IToken tok]:
 
 magicEventCollectionType[IToken tok, CommonTree type]:
   -> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IEventCollection"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"] )
+;
+
+// METHOD{ public TYPE{ Iterator < TYPE{ JAVAWRAPPER{ T } } > } kiterator { TYPE{ Iterator < TYPE{ JAVAWRAPPER{ T } } > } ret = null ; try{ { ret = APPLY{ .{ JAVAWRAPPER{ ${this:16}.GetEnumerator() this EXPRESSION{ this } } iterator } } ; } catch{ TYPE{ JAVAWRAPPER{ Exception } } e { APPLY{ .{ e printStackTrace } } ; } } } return{ ret } } Exception }
+//
+
+magicXXGenericIterator[bool isOn, IToken tok, String tyVar]
+@init {
+   if (isOn) AddToImports("java.util.Iterator");
+}
+:
+->    {isOn}? ^(METHOD[tok, "METHOD"]
+                PUBLIC[tok, "public"]
+                ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"] LTHAN[tok, "<"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, tyVar]) GT[tok, ">"])
+                IDENTIFIER[tok, "iterator"] 
+                OPEN_BRACE[tok, "{"]
+                // Iterator<T> ret = null;
+                ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"] LTHAN[tok, "<"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, tyVar]) GT[tok, ">"]) IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] NULL[tok,"null"] SEMI[tok, ";"]
+                // try { ret = this.GetEnumerator().iterator(); } catch (Exception e) { e.printstackTrace(); }}
+                ^(TRY[tok, "try"]
+                    OPEN_BRACE[tok, "{"]
+                      IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] THIS[tok, "this"] IDENTIFIER[tok, "GetEnumerator"])) IDENTIFIER[tok,"iterator"])) SEMI[tok,";"]
+                    CLOSE_BRACE[tok, "}"]
+                    ^(CATCH[tok, "catch"] ^(TYPE[tok,"TYPE"] IDENTIFIER[tok, "Exception"]) IDENTIFIER[tok, "e"] 
+                       OPEN_BRACE[tok, "{"]
+                         ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "e"] IDENTIFIER[tok,"printStackTrace"])) SEMI[tok,";"]
+                       CLOSE_BRACE[tok, "}"]
+                     )
+                )
+                // return ret;
+                ^(RETURN[tok, "return"] IDENTIFIER[tok, "ret"]) 
+                CLOSE_BRACE[tok, "}"]
+                )
+                
+->
+;
+
+//                       IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] THIS[tok, "this"] IDENTIFIER[tok, "GetEnumerator"])) IDENTIFIER[tok,"iterator"])) SEMI[tok,";"]
+
+magicGenericIterator[bool isOn, IToken tok, String tyVar]
+@init {
+   if (isOn) AddToImports("java.util.Iterator");
+}
+: 
+   magicType[isOn, tok, "Iterator", new string[\] {tyVar}]
+   n=magicToken[isOn, tok, NULL, "null"]
+   magicAssignment[isOn, tok, $magicType.tree, "ret", $n.tree]
+
+   thisT=magicToken[isOn, tok, THIS, "this"]
+   thisEnum=magicDot[isOn, tok, $thisT.tree, "GetEnumerator"]
+   mkIter=magicDot[isOn, tok, $thisEnum.tree, "iterator"]
+   tryBody=magicApply[isOn, tok, $mkIter.tree, null]
+
+   magicTryCatch[isOn, tok, $tryBody.tree]
+
+   magicMethod[isOn, tok, "iterator", $magicType.tree, null, $magicTryCatch.tree]
+
+->    {isOn}? magicMethod
+->
+;
+
+magicIterator[bool isOn, IToken tok]
+@init {
+   if (isOn) AddToImports("java.util.Iterator");
+}
+: 
+   magicType[isOn, tok, "Iterator", null]
+   n=magicToken[isOn, tok, NULL, "null"]
+   magicAssignment[isOn, tok, $magicType.tree, "ret", $n.tree]
+//   magicSmotherExceptions[isOn, tok, ]
+   magicMethod[isOn, tok, "iterator", $magicType.tree, null, $magicAssignment.tree]
+->    {isOn}? magicMethod
+//   ^(METHOD[tok, "METHOD"]
+//                 PUBLIC[tok, "public"]
+//                 ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"])
+//                 IDENTIFIER[tok, "iterator"] 
+//                 OPEN_BRACE[tok, "{"]
+//                 // Iterator ret = null;
+//                 ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "Iterator"]) IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] NULL[tok,"null"] SEMI[tok, ";"]
+//                 // try { ret = this.GetEnumerator().iterator(); } catch (Exception e) { e.printstackTrace(); }}
+//                 ^(TRY[tok, "try"]
+//                     OPEN_BRACE[tok, "{"]
+//                       IDENTIFIER[tok, "ret"] ASSIGN[tok,"="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] THIS[tok, "this"] IDENTIFIER[tok, "GetEnumerator"])) IDENTIFIER[tok,"iterator"])) SEMI[tok,";"]
+//                     CLOSE_BRACE[tok, "}"]
+//                     ^(CATCH[tok, "catch"] ^(TYPE[tok,"TYPE"] IDENTIFIER[tok, "Exception"]) IDENTIFIER[tok, "e"] 
+//                        OPEN_BRACE[tok, "{"]
+//                          ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "e"] IDENTIFIER[tok,"printStackTrace"])) SEMI[tok,";"]
+//                        CLOSE_BRACE[tok, "}"]
+//                      )
+//                 )
+//                 // return ret;
+//                 ^(RETURN[tok, "return"] IDENTIFIER[tok, "ret"]) 
+//                 CLOSE_BRACE[tok, "}"]
+//                 )
+//                 
+->
+;
+
+magicToken[bool isOn, IToken tok, int tokenType, string text]
+@init {
+   CommonTree ret = null;
+   if (isOn)
+     ret = (CommonTree)adaptor.Create(tokenType, tok, text);
+}:
+-> {isOn}? { ret }
+->
+;
+
+// public <retType> <name> <args> { <body> }
+magicMethod[bool isOn, IToken tok, string name, CommonTree retType, CommonTree args, CommonTree body]:
+-> {isOn}? 
+            ^(METHOD[tok, "METHOD"]
+                PUBLIC[tok, "public"]
+                { dupTree(retType) }
+                IDENTIFIER[tok, name] 
+                { dupTree(args) }
+                OPEN_BRACE[tok, "{"]
+                { dupTree(body) }
+                CLOSE_BRACE[tok, "}"]
+             )
+->
+;
+
+magicType[bool isOn, IToken tok, string name, string[\] args]
+@init {
+   CommonTree argsTree = null;
+   if (args != null && args.Length > 0) {
+      CommonTree root = (CommonTree)adaptor.Nil;
+      adaptor.AddChild(root, (CommonTree)adaptor.Create(LTHAN, tok, "<"));
+      foreach (string a in args) {
+        CommonTree root0 = (CommonTree)adaptor.Nil;
+        root0 = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), root0);
+        adaptor.AddChild(root0, (CommonTree)adaptor.Create(IDENTIFIER, tok, a));
+        adaptor.AddChild(root, root0);
+      }
+      adaptor.AddChild(root, (CommonTree)adaptor.Create(GT, tok, ">"));
+      argsTree = (CommonTree)adaptor.RulePostProcessing(root);
+   }
+}
+:
+-> {isOn}? 
+            ^(TYPE[tok, "TYPE"]
+                IDENTIFIER[tok, name]
+                { dupTree(argsTree) }
+             )
+->
+;
+
+// <type>? <name> = exp ;
+magicAssignment[bool isOn, IToken tok, CommonTree type, string name, CommonTree exp]:
+-> {isOn}? 
+                { dupTree(type) }
+                IDENTIFIER[tok, name] 
+                ASSIGN[tok, "="] 
+                { dupTree(exp) }
+                SEMI[tok, ";"]
+->
+;
+
+magicTryCatch[bool isOn, IToken tok, CommonTree body]:
+-> {isOn}?
+                 ^(TRY[tok, "try"]
+                     OPEN_BRACE[tok, "{"]
+                     { dupTree(body) }
+                     CLOSE_BRACE[tok, "}"]
+                     ^(CATCH[tok, "catch"] ^(TYPE[tok,"TYPE"] IDENTIFIER[tok, "Exception"]) IDENTIFIER[tok, "e"] 
+                        OPEN_BRACE[tok, "{"]
+                          ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, "e"] IDENTIFIER[tok,"printStackTrace"])) SEMI[tok,";"]
+                        CLOSE_BRACE[tok, "}"]
+                      )
+                  )
+-> 
+;
+
+magicDot[bool isOn, IToken tok, CommonTree lhs, string rhs]:
+-> {isOn}?  ^(DOT[tok, "."] { dupTree(lhs) } IDENTIFIER[tok, rhs])
+-> 
+;
+
+magicApply[bool isOn, IToken tok, CommonTree methodExp, CommonTree args]:
+-> {isOn}?  ^(APPLY[tok, "APPLY"] { dupTree(methodExp) } { dupTree(args) })
+-> 
+;
+    
+magicRef[bool isOn, IToken tok, CommonTree ty]:
+-> {isOn}?  ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(ty) } GT[tok, ">"])
+-> 
+;
+
+magicCreateRefVar[IToken tok, String id, CommonTree type, CommonTree value]:
+-> { type == null }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]) ^(ARGS[tok, "ARGS"] { dupTree(value) }))
+    SEMI[tok,";"]
+-> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) ^(ARGS[tok, "ARGS"] { dupTree(value) }))
+    SEMI[tok,";"]
+;
+
+magicCreateOutVar[IToken tok, String id, CommonTree type]:
+-> {type == null}? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"]))
+    SEMI[tok,";"]
+-> ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]) IDENTIFIER[tok, id] ASSIGN[tok, "="] 
+       ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "RefSupport"] LTHAN[tok, "<"] { dupTree(type) } GT[tok, ">"]))
+    SEMI[tok,";"]
+;
+
+magicUpdateFromRefVar[IToken tok, String id, CommonTree variable_ref, bool isWrapped]:
+-> {isWrapped}? ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] { dupTree((CommonTree)adaptor.GetChild((CommonTree)adaptor.GetChild(variable_ref, 2),0)) } IDENTIFIER[tok, "setValue"]) ^(ARGS[tok, "ARGS"] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, id] IDENTIFIER[tok, "getValue"]) ))) SEMI[tok,";"]
+-> { dupTree(variable_ref) } ASSIGN[tok, "="] ^(APPLY[tok, "APPLY"] ^(DOT[tok, "."] IDENTIFIER[tok, id] IDENTIFIER[tok, "getValue"])) SEMI[tok,";"]
+;
+
+magicBoxedType[bool isOn, IToken tok, String boxedName]:
+    -> { isOn }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, boxedName])
+    ->
+;
+
+magicInputPeId[CommonTree dotTree, CommonTree idTree, CommonTree galTree]:
+    -> { dotTree != null}? {dupTree(dotTree)} 
+    -> {dupTree(idTree)} { dupTree(galTree) }
 ;

@@ -1,5 +1,4 @@
 /*
-   Copyright 2007,2008,2009,2010 Rustici Software, LLC
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +17,37 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
-package CS2JNet.System;
 
-public interface IDisposable {
-	void Dispose() throws Exception;
+package CS2JNet.System.Collections.Generic;
 
-	//void close() throws Exception;
+import java.util.Set;
+
+
+/**
+ * @author kevin.glynn@twigletsoftware.com
+ *
+ */
+public class KeyCollectionSupport {
+	
+
+    public static <T> void CopyTo(Set<T> keys, T[] array, int index) {
+    	if (keys == null)
+			throw new NullPointerException("keys");
+    	if (array == null)
+			throw new NullPointerException("array");
+    	
+    	if (index < 0 || index + keys.size() > array.length)
+    		throw new IllegalArgumentException("index");
+    	
+    	int i = 0;
+    	for (T k : keys) {
+    		array[index + i] = k;
+    		i++;
+    	}
+    	if (index + i < array.length) {
+    		array[index+i] = null;
+    	}
+    	
+    }
+
 }

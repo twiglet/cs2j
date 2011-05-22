@@ -15,7 +15,6 @@ tokens {
             INTERFACE;
             FINAL; /* final modifier */
             ANNOTATION;
-            IN;
             OUT;
             CONST;
             EVENT;
@@ -31,7 +30,14 @@ tokens {
             DESTRUCTOR;
             METHOD_HEADER;
             PARAMS;
+            PARAMS_TYPELESS;
             SWITCH_SECTION;
+            YIELD_RETURN;
+            YIELD_BREAK;
+            UNCHECKED;
+
+            GLOBAL_ATTRIBUTE;
+            ATTRIBUTE;
 
             MONOPLUS;
             MONOMINUS;
@@ -66,6 +72,9 @@ tokens {
             ELSE = 'else';
             BREAK = 'break';
             OBJECT = 'object';
+            THIS = 'this';
+            FOREACH = 'foreach';
+            IN = 'in';
 
             OPEN_BRACKET='[';
             CLOSE_BRACKET=']';
@@ -124,6 +133,9 @@ tokens {
             MOD = '%';
             STAR = '*';
 
+            LAMBDA = '=>';
+            COMMA = ',';
+
             TYPE;
             TYPE_VAR;
             TYPE_DYNAMIC;
@@ -176,6 +188,19 @@ tokens {
 	{
 		return false;
 	}
+
+    // We have a fragments library for strings that we want to splice in to the generated code.
+    // This is Java, so to parse it we need to set IsJavaish so that we are a bit more lenient ...
+    private bool isJavaish = false;
+ 	public bool IsJavaish 
+ 	{
+ 		get {
+            return isJavaish;
+         } 
+         set {
+            isJavaish = value;
+         }
+ 	}
 }
 
 public compilation_unit:
@@ -255,6 +280,9 @@ public class_member_declaration:
 	| destructor_declaration
 	) 
 	;
+
+public java_delegate_creation_expression:
+     'new' type '(' ')' '{' class_member_declaration '}';
 
 public primary_expression: 
 	('this'    brackets) => 'this'   brackets   primary_expression_part*
@@ -485,8 +513,16 @@ public qid_part:
 public generic_argument_list: 
 	'<'   type_arguments   '>' ;
 public type_arguments: 
-	type (',' type)* ;
-
+	type_argument (',' type_argument)* ;
+public type_argument:
+    {this.IsJavaish}?=> javaish_type_argument
+   | type
+;
+public javaish_type_argument:
+      ('?' 'extends')=> '?' 'extends' type
+   | '?'
+   | type
+;
 public type:
 	  ((predefined_type | type_name)  rank_specifiers) => (predefined_type | type_name)   rank_specifiers   '*'*
 	| ((predefined_type | type_name)  ('*'+ | '?')) => (predefined_type | type_name)   ('*'+ | '?')
@@ -748,11 +784,18 @@ public variable_declarator:
 public method_declaration:
 	method_header   method_body ;
 public method_header:
-	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? ;
+	member_name  '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses? 
+        // Only have throw Exceptions if IsJavaish
+        throw_exceptions?
+;
 public method_body:
 	block ;
 public member_name:
 	qid ;		// IInterface<int>.Method logic added.
+
+throw_exceptions: 
+   {IsJavaish}?=> 'throws' identifier (',' identifier)* 
+   ;
 
 ///////////////////////////////////////////////////////
 public property_declaration:
@@ -1127,7 +1170,10 @@ public for_iterator:
 public statement_expression_list:
 	statement_expression (',' statement_expression)* ;
 public foreach_statement:
-	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement ;
+	'foreach'   '('   local_variable_type   identifier   'in'   expression   ')'   embedded_statement 
+   | {this.IsJavaish}? f='for'   '('   local_variable_type   identifier   i=':'   expression   ')'   embedded_statement 
+          -> FOREACH[$f,"foreach"] '(' local_variable_type identifier   IN[$i,"in"]   expression   ')'   embedded_statement 
+;
 public jump_statement:
 	break_statement
 	| continue_statement
@@ -1193,7 +1239,7 @@ public also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
 	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+	| 'endif' | 'define' | 'undef' | 'extends';
 
 public literal:
 	Real_literal

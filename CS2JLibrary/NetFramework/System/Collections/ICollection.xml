@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -8,15 +8,19 @@
 
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
-  <Java>Iterable</Java>
+  <Imports>
+    <Import>java.util.Collection</Import>
+  </Imports>
+  <Java>Collection</Java>
   <Name>System.Collections.ICollection</Name>
   <Uses />
   <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
     <Method>
-      <Imports />
-      <Java>${this:16}.iterator()</Java>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.EnumeratorSupport</Import>
+      </Imports>
+      <Java>EnumeratorSupport.mk(${this:16}.iterator())</Java>
       <Params />
       <Name>GetEnumerator</Name>
       <Return>System.IEnumerator</Return>

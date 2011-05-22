@@ -156,6 +156,7 @@ options {
             precedence[i] =  int.MaxValue;
         }
         precedence[ASSIGN] = 1;
+        precedence[LAMBDA] = 1;
         precedence[PLUS_ASSIGN] = 1;
         precedence[MINUS_ASSIGN] = 1;
         precedence[STAR_ASSIGN] = 1;
@@ -247,6 +248,10 @@ options {
             // (${var}) -> ()
             ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}", String.Empty);
         }
+        // If we have a generic type then we can scrub its generic arguments
+        // by susbstituting with an empty dictionary, now tidy up the brackets
+        // and commas
+        ret = Regex.Replace(ret, "\\s*<(\\s*,\\s*)*>\\s*", String.Empty);
         return ret;
     }
     
@@ -303,7 +308,7 @@ type_declaration:
 	| interface_declaration -> { $interface_declaration.st }
 	| enum_declaration -> { $enum_declaration.st }
 	| annotation_declaration -> { $annotation_declaration.st }
-	| delegate_declaration -> { $delegate_declaration.st };
+   ;
 // Identifiers
 qualified_identifier:
 	identifier ('.' identifier)*;
@@ -338,7 +343,6 @@ class_member_declaration returns [List<string> preComments]:
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
     | enum_declaration -> { $enum_declaration.st }
     | annotation_declaration -> { $annotation_declaration.st }
-    | delegate_declaration -> { $delegate_declaration.st }
     | ^(CONSTRUCTOR attributes? modifiers? identifier  formal_parameter_list?  { $preComments = CollectedComments; } block exception*)
        -> constructor(modifiers={$modifiers.st}, name={ $identifier.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st}, bodyIsSemi = { $block.isSemi }, body={ $block.st })
     | ^(STATIC_CONSTRUCTOR attributes? modifiers? block)
@@ -356,7 +360,7 @@ primary_expression returns [int precedence]
       ^(JAVAWRAPPER t=identifier 
                   (k=identifier v=wrapped 
                        {
-                         templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "<sorry, untranslated expression>", $v.precedence); 
+                         templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "/* CS2J: <sorry, untranslated expression> */", $v.precedence); 
                        }
                   )*) 
              -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
@@ -375,7 +379,7 @@ primary_expression returns [int precedence]
 //	| ('base'   brackets) => 'this'   brackets   primary_expression_part*
 //	| primary_expression_start   primary_expression_part*
     | ^(NEW type argument_list? object_or_collection_initializer?) { $precedence = precedence[NEW]; }-> construct(type = {$type.st}, args = {$argument_list.st}, inits = {$object_or_collection_initializer.st})
-	| ^(NEW_DELEGATE delegate_creation_expression)  // new FooDelegate (MyFunction)
+	| ^(NEW_DELEGATE type argument_list? class_body)  -> delegate(type = {$type.st}, args = {$argument_list.st}, body={$class_body.st})
 	| ^(NEW_ANON_OBJECT anonymous_object_creation_expression)							// new {int X, string Y} 
 	| sizeof_expression						// sizeof (struct)
 	| checked_expression      -> { $checked_expression.st }      		// checked (...
@@ -427,7 +431,7 @@ primary_expression_part:
 access_identifier:
 	access_operator   type_or_generic ;
 access_operator returns [int precedence]:
-	(op='.'  |  op='->') { $precedence = precedence[$op.token.Type]; } -> string(payload = { $op.token.Text }) ;
+	(op=DOT  |  op='->') { $precedence = precedence[$op.token.Type]; } -> string(payload = { $op.token.Text }) ;
 brackets_or_arguments:
 	brackets | arguments ;
 brackets:
@@ -476,15 +480,25 @@ rank_specifier:
 // dim_separators: 
 //	','+ ;
 
-wrapped returns [int precedence]:
+wrapped returns [int precedence]
+@init {
+    $precedence = int.MaxValue;
+    Dictionary<string,ReplacementDescriptor> templateMap = new Dictionary<string,ReplacementDescriptor>();
+}:
     ^(JAVAWRAPPEREXPRESSION expression) { $precedence = $expression.precedence; } -> { $expression.st } 
     | ^(JAVAWRAPPERARGUMENT argument_value) { $precedence = $argument_value.precedence; } -> { $argument_value.st } 
-    | ^(JAVAWRAPPERTYPE type) { $precedence = int.MaxValue; } -> { $type.st } 
+    | ^(JAVAWRAPPERTYPE type) -> { $type.st } 
+    | ^(JAVAWRAPPER t=identifier 
+         (k=identifier v=wrapped 
+            {
+               templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "<sorry, untranslated expression>", $v.precedence); 
+            }
+          )*) -> string(payload = {fillTemplate($t.st.ToString(), templateMap)})
     ;
 
-delegate_creation_expression: 
+//delegate_creation_expression: 
 	// 'new'   
-	type_name   '('   type_name   ')' ;
+//	type_name   '('   type_name   ')' ;
 anonymous_object_creation_expression: 
 	// 'new'
 	anonymous_object_initializer ;
@@ -501,8 +515,8 @@ primary_or_array_creation_expression returns [int precedence]:
 // new Type[2] { }
 array_creation_expression returns [int precedence]:
 	^(NEW_ARRAY   
-		(type   ('['   expression_list   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
-				| ai2=array_initializer	-> 	array_construct(type = { $type.st }, inits = { $ai2.st })
+		(type   ('['   expression_list?   ']'   rank_specifiers?   ai1=array_initializer?	 -> array_construct(type = { $type.st }, args = { $expression_list.st }, inits = { $ai1.st })  // new int[4]
+				| ai2=array_initializer	-> 	array_construct_nobracks(type = { $type.st }, inits = { $ai2.st })
 				)
 		| rank_specifier  array_initializer	// var a = new[] { 1, 10, 100, 1000 }; // int[]
 		    )
@@ -549,16 +563,7 @@ default_value_expression
         } ->  unsupported(reason = {"default expressions are not yet supported"}, text = { someText } )
 ;
 anonymous_method_expression:
-	^('delegate'   explicit_anonymous_function_signature?   block);
-explicit_anonymous_function_signature:
-	'('   explicit_anonymous_function_parameter_list?   ')' ;
-explicit_anonymous_function_parameter_list:
-	explicit_anonymous_function_parameter   (','   explicit_anonymous_function_parameter)* ;	
-explicit_anonymous_function_parameter:
-	anonymous_function_parameter_modifier?   type   identifier;
-anonymous_function_parameter_modifier:
-	'ref' | 'out';
-
+	^('delegate'   formal_parameter_list?   block);
 
 ///////////////////////////////////////////////////////
 object_creation_expression: 
@@ -666,8 +671,13 @@ qid_part:
 generic_argument_list:
 	'<'   type_arguments   '>' -> generic_args(args={ $type_arguments.st });
 type_arguments:
-	ts+=type (',' ts+=type)* -> commalist(items = { $ts });
+	ts+=type_argument (',' ts+=type_argument)* -> commalist(items = { $ts });
 
+public type_argument:
+    ('?' 'extends')=> '?' 'extends' type -> op(pre={"?"},op={" extends "},post={$type.st})
+   | '?'  -> string(payload={"?"})
+   | type -> { $type.st }
+;
 type
 @init {
     StringTemplate nm = null;
@@ -725,7 +735,7 @@ unary_expression returns [int precedence]
 }: 
 	//('(' arguments ')' ('[' | '.' | '(')) => primary_or_array_creation_expression
 //	^(CAST_EXPR type expression) 
-	^(CAST_EXPR type u0=unary_expression)  { $precedence = precedence[CAST_EXPR]; } -> cast_expr(type= { $type.st}, exp = { $u0.st})
+	^(CAST_EXPR type u0=expression)  { $precedence = precedence[CAST_EXPR]; } -> cast_expr(type= { $type.st}, exp = { $u0.st})
 	| primary_or_array_creation_expression { $precedence = $primary_or_array_creation_expression.precedence; } -> { $primary_or_array_creation_expression.st }
 	| ^((op=MONOPLUS | op=MONOMINUS | op=MONONOT | op=MONOTWIDDLE | op=PREINC | op=PREDEC)  u1=unary_expression) { $precedence = precedence[$op.token.Type]; }
           -> op(postparen={ comparePrecedence($op.token, $u1.precedence) <= 0 }, op={ $op.token.Text }, post={$u1.st})
@@ -777,7 +787,7 @@ non_assignment_expression returns [int precedence]
     $precedence = int.MaxValue;
 }: 
 	//'non ASSIGNment'
-	(anonymous_function_signature   '=>')	=> lambda_expression
+	(anonymous_function_signature?  '=>')	=> lambda_expression { $precedence = precedence[LAMBDA]; } -> { $lambda_expression.st; }
 	| (query_expression) => query_expression 
 	| ^(cop=COND_EXPR ce1=non_assignment_expression ce2=expression ce3=expression) { $precedence = precedence[$cop.token.Type]; } 
           -> cond( condexp = { $ce1.st }, thenexp = { $ce2.st }, elseexp = { $ce3.st },
@@ -801,19 +811,20 @@ non_assignment_expression returns [int precedence]
 //	lambda Section
 ///////////////////////////////////////////////////////
 lambda_expression:
-	anonymous_function_signature   '=>'   anonymous_function_body;
+	anonymous_function_signature?   '=>'   block 
+        { 
+            StringTemplate lambdaText = %lambda();
+            %{lambdaText}.args = $anonymous_function_signature.st;
+            %{lambdaText}.body = $block.st;
+            $st = %unsupported();
+            %{$st}.reason = "to translate lambda expressions we need an explicit delegate type, try adding a cast";
+            %{$st}.text = lambdaText;
+        }
+   ;
 anonymous_function_signature:
-	'('	(explicit_anonymous_function_parameter_list
-		| implicit_anonymous_function_parameter_list)?	')'
-	| implicit_anonymous_function_parameter_list
+	^(PARAMS fps+=formal_parameter+) -> list(items= {$fps}, sep={", "})
+	| ^(PARAMS_TYPELESS ids+=identifier+) -> list(items= {$ids}, sep={", "})
 	;
-implicit_anonymous_function_parameter_list:
-	implicit_anonymous_function_parameter   (','   implicit_anonymous_function_parameter)* ;
-implicit_anonymous_function_parameter:
-	identifier;
-anonymous_function_body:
-	expression
-	| block ;
 
 ///////////////////////////////////////////////////////
 //	LINQ Section
@@ -867,7 +878,7 @@ boolean_expression:
 global_attributes: 
 	global_attribute+ ;
 global_attribute: 
-	'['   global_attribute_target_specifier   attribute_list   ','?   ']' ;
+	^(GLOBAL_ATTRIBUTE global_attribute_target_specifier   attribute_list) ;
 global_attribute_target_specifier: 
 	global_attribute_target   ':' ;
 global_attribute_target: 
@@ -877,7 +888,7 @@ attributes:
 attribute_sections: 
 	attribute_section+ ;
 attribute_section: 
-	'['   attribute_target_specifier?   attribute_list   ','?   ']' ;
+	^(ATTRIBUTE attribute_target_specifier?   attribute_list) ;
 attribute_target_specifier: 
 	attribute_target   ':' ;
 attribute_target: 
@@ -998,9 +1009,7 @@ member_name
 
 ///////////////////////////////////////////////////////
 event_declaration:
-	'event'   type
-		((member_name   '{') => member_name   '{'   event_accessor_declarations   '}'
-		| variable_declarators   ';')	// typename=foo;
+	type member_name   '{'   event_accessor_declarations   '}'
 		;
 event_modifiers:
 	modifier+ ;
@@ -1045,17 +1054,11 @@ enum_member_declaration:
 integral_type: 
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
 
-// B.2.12 Delegates
-delegate_declaration:
-	^(DELEGATE attributes? modifiers?   return_type   identifier  type_parameter_constraints_clauses? variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?   
-		'('   formal_parameter_list?   ')' );
-delegate_modifiers:
-	modifier+ ;
 // 4.0
 variant_generic_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
-	(ps+=variant_generic_parameter[$tpConstraints])+ -> commalist(items={$ps});
+	(ps+=variant_generic_parameter[$tpConstraints])+ -> type_parameter_list(items={$ps});
 variant_generic_parameter [Dictionary<string,StringTemplate> tpConstraints]:
-    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] ->  parameter(param={$t.st}, annotation={$variance_annotation.st});
+    attributes?   variance_annotation?  t=type_parameter[$tpConstraints] -> { $t.st };
 variance_annotation:
 	IN -> string(payload={ "in" }) | OUT -> string(payload={ "out" }) ;
 
@@ -1212,7 +1215,7 @@ fixed_pointer_initializer:
 	//'&'   variable_reference   // unary_expression covers this
 	expression;
 labeled_statement:
-	^(':' identifier statement) -> op(pre={ $identifier.st }, op= { ":" }, post = { $statement.st});
+	identifier ':' statement -> op(pre={ $identifier.st }, op= { ":" }, post = { $statement.st});
 declaration_statement
 @init {
     List<string> preComments = null;
@@ -1284,9 +1287,9 @@ jump_statement:
 	| ^('return'   expression?) -> return(exp = { $expression.st })
 	| ^('throw'   expression?) -> throw(exp = { $expression.st });
 goto_statement:
-	'goto'   ( identifier
-			 | 'case'   constant_expression
-			 | 'default')   ';' ;
+	'goto'   ( identifier -> op(op={"goto"}, post={$identifier.st})
+			 | 'case'   constant_expression  -> op(op={"goto case"}, post={$constant_expression.st})
+			 | 'default' -> string(payload={"goto default"}) )   ';' ;
 catch_clauses:
     c+=catch_clause+ -> seplist(items={ $c }, sep = { "\n" }) ;
 catch_clause:
@@ -1307,7 +1310,7 @@ unchecked_statement
 @init {
     StringTemplate someText = null;
 }:
-	'unchecked'   block 
+	^(UNCHECKED   block) 
         { someText = %keyword_block(); 
           %{someText}.keyword = "unchecked"; 
           %{someText}.block = $block.st;
@@ -1326,14 +1329,11 @@ lock_statement
 yield_statement
 @init {
     StringTemplate someText = null;
+    someText = %yield(); 
 }:
-	^('yield'   ('return'   expression
-	             | 'break'   
-                 |  )
-      ) 
-        { someText = %yield(); 
-          %{someText}.exp = $expression.st; 
-          } ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
+    ^(YIELD_RETURN expression { %{someText}.exp = $expression.st; })
+    | YIELD_BREAK {%{someText}.exp = "break"; } 
+         ->  unsupported(reason = {"yield statements are not supported"}, text = { someText } )
 ;
 
 ///////////////////////////////////////////////////////
@@ -1345,16 +1345,19 @@ predefined_type:
 	| t='short'  | t='string' | t='uint'   | t='ulong'  | t='ushort') { collectComments($t.TokenStartIndex); } ->  string(payload={$t.text});
 
 identifier:
- 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> string(payload= { $IDENTIFIER.text }) | also_keyword -> string(payload= { $also_keyword.text });
+ 	i=IDENTIFIER { collectComments($i.TokenStartIndex); } -> string(payload= { $IDENTIFIER.text }) | also_keyword -> { $also_keyword.st };
 
 keyword:
 	'abstract' | 'as' | 'base' | 'bool' | 'break' | 'byte' | 'case' |  'catch' | 'char' | 'checked' | 'class' | 'const' | 'continue' | 'decimal' | 'default' | 'delegate' | 'do' |	'double' | 'else' |	 'enum'  | 'event' | 'explicit' | 'extern' | 'false' | 'finally' | 'fixed' | 'float' | 'for' | 'foreach' | 'goto' | 'if' | 'implicit' | 'in' | 'int' | 'interface' | 'internal' | 'is' | 'lock' | 'long' | 'namespace' | 'new' | 'null' | 'object' | 'operator' | 'out' | 'override' | 'params' | 'private' | 'protected' | 'public' | 'readonly' | 'ref' | 'return' | 'sbyte' | 'sealed' | 'short' | 'sizeof' | 'stackalloc' | 'static' | 'string' | 'struct' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'typeof' | 'uint' | 'ulong' | 'unchecked' | 'unsafe' | 'ushort' | 'using' | 'virtual' | 'void' | 'volatile' ;
 
 also_keyword:
-	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
-	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
-	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+   (
+	t='add' | t='alias' | t='assembly' | t='module' | t='field' | t='method' | t='param' | t='property' | t='type' | t='yield'
+	| t='from' | t='into' | t='join' | t='on' | t='where' | t='orderby' | t='group' | t='by' | t='ascending' | t='descending' 
+	| t='equals' | t='select' | t='pragma' | t='let' | t='remove' | t='get' | t='set' | t='var' | t='__arglist' | t='dynamic' | t='elif' 
+	| t='endif' | t='define' | t='undef' | t='extends'
+   ) -> string(payload={$t.text})
+;
 
 literal:
 	Real_literal -> string(payload={$Real_literal.text}) 

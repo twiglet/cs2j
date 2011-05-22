@@ -16,4 +16,8 @@ public class EncodingSupport {
 	public String getString() {
 		return coding;
 	}
+	
+	public static EncodingSupport GetEncoder(String coding) {
+		return new EncodingSupport(coding);
+	}
 }

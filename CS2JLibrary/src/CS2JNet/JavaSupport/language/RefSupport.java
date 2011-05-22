@@ -1,5 +1,4 @@
 /*
-   Copyright 2007,2008,2009,2010 Rustici Software, LLC
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +17,37 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
-package CS2JNet.System;
+package CS2JNet.JavaSupport.language;
 
-public interface IDisposable {
-	void Dispose() throws Exception;
 
-	//void close() throws Exception;
+// Wraps a parameter so that it can be used as a ref or out param.
+public class RefSupport<T> {
+
+	private T value;
+
+	public RefSupport(T inValue) {
+		value = inValue;
+	}
+	public RefSupport() {
+	}
+	
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(T value) {
+		this.value = value;
+	}
+
+	public T setValue(T value, ReturnPreOrPostValue preOrPost) {
+		T preValue = this.value;
+		this.value = value;
+		return (preOrPost == ReturnPreOrPostValue.POST ? this.value : preValue);
+	}
+
+	/**
+	 * @return the value
+	 */
+	public T getValue() {
+		return this.value;
+	}
 }

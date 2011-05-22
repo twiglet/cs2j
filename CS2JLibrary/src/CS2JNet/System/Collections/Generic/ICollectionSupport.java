@@ -1,5 +1,4 @@
 /*
-   Copyright 2007,2008,2009,2010 Rustici Software, LLC
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +17,29 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
-package CS2JNet.System;
 
-public interface IDisposable {
-	void Dispose() throws Exception;
+package CS2JNet.System.Collections.Generic;
 
-	//void close() throws Exception;
+import java.util.Collection;
+
+
+/**
+ * @author kevin.glynn@twigletsoftware.com
+ *
+ */
+public interface ICollectionSupport<T> extends Collection<T> {
+	
+
+    public   boolean Contains(T x) throws Exception;
+    
+    public   void Add(T x) throws Exception;
+    
+    public   boolean Remove(T x) throws Exception;
+
+    public   void Clear() throws Exception;
+
+    public   IEnumeratorSupport<T> GetEnumerator() throws Exception;
+
+    public   void CopyTo(T[] arr,  int i) throws Exception;
+
 }

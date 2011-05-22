@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -8,8 +8,10 @@
 
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
-  <Java>TextWriter</Java>
+  <Imports>
+    <Import>java.io.Writer</Import>
+  </Imports>
+  <Java>Writer</Java>
   <Name>System.IO.TextWriter</Name>
   <Uses />
   <Inherits>
@@ -28,7 +30,7 @@
       <Java>${this:16}.write(${arg} + System.getProperty("line.separator"))</Java>
       <Params>
         <Param>
-          <Type>System.String</Type>
+          <Type>System.Object</Type>
           <Name>arg</Name>
         </Param>
       </Params>
@@ -40,11 +42,110 @@
       <Java>${this:16}.write(${arg})</Java>
       <Params>
         <Param>
-          <Type>System.String</Type>
+          <Type>System.Object</Type>
           <Name>arg</Name>
         </Param>
       </Params>
       <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}), ${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}), ${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>System.out.println()</Java>
+      <Params />
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>System.out.println(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n", ${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n", ${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
       <Return>System.Void</Return>
     </Method>
   </Methods>

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Twiglet.CS2J.Translator.Utils
 {
-    public class Set<T> : IEnumerable
+    public class Set<T> : IEnumerable<T>
     {
 
         /// 
@@ -24,7 +24,12 @@ namespace Twiglet.CS2J.Translator.Utils
         }
         
         
-        public IEnumerator GetEnumerator()
+        public IEnumerator<T> GetEnumerator()
+        {
+            return setD.Keys.GetEnumerator();
+        }     
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return setD.Keys.GetEnumerator();
         }     

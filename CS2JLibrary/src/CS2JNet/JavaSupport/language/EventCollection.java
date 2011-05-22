@@ -35,7 +35,7 @@ public class EventCollection<T> implements IEventCollection<T> {
 	public void Invoke(Object cause, EventArgs e) throws CS2JRunTimeException {
 	    if (listeners != null) {
 	    	// do something here
-	    	throw new CS2JRunTimeException("Events are not yet implemented");
+	    	throw new CS2JRunTimeException("CS2J: Events are not yet implemented");
 	    }
 	}
 

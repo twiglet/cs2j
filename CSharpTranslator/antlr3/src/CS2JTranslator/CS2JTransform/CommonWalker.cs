@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
+
 using Antlr.Runtime.Tree;
 using Antlr.Runtime;
+
+using AntlrCSharp;
 
 using Twiglet.CS2J.Translator.Utils;
 using Twiglet.CS2J.Translator.TypeRep;
@@ -118,6 +122,112 @@ namespace Twiglet.CS2J.Translator.Transform
         protected string NSPrefix(string ns) {
             return (String.IsNullOrEmpty(ns) ? "" : ns + ".");
         }
+
+        // Routines to parse strings to ANTLR Trees on the fly, used to generate fragments needed by the transformation
+       public CommonTree parseString(string startRule, string inStr)
+       {
+            
+          if (Cfg.Verbosity > 5) Console.WriteLine("Parsing fragment ");
+            
+          ICharStream input = new ANTLRStringStream(inStr);
+
+          PreProcessor lex = new PreProcessor();
+          lex.AddDefine(Cfg.MacroDefines);
+          lex.CharStream = input;
+          lex.TraceDestination = Console.Error;
+
+          CommonTokenStream tokens = new CommonTokenStream(lex);
+
+          csParser p = new csParser(tokens);
+          p.TraceDestination = Console.Error;
+          p.IsJavaish = true;
+			
+          // Try and call a rule like CSParser.namespace_body() 
+          // Use reflection to find the rule to use.
+          MethodInfo mi = p.GetType().GetMethod(startRule);
+
+          if (mi == null)
+          {
+             throw new Exception("Could not find start rule " + startRule + " in csParser");
+          }
+
+          ParserRuleReturnScope csRet = (ParserRuleReturnScope) mi.Invoke(p, new object[0]);
+
+          CommonTreeNodeStream csTreeStream = new CommonTreeNodeStream(csRet.Tree);
+          csTreeStream.TokenStream = tokens;
+
+          JavaMaker javaMaker = new JavaMaker(csTreeStream);
+          javaMaker.TraceDestination = Console.Error;
+          javaMaker.Cfg = Cfg;
+          javaMaker.IsJavaish = true;
+
+          // Try and call a rule like CSParser.namespace_body() 
+          // Use reflection to find the rule to use.
+          mi = javaMaker.GetType().GetMethod(startRule);
+
+          if (mi == null)
+          {
+             throw new Exception("Could not find start rule " + startRule + " in javaMaker");
+          }
+
+          TreeRuleReturnScope javaSyntaxRet = (TreeRuleReturnScope) mi.Invoke(javaMaker, new object[0]);
+
+          CommonTree javaSyntaxAST = (CommonTree)javaSyntaxRet.Tree;
+
+//           CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(javaSyntaxAST);
+// 
+//           javaSyntaxNodes.TokenStream = csTree.TokenStream;
+//                     
+//           NetMaker netMaker = new NetMaker(javaSyntaxNodes);
+//           netMaker.TraceDestination = Console.Error;
+// 
+//           netMaker.Cfg = Cfg;
+//           netMaker.AppEnv = AppEnv;
+//           
+//           CommonTree javaAST = (CommonTree)netMaker.class_member_declarations().Tree;
+//           
+          return javaSyntaxAST;
+       }
+
+        // If true, then we are parsing some JavaIsh fragment
+        private bool isJavaish = false;
+	public bool IsJavaish 
+	{
+		get {
+           return isJavaish;
+        } 
+        set {
+           isJavaish = value;
+        }
+	}
+
+       private Set<string> imports = new Set<string>();
+       public Set<string> Imports 
+       { 
+          get
+          {
+             return imports;
+          }
+          set
+          {
+             imports = value;
+          }
+       }
+
+       public virtual void AddToImports(string imp) {
+          if (!String.IsNullOrEmpty(imp))
+          {
+             Imports.Add(imp);     
+          }
+       }
+
+       public void AddToImports(IEnumerable<string> imps) {
+          if (imps != null) {
+             foreach (string imp in imps) {
+                AddToImports(imp);
+             }
+          }
+       }
 
     }
 

@@ -24,6 +24,8 @@ package CS2JNet.System;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StringSupport {
 
@@ -361,7 +363,24 @@ public class StringSupport {
         }
         return new String(chars);
 	}
-    
+	
+    // Takes a C# format string and converts it to a Java format string
+	public static String CSFmtStrToJFmtStr(String fmt)
+	{
+		Pattern p = Pattern.compile("\\{(\\d)+\\}");
+		Matcher m = p.matcher(fmt);
+		StringBuffer sb = new StringBuffer();
+		while (m.find()) {
+			// In C# positions are indexed from 0, in Java they are indexed from 1
+			// so "{0} = {1}" -> "%1$s = %2$s"
+			String replacement = "%" + String.valueOf(Integer.parseInt(m.group(1)) + 1) + "\\$s";
+		    m.appendReplacement(sb, replacement);
+		}
+		m.appendTail(sb);
+		return sb.toString();		
+	}
+	
+
 	public static void Testmain(String[] args)
 	{
 		System.out.println("**" + Trim("") + "**");
@@ -396,7 +415,13 @@ public class StringSupport {
 		splitFred = Split("=fred",'=');
 		System.out.println("Split(\"=fred\", '=') = [\"" + splitFred[0] + "\", \"" + splitFred[1] + "\"]");
 		
-}
+		System.out.printf(CSFmtStrToJFmtStr("DECLARATION: {0}={1}") + "\n", "Kevin", "Great");
+		System.out.printf(CSFmtStrToJFmtStr("DECLARATION: {0}={1}"), "Kevin", "Great");
+		
+	}
 
+	public static void main(String[] args) {
+		Testmain(args);
+	}
 
 }

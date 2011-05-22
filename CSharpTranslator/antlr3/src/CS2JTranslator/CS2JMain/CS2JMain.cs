@@ -129,6 +129,8 @@ namespace Twiglet.CS2J.Translator
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
+                        .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))
+                        .Add ("internal-isjavaish", v => cfg.InternalIsJavaish = true)
                         ;
 					
                     //TODO: fix enum dump
@@ -191,6 +193,7 @@ namespace Twiglet.CS2J.Translator
                             w.Close();
                         }
                     }
+
                     // load in T.stg template group, put in templates variable
                     string templateLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.Combine("templates", "java.stg"));
                     if (File.Exists(templateLocation)) {
@@ -234,7 +237,7 @@ namespace Twiglet.CS2J.Translator
         {
             string canonicalPath = Path.GetFullPath(root);
             // If this is a directory, walk each file/dir in that directory
-            if (!excludes.Contains(canonicalPath.ToLower()))
+            if (!excludes.Contains(canonicalPath))
             {
                 if (Directory.Exists(canonicalPath))
                 {
@@ -279,6 +282,7 @@ namespace Twiglet.CS2J.Translator
 //            }
             csParser p = new csParser(tokens);
             p.TraceDestination = Console.Error;
+            p.IsJavaish = cfg.InternalIsJavaish;
 			
             csParser.compilation_unit_return parser_rt = p.compilation_unit();
 
@@ -344,30 +348,34 @@ namespace Twiglet.CS2J.Translator
 			// Suck in translation file
             Stream txStream = new FileStream(fullName, FileMode.Open, FileAccess.Read);
 
-			// Create a new XML document.
-            XmlDocument xmlDoc = new XmlDocument();
+             if (numLines < numLines - 1)
+             {
+                // TRIAL ONLY
+                // Create a new XML document.
+                XmlDocument xmlDoc = new XmlDocument();
 
-            // Load an XML file into the XmlDocument object.
-            xmlDoc.PreserveWhitespace = true;
-            xmlDoc.Load(txStream);
+                // Load an XML file into the XmlDocument object.
+                xmlDoc.PreserveWhitespace = true;
+                xmlDoc.Load(txStream);
 
-            // Verify the signature of the signed XML.
-            if (!VerifyXml(xmlDoc, RsaKey))
-            {
-			   Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
-               badXmlTxCount--;
-               if (badXmlTxCount <= 0)
-               {
-                  Console.Out.WriteLine("\n  This is a trial version of CS2J. It is to be used for evaluation purposes only.");
-                  Console.Out.WriteLine("  The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
-                  Console.Out.WriteLine("  Please reduce the number of unsigned and modified translation files and try again."); 
-                  Console.Out.WriteLine("\n  Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
-                  Environment.Exit(1);
-               }
-            }
+                // Verify the signature of the signed XML.
+                if (!VerifyXml(xmlDoc, RsaKey))
+                {
+		   Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
+                   badXmlTxCount--;
+                   if (badXmlTxCount <= 0)
+                   {
+                      Console.Out.WriteLine("\n  This is a trial version of CS2J. It is to be used for evaluation purposes only.");
+                      Console.Out.WriteLine("  The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
+                      Console.Out.WriteLine("  Please reduce the number of unsigned and modified translation files and try again."); 
+                      Console.Out.WriteLine("\n  Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
+                      Environment.Exit(1);
+                   }
+                }
 
-            txStream.Seek(0, SeekOrigin.Begin);
-            TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
+                txStream.Seek(0, SeekOrigin.Begin);
+             }
+             TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
             // Fullname has form: <path>/<key>.xml
             AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
         }
@@ -399,6 +407,9 @@ namespace Twiglet.CS2J.Translator
         }
 		
 		private static string limit(string inp) {
+			if (numLines > numLines - 1)
+			    return inp;
+                        // TRIAL ONLY
 			String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
 			if (lines.Length <= numLines) {
 				return inp;
@@ -430,6 +441,7 @@ namespace Twiglet.CS2J.Translator
                 javaMaker.Cfg = cfg;
                 javaMaker.CUMap = new Dictionary<string, CUnit>();
                 javaMaker.CUKeys = new List<string>();
+                javaMaker.IsJavaish = cfg.InternalIsJavaish;
 	    
                 if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Translating {0} to Java", fullName);
                 
@@ -504,6 +516,10 @@ namespace Twiglet.CS2J.Translator
                     netMaker.SearchPath = javaMaker.CUMap[typeName].SearchPath;
                     netMaker.AliasKeys = javaMaker.CUMap[typeName].NameSpaceAliasKeys;
                     netMaker.AliasNamespaces = javaMaker.CUMap[typeName].NameSpaceAliasValues;
+
+                    netMaker.IsJavaish = cfg.InternalIsJavaish;
+                    netMaker.Imports = new Set<String>();
+                    netMaker.AddToImports(javaMaker.Imports);
 
                     if (cfg.DebugLevel > 5) Console.Out.WriteLine("Translating {0} Net Calls to Java", javaFName);
                     NetMaker.compilation_unit_return javaCompilationUnit = netMaker.compilation_unit();

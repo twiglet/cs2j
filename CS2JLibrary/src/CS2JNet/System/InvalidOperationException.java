@@ -1,5 +1,4 @@
 /*
-   Copyright 2007,2008,2009,2010 Rustici Software, LLC
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +17,30 @@
 
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
+
 package CS2JNet.System;
 
-public interface IDisposable {
-	void Dispose() throws Exception;
+/**
+ * @author keving
+ *
+ */
+public class InvalidOperationException extends Exception {
+	
+	public InvalidOperationException() {
+		
+	}
+	
+	public InvalidOperationException(String msg) {
+		super(msg);
+	}
+	
+	public InvalidOperationException(Throwable inner) {
+		super(inner);
+	}
+	
+	public InvalidOperationException(String msg, Throwable inner) {
+		super(msg, inner);
+	}
+	
 
-	//void close() throws Exception;
 }
