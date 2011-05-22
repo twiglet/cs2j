@@ -843,6 +843,7 @@ scope {
     bool implicitThis = true;
     $thedottedtext = null;
     string popstr = null;
+    CommonTree e1Tree = null;
 }
 @after {
     if (ret != null)
@@ -1026,7 +1027,8 @@ scope {
 	| predefined_type                                                { $dotNetType = $predefined_type.dotNetType; }         
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
-    | (^(d1='.' e1=expression[ObjectType] {expType = $e1.dotNetType; implicitThis = false;} i=identifier dgal=generic_argument_list?)|i=identifier dgal=generic_argument_list?)  magicInputPeId[$d1.tree,$i.tree,$dgal.tree]
+    | (^(d1='.' e1=expression[ObjectType] {expType = $e1.dotNetType; implicitThis = false; e1Tree = dupTree($e1.tree); /* keving: yuk, shouldn't be necessary but $e1.tree was also capturing i=identifier */} i=identifier dgal=generic_argument_list?)
+        |(i=identifier dgal=generic_argument_list?))  magicInputPeId[$d1.tree,$i.tree,$dgal.tree]
         { 
             // TODO: generic_argument_list is ignored ....
 
@@ -1068,7 +1070,7 @@ scope {
                         if (!implicitThis) {
                            // We are accessing a field / property on an expression. If it has a primitive type then cast it to 
                            // the appropriate Object type.
-                           CommonTree e1InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, $e1.tree, $d1.token) : $e1.tree;
+                           CommonTree e1InBox = expType.IsUnboxedType && Cfg.ExperimentalTransforms ? castToBoxedType(expType, e1Tree, $d1.token) : e1Tree;
                            myMap["this"] = wrapExpression(e1InBox, $i.tree.Token);
                         }
                         ret = mkJavaWrapper(fieldResult.Result.Java, myMap, $i.tree.Token);
@@ -1189,11 +1191,11 @@ primary_expression_start returns [TypeRepTemplate dotNetType]:
 	 ^('::' identifier identifier)
 	;
 
-primary_expression_part:
-	 access_identifier
-	| brackets_or_arguments 
-	| '++'
-	| '--' ;
+// primary_expression_part:
+// 	 access_identifier
+// 	| brackets_or_arguments 
+// 	| '++'
+// 	| '--' ;
 access_identifier:
 	access_operator   type_or_generic[""] ;
 access_operator:
@@ -2147,7 +2149,7 @@ boolean_expression:
 global_attributes: 
 	global_attribute+ ;
 global_attribute: 
-	'['   global_attribute_target_specifier   attribute_list   ','?   ']' ;
+	^(GLOBAL_ATTRIBUTE global_attribute_target_specifier   attribute_list);
 global_attribute_target_specifier: 
 	global_attribute_target   ':' ;
 global_attribute_target: 
@@ -2157,7 +2159,7 @@ attributes:
 attribute_sections: 
 	attribute_section+ ;
 attribute_section: 
-	'['   attribute_target_specifier?   attribute_list   ','?   ']' ;
+	^(ATTRIBUTE attribute_target_specifier?   attribute_list) ;
 attribute_target_specifier: 
 	attribute_target   ':' ;
 attribute_target: 
@@ -2269,7 +2271,7 @@ class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNet
                     $extendDotNetType = $t.dotNetType;
                 }
                if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
-               if($t.dotNetType.IsA(GenericICollectionType,AppEnv)) {
+               if($t.dotNetType.IsA(GenericICollectionType,AppEnv) && $t.dotNetType.TypeParams.Length > 0) {
                     $NSContext::IsGenericICollection = true;
                     $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
                }
@@ -2281,7 +2283,7 @@ class_implement:
 	^(IMPLEMENTS t=type 
           { 
              if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
-             if($t.dotNetType.IsA(GenericICollectionType,AppEnv)) {
+             if($t.dotNetType.IsA(GenericICollectionType,AppEnv) && $t.dotNetType.TypeParams.Length > 0) {
                 $NSContext::IsGenericICollection = true;
                 $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
              }
@@ -2429,8 +2431,8 @@ formal_parameter_list:
 formal_parameter:
 	attributes?   (fixed_parameter | parameter_array) 
 	| '__arglist';	// __arglist is undocumented, see google
-fixed_parameters:
-	fixed_parameter   (','   fixed_parameter)* ;
+//fixed_parameters:
+//	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
 fixed_parameter
 scope PrimitiveRep;
@@ -2914,7 +2916,7 @@ also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
 	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+	| 'endif' | 'define' | 'undef' | 'extends';
 
 literal returns [TypeRepTemplate dotNetType]
 @init {
@@ -3231,6 +3233,6 @@ magicBoxedType[bool isOn, IToken tok, String boxedName]:
 ;
 
 magicInputPeId[CommonTree dotTree, CommonTree idTree, CommonTree galTree]:
-    -> { dotTree != null}? {dupTree(dotTree)} { dupTree(galTree) }
+    -> { dotTree != null}? {dupTree(dotTree)} 
     -> {dupTree(idTree)} { dupTree(galTree) }
 ;

@@ -239,9 +239,11 @@ scope TypeContext {
        if (adaptor.GetChildCount(pars) > 0) {
           root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), root);
 
-          // take every second child
-          for (int i = 1; i < adaptor.GetChildCount(pars); i+=2) {
-             adaptor.AddChild(root, dupTree((CommonTree)adaptor.GetChild(pars, i)));
+          // strip all TYPES and Attributes (there may be parameter modifiers like ref, out ...
+          for (int i = 0; i < adaptor.GetChildCount(pars); i++) {
+             if (((CommonTree)adaptor.GetChild(pars, i)).Token.Type != TYPE && ((CommonTree)adaptor.GetChild(pars, i)).Token.Type != ATTRIBUTE) {
+                adaptor.AddChild(root, dupTree((CommonTree)adaptor.GetChild(pars, i)));
+             }
           }
        }
        root = (CommonTree)adaptor.RulePostProcessing(root);
@@ -1042,7 +1044,7 @@ boolean_expression:
 global_attributes: 
 	global_attribute+ ;
 global_attribute: 
-	'['   global_attribute_target_specifier   attribute_list   ','?   ']' ;
+	o='['   global_attribute_target_specifier   attribute_list   ','?   ']' -> ^(GLOBAL_ATTRIBUTE[$o.token, "GLOBAL_ATTRIBUTE"] global_attribute_target_specifier?   attribute_list) ;
 global_attribute_target_specifier: 
 	global_attribute_target   ':' ;
 global_attribute_target: 
@@ -1052,7 +1054,7 @@ attributes:
 attribute_sections: 
 	attribute_section+ ;
 attribute_section: 
-	'['   attribute_target_specifier?   attribute_list   ','?   ']' ;
+	o='['   attribute_target_specifier?   attribute_list   ','?   ']' -> ^(ATTRIBUTE[$o.token, "ATTRIBUTE"] attribute_target_specifier?   attribute_list);
 attribute_target_specifier: 
 	attribute_target   ':' ;
 attribute_target: 
@@ -1832,7 +1834,7 @@ also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
 	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+	| 'endif' | 'define' | 'undef' | 'extends';
 
 literal
 @init {

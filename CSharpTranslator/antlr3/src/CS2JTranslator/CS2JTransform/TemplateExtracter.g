@@ -1478,7 +1478,7 @@ also_keyword:
 	'add' | 'alias' | 'assembly' | 'module' | 'field' | 'method' | 'param' | 'property' | 'type' | 'yield'
 	| 'from' | 'into' | 'join' | 'on' | 'where' | 'orderby' | 'group' | 'by' | 'ascending' | 'descending' 
 	| 'equals' | 'select' | 'pragma' | 'let' | 'remove' | 'get' | 'set' | 'var' | '__arglist' | 'dynamic' | 'elif' 
-	| 'endif' | 'define' | 'undef';
+	| 'endif' | 'define' | 'undef' | 'extends';
 
 literal:
 	Real_literal

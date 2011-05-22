@@ -878,7 +878,7 @@ boolean_expression:
 global_attributes: 
 	global_attribute+ ;
 global_attribute: 
-	'['   global_attribute_target_specifier   attribute_list   ','?   ']' ;
+	^(GLOBAL_ATTRIBUTE global_attribute_target_specifier   attribute_list) ;
 global_attribute_target_specifier: 
 	global_attribute_target   ':' ;
 global_attribute_target: 
@@ -888,7 +888,7 @@ attributes:
 attribute_sections: 
 	attribute_section+ ;
 attribute_section: 
-	'['   attribute_target_specifier?   attribute_list   ','?   ']' ;
+	^(ATTRIBUTE attribute_target_specifier?   attribute_list) ;
 attribute_target_specifier: 
 	attribute_target   ':' ;
 attribute_target: 
@@ -1355,7 +1355,7 @@ also_keyword:
 	t='add' | t='alias' | t='assembly' | t='module' | t='field' | t='method' | t='param' | t='property' | t='type' | t='yield'
 	| t='from' | t='into' | t='join' | t='on' | t='where' | t='orderby' | t='group' | t='by' | t='ascending' | t='descending' 
 	| t='equals' | t='select' | t='pragma' | t='let' | t='remove' | t='get' | t='set' | t='var' | t='__arglist' | t='dynamic' | t='elif' 
-	| t='endif' | t='define' | t='undef'
+	| t='endif' | t='define' | t='undef' | t='extends'
    ) -> string(payload={$t.text})
 ;
 
