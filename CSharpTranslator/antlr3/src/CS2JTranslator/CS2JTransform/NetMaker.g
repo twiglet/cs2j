@@ -1659,9 +1659,16 @@ assignment
             if (isLocalVar) {
                // Is this a wrapped parameter?
                if (lhsType.IsWrapped) {
+                  CommonTree newRhsExp = rhsTree;
+                  if (assignmentOp.Token.Type != ASSIGN) {
+                     Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
+                     rhsMap["this"] = wrapExpression($i.tree, $i.tree.Token);
+                     CommonTree rhsPropTree = mkJavaWrapper("${this}.getValue()", rhsMap, assignmentOp.Token);
+                     newRhsExp = mkOpExp(mkOpExp(assignmentOp), rhsPropTree, rhsTree);
+                  }
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                   myMap["this"] = wrapExpression($i.tree, $i.tree.Token);
-                  myMap["value"] = wrapExpression(rhsTree, rhsTree.Token);
+                  myMap["value"] = wrapExpression(newRhsExp, rhsTree.Token);
                   ret = mkJavaWrapper("${this}.setValue(${value})", myMap, $i.tree.Token);
                 }
                // a simple variable assignment
@@ -2080,7 +2087,7 @@ anonymous_function_signature[TypeRepTemplate typeCtxt] returns [bool isTypedPara
     if (ret != null)
         $anonymous_function_signature.tree = ret;
 }:
-	^(PARAMS (parameter_modifier? type identifier)+)
+	^(PARAMS fixed_parameter+)
 	| ^(p=PARAMS_TYPELESS (identifier { ids.Add($identifier.tree); })+)
       {
          if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate && ids.Count == ((DelegateRepTemplate)$typeCtxt).Invoke.Params.Count) {
