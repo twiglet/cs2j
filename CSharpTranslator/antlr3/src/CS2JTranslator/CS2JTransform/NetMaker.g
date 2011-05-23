@@ -2676,17 +2676,31 @@ declaration_statement:
 	(local_variable_declaration 
 	| local_constant_declaration) ';' ;
 local_variable_declaration:
-	local_variable_type   local_variable_declarators[$local_variable_type.tree, $local_variable_type.dotNetType] ;
-local_variable_type returns [bool isTypeNode, TypeRepTemplate dotNetType]
+	local_variable_type   local_variable_declarators[$local_variable_type.tree, $local_variable_type.dotNetType, $local_variable_type.isVar] 
+    -> {$local_variable_type.isVar && $local_variable_declarators.bestTy != null && !$local_variable_declarators.bestTy.IsUnknownType}? 
+         ^(TYPE[$local_variable_type.tree.Token, "TYPE"] IDENTIFIER[$local_variable_type.tree.Token, $local_variable_declarators.bestTy.mkFormattedTypeName(false, "<",">")]) local_variable_declarators
+    -> local_variable_type   local_variable_declarators
+;
+local_variable_type returns [bool isTypeNode, bool isVar, TypeRepTemplate dotNetType]
 @init {
    $isTypeNode = false;
+   $isVar = false;
 }:
-	TYPE_VAR                     { $dotNetType = new UnknownRepTemplate("System.Object"); }
+	TYPE_VAR                     { $dotNetType = new UnknownRepTemplate("System.Object"); $isVar = true;}
 	| TYPE_DYNAMIC               { $dotNetType = new UnknownRepTemplate("System.Object"); }
 	| type                       { $dotNetType = $type.dotNetType; $isTypeNode = true; };
-local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty]:
-	local_variable_declarator[$tyTree, $ty] (',' local_variable_declarator[$tyTree, $ty])* ;
-local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
+local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty, bool isVar] returns [TypeRepTemplate bestTy]:
+	d1=local_variable_declarator[$tyTree, $ty] { if ($isVar) $bestTy = $d1.dotNetType; } 
+        (',' dn=local_variable_declarator[$tyTree, $ty] 
+         {
+            if ($isVar) {
+               if (!$dn.dotNetType.IsUnknownType && $bestTy.IsA($dn.dotNetType, AppEnv)) {
+                  $bestTy = $dn.dotNetType;
+               }
+            }
+         }
+        )* ;
+local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty] returns [TypeRepTemplate dotNetType]
 @init {
     bool hasInit = false;
     bool constructStruct = $ty != null && $ty is StructRepTemplate ;
@@ -2699,7 +2713,7 @@ local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
     }
 }:
 	i=identifier { $SymTab::symtab[$i.thetext] = $ty; } 
-       (e='='   local_variable_initializer[$ty ?? ObjectType] { hasInit = true; constructStruct = false; constructEnum = false; } )?
+       (e='='   local_variable_initializer[$ty ?? ObjectType] { hasInit = true; constructStruct = false; constructEnum = false; $dotNetType = $local_variable_initializer.dotNetType; } )?
         magicConstructStruct[constructStruct, $tyTree, ($i.tree != null ? $i.tree.Token : null)]
         magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
         		// eg. event EventHandler IInterface.VariableName = Foo;
@@ -2708,8 +2722,11 @@ local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty]
     -> {constructEnum}? $i ASSIGN[$i.tree.Token, "="] magicConstructDefaultEnum
     -> $i
     ;
-local_variable_initializer[TypeRepTemplate typeCtxt]:
-	expression[$typeCtxt]
+local_variable_initializer[TypeRepTemplate typeCtxt] returns [TypeRepTemplate dotNetType]
+@init {
+   $dotNetType = ObjectType;
+}:
+	expression[$typeCtxt] { $dotNetType = $expression.dotNetType; }
 	| array_initializer 
 	| stackalloc_initializer;
 stackalloc_initializer:
