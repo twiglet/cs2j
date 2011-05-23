@@ -59,12 +59,14 @@ tokens {
             NEW_ANON_OBJECT;
             STATIC_CONSTRUCTOR;
 
-            RETURN = 'return';
-            PRIVATE = 'private';
             PUBLIC = 'public';
             PROTECTED = 'protected';
-            STATIC = 'static';
             PRIVATE = 'private';
+            INTERNAL = 'internal';
+
+            STATIC = 'static';
+
+            RETURN = 'return';
             TRY = 'try';
             CATCH = 'catch';
             FINALLY = 'finally';

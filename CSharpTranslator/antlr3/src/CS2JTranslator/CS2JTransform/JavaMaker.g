@@ -172,6 +172,53 @@ scope TypeContext {
         return root;
     }
 
+    // mods is a list of modifiers.  removes is a list of token types, we remove all modifiers appearing in removes
+    protected CommonTree mkRemoveMods(CommonTree mods, int[] removes) {
+       
+        CommonTree root = (CommonTree)adaptor.Nil;
+        
+        if (mods != null) {
+           // Is root node the one we are looking for?
+           if (!mods.IsNil) {
+              
+              if (Array.IndexOf(removes,adaptor.GetType(mods)) < 0) {
+                 adaptor.AddChild(root, (CommonTree)adaptor.DupTree(mods));
+              }
+           }
+           else {
+              for (int i = 0; i < adaptor.GetChildCount(mods); i++) {
+                 CommonTree child = (CommonTree)adaptor.GetChild(mods,i);
+                 if (Array.IndexOf(removes,adaptor.GetType(child)) < 0) {
+                    adaptor.AddChild(root, (CommonTree)adaptor.DupTree(child));
+                 }
+              } 
+           }
+        }
+
+        root = (CommonTree)adaptor.RulePostProcessing(root);
+        return root;
+    }
+
+    // Add modToAdd to mods.
+    protected CommonTree mkAddMod(CommonTree mods, CommonTree modToAdd) {
+       
+        CommonTree root = (CommonTree)adaptor.Nil;
+        
+        if (mods == null) {
+           root = modToAdd;
+        }
+        else {
+           adaptor.AddChild(root, (CommonTree)adaptor.DupTree(modToAdd));
+           adaptor.AddChild(root, (CommonTree)adaptor.DupTree(mods));
+        }
+        root = (CommonTree)adaptor.RulePostProcessing(root);
+        return root;
+    }
+
+    protected CommonTree mkPrivateMod(CommonTree mods, IToken tok) {
+       return mkAddMod(mkRemoveMods(mods, new int[] {PUBLIC, PROTECTED, INTERNAL, PRIVATE}), (CommonTree)adaptor.Create(PRIVATE, tok, "private"));
+    }
+
     // embedded statement is ";", or, "{" ... "}", or a single statement. In the latter case we wrap with braces
     protected CommonTree embeddedStatementToBlock(IToken tok, CommonTree embedStat) {
 
@@ -1240,7 +1287,7 @@ scope { bool emptyGetterSetter; }
 }
 :
 	i=member_name   '{'   ads=accessor_declarations[atts, mods, type, $i.text, $i.rawId]   '}' 
-        v=magicMkPropertyVar[type, "__" + $i.tree.Text] { privateVar = $property_declaration::emptyGetterSetter ? $v.tree : null; }-> { privateVar } $ads ;
+        v=magicMkPropertyVar[mkPrivateMod($mods, $i.tree.Token), type, "__" + $i.tree.Text] { privateVar = $property_declaration::emptyGetterSetter ? $v.tree : null; }-> { privateVar } $ads ;
 
 accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, string propName, string rawVarName]:
     accessor_declaration[atts, mods, type, propName, rawVarName]+;
@@ -1908,8 +1955,8 @@ magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTr
 magicSemi:
    -> SEMI;
 
-magicMkPropertyVar[CommonTree type, string varText] :
- -> ^(FIELD[$type.token, "FIELD"] PRIVATE[$type.token, "private"] { dupTree(type) } IDENTIFIER[$type.token, varText])
+magicMkPropertyVar[CommonTree mods, CommonTree type, string varText] :
+ -> ^(FIELD[$type.token, "FIELD"] {dupTree(mods)} { dupTree(type) } IDENTIFIER[$type.token, varText])
     ; 
 
 magicGetterBody[bool isOn, IToken getTok, string varName]:    
