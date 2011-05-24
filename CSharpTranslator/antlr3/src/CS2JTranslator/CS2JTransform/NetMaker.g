@@ -2677,6 +2677,13 @@ declaration_statement:
 	| local_constant_declaration) ';' ;
 local_variable_declaration:
 	local_variable_type   local_variable_declarators[$local_variable_type.tree, $local_variable_type.dotNetType, $local_variable_type.isVar] 
+       { 
+           if ($local_variable_type.isVar && $local_variable_declarators.bestTy != null && !$local_variable_declarators.bestTy.IsUnknownType) {
+              foreach (string id in  $local_variable_declarators.identifiers) {
+                  $SymTab::symtab[id] = $local_variable_declarators.bestTy; 
+              }
+           } 
+    }
     -> {$local_variable_type.isVar && $local_variable_declarators.bestTy != null && !$local_variable_declarators.bestTy.IsUnknownType}? 
          ^(TYPE[$local_variable_type.tree.Token, "TYPE"] IDENTIFIER[$local_variable_type.tree.Token, $local_variable_declarators.bestTy.mkFormattedTypeName(false, "<",">")]) local_variable_declarators
     -> local_variable_type   local_variable_declarators
@@ -2689,10 +2696,14 @@ local_variable_type returns [bool isTypeNode, bool isVar, TypeRepTemplate dotNet
 	TYPE_VAR                     { $dotNetType = new UnknownRepTemplate("System.Object"); $isVar = true;}
 	| TYPE_DYNAMIC               { $dotNetType = new UnknownRepTemplate("System.Object"); }
 	| type                       { $dotNetType = $type.dotNetType; $isTypeNode = true; };
-local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty, bool isVar] returns [TypeRepTemplate bestTy]:
-	d1=local_variable_declarator[$tyTree, $ty] { if ($isVar) $bestTy = $d1.dotNetType; } 
+local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty, bool isVar] returns [TypeRepTemplate bestTy, List<String> identifiers]
+@init {
+   $identifiers = new List<String>();
+}:
+	d1=local_variable_declarator[$tyTree, $ty] { $identifiers.Add($d1.identifier); if ($isVar) $bestTy = $d1.dotNetType; } 
         (',' dn=local_variable_declarator[$tyTree, $ty] 
          {
+            $identifiers.Add($d1.identifier);
             if ($isVar) {
                if (!$dn.dotNetType.IsUnknownType && $bestTy.IsA($dn.dotNetType, AppEnv)) {
                   $bestTy = $dn.dotNetType;
@@ -2700,7 +2711,7 @@ local_variable_declarators[CommonTree tyTree, TypeRepTemplate ty, bool isVar] re
             }
          }
         )* ;
-local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty] returns [TypeRepTemplate dotNetType]
+local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty] returns [TypeRepTemplate dotNetType, String identifier]
 @init {
     bool hasInit = false;
     bool constructStruct = $ty != null && $ty is StructRepTemplate ;
@@ -2712,7 +2723,7 @@ local_variable_declarator[CommonTree tyTree, TypeRepTemplate ty] returns [TypeRe
         zeroEnum = enumRep.Members[0].Name;
     }
 }:
-	i=identifier { $SymTab::symtab[$i.thetext] = $ty; } 
+	i=identifier { $identifier = $i.thetext; $SymTab::symtab[$i.thetext] = $ty; } 
        (e='='   local_variable_initializer[$ty ?? ObjectType] { hasInit = true; constructStruct = false; constructEnum = false; $dotNetType = $local_variable_initializer.dotNetType; } )?
         magicConstructStruct[constructStruct, $tyTree, ($i.tree != null ? $i.tree.Token : null)]
         magicConstructDefaultEnum[constructEnum, $ty, zeroEnum, $identifier.tree != null ? $identifier.tree.Token : null]
@@ -2798,6 +2809,9 @@ scope SymTab;
     CommonTree newIdentifier = null;
     CommonTree newExpression = null;
     CommonTree newEmbeddedStatement = null;
+
+    TypeRepTemplate exprType = null;
+    TypeRepTemplate elType = null;
 }
 @after {
     if (ret != null)
@@ -2806,16 +2820,10 @@ scope SymTab;
 	^('while' boolean_expression SEP embedded_statement[/* isStatementListCtxt */ false])
 	| do_statement
 	| ^('for' for_initializer? SEP for_condition? SEP for_iterator? SEP embedded_statement[/* isStatementListCtxt */ false])
-	| ^(f='foreach' local_variable_type   identifier expression[ObjectType] s=SEP  { $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; }  embedded_statement[/* isStatementListCtxt */ false])
-           magicObjectType[$f.token] magicForeachVar[$f.token]
-        {
-            newType = $local_variable_type.tree;
-            newIdentifier = $identifier.tree;
+	| ^(f='foreach' local_variable_type   identifier expression[ObjectType] s=SEP  
+         { 
             newExpression = $expression.tree;
-            newEmbeddedStatement = $embedded_statement.tree;
-            TypeRepTemplate exprType = $expression.dotNetType;
-            TypeRepTemplate elType = null;
-            // translate expression, if available
+            exprType = $expression.dotNetType;
             if (exprType != null) {
                 ResolveResult iterable = exprType.ResolveIterable(AppEnv);
                 if (iterable != null) {
@@ -2827,10 +2835,27 @@ scope SymTab;
                     elType = iterable.ResultType;
                 }
             }
+            // Set identifier type in symbol table
+            if ($local_variable_type.isVar && elType != null) {
+               $SymTab::symtab[$identifier.thetext] = elType;
+            }
+            else {
+               $SymTab::symtab[$identifier.thetext] = $local_variable_type.dotNetType; 
+            }
+        }  
+         embedded_statement[/* isStatementListCtxt */ false])
+           magicTypeFromTemplate[$local_variable_type.isVar && elType != null, $f.token, elType] magicObjectType[$f.token] magicForeachVar[$f.token]
+        {
+            newType = $local_variable_type.tree;
+            newIdentifier = $identifier.tree;
+            newEmbeddedStatement = $embedded_statement.tree;
+            
             bool needCast = true;
-            if (!$local_variable_type.isTypeNode) {
-               // If local_type is var or dynamic then just leave it there, 
-               // TODO: var will be replaced by its type
+            if ($local_variable_type.isVar) {
+               // If local_type is dynamic then just leave it there, 
+               if (elType != null) {
+                  newType = $magicTypeFromTemplate.tree;
+               }
                needCast = false;
             }
             else {
@@ -3260,3 +3285,9 @@ magicInputPeId[CommonTree dotTree, CommonTree idTree, CommonTree galTree]:
     -> { dotTree != null}? {dupTree(dotTree)} 
     -> {dupTree(idTree)} { dupTree(galTree) }
 ;
+
+magicTypeFromTemplate[bool isOn, IToken tok, TypeRepTemplate dotNetType]:
+   -> { $isOn && $dotNetType.Tree != null}? { dupTree((CommonTree)$dotNetType.Tree) }
+   -> { $isOn }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, $dotNetType.mkFormattedTypeName(false, "<",">")])  
+   ->
+   ;
