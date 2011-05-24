@@ -403,7 +403,7 @@ public array_initializer:
 public variable_initializer_list:
 	variable_initializer (',' variable_initializer)* ;
 public variable_initializer:
-	expression	| array_initializer ;
+	non_assignment_expression	| array_initializer ;
 public sizeof_expression:
 	'sizeof'   '('   unmanaged_type   ')';
 public checked_expression: 
