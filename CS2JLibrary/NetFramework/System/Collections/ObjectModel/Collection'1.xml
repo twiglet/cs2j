@@ -10,7 +10,7 @@
   <Imports>
     <Import>java.util.ArrayList</Import>
   </Imports>
-  <Java>ArrayList*[T*]</Java>
+  <Java>ArrayList*[${T}]*</Java>
   <Name>System.Collections.ObjectModel.Collection</Name>
   <TypeParams>
     <Name>T</Name>
