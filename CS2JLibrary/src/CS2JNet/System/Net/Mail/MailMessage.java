@@ -8,28 +8,28 @@ public class MailMessage
 
     public MailMessage() throws Exception
     {
-        _bcc = new ArrayList();
-        _cc = new ArrayList();
-        _to = new ArrayList();
+        _bcc = new MailAddressCollection();
+        _cc = new MailAddressCollection();
+        _to = new MailAddressCollection();
     }
-    private ArrayList _bcc;
-    private ArrayList _cc;
-    private ArrayList _to;
+    private MailAddressCollection _bcc;
+    private MailAddressCollection _cc;
+    private MailAddressCollection _to;
     private String _body;
     private InternetAddress _from;
     private String _subject;
 
-    public ArrayList getBcc() throws Exception
+    public MailAddressCollection getBcc() throws Exception
     {
         return _bcc;
     }
 
-    public ArrayList getCC() throws Exception
+    public MailAddressCollection getCC() throws Exception
     {
         return _cc;
     }
 
-    public ArrayList getTo() throws Exception
+    public MailAddressCollection getTo() throws Exception
     {
         return _to;
     }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -21,4 +21,18 @@
   </Iterable>
   <Properties>
   </Properties>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.add(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+  </Methods>
 <Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>0GSIDSLuObIy5A5XQeRnSw9e3SI=</DigestValue></Reference></SignedInfo><SignatureValue>Nzeb0hweQvI4sxmsPGrCOmTf96j0BFsTeTeXIZadBJsSj3Gh1cUusfgexifD4QasTkG5pmCLOBxCDafzMaFJR7E2A0mMm8+wuEZpPM61Y+curs5qIy1V1Nc1y1f6KNSKDXgoRYDMiLdm7uOtiVlPHGe+FspiAZnUsoKwAMl7qPA=</SignatureValue></Signature></Interface>

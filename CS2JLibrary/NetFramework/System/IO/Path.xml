@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -54,6 +54,13 @@
         </Param>
       </Params>
       <Name>GetFullPath</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Java>System.getProperty("java.io.tempdir")</Java>
+      <Params>
+      </Params>
+      <Name>GetTempPath</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
