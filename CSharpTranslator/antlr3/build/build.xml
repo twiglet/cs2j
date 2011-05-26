@@ -40,7 +40,7 @@
 
   <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
   
-  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,switch,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
+  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
 
   <target name="dist" description="Distribute final zip to final resting place">
     <copy todir="${release.dir}" file="${release.zip}"/>
@@ -57,7 +57,13 @@
     <copy todir="${build.dir}/archive/cs2j-${release.tagname}/THIRDPARTY-LICENSES" file="${cs2j.parser.dir}/cs.g"/>
     <copy todir="${build.dir}/archive/cs2j-${release.tagname}/CS2JTranslator/bin">
       <fileset dir="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}">
+        <exclude name="*.vshost.*"/>
         <include name="*.exe"/>
+      </fileset>
+      <globmapper from="*.exe" to="*.exe${exe.extension}"/>
+    </copy>
+    <copy todir="${build.dir}/archive/cs2j-${release.tagname}/CS2JTranslator/bin">
+      <fileset dir="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}">
         <exclude name="*.vshost.*"/>
         <include name="*.dll"/>
       </fileset>
