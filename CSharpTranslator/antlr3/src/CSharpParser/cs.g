@@ -1437,10 +1437,18 @@ PP_EXPRESSION:
 	PP_OR_EXPRESSION;
 fragment
 PP_OR_EXPRESSION:
-	PP_AND_EXPRESSION   TS*   ('||'   TS*   PP_AND_EXPRESSION   TS* )* ;
+	PP_AND_EXPRESSION   TS*   ('||'   TS*   PP_AND_EXPRESSION  
+		{ 
+			bool rt1 = Returns.Pop(), rt2 = Returns.Pop();
+			Returns.Push(rt1 || rt2);
+		} TS* )* ;
 fragment
 PP_AND_EXPRESSION:
-	PP_EQUALITY_EXPRESSION   TS*   ('&&'   TS*   PP_EQUALITY_EXPRESSION   TS* )* ;
+	PP_EQUALITY_EXPRESSION   TS*   ('&&'   TS*   PP_EQUALITY_EXPRESSION  
+		{ 
+			bool rt1 = Returns.Pop(), rt2 = Returns.Pop();
+			Returns.Push(rt1 && rt2);
+		} TS* )* ;
 fragment
 PP_EQUALITY_EXPRESSION:
 	PP_UNARY_EXPRESSION   TS*   (('=='| ne = '!=')   TS*   PP_UNARY_EXPRESSION
