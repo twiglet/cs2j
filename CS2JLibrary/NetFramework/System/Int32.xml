@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -28,7 +28,9 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports>
+        <Import>CS2JNet.System.IntegerSupport</Import>
+      </Imports>
       <Java>IntegerSupport.mkString(${this}, ${str})</Java>
       <Params>
         <Param>
@@ -53,7 +55,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>CS2JNet.System.*</Import>
+        <Import>CS2JNet.System.IntegerSupport</Import>
       </Imports>
       <Java>IntegerSupport.parse(${str}, ${style})</Java>
       <Params>

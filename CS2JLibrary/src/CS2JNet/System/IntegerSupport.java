@@ -60,7 +60,24 @@ public class IntegerSupport {
 			return retStr;
 		}
 		
+		if (style.toLowerCase().startsWith("d")) {
+			String width = "";
+			if (style.length() > 1)
+				width = "0" + String.valueOf(Integer.valueOf(style.substring(1)) + (i < 0 ? 1 : 0));
+			String fmt = "%0$"+width+"d";
+			String retStr = String.format(fmt, i);
+			return retStr;
+		}
+		
 		throw new NotImplementedException("IntegerSupport.mkString does not support format string  '" + style + "'");
+	}
+	
+	public static void main(String[] args) throws NotImplementedException {
+		int integral = 8395;
+	    System.out.printf("D: %0$s\n", mkString(integral, "D"));
+	    System.out.printf("D: %0$s\n", mkString(integral, "D6"));
+	    System.out.printf("D: %0$s\n", mkString(-integral, "D6"));
+	
 	}
 
 }
