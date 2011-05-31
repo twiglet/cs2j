@@ -2218,38 +2218,34 @@ namespace Twiglet.CS2J.Translator.TypeRep
          string typeType = null;
          // class, interface, enum, etc.
          bool found = false;
-			
-         try {
-            while (reader.Read () && !found) {
-               if (reader.NodeType == XmlNodeType.Element) {
-                  switch (reader.LocalName) {
-                     case "Class":
-                        typeType = "Twiglet.CS2J.Translator.TypeRep.ClassRepTemplate";
-                        break;
-                     case "Struct":
-                        typeType = "Twiglet.CS2J.Translator.TypeRep.StructRepTemplate";
-                        break;
-                     case "Interface":
-                        typeType = "Twiglet.CS2J.Translator.TypeRep.InterfaceRepTemplate";
-                        break;
-                     case "Enum":
-                        typeType = "Twiglet.CS2J.Translator.TypeRep.EnumRepTemplate";
-                        break;
-                     case "Delegate":
-                        typeType = "Twiglet.CS2J.Translator.TypeRep.DelegateRepTemplate";
-                        break;
-                     default:
-                        typeType = "UnknownType";
-                        break;
-                  }
-                  found = true;
-               }
+
+         while (reader.Read () && !found) {
+            if (reader.NodeType == XmlNodeType.Element) {
+                switch (reader.LocalName) {
+                    case "Class":
+                    typeType = "Twiglet.CS2J.Translator.TypeRep.ClassRepTemplate";
+                    break;
+                    case "Struct":
+                    typeType = "Twiglet.CS2J.Translator.TypeRep.StructRepTemplate";
+                    break;
+                    case "Interface":
+                    typeType = "Twiglet.CS2J.Translator.TypeRep.InterfaceRepTemplate";
+                    break;
+                    case "Enum":
+                    typeType = "Twiglet.CS2J.Translator.TypeRep.EnumRepTemplate";
+                    break;
+                    case "Delegate":
+                    typeType = "Twiglet.CS2J.Translator.TypeRep.DelegateRepTemplate";
+                    break;
+                    default:
+                    typeType = "UnknownType";
+                    break;
+                }
+                found = true;
             }
-            s.Seek (0, SeekOrigin.Begin);
-            ret = (TypeRepTemplate)Deserialize (s, System.Type.GetType (typeType));
-         } catch (Exception e) {
-            Console.WriteLine ("WARNING -- (Deserialize) " + e.Message);
          }
+         s.Seek (0, SeekOrigin.Begin);
+         ret = (TypeRepTemplate)Deserialize (s, System.Type.GetType (typeType));
 			
          return ret;
       }

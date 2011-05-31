@@ -360,7 +360,7 @@ namespace Twiglet.CS2J.Translator
                 // Verify the signature of the signed XML.
                 if (!VerifyXml(xmlDoc, RsaKey))
                 {
-		   Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
+		           Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
                    badXmlTxCount--;
                    if (badXmlTxCount <= 0)
                    {
@@ -374,9 +374,13 @@ namespace Twiglet.CS2J.Translator
 
                 txStream.Seek(0, SeekOrigin.Begin);
              }
-             TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
-            // Fullname has form: <path>/<key>.xml
-            AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
+            try {
+                TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
+                // Fullname has form: <path>/<key>.xml
+                AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
+            } catch (Exception e) {
+                Console.WriteLine ("WARNING -- Could not import " + fullName + " (" + e.Message + ")");
+            }
         }
 
         // Here's where we do the real work...
