@@ -29,7 +29,6 @@ scope NSContext {
 {
 	using System;
 	using System.Text;
-	using System.Linq;
 	using Twiglet.CS2J.Translator.TypeRep;
 }
 
@@ -78,6 +77,62 @@ scope NSContext {
             return rets.ToArray();
         }
     }
+    
+    protected T[] MergeArray<T>(T[] arr1, T el) {
+       if (arr1 == null) {
+          return new T[] {el};
+       }
+
+       if (Array.IndexOf(arr1, el) < 0) {
+          List<T> ret = new List<T>(arr1.Length + 1);
+          ret.AddRange(arr1);
+          ret.Add(el);
+          return ret.ToArray();
+       } 
+       return arr1;
+    }
+
+    protected T[] MergeArray<T>(T[] arr1, T[] arr2) {
+       if (arr1 == null || arr1.Length == 0) {
+          return arr2;
+       }
+
+       if (arr2 == null || arr2.Length == 0) {
+          return arr1;
+       }
+
+       List<T> ret = new List<T>(arr1);
+       foreach (T v in arr2) {
+          if (Array.IndexOf(arr1, v) < 0) {
+             ret.Add(v);
+          }
+       } 
+       return ret.ToArray();
+
+    }
+
+    // Updates l
+    protected void MergeList<T>(IList<T> l, T el) {
+       if (l == null) {
+          throw new ArgumentNullException("l");
+       }
+
+       if (!l.Contains(el)) {
+          l.Add(el);
+       } 
+    }
+
+    protected void MergeList<T>(IList<T> l1, IList<T> l2) {
+       if (l1 == null) {
+          throw new ArgumentNullException("l1");
+       }
+       if (l2 != null) {
+          foreach (T v in l2) {
+             MergeList(l1,v);
+          }
+       }
+    }
+
 
     protected string ParentNameSpace {
         get {
@@ -174,12 +229,12 @@ namespace_member_declaration:
 	namespace_declaration
 	| attributes?   modifiers?   type_declaration ;
 type_declaration:
-	('partial') => p='partial'  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (class_declaration
-								| struct_declaration
-								| interface_declaration)
-	| class_declaration
-	| struct_declaration
-	| interface_declaration
+	('partial') => p='partial'  (class_declaration[true]
+								| struct_declaration[true]
+								| interface_declaration[true])
+	| class_declaration[false]
+	| struct_declaration[false]
+	| interface_declaration[false]
 	| enum_declaration
 	| delegate_declaration ;
 // Identifiers
@@ -200,11 +255,11 @@ class_member_declaration:
 	m=modifiers?
 	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration["/* partial */"] 
-			   | interface_declaration 
-			   | class_declaration 
-			   | struct_declaration)
-	| interface_declaration	// 'interface'
+	| p='partial'  ({ Warning($p.line, "[UNSUPPORTED] 'partial' method definition"); } method_declaration["/* partial */"] 
+			   | interface_declaration[true] 
+			   | class_declaration[true] 
+			   | struct_declaration[true])
+	| interface_declaration[false]	// 'interface'
 	| 'void'   method_declaration["System.Void"]
 	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
 		   | (member_name   '{') => property_declaration[$rt.thetext]
@@ -215,8 +270,8 @@ class_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| class_declaration		// 'class'
-	| struct_declaration	// 'struct'	   
+	| class_declaration[false]		// 'class'
+	| struct_declaration[false] 	// 'struct'	   
 	| enum_declaration		// 'enum'
 	| delegate_declaration	// 'delegate'
 	| conversion_operator_declaration
@@ -702,35 +757,52 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration
+class_declaration[bool isPartial]
 scope NSContext;
 @init {
     $NSContext::searchpath = new List<string>();
     $NSContext::aliases = new List<AliasRepTemplate>();
-    ClassRepTemplate klass = new ClassRepTemplate();
+    ClassRepTemplate klass = null;
 }
 :
-	'class'  type_or_generic   
+	c='class'  type_or_generic   
         { 
-            DebugDetail("Processing class: " + $type_or_generic.type);
+            DebugDetail("Processing " + ($isPartial ? "partial" : "") + " class: " + $type_or_generic.type);
             // For class System.Dictionary<K,V>
             // The Type Rep has TypeName "System.Dictionary", TypeArgs "K","V" is stored at System/Dictionary'2.xml 
             // and will be used as [System.]Dictionary[Type1,Type2] 
             String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($type_or_generic.type, $type_or_generic.generic_arguments);
+            TypeRepTemplate tmpTyRep;
+            bool exists = AppEnv.TryGetValue(genericNameSpace, out tmpTyRep);
+            if (exists && !$isPartial) {
+                  { Error($c.line, "Found multiple definitions for " + genericNameSpace); }
+            }
+            if (exists) {
+               klass = tmpTyRep as ClassRepTemplate;
+               if (klass == null) {
+                  { Error($c.line, "Found conflicting type definitions for " + genericNameSpace); }
+                  // This klass is not put in AppEnv so its just thrown away in this case
+                  klass = new ClassRepTemplate();
+               }
+            }
+            else {
+               klass = new ClassRepTemplate();
+               AppEnv[genericNameSpace] = klass;
+            }
             klass.TypeName = NSPrefix(ParentNameSpace) + $type_or_generic.type;
             if ($type_or_generic.generic_arguments.Count > 0) {
-                klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
+               // If we already have klass.TypeParams then they must match
+               klass.TypeParams = $type_or_generic.generic_arguments.ToArray();
             }
             // Nested types can see things in this space
             $NSContext::searchpath.Add(genericNameSpace);
             $NSContext::currentNS = genericNameSpace;
             $NSContext::currentTypeRep = klass;
-            AppEnv[genericNameSpace] = klass;
-            klass.Uses = this.CollectUses;
-            klass.Aliases = this.CollectAliases;
+            klass.Uses = MergeArray(klass.Uses, this.CollectUses);
+            klass.Aliases = MergeArray(klass.Aliases, this.CollectAliases);
             klass.Imports = new string[] {klass.TypeName};
         }
-        (cb=class_base { klass.Inherits =  $cb.typeList.ToArray(); } )?   
+        (cb=class_base { klass.Inherits =  MergeArray($cb.typeList.ToArray(), klass.Inherits); } )?   
         type_parameter_constraints_clauses? class_body  ';'? ;
 
 class_base returns [List<string> typeList]
@@ -1035,18 +1107,35 @@ parameter_array returns [ParamRepTemplate param]:
 	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext, $i.text, false); } ;
 
 ///////////////////////////////////////////////////////
-interface_declaration 
+interface_declaration[bool isPartial] 
 scope NSContext;
 @init {
     $NSContext::searchpath = new List<string>();
     $NSContext::aliases = new List<AliasRepTemplate>();
-    InterfaceRepTemplate iface = new InterfaceRepTemplate();
+    InterfaceRepTemplate iface = null;
 }
 :
-	'interface'   identifier   variant_generic_parameter_list?
+	i='interface'   identifier   variant_generic_parameter_list?
         { 
             DebugDetail("Processing interface: " + $identifier.text);
             String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.text, $variant_generic_parameter_list.tyargs);
+            TypeRepTemplate tmpTyRep;
+            bool exists = AppEnv.TryGetValue(genericNameSpace, out tmpTyRep);
+            if (exists && !$isPartial) {
+                  { Error($i.line, "Found multiple definitions for " + genericNameSpace); }
+            }
+            if (exists) {
+               iface = tmpTyRep as InterfaceRepTemplate;
+               if (iface == null) {
+                  { Error($i.line, "Found conflicting type definitions for " + genericNameSpace); }
+                  // This iface is not put in AppEnv so its just thrown away in this case
+                  iface = new InterfaceRepTemplate();
+               }
+            }
+            else {
+               iface = new InterfaceRepTemplate();
+               AppEnv[genericNameSpace] = iface;
+            }
             iface.TypeName = NSPrefix(ParentNameSpace) + $identifier.text;
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 iface.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
@@ -1055,12 +1144,11 @@ scope NSContext;
             $NSContext::searchpath.Add(iface.TypeName);
             $NSContext::currentNS = iface.TypeName;
             $NSContext::currentTypeRep = iface;
-            AppEnv[genericNameSpace] = iface;
-            iface.Uses = this.CollectUses;
-            iface.Aliases = this.CollectAliases;
+            iface.Uses = MergeArray(iface.Uses, this.CollectUses);
+            iface.Aliases = MergeArray(iface.Aliases, this.CollectAliases);
             iface.Imports = new string[] {iface.TypeName};
         } 
-    	(interface_base { iface.Inherits = $interface_base.typeList.ToArray(); } )?   
+    	(interface_base { iface.Inherits = MergeArray($interface_base.typeList.ToArray(), iface.Inherits); } )?   
         type_parameter_constraints_clauses?   interface_body   ';'? ;
 interface_modifiers: 
 	modifier+ ;
@@ -1123,18 +1211,36 @@ method_modifiers:
 	modifier+ ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration
+struct_declaration[bool isPartial]
 scope NSContext;
 @init {
     $NSContext::searchpath = new List<string>();
     $NSContext::aliases = new List<AliasRepTemplate>();
-    StructRepTemplate strukt = new StructRepTemplate();
+    StructRepTemplate strukt = null; 
 }
     :
-	'struct'   type_or_generic   
+	s='struct'   type_or_generic   
         { 
             DebugDetail("Processing struct: " + $type_or_generic.type);
             String genericNameSpace = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($type_or_generic.type, $type_or_generic.generic_arguments);
+            TypeRepTemplate tmpTyRep;
+            bool exists = AppEnv.TryGetValue(genericNameSpace, out tmpTyRep);
+            if (exists && !$isPartial) {
+                  { Error($s.line, "Found multiple definitions for " + genericNameSpace); }
+            }
+            if (exists) {
+               strukt = tmpTyRep as StructRepTemplate;
+               if (strukt == null) {
+                  { Error($s.line, "Found conflicting type definitions for " + genericNameSpace); }
+                  // This strukt is not put in AppEnv so its just thrown away in this case
+                  strukt = new StructRepTemplate();
+               }
+            }
+            else {
+               strukt = new StructRepTemplate();
+               AppEnv[genericNameSpace] = strukt;
+            }
+
             strukt.TypeName = NSPrefix(ParentNameSpace) + $type_or_generic.type;
             if ($type_or_generic.generic_arguments.Count > 0) {
                 strukt.TypeParams = $type_or_generic.generic_arguments.ToArray();
@@ -1143,11 +1249,10 @@ scope NSContext;
             $NSContext::searchpath.Add(strukt.TypeName);
             $NSContext::currentNS = strukt.TypeName;
             $NSContext::currentTypeRep = strukt;
-            AppEnv[genericNameSpace] = strukt;
-            strukt.Uses = this.CollectUses;
-            strukt.Aliases = this.CollectAliases;
+            strukt.Uses = MergeArray(strukt.Uses, this.CollectUses);
+            strukt.Aliases = MergeArray(strukt.Aliases, this.CollectAliases);
             strukt.Imports = new string[] {strukt.TypeName};
-        } (si=struct_interfaces { strukt.Inherits =  $si.typeList.ToArray(); })?
+        } (si=struct_interfaces { strukt.Inherits = MergeArray($si.typeList.ToArray(), strukt.Inherits); })?
          type_parameter_constraints_clauses?   struct_body   ';'? ;
 struct_modifiers:
 	struct_modifier+ ;
@@ -1163,13 +1268,13 @@ struct_member_declaration:
 	attributes?   m=modifiers?
 	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (method_declaration["/* partial */"] 
-			   | interface_declaration 
-			   | class_declaration 
-			   | struct_declaration)
+	| p='partial' ({ Warning($p.line, "[UNSUPPORTED] 'partial' method definition"); } method_declaration["/* partial */"] 
+			   | interface_declaration[true] 
+			   | class_declaration[true] 
+			   | struct_declaration[true])
 
-	| interface_declaration	// 'interface'
-	| class_declaration		// 'class'
+	| interface_declaration[false]	// 'interface'
+	| class_declaration[false]		// 'class'
 	| 'void'   method_declaration["System.Void"]
 	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
 		   | (member_name   '{') => property_declaration[$rt.thetext]
@@ -1180,7 +1285,7 @@ struct_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| struct_declaration	// 'struct'	   
+	| struct_declaration[false]	// 'struct'	   
 	| enum_declaration		// 'enum'
 	| delegate_declaration	// 'delegate'
 	| conversion_operator_declaration

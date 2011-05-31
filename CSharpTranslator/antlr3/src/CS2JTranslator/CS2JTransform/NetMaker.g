@@ -2231,10 +2231,14 @@ scope NSContext,SymTab;
 				$SymTab::symtab["this"] = classTypeRep;
 				ClassRepTemplate baseType = ObjectType;
 				if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
-					// if Inherits[0] is a class then it is parent, else system.object
-					ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, classTypeRep.Inherits[0], ObjectType) as ClassRepTemplate;
-					if (parent != null)
-						baseType = parent;
+					// if Inherits[0] Take first class as super
+                   foreach (String super in classTypeRep.Inherits) {
+					  ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, super, null) as ClassRepTemplate;
+                      if (parent != null) {
+                        baseType = parent;
+                        break;
+                      }
+                    }    
 				}
 				$SymTab::symtab["super"] = baseType;
 			}
