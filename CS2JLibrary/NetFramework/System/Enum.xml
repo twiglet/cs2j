@@ -50,7 +50,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>Enum.valueOf(((Class<? extends Enum>))${enumType}, ${value})</Java>
+      <Java>Enum.valueOf(((Class*[? extends Enum*]))${enumType}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.Type</Type>
