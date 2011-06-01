@@ -722,13 +722,38 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }		
 
       // isStatic method?
+      private bool _isStatic = false;
       [XmlAttribute("static")]
       [System.ComponentModel.DefaultValueAttribute(false)]
-      public bool IsStatic{ get; set; }
+      public bool IsStatic { 
+         get 
+         {
+            return _isStatic;
+         }
+         set
+         {
+            _isStatic = value;
+         }
+      }
+
+      private bool _isPartialDefiner = false;
+      [XmlAttribute("partial")]
+      [System.ComponentModel.DefaultValueAttribute(false)]
+      public bool IsPartialDefiner { 
+         get 
+         {
+            return _isPartialDefiner;
+         }
+         set
+         {
+            _isPartialDefiner = value;
+         }
+      }
 
       public MethodRepTemplate()
       {
          IsStatic = false;
+         IsPartialDefiner = false;
       }
 
       public MethodRepTemplate(TypeRepTemplate parent, MethodRepTemplate copyFrom) : base(parent, copyFrom)
@@ -762,6 +787,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
 
          IsStatic = copyFrom.IsStatic;
+         IsPartialDefiner = copyFrom.IsPartialDefiner;
       }
 
       public MethodRepTemplate(string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars, string[] imps, string javaRep)
@@ -771,6 +797,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          TypeParams = tParams;
          Return = retType;
          IsStatic = false;
+         IsPartialDefiner = false;
       }
 
       public MethodRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars) : this(retType, methodName, tParams, pars, null, null)
@@ -788,6 +815,13 @@ namespace Twiglet.CS2J.Translator.TypeRep
 		
       public override string mkJava() {
          StringBuilder methStr = new StringBuilder();
+
+         // if we only have the definition, not the implementation, then don't emit any calls in the Java
+         if (IsPartialDefiner)
+         {
+            return String.Empty;
+         }
+
          if (IsStatic) {
             if (SurroundingType != null) {
                methStr.Append(SurroundingType.TypeName.Substring(SurroundingType.TypeName.LastIndexOf('.') + 1) + ".");
@@ -854,7 +888,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 			
-         return Return == other.Return && Name == other.Name && IsStatic == other.IsStatic && base.Equals(other);
+         return Return == other.Return && Name == other.Name && IsStatic == other.IsStatic && IsPartialDefiner == other.IsPartialDefiner && base.Equals(other);
       }
 
       public override bool Equals (object obj)
@@ -891,7 +925,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ base.GetHashCode();
+         return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ IsPartialDefiner.GetHashCode() ^ base.GetHashCode();
       }
       #endregion
 
@@ -2805,6 +2839,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
         
          if (Methods != null)
          {
+            ResolveResult res = null;
             foreach (MethodRepTemplate m in Methods)
             {
                if (m.Name == name)
@@ -2837,13 +2872,20 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   }
                   if (matchingArgs)
                   {
-                     ResolveResult res = new ResolveResult();
+                     res = new ResolveResult();
                      res.Result = m;
                      res.ResultType = BuildType(m.Return, AppEnv);
-                     return res;
+                     if (!m.IsPartialDefiner)
+                       return res;
                   }
                }
             }
+            if (res != null)
+            {
+               // We must have only found a partial result, nothing to implement it, so return the partial result 
+               return res;
+            }
+
          }
          // Look for a property which holds a delegate with the right type
          if (Properties != null)

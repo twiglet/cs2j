@@ -255,13 +255,13 @@ class_member_declaration:
 	m=modifiers?
 	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| p='partial'  ({ Warning($p.line, "[UNSUPPORTED] 'partial' method definition"); } method_declaration["/* partial */"] 
+	| p='partial'  ('void' method_declaration[true, "System.Void"] 
 			   | interface_declaration[true] 
 			   | class_declaration[true] 
 			   | struct_declaration[true])
 	| interface_declaration[false]	// 'interface'
-	| 'void'   method_declaration["System.Void"]
-	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
+	| 'void'   method_declaration[false, "System.Void"]
+	| rt=type ( (member_name   '(') => method_declaration[false, $rt.thetext]
 		   | (member_name   '{') => property_declaration[$rt.thetext]
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
 		   | indexer_declaration[$rt.thetext, ""]	//this
@@ -561,9 +561,9 @@ pointer_type:
 ///////////////////////////////////////////////////////
 //	Statement Section
 ///////////////////////////////////////////////////////
-block:
-	';'
-	| '{'   statement_list?   '}';
+block returns [bool isEmpty]:
+	';' {$isEmpty = true;}
+	| '{'   statement_list?   '}' {$isEmpty = false;};
 statement_list:
 	statement+ ;
 	
@@ -856,16 +856,23 @@ variable_declarator [string type, bool isEvent]:
 ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration [string returnType]:
-	method_header[$returnType]   method_body ;
-method_header [string returnType]:
+method_declaration [bool isPartial, string returnType]:
+	method_header[$returnType]   method_body 
+      {
+         if ($isPartial && $method_body.isEmpty) {
+            $method_header.meth.IsPartialDefiner = true;
+         }
+         ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add($method_header.meth);
+      }
+    ;
+method_header [string returnType] returns [MethodRepTemplate meth]:
 	member_name  '('   fpl=formal_parameter_list?   ')'   
-     {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist)); }
     type_parameter_constraints_clauses? 
         { DebugDetail("Processing method declaration: " + $member_name.name); }
+        {  $meth = new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist); }
 ;
-method_body:
-	block ;
+method_body returns[bool isEmpty]:
+	block {$isEmpty = $block.isEmpty; };
 member_name returns [string name, List<String> tyargs]:
 	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
 
@@ -1268,15 +1275,15 @@ struct_member_declaration:
 	attributes?   m=modifiers?
 	( 'const'   ct=type   constant_declarators[$ct.thetext]   ';'
 	| event_declaration		// 'event'
-	| p='partial' ({ Warning($p.line, "[UNSUPPORTED] 'partial' method definition"); } method_declaration["/* partial */"] 
+	| p='partial' ('void' method_declaration[true, "System.Void"] 
 			   | interface_declaration[true] 
 			   | class_declaration[true] 
 			   | struct_declaration[true])
 
 	| interface_declaration[false]	// 'interface'
 	| class_declaration[false]		// 'class'
-	| 'void'   method_declaration["System.Void"]
-	| rt=type ( (member_name   '(') => method_declaration[$rt.thetext]
+	| 'void'   method_declaration[false, "System.Void"]
+	| rt=type ( (member_name   '(') => method_declaration[false, $rt.thetext]
 		   | (member_name   '{') => property_declaration[$rt.thetext]
 		   | (member_name   '.'   'this') => type_name '.' indexer_declaration[$rt.thetext, $type_name.thetext+"."]
 		   | indexer_declaration[$rt.thetext, ""]	//this

@@ -1203,7 +1203,7 @@ embedded_statement returns [bool isSemi, bool isIf, bool indent]
       -> unsupported(comments = { preComments }, reason = {"unsafe blocks are not supported"}, text = { someText } )
 	| fixed_statement
 	| expression_statement  { preComments = CollectedComments; }	
-         -> op(comments = { preComments }, pre={ $expression_statement.st }, op={ ";" })  // make an expression a statement, need to terminate with semi
+         -> op(comments = { preComments }, pre={ $expression_statement.st }, op={ ($expression_statement.st.ToString() == "" ? "" : ";") })  // make an expression a statement, if non-empty (e.g. unimplemented partial methods) need to terminate with semi
 	;
 fixed_statement:
 	'fixed'   '('   pointer_type fixed_pointer_declarators   ')'   embedded_statement ;
