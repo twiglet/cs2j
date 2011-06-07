@@ -45,6 +45,8 @@ namespace Twiglet.CS2J.Translator
 		
        public delegate void FileProcessor(string fName);
 
+       private static Dictionary<string, ClassDescriptorSerialized> partialTypes = new Dictionary<string, ClassDescriptorSerialized>();
+
         private static void showVersion()
         {
             Console.Out.WriteLine(Path.GetFileNameWithoutExtension(System.Environment.GetCommandLineArgs()[0]) + ": " + VERSION);
@@ -206,6 +208,10 @@ namespace Twiglet.CS2J.Translator
 
                     foreach (string r in csDir)
                         doFile(r, ".cs", translateFile, cfg.Exclude); // translate it
+
+                    if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out collected partial types");
+                    foreach (KeyValuePair<string, ClassDescriptorSerialized> entry in partialTypes)
+                       emitPartialType(entry.Key, entry.Value);
 
                     if (cfg.DumpEnums)
                     {
@@ -531,12 +537,31 @@ namespace Twiglet.CS2J.Translator
 
                     outputMaker.Cfg = cfg;
                     outputMaker.EmittedCommentTokenIdx = saveEmittedCommentTokenIdx;
+                    outputMaker.IsPartial = javaMaker.CUMap[typeName].IsPartial;
+                    if (outputMaker.IsPartial)
+                    {
+                       if (!partialTypes.ContainsKey(typeName))
+                       {
+                          partialTypes[typeName] = new ClassDescriptorSerialized(claName);
+                          partialTypes[typeName].FileName = javaFName;
+                       }
+                       outputMaker.PartialDescriptor = partialTypes[typeName];
+                    }
+
                     outputMaker.IsLast = i == (javaMaker.CUKeys.Count - 1);
                     
-                    if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", javaFName);
-                    StreamWriter javaW = new StreamWriter(javaFName);
-                    javaW.Write(limit(outputMaker.compilation_unit().ToString()));
-                    javaW.Close();
+                    if (!outputMaker.IsPartial)
+                    {
+                       if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", javaFName);
+                       StreamWriter javaW = new StreamWriter(javaFName);
+                       javaW.Write(limit(outputMaker.compilation_unit().ToString()));
+                       javaW.Close();
+                    }
+                    else
+                    {
+                       // fill out partialTypes[typeName]
+                       outputMaker.compilation_unit();
+                    }
                     saveEmittedCommentTokenIdx = outputMaker.EmittedCommentTokenIdx;
                 }
             }
@@ -546,5 +571,29 @@ namespace Twiglet.CS2J.Translator
             System.Console.Out.WriteLine("");
             System.Console.Out.WriteLine("");
         }
+
+       public static void emitPartialType(string name, ClassDescriptorSerialized serTy)
+       {
+          
+          // Pretty print as text
+          Dictionary<string,object> args = new Dictionary<string,object>();
+          args["now"] = DateTime.Now;
+          args["includeDate"] = cfg.TranslatorAddTimeStamp;
+          args["packageName"] = serTy.Package;
+          args["imports"] = serTy.Imports;
+          args["modifiers"] = serTy.Mods;
+          args["name"] = serTy.Identifier;
+          args["extends"] = serTy.ClassBase;
+          args["imps"] = serTy.ClassImplements;
+          args["body"] = serTy.ClassBody;
+
+          StringTemplate st = templates.GetInstanceOf("partial_type", args);
+
+//                                                     new STAttrMap().Add("now", DateTime.Now).Add("includeDate", Cfg.TranslatorAddTimeStamp).Add("packageName", (((nm != null) ? nm.Text : null) != null && ((nm != null) ? nm.Text : null).Length > 0 ? ((nm != null) ? nm.Text : null) : null)).Add("imports", ((imports1 != null) ? imports1.ST : null)).Add("type", ((type_declaration2 != null) ? type_declaration2.ST : null)).Add("endComments",  CollectedComments ));
+          if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", serTy.FileName);
+          StreamWriter javaW = new StreamWriter(serTy.FileName);
+          javaW.Write(limit(st.ToString()));
+          javaW.Close();
+       }
     }
 }

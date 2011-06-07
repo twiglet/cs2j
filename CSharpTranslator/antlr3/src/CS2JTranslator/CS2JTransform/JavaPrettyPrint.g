@@ -25,9 +25,11 @@ options {
 @members
 {
 
+    public bool IsPartial { get; set; }
     public bool IsLast { get; set; }
     public int EmittedCommentTokenIdx { get; set; }
- 
+    public ClassDescriptorSerialized PartialDescriptor { get; set; }
+
     private List<string> collectedComments = null;
     List<string> CollectedComments {
         get {
@@ -288,7 +290,9 @@ options {
         return ret;
     }
 
-
+    protected string mkString(object s) {
+       return (s == null ? String.Empty : s.ToString()); 
+    }
 
 }
 
@@ -297,14 +301,30 @@ public compilation_unit
     initPrecedence();
 }
 :
-    ^(PACKAGE nm=PAYLOAD imports? type_declaration { if (IsLast) collectComments(); }) -> 
+    ^(PACKAGE nm=PAYLOAD imports? type_declaration) 
+
+      {
+         if (IsLast) collectComments(); 
+         if (IsPartial) {
+            // Merge into existing descriptor 
+            PartialDescriptor.Package = ($nm.text != null && $nm.text.Length > 0 ? $nm.text : null);
+            if ($imports.importList != null && $imports.importList.Count > 0) {
+               foreach (string m in $imports.importList) {
+                  if (!PartialDescriptor.Imports.Contains(m)) {
+                     PartialDescriptor.Imports.Add(m);
+                  }
+               }
+            }
+         }
+      }
+    -> 
         package(now = {DateTime.Now}, includeDate = {Cfg.TranslatorAddTimeStamp}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)},
             imports = {$imports.st},
             type = {$type_declaration.st},
             endComments = { CollectedComments });
 
 type_declaration:
-    class_declaration -> { $class_declaration.st }
+    class_declaration[true] -> { $class_declaration.st }
 	| interface_declaration -> { $interface_declaration.st }
 	| enum_declaration -> { $enum_declaration.st }
 	| annotation_declaration -> { $annotation_declaration.st }
@@ -315,21 +335,36 @@ qualified_identifier:
 namespace_name
 	: namespace_or_type_name ;
 
-modifiers:
-	ms+=modifier+ -> modifiers(mods={$ms});
-modifier
+modifiers returns [List<string> modList]
 @init {
-    string thetext = null;
-}
-: 
-        (m='new' | m='public' | m='protected' | m='private' | m='abstract' | m='sealed' | m='static'
-        | m='readonly' | m='volatile' | m='extern' { thetext = "/* [UNSUPPORTED] 'extern' modifier not supported */"; } | m='virtual' | m='override' | m=FINAL)
-        -> string(payload={ (thetext == null ? $m.text : thetext) });
+   $modList = new List<string>();
+}:
+      (modifier { $modList.Add($modifier.thetext); })+ -> modifiers(mods={$modList});
 
-imports:
-   imps+=importns+ -> seplist(items = { $imps }, sep= { "\n" });
-importns:
-   IMPORT PAYLOAD -> import_template(ns = { $PAYLOAD.text });
+modifier returns [string thetext]
+: 
+        (m='new' { $thetext = "new"; }
+        | m='public' { $thetext = "public"; }
+        | m='protected' { $thetext = "protected"; }
+        | m='private' { $thetext = "private"; }
+        | m='abstract' { $thetext = "abstract"; }
+        | m='sealed' { $thetext = "sealed"; }
+        | m='static' { $thetext = "static"; }
+        | m='readonly' { $thetext = "readonly"; }
+        | m='volatile' { $thetext = "volatile"; }
+        | m='extern' { $thetext = "/* [UNSUPPORTED] 'extern' modifier not supported */"; } 
+        | m='virtual' { $thetext = "virtual"; }
+        | m='override' { $thetext = "override"; }
+        | m=FINAL{ $thetext = "final"; })
+        -> string(payload= { $thetext });
+
+imports returns [List<string> importList]
+@init {
+    $importList = new List<string>();
+}:
+   (importns { $importList.Add($importns.thetext); })+ -> import_list(nss = { $importList });
+importns returns [string thetext]:
+   IMPORT PAYLOAD { $thetext = $PAYLOAD.text; } -> import_template(ns = { $PAYLOAD.text });
 	
 class_member_declaration returns [List<string> preComments]:
     ^(CONST attributes? modifiers? type { $preComments = CollectedComments; } constant_declarators)
@@ -338,7 +373,7 @@ class_member_declaration returns [List<string> preComments]:
             { $preComments = CollectedComments; } method_body exception*)
       -> method(modifiers={$modifiers.st}, type={$type.st}, name={ $member_name.st }, typeparams = { $type_parameter_list.st }, params={ $formal_parameter_list.st }, exceptions = { $exception.st }, bodyIsSemi = { $method_body.isSemi }, body={ $method_body.st })
     | interface_declaration -> { $interface_declaration.st }
-    | class_declaration -> { $class_declaration.st }
+    | class_declaration[false] -> { $class_declaration.st }
     | ^(FIELD attributes? modifiers? type { $preComments = CollectedComments; } field_declaration)  -> field(modifiers={$modifiers.st}, type={$type.st}, field={$field_declaration.st}) 
     | ^(OPERATOR attributes? modifiers? type { $preComments = CollectedComments; } operator_declaration)
     | enum_declaration -> { $enum_declaration.st }
@@ -884,9 +919,9 @@ global_attribute_target_specifier:
 global_attribute_target: 
 	'assembly' | 'module' ;
 attributes: 
-	attribute_sections ;
+	attribute_sections -> { $attribute_sections.st } ;
 attribute_sections: 
-	attribute_section+ ;
+	ass+=attribute_section+ ;
 attribute_section: 
 	^(ATTRIBUTE attribute_target_specifier?   attribute_list) ;
 attribute_target_specifier: 
@@ -919,13 +954,58 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration
+class_declaration[bool topLevel]
 @init {
     List<string> preComments = null;
 }:
-   ^(c=CLASS 
+   ^(c=CLASS PAYLOAD?
             attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
-         class_extends? class_implements?  { preComments = CollectedComments; } class_body )
+         class_extends? class_implements?  { preComments = CollectedComments; preComments.Add($PAYLOAD.text); } class_body )
+      {
+         if (IsPartial && topLevel) {
+            // Merge into existing descriptor 
+            if (preComments != null) { 
+               foreach (String comment in preComments) {
+                  PartialDescriptor.Comments += comment ;
+               }
+            }
+            // Union all attributes
+            // we don't push through attributes yet
+            PartialDescriptor.Atts += mkString($attributes.st);
+
+            // Merge modifiers
+            if ($modifiers.modList != null && $modifiers.modList.Count > 0) {
+               foreach (string m in $modifiers.modList) {
+                  if (!PartialDescriptor.Mods.Contains(m)) {
+                     PartialDescriptor.Mods.Add(m);
+                  }
+               }
+            }
+
+            if (String.IsNullOrEmpty(PartialDescriptor.TypeParameterList)) {
+               PartialDescriptor.TypeParameterList = mkString($type_parameter_list.st);
+            }
+
+            if (String.IsNullOrEmpty(PartialDescriptor.TypeParameterConstraintsClauses)) {
+               PartialDescriptor.TypeParameterConstraintsClauses = mkString($type_parameter_constraints_clauses.st);
+            }
+
+            if ($class_implements.implementList != null && $class_implements.implementList.Count > 0) {
+               foreach (string m in $class_implements.implementList) {
+                  if (!PartialDescriptor.ClassImplements.Contains(m)) {
+                     PartialDescriptor.ClassImplements.Add(m);
+                  }
+               }
+            }
+
+            if (String.IsNullOrEmpty(PartialDescriptor.ClassBase)) {
+               PartialDescriptor.ClassBase = mkString($class_extends.st);
+            }
+
+            // Union the class bodies
+            PartialDescriptor.ClassBody += mkString($class_body.st);
+         }
+      }
     -> class(modifiers = { $modifiers.st }, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
             extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}) ;
 
@@ -942,10 +1022,13 @@ class_extends:
 	ts+=class_extend+ -> extends(types = { $ts }) ;
 class_extend:
 	^(EXTENDS ts=type) -> { $ts.st } ;
-class_implements:
-	ts+=class_implement+ -> imps(types = { $ts }) ;
-class_implement:
-	^(IMPLEMENTS ts=type) -> { $ts.st };
+class_implements returns [List<String> implementList]
+@init {
+    $implementList = new List<String>();
+}:
+	(class_implement {$implementList.Add($class_implement.st.ToString()); })+ -> imps(types = { $implementList }) ;
+class_implement returns [string implement]:
+	^(IMPLEMENTS ts=type) { $implement = $ts.st.ToString(); } -> { $ts.st };
 	
 interface_type_list:
 	ts+=type (','   ts+=type)* -> commalist(items={ $ts });

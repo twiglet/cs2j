@@ -40,7 +40,26 @@ package(now, includeDate, packageName, imports, comments, modifiers, type, endCo
 <endComments; separator=""\n"">
 >>
 
+import_list(nss) ::= <<
+<nss:{x | import <x>;}; separator=""\n"">
+>>
+
 import_template(ns) ::= ""import <ns>;""
+
+// ****** output partial type ******
+partial_type(now, includeDate, packageName, imports, modifiers, comments, attributes, name, typeparams, extends, imps, body) ::= <<
+<itsmine(now=now,includeDate=includeDate)>
+<if(packageName)>package <packageName>;<endif>
+
+<comments; separator=""\n"">
+<import_list(imports)>
+
+<modifiers(modifiers)>class <name> <typeparams> <extends><if(imps)> implements <imps; separator="",""><endif>
+{
+    <body>
+}
+
+>>
 
 // ******* CLASSES ***********
 
@@ -347,3 +366,4 @@ verbatim_string(payload) ::= <<
         }
     }
 }
+

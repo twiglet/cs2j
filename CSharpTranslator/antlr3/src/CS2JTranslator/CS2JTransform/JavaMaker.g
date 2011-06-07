@@ -33,6 +33,7 @@ scope NSContext {
 // A scope to keep track of the current type context
 scope TypeContext {
     string typeName;
+    Dictionary<String,ClassDescriptor> partialTypes;
 }
 
 @namespace { Twiglet.CS2J.Translator.Transform }
@@ -42,6 +43,7 @@ scope TypeContext {
     using System;
     using System.Text;
     using System.Globalization;
+    using System.Text.RegularExpressions;
 }
 
 @members
@@ -49,11 +51,29 @@ scope TypeContext {
 
     // Since a CS file may comtain multiple top level types (and so generate multiple Java
     // files) we build a map from type name to AST for each top level type
-    // We also build a lit of type names so that we can maintain the order (so comments
+    // We also build a list of type names so that we can maintain the order (so comments
     // at the end of the file will get included when we emit the java for the last type)
     public IDictionary<string, CUnit> CUMap { get; set; }
     public IList<string> CUKeys { get; set; }
 
+    // we keep track of the end position of the previous class / struct member
+    // so that we can collect comments for a partial type definition
+    private int prevMemberEndTokenIndex = -1;
+
+    protected string snaffleComments(int startIndex, int endIndex) {
+       StringBuilder ret = new StringBuilder();
+       List<IToken> toks = ((CommonTokenStream)this.GetTreeNodeStream().TokenStream).GetTokens(startIndex,endIndex);
+       if (toks != null) {
+          foreach (IToken tok in toks) {
+             if (tok.Channel == TokenChannels.Hidden) {
+                ret.Append(new Regex("(\\n|\\r)+").Replace(tok.Text, Environment.NewLine).Trim());
+                // Hide from Pretty Printer
+                tok.Channel = TokenChannels.Hidden - 1;
+             }
+          }
+       }
+       return ret.ToString();
+    }
     protected string ParentNameSpace {
         get {
             return ((NSContext_scope)$NSContext.ToArray()[1]).currentNS;
@@ -140,7 +160,7 @@ scope TypeContext {
     // null, or
     // a single token, or
     // a list of tokens (^(NIL ......))
-    protected CommonTree addModifier(IToken tok, CommonTree mods, CommonTree modToAdd) {
+    protected CommonTree addModifier(CommonTree mods, CommonTree modToAdd) {
        
         CommonTree root = (CommonTree)adaptor.Nil;
         
@@ -149,7 +169,7 @@ scope TypeContext {
         if (mods != null) {
            // Is root node the one we are looking for?
            if (!mods.IsNil) {
-              if (adaptor.GetType(mods) == adaptor.GetType(modToAdd)) {
+              if (adaptor.GetType(mods) == adaptor.GetType(modToAdd) && adaptor.GetText(mods) == adaptor.GetText(modToAdd)) {
                  modSeen = true;
               }
               adaptor.AddChild(root, (CommonTree)adaptor.DupTree(mods));
@@ -157,7 +177,7 @@ scope TypeContext {
            else {
               for (int i = 0; i < adaptor.GetChildCount(mods); i++) {
                  CommonTree child = (CommonTree)adaptor.GetChild(mods,i);
-                 if (adaptor.GetType(child) == adaptor.GetType(modToAdd)) {
+                 if (adaptor.GetType(child) == adaptor.GetType(modToAdd) && adaptor.GetText(child) == adaptor.GetText(modToAdd)) {
                     modSeen = true;
                  }
                  adaptor.AddChild(root, (CommonTree)adaptor.DupTree(child));
@@ -170,6 +190,24 @@ scope TypeContext {
 
         root = (CommonTree)adaptor.RulePostProcessing(root);
         return root;
+    }
+
+    // add all modifiers in modToAdd tree
+    protected CommonTree mergeModifiers(CommonTree mods, CommonTree modToAdd) {
+       
+       if (modToAdd == null)
+          return mods;
+       
+       if (!modToAdd.IsNil) {
+          return addModifier(mods, modToAdd);
+       }
+
+       CommonTree ret = mods; 
+       for (int i = 0; i < adaptor.GetChildCount(modToAdd); i++) {
+          ret = addModifier(mods, (CommonTree)adaptor.GetChild(modToAdd, i));
+       }
+       
+       return ret;
     }
 
     // mods is a list of modifiers.  removes is a list of token types, we remove all modifiers appearing in removes
@@ -467,6 +505,73 @@ scope TypeContext {
        }
        return ret.ToString();
     }
+    
+    // Merges part into combined
+    protected void mergePartialTypes(ClassDescriptor combined, ClassDescriptor part) {
+
+       // append comments
+       combined.Comments += part.Comments;
+       
+       // union all attributes
+       CommonTree attRoot = (CommonTree)adaptor.Nil;
+       adaptor.AddChild(attRoot, combined.Atts); 
+       adaptor.AddChild(attRoot, part.Atts); 
+       combined.Atts = (CommonTree)adaptor.RulePostProcessing(attRoot);
+
+       // merge all modifiers
+       combined.Mods = mergeModifiers(combined.Mods, part.Mods);
+
+       // type parameter list must be the same on all parts
+          
+       // all parts that have a TypeParameterConstraintsClauses must agree 
+       if (combined.TypeParameterConstraintsClauses == null)
+          combined.TypeParameterConstraintsClauses = part.TypeParameterConstraintsClauses;
+
+       // merge all base classes, interfaces
+       combined.ClassBase = mergeModifiers(combined.ClassBase, part.ClassBase);
+
+       // union all class_body
+       CommonTree bodyRoot = (CommonTree)adaptor.Nil;
+       adaptor.AddChild(bodyRoot, combined.ClassBody); 
+       adaptor.AddChild(bodyRoot, part.ClassBody); 
+       combined.ClassBody = (CommonTree)adaptor.RulePostProcessing(bodyRoot);
+
+       // merge partial sub-types
+       foreach (string key in combined.PartialTypes.Keys) {
+          if (part.PartialTypes.ContainsKey(key)) {
+                mergePartialTypes(combined.PartialTypes[key], part.PartialTypes[key]);  
+          }
+       }
+       // Add types in part but not combined
+       foreach (string key in part.PartialTypes.Keys) {
+          if (!combined.PartialTypes.ContainsKey(key)) {
+             combined.PartialTypes[key] = part.PartialTypes[key];  
+          }
+       }
+    }
+
+    protected CommonTree emitPartialTypes(Dictionary<string,ClassDescriptor> partialTypes) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        foreach (ClassDescriptor part in partialTypes.Values) {
+           root.AddChild((CommonTree)magicClassFromDescriptor(part.Token, part).Tree);
+        }
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    protected void mergeCompUnits(CUnit cu, List<string> searchPath, List<string> aliasKeys, List<string> aliasNamespaces) {
+       foreach (string s in searchPath) {
+          if (!cu.SearchPath.Contains(s)) {
+             cu.SearchPath.Add(s);
+          }
+          for (int i = 0; i < aliasKeys.Count; i++) {
+             // TODO: ?? Assume alias -> namespace mapping is the same in all files ....
+             if (!cu.NameSpaceAliasKeys.Contains(aliasKeys[i])) {
+                cu.NameSpaceAliasKeys.Add(aliasKeys[i]);
+                cu.NameSpaceAliasValues.Add(aliasNamespaces[i]);
+             }
+          }
+       }
+    }
 
 }
 
@@ -477,12 +582,15 @@ scope TypeContext {
 ///////////////////////////////////////////////////////
 
 public compilation_unit
-scope NSContext;
+scope NSContext, TypeContext;
 @init {
     $NSContext::currentNS = "";
     $NSContext::namespaces = new List<string>();
     $NSContext::aliasKeys = new List<string>();
     $NSContext::aliasNamespaces = new List<string>();
+
+    $TypeContext::typeName = null;
+    $TypeContext::partialTypes = new Dictionary<String,ClassDescriptor>();
 }
 :
 	namespace_body;
@@ -523,24 +631,37 @@ using_namespace_directive:
 namespace_member_declarations:
 	namespace_member_declaration+ ;
 namespace_member_declaration
+scope TypeContext;
 @init { string ns = $NSContext::currentNS; 
         bool isCompUnit = false;
         CommonTree atts = null;
         CommonTree mods = null;
+        $TypeContext::partialTypes = new Dictionary<string, ClassDescriptor>();
 }
 @after {
     if (isCompUnit) {
        foreach (KeyValuePair<String, CommonTree> treeEntry in $ty.compUnits) {
           if (treeEntry.Value != null) {
-             if (CUKeys.Contains(ns+"."+treeEntry.Key)) {
-                { Warning(treeEntry.Value.Token.Line, "[UNSUPPORTED] Cannot have a class with multiple generic type overloadings: " + ns+"."+treeEntry.Key); }
+             string fqn = ns+(String.IsNullOrEmpty(ns) ? "" : ".")+treeEntry.Key;
+             if (CUKeys.Contains(fqn)) {
+                Warning(treeEntry.Value.Token.Line, "[UNSUPPORTED] Cannot have a class with multiple generic type overloadings: " + fqn);
              }
              else {
-                CUMap.Add(ns+"."+treeEntry.Key, new CUnit(mkPackage(treeEntry.Value.Token, treeEntry.Value, ns),CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
-                CUKeys.Add(ns+"."+treeEntry.Key);
+                CUMap.Add(fqn, new CUnit(mkPackage(treeEntry.Value.Token, treeEntry.Value, ns),CollectSearchPath,CollectAliasKeys,CollectAliasNamespaces)); 
+                CUKeys.Add(fqn);
              }
           }
-       }; 
+       } 
+       foreach (KeyValuePair<String, ClassDescriptor> partialEntry in $TypeContext::partialTypes) {
+          string fqn = ns+(String.IsNullOrEmpty(ns) ? "" : ".")+partialEntry.Key;
+          if (CUKeys.Contains(fqn)) {
+             Warning(partialEntry.Value.Token.Line, "[UNSUPPORTED] Cannot have a class with multiple generic type overloadings: " + fqn);
+          }
+          else {
+             CUMap.Add(fqn, new CUnit(mkPackage(partialEntry.Value.Token, (CommonTree)magicClassFromDescriptor(partialEntry.Value.Token, partialEntry.Value).Tree, ns), CollectSearchPath, CollectAliasKeys, CollectAliasNamespaces, true)); 
+             CUKeys.Add(fqn);
+          }
+       } 
     }
 }:
 	namespace_declaration
@@ -553,12 +674,11 @@ type_declaration[CommonTree atts, CommonTree mods] returns [Dictionary<String,Co
    $compUnits = new Dictionary<String,CommonTree>();
 }
 :
-    ('partial') => p='partial'!  { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); }  
-                                (pc=class_declaration[$atts, $mods, true /* toplevel */]          { $compUnits.Add($pc.name, $pc.tree); }
-								| ps=struct_declaration[$atts, $mods, true /* toplevel */]        { $compUnits.Add($ps.name, $ps.tree); }
+    ('partial') => p='partial'! (pc=class_declaration[$atts, $mods, true /* toplevel */, true /* isPartial */]          
+								| ps=struct_declaration[$atts, $mods, true /* toplevel */, true /* isPartial */]        
 								| pi=interface_declaration[$atts, $mods]                          { $compUnits.Add($pi.name, $pi.tree); } ) 
-	| c=class_declaration[$atts, $mods, true /* toplevel */]        { $compUnits.Add($c.name, $c.tree); }
-	| s=struct_declaration[$atts, $mods, true /* toplevel */]       { $compUnits.Add($s.name, $s.tree); }
+	| c=class_declaration[$atts, $mods, true /* toplevel */, false /* isPartial */]        { $compUnits.Add($c.name, $c.tree); }
+	| s=struct_declaration[$atts, $mods, true /* toplevel */, false /* isPartial */]       { $compUnits.Add($s.name, $s.tree); }
 	| i=interface_declaration[$atts, $mods]                         { $compUnits.Add($i.name, $i.tree); }
 	| e=enum_declaration[$atts, $mods]                              { $compUnits.Add($e.name, $e.tree); }
 	| d=delegate_declaration[$atts, $mods, true /* toplevel */]     { $compUnits = $d.compUnits; }
@@ -578,18 +698,24 @@ modifier:
 	'new' -> /* No new in Java*/ | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
 	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | e='extern'  { Warning($e.line, "[UNSUPPORTED] 'extern' modifier"); }  | 'virtual' -> | 'override' -> /* not in Java, maybe convert to override annotation */;
 
-class_member_declaration:
+class_member_declaration
+@after {
+   this.prevMemberEndTokenIndex =  adaptor.GetTokenStopIndex($class_member_declaration.tree);
+}:   
 	a=attributes?
 	m=modifiers?
 	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, $m.modList) } $ct constant_declarators)
 	| ev=event_declaration[$a.tree, $m.tree] -> $ev 
-	| p='partial' { Warning($p.line, "[UNSUPPORTED] 'partial' definition"); } (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text] -> $m3 
+	| p='partial' (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text, true /* isPartial */] -> { $m3.tree != null}? $m3
+                                                                                                                              -> 
 			   | pi=interface_declaration[$a.tree, $m.tree] -> $pi
-			   | pc=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $pc
-			   | ps=struct_declaration[$a.tree, $m.tree, false /* toplevel */] -> $ps)
+			   | pc=class_declaration[$a.tree, $m.tree, false /* toplevel */, true /* isPartial */] -> { $pc.tree != null}? $pc
+                                                                                                    -> 
+			   | ps=struct_declaration[$a.tree, $m.tree, false /* toplevel */, true /* isPartial */] -> { ps.tree != null}? $ps
+                                                                                                     -> )
 	| i=interface_declaration[$a.tree, $m.tree] -> $i
-	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text] -> $m1 
-	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text] -> $m2
+	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text, false /* isPartial */] -> $m1 
+	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text, false /* isPartial */] -> $m2
 		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
 		   | (type_name   '.'   'this') => tn=type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree, $tn.tree] -> $ix1
 		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree, null]	-> $ix2 //this
@@ -598,8 +724,8 @@ class_member_declaration:
 	       )
 //	common_modifiers// (method_modifiers | field_modifiers)
 	
-	| cd=class_declaration[$a.tree, $m.tree, false /* toplevel */] -> $cd
-	| sd=struct_declaration[$a.tree, $m.tree, false /* toplevel */] -> $sd
+	| cd=class_declaration[$a.tree, $m.tree, false /* toplevel */, false /* isPartial */] -> $cd
+	| sd=struct_declaration[$a.tree, $m.tree, false /* toplevel */, false /* isPartial */] -> $sd
 	| ed=enum_declaration[$a.tree, $m.tree] -> $ed
 	| dd=delegate_declaration[$a.tree, $m.tree, false /* toplevel */] -> { mkFlattenDictionary($dd.tree.Token,$dd.compUnits) }
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
@@ -923,9 +1049,9 @@ pointer_type:
 ///////////////////////////////////////////////////////
 //	Statement Section
 ///////////////////////////////////////////////////////
-block:
-	';'
-	| '{'   statement_list?   '}';
+block returns [bool isEmpty]:
+	';' { $isEmpty = true; }
+	| '{'   statement_list?   '}' { $isEmpty = false; };
 statement_list:
 	statement[/* isStatementListCtxt */ true]+ ;
 	
@@ -1132,11 +1258,42 @@ attribute_argument_expression:
 //	Class Section
 ///////////////////////////////////////////////////////
 
-class_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [string name]
+class_declaration[CommonTree atts, CommonTree mods, bool toplevel, bool isPartial] returns [string name]
 scope TypeContext;
+@init{
+   $TypeContext::partialTypes = new Dictionary<String,ClassDescriptor>();
+   int prevMemberEndIndex = this.prevMemberEndTokenIndex;
+   IToken endToken = null;
+}
 :
-	c='class' identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body   ';'? 
-    -> ^(CLASS[$c.Token] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($c.token, $mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+	c='class' identifier  { $TypeContext::typeName = $identifier.thetext; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.thetext, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body[$isPartial] { endToken = $class_body.endToken; }   (s=';' { endToken = $s.token; })? 
+      {
+         if ($isPartial) {
+
+            // Strip off braces
+            CommonTree newClassBody = dupTree($class_body.tree);
+            int bodyChildren = adaptor.GetChildCount(newClassBody);
+            if (bodyChildren >= 2 && ((CommonTree)adaptor.GetChild(newClassBody, 0)).Type == OPEN_BRACE && ((CommonTree)adaptor.GetChild(newClassBody, bodyChildren - 1)).Type == CLOSE_BRACE) {
+               adaptor.DeleteChild(newClassBody, bodyChildren - 1);
+               adaptor.DeleteChild(newClassBody, 0);
+               newClassBody = (CommonTree)adaptor.RulePostProcessing(newClassBody);
+            } 
+            if (!toplevel) {
+              $mods = addModifier($mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static"));
+            }
+            ClassDescriptor klass = new ClassDescriptor($c.token, snaffleComments(prevMemberEndIndex, $c.token.TokenIndex), $atts, $mods, $identifier.tree, $type_parameter_list.tree, $class_base.tree, $type_parameter_constraints_clauses.tree, newClassBody, $TypeContext::partialTypes);
+            // add to parent's context
+            Dictionary<String,ClassDescriptor> parentPartialTypes = ((TypeContext_scope)$TypeContext.ToArray()[1]).partialTypes;
+            if (parentPartialTypes.ContainsKey($identifier.thetext)) {
+               mergePartialTypes(parentPartialTypes[$identifier.thetext], klass);
+            }
+            else {
+               parentPartialTypes[$identifier.thetext] = klass;
+            }
+        }
+      }
+    -> {$isPartial}? 
+    -> ^(CLASS[$c.Token] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 type_parameter_list returns [List<string> names] 
 @init {
@@ -1145,7 +1302,7 @@ type_parameter_list returns [List<string> names]
     '<'! attributes? t1=type_parameter { names.Add($t1.name); } ( ','!  attributes? tn=type_parameter { names.Add($tn.name); })* '>'! ;
 
 type_parameter returns [string name]:
-    identifier { $name = $identifier.text; } ;
+    identifier { $name = $identifier.thetext; } ;
 
 class_base:
 	// just put all types in a single list.  In NetMaker we will extract the base class if necessary
@@ -1154,8 +1311,10 @@ class_base:
 //interface_type_list:
 //	ts+=type (','   ts+=type)* -> $ts+;
 
-class_body:
-	'{'   class_member_declarations?   '}' ;
+class_body[bool isPartial] returns [IToken endToken]:
+	'{'   class_member_declarations?  e='}' { $endToken = $e.token; } 
+     -> {!$isPartial}? '{'   class_member_declarations? { emitPartialTypes($TypeContext::partialTypes) }  '}'
+     -> '{'   class_member_declarations? '}' ;
 class_member_declarations:
 	class_member_declaration+ ;
 
@@ -1178,7 +1337,7 @@ variable_declarator:
 	type_name ('='   variable_initializer)? ;		// eg. event EventHandler IInterface.VariableName = Foo;
 
 ///////////////////////////////////////////////////////
-method_declaration [CommonTree atts, CommonTree mods, List<string> modList, CommonTree type, string typeText]
+method_declaration [CommonTree atts, CommonTree mods, List<string> modList, CommonTree type, string typeText, bool isPartial]
 @init {
     bool isToString = false;
     bool isEquals = false;
@@ -1247,14 +1406,17 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
           }
           exceptions = IsJavaish ? $throw_exceptions.tree : $b.exceptionList;
        }
-       -> $mainMethod?
+       -> {!($isPartial && $b.isEmpty)}?
+          $mainMethod?
           ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            magicIdentifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions });
+            magicIdentifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? $b { exceptions })
+       ->
+;
 
-method_body [bool smotherExceptions] returns [CommonTree exceptionList]:
+method_body [bool smotherExceptions] returns [CommonTree exceptionList, bool isEmpty]:
 	{smotherExceptions}? b=block nb=magicSmotherExceptions[dupTree($b.tree) ]
        -> $nb 
-   | b=block el=magicThrowsException[true,$b.tree.Token] { $exceptionList=$el.tree; }   
+   | b=block el=magicThrowsException[true,$b.tree.Token] { $exceptionList=$el.tree; $isEmpty = $b.isEmpty; }   
        -> $b
          ;
 
@@ -1328,7 +1490,7 @@ remove_accessor_declaration:
 enum_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	e='enum'   identifier  { $name = $identifier.text; $TypeContext::typeName = $identifier.text; } enum_base?   enum_body   ';'? 
+	e='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } enum_base?   enum_body   ';'? 
             -> ^(ENUM[$e.token, "ENUM"] { dupTree($atts) } { dupTree($mods) } identifier enum_base? enum_body);
 enum_base:
 	':'   integral_type ;
@@ -1404,7 +1566,7 @@ scope TypeContext;
          $compUnits.Add(delName, dupTree($delegate_declaration.tree));
 }
 :
-	d='delegate'   return_type   identifier { delName = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list?  {ifTree = mkType($d.token, $identifier.tree, $variant_generic_parameter_list.tyargs); } 
+	d='delegate'   return_type   identifier { delName = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; }  variant_generic_parameter_list?  {ifTree = mkType($d.token, $identifier.tree, $variant_generic_parameter_list.tyargs); } 
 		'('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?   ';' 
             magicDelegateInterface[$d.token, $return_type.tree, $identifier.tree, $formal_parameter_list.tree, $variant_generic_parameter_list.tyargs] 
             magicMultiInvokerMethod[$d.token, $return_type.tree, $return_type.thetext == "Void" || $return_type.thetext == "System.Void", ifTree, $formal_parameter_list.tree, mkArgsFromParams($d.token, $formal_parameter_list.tree), $variant_generic_parameter_list.tyargs] 
@@ -1415,14 +1577,14 @@ scope TypeContext;
          AddToImports("java.util.ArrayList");
          AddToImports("CS2JNet.JavaSupport.util.ListSupport");
       }
-      magicMultiDelClass[$d.token, $atts, toplevel ? dupTree($mods) : addModifier($d.token, $mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")), multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
+      magicMultiDelClass[$d.token, $atts, toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")), multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
       {
          $compUnits.Add(multiDelName, $magicMultiDelClass.tree);
       }
       -> 
 //    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
 //		'('   formal_parameter_list?   ')' );
-    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($d.token, $mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")) }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
+    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")) }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
     ;
 delegate_modifiers:
 	modifier+ ;
@@ -1505,7 +1667,7 @@ parameter_array:
 interface_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 :
-	c='interface'   identifier { $name = $identifier.text; $TypeContext::typeName = $identifier.text; }  variant_generic_parameter_list? 
+	c='interface'   identifier { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; }  variant_generic_parameter_list? 
     	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
     -> ^(INTERFACE[$c.Token, "interface"] { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
@@ -1551,14 +1713,48 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
     ;
 	
 ///////////////////////////////////////////////////////
-struct_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [string name]
+struct_declaration[CommonTree atts, CommonTree mods, bool toplevel, bool isPartial] returns [string name]
 scope TypeContext;
+@init {
+   $TypeContext::partialTypes = new Dictionary<String,ClassDescriptor>();
+   IToken endToken = null;
+}
 :
-	c='struct'  identifier  { $TypeContext::typeName = $identifier.text; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.text, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.text]   ';'? 
-    -> ^(CLASS[$c.Token, "class"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($c.token, $mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
+	c='struct'  identifier  { $TypeContext::typeName = $identifier.thetext; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.thetext, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$isPartial, $identifier.thetext] { endToken = $struct_body.endToken; }   (s=';' { endToken = $s.token; })?
+      {
+         if ($isPartial) {
 
-struct_body [string structName]:
-	o='{'  magicDefaultConstructor[$o.token, structName] class_member_declarations? '}' ;
+            // Strip off braces
+            CommonTree newClassBody = dupTree($struct_body.tree);
+            int bodyChildren = adaptor.GetChildCount(newClassBody);
+            if (bodyChildren >= 2 && ((CommonTree)adaptor.GetChild(newClassBody, 0)).Type == OPEN_BRACE && ((CommonTree)adaptor.GetChild(newClassBody, bodyChildren - 1)).Type == CLOSE_BRACE) {
+               adaptor.DeleteChild(newClassBody, bodyChildren - 1);
+               adaptor.DeleteChild(newClassBody, 0);
+               newClassBody = (CommonTree)adaptor.RulePostProcessing(newClassBody);
+            } 
+            if (!toplevel) {
+              $mods = addModifier($mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static"));
+            }
+
+            ClassDescriptor klass = new ClassDescriptor($c.token, snaffleComments(this.prevMemberEndTokenIndex, $c.token.TokenIndex), $atts, $mods, $identifier.tree, $type_parameter_list.tree, $class_base.tree, $type_parameter_constraints_clauses.tree, newClassBody, $TypeContext::partialTypes);
+
+            // add to parent's context
+            Dictionary<String,ClassDescriptor> parentPartialTypes = ((TypeContext_scope)$TypeContext.ToArray()[1]).partialTypes;
+            if (!parentPartialTypes.ContainsKey($identifier.thetext)) {
+               mergePartialTypes(parentPartialTypes[$identifier.thetext], klass);
+            }
+            else {
+               parentPartialTypes[$identifier.thetext] = klass;   
+            }
+         }
+      }
+    -> {$isPartial}?
+    -> ^(CLASS[$c.Token, "class"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
+
+struct_body [bool isPartial, string structName] returns [IToken endToken]:
+	o='{'  magicDefaultConstructor[$o.token, structName] class_member_declarations? e='}' { $endToken = $e.token; }
+    -> {$isPartial}? '{'  magicDefaultConstructor class_member_declarations? { emitPartialTypes($TypeContext::partialTypes) } '}'
+    -> '{'  magicDefaultConstructor class_member_declarations? '}' ;
 
 
 ///////////////////////////////////////////////////////
@@ -1702,7 +1898,7 @@ local_variable_declarators returns [List<string> variableNames]
 }:
 	i1=local_variable_declarator { $variableNames.Add($i1.variableName); } (',' ip=local_variable_declarator { $variableNames.Add($ip.variableName); })* ;
 local_variable_declarator returns [string variableName]:
-	identifier { $variableName = $identifier.text; } ('='   local_variable_initializer)? ; 
+	identifier { $variableName = $identifier.thetext; } ('='   local_variable_initializer)? ; 
 local_variable_initializer:
 	expression
 	| array_initializer 
@@ -1867,10 +2063,11 @@ predefined_type returns [string thetext]
     | 'ushort'  { $thetext = "System.UInt16"; } 
     ;
 
-identifier
+identifier returns [string thetext]
 @after {
     string fixedId = fixBrokenId($identifier.tree.Token.Text); 
     $identifier.tree.Token.Text = fixedId;
+    $thetext = $identifier.tree.Token.Text;
 }:
  	IDENTIFIER | also_keyword; 
 
@@ -2155,3 +2352,5 @@ magicMultiDelClass[IToken tok, CommonTree atts, CommonTree mods, string classNam
          OPEN_BRACE[tok, "{"] {dupTree(invokeMethod)} { dupTree(members) } CLOSE_BRACE[tok, "}"])
 ;
 
+magicClassFromDescriptor[IToken tok, ClassDescriptor klass]:
+-> ^(CLASS[tok] PAYLOAD[tok, klass.Comments] { dupTree(klass.Atts) } { dupTree(klass.Mods) } { dupTree(klass.Identifier) } { dupTree(klass.TypeParameterConstraintsClauses) } { dupTree(klass.TypeParameterList) } { dupTree(klass.ClassBase) } OPEN_BRACE[tok, "{"] { dupTree(klass.ClassBody) } { emitPartialTypes(klass.PartialTypes) } CLOSE_BRACE[tok, "}"] );

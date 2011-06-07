@@ -2212,7 +2212,7 @@ scope NSContext,SymTab;
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
-   ^(c=CLASS  attributes? modifiers? identifier type_parameter_constraints_clauses? 
+   ^(c=CLASS  PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? 
         type_parameter_list? 
              { $NSContext::currentNS = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.thetext, $type_parameter_list.tyParams); if (CompUnitName == null) CompUnitName = $NSContext::currentNS; }
          class_implements? 
@@ -2251,7 +2251,7 @@ scope NSContext,SymTab;
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
-    -> ^($c attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
+    -> ^($c PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
 
 type_parameter_list returns [List<string> tyParams]
 @init {
@@ -2265,20 +2265,27 @@ type_parameter returns [string thetext]:
 class_extends:
 	class_extend+ ;
 class_extend:
-	^(EXTENDS type) ;
+	^(EXTENDS type);
 
 // If first implements type is a class then convert to extends
-class_implements returns [bool hasExtends, TypeRepTemplate extendDotNetType]:
-	class_implement_or_extend { $hasExtends = $class_implement_or_extend.hasExtends; $extendDotNetType = $class_implement_or_extend.extendDotNetType;  }
-    class_implement* ;
-
-class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNetType]
+class_implements returns [bool hasExtends, TypeRepTemplate extendDotNetType]
 @init {
-    $hasExtends = false;
+    CommonTree extends = null; 
 }:
-	^(i=IMPLEMENTS t=type  
-            { if ($t.dotNetType is ClassRepTemplate) {
-                    $hasExtends = true;
+	(class_implement_or_extend[extends == null] { if ($class_implement_or_extend.extends != null) {
+                                    extends = $class_implement_or_extend.extends;
+                                    $hasExtends = true; 
+                                    $extendDotNetType = $class_implement_or_extend.extendDotNetType;  
+                                  }})+
+    ->  { extends } class_implement_or_extend*;
+
+class_implement_or_extend[bool lookingForBase] returns [CommonTree extends, TypeRepTemplate extendDotNetType]
+@init {
+    $extends = null;
+}:
+	^(i=IMPLEMENTS t=type  magicExtends[$lookingForBase && $t.dotNetType is ClassRepTemplate, $i.token, $t.tree]
+            { if ($lookingForBase && $t.dotNetType is ClassRepTemplate) {
+                    $extends = $magicExtends.tree;
                     $extendDotNetType = $t.dotNetType;
                 }
                if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
@@ -2287,18 +2294,8 @@ class_implement_or_extend returns [bool hasExtends, TypeRepTemplate extendDotNet
                     $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
                }
             } ) 
-              -> { $t.dotNetType is ClassRepTemplate }? ^(EXTENDS[$i.token, "extends"] type)
+              -> { $lookingForBase && $t.dotNetType is ClassRepTemplate }? 
               -> ^($i $t);
-	
-class_implement:
-	^(IMPLEMENTS t=type 
-          { 
-             if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
-             if($t.dotNetType.IsA(GenericICollectionType,AppEnv) && $t.dotNetType.TypeParams.Length > 0) {
-                $NSContext::IsGenericICollection = true;
-                $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
-             }
-          }) ;
 	
 class_body
 @init {
@@ -3294,4 +3291,9 @@ magicTypeFromTemplate[bool isOn, IToken tok, TypeRepTemplate dotNetType]:
    -> { $isOn && $dotNetType.Tree != null}? { dupTree((CommonTree)$dotNetType.Tree) }
    -> { $isOn }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, $dotNetType.mkFormattedTypeName(false, "<",">")])  
    ->
+   ;
+
+magicExtends[bool isOn, IToken tok, CommonTree type]:
+ -> { $isOn }? ^(EXTENDS[tok, "extends"] { dupTree($type) })
+ ->
    ;
