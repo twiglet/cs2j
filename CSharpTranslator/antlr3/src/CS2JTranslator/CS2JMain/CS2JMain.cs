@@ -458,20 +458,6 @@ namespace Twiglet.CS2J.Translator
                     string typeName = javaMaker.CUKeys[i];
                     CommonTree typeAST = javaMaker.CUMap[typeName].Tree;
 
-                    if (cfg.DebugLevel >= 10)
-                    {
-                        Console.Out.WriteLine("Namepace Search Path:");    
-                        foreach (String ns in javaMaker.CUMap[typeName].SearchPath)
-                        {
-                            Console.Out.WriteLine(ns);    
-                        }
-                        Console.Out.WriteLine("Namepace Alias Map:");    
-                        for (int j = 0; j < javaMaker.CUMap[typeName].NameSpaceAliasKeys.Count; j++)
-                        {
-                            Console.Out.WriteLine("{0} => {1}", javaMaker.CUMap[typeName].NameSpaceAliasKeys[j], javaMaker.CUMap[typeName].NameSpaceAliasValues[j]);    
-                        }
-                    }
-
                     string claName = typeName.Substring(typeName.LastIndexOf('.')+1); 
                     string nsDir = typeName.Substring(0,typeName.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
                     
