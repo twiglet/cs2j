@@ -50,7 +50,6 @@
     <Compile Include="PartialUserTwo.cs" />
     <Compile Include="PartialInner.cs" />
     <Compile Include="FullOuterPartialInner.cs" />
-    <Compile Include="ophelie.cs" />
     <Compile Include="PartialOuterPartialInner.cs" />
     <Compile Include="PartialOuterPartialInnerB.cs" />
   </ItemGroup>
