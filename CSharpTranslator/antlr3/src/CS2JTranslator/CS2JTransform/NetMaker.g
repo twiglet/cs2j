@@ -2212,7 +2212,7 @@ scope NSContext,SymTab;
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
 :
-   ^(c=CLASS  PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? 
+   ^(c=CLASS  'partial'? PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? 
         type_parameter_list? 
              { $NSContext::currentNS = NSPrefix(ParentNameSpace) + mkGenericTypeAlias($identifier.thetext, $type_parameter_list.tyParams); if (CompUnitName == null) CompUnitName = $NSContext::currentNS; }
          class_implements? 
@@ -2251,7 +2251,7 @@ scope NSContext,SymTab;
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
-    -> ^($c PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
+    -> ^($c 'partial'? PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
 
 type_parameter_list returns [List<string> tyParams]
 @init {
@@ -2467,7 +2467,7 @@ parameter_array:
 
 ///////////////////////////////////////////////////////
 interface_declaration:
-   ^(INTERFACE attributes? modifiers? identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
+   ^(INTERFACE 'partial'? attributes? modifiers? identifier type_parameter_constraints_clauses?   variant_generic_parameter_list? 
     	class_extends?    interface_body ) ;
 interface_modifiers: 
 	modifier+ ;

@@ -46,37 +46,16 @@ import_list(nss) ::= <<
 
 import_template(ns) ::= ""import <ns>;""
 
-// ****** output partial type ******
-partial_type(now, includeDate, packageName, imports, modifiers, comments, attributes, name, typeparams, extends, imps, body) ::= <<
-<itsmine(now=now,includeDate=includeDate)>
-<if(packageName)>package <packageName>;<endif>
-
-<comments; separator=""\n"">
-<import_list(imports)>
-
-<modifiers(modifiers)>class <name> <typeparams> <extends><if(imps)> implements <imps; separator="",""><endif>
-{
-    <body>
-}
-
->>
-
 // ******* CLASSES ***********
 
-class(modifiers, comments, attributes, name, typeparams, extends, imps, body) ::= <<
+class(modifiers, comments, attributes, type, name, typeparams, extends, imps, body, partial_types, end_comments) ::= <<
 <comments; separator=""\n"">
-<modifiers(modifiers)>class <name> <typeparams> <extends> <imps>
+<modifiers><if(type)><type><else>class<endif> <name> <typeparams> <extends> <imps>
 {
     <body>
+    <partial_types>
 }
->>
-
-iface(modifiers, comments, attributes, name, typeparams, imps, body) ::= <<
-<comments; separator=""\n"">
-<modifiers(modifiers)>interface <name> <typeparams> <imps>
-{
-    <body>
-}
+<end_comments; separator=""\n"">
 >>
 
 class_body(entries) ::= <<
@@ -89,7 +68,7 @@ class_member(comments, member) ::= <<
 >>
 
 constructor(modifiers, name, params, exceptions, body, bodyIsSemi) ::= <<
-<modifiers(modifiers)><name>(<params; separator="", "">)<if(exceptions)> throws <exceptions; separator="", ""><endif> <if(bodyIsSemi)>;
+<modifiers><name>(<params; separator="", "">)<if(exceptions)> throws <exceptions; separator="", ""><endif> <if(bodyIsSemi)>;
 <else>
 <body>
 <endif>
@@ -97,7 +76,7 @@ constructor(modifiers, name, params, exceptions, body, bodyIsSemi) ::= <<
 >>
 
 static_constructor(modifiers, body, bodyIsSemi) ::= <<
-<modifiers(modifiers)><if(bodyIsSemi)>;
+<modifiers><if(bodyIsSemi)>;
 <else>
 <body>
 <endif>
@@ -105,14 +84,14 @@ static_constructor(modifiers, body, bodyIsSemi) ::= <<
 >>
 
 method(modifiers, typeparams, type, name, params, exceptions, body, bodyIsSemi) ::= <<
-<modifiers(modifiers)><typeparams> <type> <name>(<params; separator="", "">)<if(exceptions)> throws <exceptions; separator="", ""><endif> <if(bodyIsSemi)>;
+<modifiers><typeparams><type> <name>(<params>)<if(exceptions)> throws <exceptions; separator="", ""><endif> <if(bodyIsSemi)>;
 <else>
 <body>
 <endif>
 <\n>
 >>
 
-field(modifiers, type, field, comments, init) ::= ""<comments><modifiers(modifiers)><type> <field>;""
+field(modifiers, type, field, comments, init) ::= ""<comments><modifiers><type> <field>;""
 
 variable_declarators(varinits) ::= ""<varinits; separator=\"", \"">""
 variable_declarator(typename,init) ::= ""<typename><if(init)> = <init><endif>"" 
@@ -122,7 +101,7 @@ primary_expression_start_parts(start,follows) ::= ""<start><follows>""
 type_param_constraint(param, constraints) ::= ""<param> extends <constraints; separator=\"" & \"">""
 
 fixed_parameter(mod,type,name,def) ::= <<
-<mod> <type> <name><if(def)> = <def><endif>
+<mod><type> <name><if(def)> = <def><endif>
 >>
 
 varargs(type,name) ::= <<
@@ -141,7 +120,7 @@ statement(statement) ::= <<
 
 annotation(modifiers, comments, attributes, name, body) ::= <<
 <comments; separator=""\n"">
-<modifiers(modifiers)>@interface <name>
+<modifiers>@interface <name>
 {
     <body>
 }
@@ -159,7 +138,7 @@ throw(exp) ::= ""throw <exp>;""
 
 enum(modifiers,comments, attributes, name, body) ::= <<
 <comments; separator=""\n"">
-<modifiers(modifiers)>enum <name>
+<modifiers>enum <name>
 {
     <body>
 }
@@ -175,7 +154,9 @@ enum_member(comments, value) ::= <<
 type(name, rs, stars, opt) ::= ""<name><rs><stars><opt>""
 namespace_or_type(type1, type2, types) ::= ""<type1><if(type2)>::<type2><endif><if(types)>.<types; separator=\"".\""><endif>""
 
-modifiers(mods) ::= ""<if(mods)><mods; separator=\"" \""> <endif>""
+modifiers(mods) ::= <<
+<if(mods)><mods; separator="" ""> <endif>
+>>
 
 type_parameter_list(items) ::= <<
 \<<items; separator="", "">\>

@@ -258,45 +258,24 @@ namespace Twiglet.CS2J.Translator.Transform
         public bool IsPartial {get; set;}
     }
 
-    public class ClassDescriptor {
-       public IToken Token { get;set; }
-       public String Comments { get;set; }
-       public CommonTree Atts { get;set; }
-       public CommonTree Mods { get;set; }
-       public CommonTree Identifier { get;set; }
-       public CommonTree TypeParameterList { get;set; }
-       public CommonTree ClassBase { get;set; }
-       public CommonTree TypeParameterConstraintsClauses { get;set; }
-       public CommonTree ClassBody { get;set; }
-       public Dictionary<String, ClassDescriptor> PartialTypes { get;set; }
-       
-       public ClassDescriptor(IToken inToken, String inComments, CommonTree inAtts, CommonTree inMods, CommonTree inIdentifier, CommonTree inTypeParameterList, CommonTree inClassBase, CommonTree inTypeParameterConstraintsClauses, CommonTree inClassBody, Dictionary<String, ClassDescriptor> inPartialTypes) {
-          Token = inToken;
-          Comments = inComments;
-          Atts = inAtts;
-          Mods = inMods;
-          Identifier = inIdentifier;
-          TypeParameterList = inTypeParameterList;
-          ClassBase = inClassBase;
-          TypeParameterConstraintsClauses = inTypeParameterConstraintsClauses;
-          ClassBody = inClassBody;
-          PartialTypes = inPartialTypes;
-       }
-    }
-
+   // This structure holds (serialized) consolidated strings describing
+   // partial classes and interfaces 
     public class ClassDescriptorSerialized {
        public String FileName { get;set; }
        public List<String> Imports { get;set; }
        public String Package { get;set; }
+       public String Type { get;set; }
        public String Comments { get;set; }
        public String Atts { get;set; }
        public List<String> Mods { get;set; }
        public String Identifier { get;set; }
        public String TypeParameterList { get;set; }
-       public String ClassBase { get;set; }
+       public List<String> ClassExtends { get;set; }  // Can have multiple extends in an interface
        public List<String> ClassImplements { get;set; }
-       public String TypeParameterConstraintsClauses { get;set; }
        public String ClassBody { get;set; }
+       public String EndComments { get;set; }
+
+       public Dictionary<String,ClassDescriptorSerialized> PartialTypes { get;set; }
        
        public ClassDescriptorSerialized(string name)
        {
@@ -304,14 +283,16 @@ namespace Twiglet.CS2J.Translator.Transform
           Comments = "";
           Imports = new List<String>();
           Package = "";
+          Type = "class";
           Atts = "";
           Mods = new List<String>();
           Identifier = name;
           TypeParameterList = "";
-          ClassBase = "";
+          ClassExtends = new List<String>();
           ClassImplements = new List<String>();
-          TypeParameterConstraintsClauses = "";
           ClassBody = "";
+          EndComments = "";
+          PartialTypes = new Dictionary<String,ClassDescriptorSerialized>();
        }
     }
 

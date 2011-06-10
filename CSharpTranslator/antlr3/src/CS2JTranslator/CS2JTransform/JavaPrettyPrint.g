@@ -12,6 +12,11 @@ options {
     output=template;
 }
 
+// We don't emit partial types as soon as we generate them, we merge them unti we know we hve seen all parts
+scope TypeContext {
+    Dictionary<string,ClassDescriptorSerialized> partialTypes;
+}
+
 @namespace { Twiglet.CS2J.Translator.Transform }
 
 @header
@@ -25,9 +30,9 @@ options {
 @members
 {
 
-    public bool IsPartial { get; set; }
     public bool IsLast { get; set; }
     public int EmittedCommentTokenIdx { get; set; }
+    // If top level is partial then this will contain the components so that we can mere with other parts down the line
     public ClassDescriptorSerialized PartialDescriptor { get; set; }
 
     private List<string> collectedComments = null;
@@ -293,20 +298,139 @@ options {
     protected string mkString(object s) {
        return (s == null ? String.Empty : s.ToString()); 
     }
+    
+    protected void mergeParts(ClassDescriptorSerialized master, ClassDescriptorSerialized part) {
+       // Merge into existing descriptor 
+       if (!String.IsNullOrEmpty(part.Comments)) {
+          master.Comments += "\n" + part.Comments;
+       }
+       if (!String.IsNullOrEmpty(part.EndComments)) {
+          master.EndComments += "\n" + part.EndComments;
+       }
+
+       // So that we can set "class" as default an doverride it when we see its an interface
+       master.Type = part.Type;
+
+       // Union all attributes
+       // we don't push through attributes yet
+       master.Atts += part.Atts;
+
+       // Merge modifiers
+       foreach (string m in part.Mods) {
+          if (!master.Mods.Contains(m)) {
+             master.Mods.Add(m);
+          }
+       }
+
+       if (String.IsNullOrEmpty(master.TypeParameterList)) {
+          master.TypeParameterList = part.TypeParameterList;
+       }
+
+       foreach (string m in part.ClassExtends) {
+          if (!master.ClassExtends.Contains(m)) {
+             master.ClassExtends.Add(m);
+          }
+       }
+
+       foreach (string m in part.ClassImplements) {
+          if (!master.ClassImplements.Contains(m)) {
+             master.ClassImplements.Add(m);
+          }
+       }
+
+       // Union the class bodies
+       if (!String.IsNullOrEmpty(part.ClassBody)) {
+          master.ClassBody += "\n" + part.ClassBody;
+       }
+
+       foreach (KeyValuePair<String,ClassDescriptorSerialized> d in part.PartialTypes) {
+          if (master.PartialTypes.ContainsKey(d.Key)) {
+             mergeParts(master.PartialTypes[d.Key], part.PartialTypes[d.Key]);
+          }
+          else {
+             master.PartialTypes[d.Key] = part.PartialTypes[d.Key];
+          }
+       }
+
+    }
+
+    public StringTemplate emitPackage(ClassDescriptorSerialized part)
+    {
+          
+       // Pretty print as text
+       StringTemplate pkgST = %package();
+       %{pkgST}.now = DateTime.Now; 
+       %{pkgST}.includeDate = Cfg.TranslatorAddTimeStamp; 
+       %{pkgST}.packageName = part.Package;
+       StringTemplate impST = %import_list();
+       %{impST}.nss = part.Imports;
+       %{pkgST}.imports = impST;
+       %{pkgST}.type = emitPartialType(part);
+       %{pkgST}.endComments = part.EndComments;
+ 
+       return pkgST;
+    }
+
+    public StringTemplate emitPartialType(ClassDescriptorSerialized part)
+    {
+          
+       // Pretty print as text
+       StringTemplate modST = %modifiers();
+       %{modST}.mods = part.Mods; 
+       StringTemplate serTy = %class();
+       %{serTy}.comments = part.Comments; 
+       %{serTy}.modifiers = modST;
+       %{serTy}.type = part.Type; 
+       %{serTy}.name = part.Identifier; 
+       %{serTy}.typeparams = part.TypeParameterList;
+       StringTemplate extTy = %extends();
+       %{extTy}.types = part.ClassExtends; 
+       %{serTy}.extends = extTy; 
+       StringTemplate impsTy = %imps();
+       %{impsTy}.types = part.ClassImplements; 
+       %{serTy}.imps = impsTy; 
+       %{serTy}.body = part.ClassBody; 
+       %{serTy}.partial_types = emitParts(part.PartialTypes); 
+       %{serTy}.end_comments = part.EndComments; 
+       return serTy;
+    }
+
+    protected StringTemplate emitParts(Dictionary<string, ClassDescriptorSerialized> partialTypes)
+    {
+          
+       // Pretty print as text
+       List<StringTemplate> serParts = new List<StringTemplate>();
+       foreach (ClassDescriptorSerialized part in partialTypes.Values) {
+          StringTemplate partST = emitPartialType(part);
+          serParts.Add(partST);
+       }
+       StringTemplate allParts = %seplist();
+       %{allParts}.items = serParts;
+       %{allParts}.sep = "\n";
+
+       return allParts;
+    }
 
 }
 
 public compilation_unit
+scope TypeContext;
 @init{
     initPrecedence();
+    $TypeContext::partialTypes = new Dictionary<string,ClassDescriptorSerialized>();
 }
 :
     ^(PACKAGE nm=PAYLOAD imports? type_declaration) 
 
       {
          if (IsLast) collectComments(); 
-         if (IsPartial) {
-            // Merge into existing descriptor 
+         if (PartialDescriptor != null && $TypeContext::partialTypes.Count > 0) {
+            // Merge into existing descriptor (must only be one)
+            foreach (ClassDescriptorSerialized part in $TypeContext::partialTypes.Values) {
+               mergeParts(PartialDescriptor, part);
+            }
+
+            // If this is the first time we have seen thsi we must ensure Package name is there
             PartialDescriptor.Package = ($nm.text != null && $nm.text.Length > 0 ? $nm.text : null);
             if ($imports.importList != null && $imports.importList.Count > 0) {
                foreach (string m in $imports.importList) {
@@ -315,8 +439,18 @@ public compilation_unit
                   }
                }
             }
+            if (IsLast) {
+               List<string> endComments = CollectedComments;
+               if (endComments != null) {
+                  foreach (string comment in endComments) {
+                     PartialDescriptor.EndComments += comment;
+                  }
+               }
+            }
+  
          }
       }
+    -> { PartialDescriptor != null}? // output is all collected in PartialDescriptor 
     -> 
         package(now = {DateTime.Now}, includeDate = {Cfg.TranslatorAddTimeStamp}, packageName = {($nm.text != null && $nm.text.Length > 0 ? $nm.text : null)},
             imports = {$imports.st},
@@ -955,59 +1089,65 @@ attribute_argument_expression:
 ///////////////////////////////////////////////////////
 
 class_declaration[bool topLevel]
+scope TypeContext;
 @init {
     List<string> preComments = null;
+    String name = "";
+    bool isPartial = false;
+    $TypeContext::partialTypes = new Dictionary<string,ClassDescriptorSerialized>();
 }:
-   ^(c=CLASS PAYLOAD?
-            attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
+   ^(c=CLASS ('partial' { isPartial = true; })? PAYLOAD?
+            attributes? modifiers? identifier { name = $identifier.st.ToString(); } type_parameter_constraints_clauses? type_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
          class_extends? class_implements?  { preComments = CollectedComments; preComments.Add($PAYLOAD.text); } class_body )
       {
-         if (IsPartial && topLevel) {
-            // Merge into existing descriptor 
+         
+         if (isPartial) {
+            // build a serialized descriptor and merge it
+            ClassDescriptorSerialized part = new ClassDescriptorSerialized(name);
+
             if (preComments != null) { 
                foreach (String comment in preComments) {
-                  PartialDescriptor.Comments += comment ;
+                  part.Comments += comment ;
                }
             }
             // Union all attributes
-            // we don't push through attributes yet
-            PartialDescriptor.Atts += mkString($attributes.st);
-
+            part.Atts += mkString($attributes.st);
             // Merge modifiers
             if ($modifiers.modList != null && $modifiers.modList.Count > 0) {
                foreach (string m in $modifiers.modList) {
-                  if (!PartialDescriptor.Mods.Contains(m)) {
-                     PartialDescriptor.Mods.Add(m);
-                  }
+                  part.Mods.Add(m);
                }
             }
+            part.TypeParameterList = mkString($type_parameter_list.st);
 
-            if (String.IsNullOrEmpty(PartialDescriptor.TypeParameterList)) {
-               PartialDescriptor.TypeParameterList = mkString($type_parameter_list.st);
+            if ($class_extends.extendList != null && $class_extends.extendList.Count > 0) {
+               foreach (string m in $class_extends.extendList) {
+                  part.ClassExtends.Add(m);
+               }
             }
-
-            if (String.IsNullOrEmpty(PartialDescriptor.TypeParameterConstraintsClauses)) {
-               PartialDescriptor.TypeParameterConstraintsClauses = mkString($type_parameter_constraints_clauses.st);
-            }
-
+            
             if ($class_implements.implementList != null && $class_implements.implementList.Count > 0) {
                foreach (string m in $class_implements.implementList) {
-                  if (!PartialDescriptor.ClassImplements.Contains(m)) {
-                     PartialDescriptor.ClassImplements.Add(m);
-                  }
+                  part.ClassImplements.Add(m);
                }
             }
 
-            if (String.IsNullOrEmpty(PartialDescriptor.ClassBase)) {
-               PartialDescriptor.ClassBase = mkString($class_extends.st);
-            }
+            part.ClassBody += mkString($class_body.st);
+            part.PartialTypes = $TypeContext::partialTypes;
 
-            // Union the class bodies
-            PartialDescriptor.ClassBody += mkString($class_body.st);
+            // Place this in our parent's scope
+            Dictionary<string,ClassDescriptorSerialized> parentPartialTypes = ((TypeContext_scope)$TypeContext.ToArray()[1]).partialTypes;
+            if (!parentPartialTypes.ContainsKey(name)) {
+               parentPartialTypes[name] = part;
+            }
+            else {
+               mergeParts(parentPartialTypes[name], part);
+            }
          }
       }
+    -> {isPartial}?
     -> class(modifiers = { $modifiers.st }, name={ $identifier.st }, typeparams= {$type_parameter_list.st}, comments = { preComments },
-            extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}) ;
+            extends = { $class_extends.st }, imps = { $class_implements.st }, body={$class_body.st}, partial_types = { emitParts($TypeContext::partialTypes) }) ;
 
 type_parameter_list [Dictionary<string,StringTemplate> tpConstraints]:
     (attributes? t+=type_parameter[tpConstraints])+ -> type_parameter_list(items={ $t });
@@ -1018,15 +1158,18 @@ type_parameter [Dictionary<string,StringTemplate> tpConstraints]
 }:
     identifier {if (tpConstraints == null || !tpConstraints.TryGetValue($identifier.text, out mySt)) {mySt = $identifier.st;}; } -> { mySt } ;
 
-class_extends:
-	ts+=class_extend+ -> extends(types = { $ts }) ;
-class_extend:
-	^(EXTENDS ts=type) -> { $ts.st } ;
+class_extends returns [List<String> extendList]
+@init {
+    $extendList = new List<String>();
+}:
+      (class_extend { $extendList.Add($class_extend.extend); })+ -> extends(types = { $extendList }) ;
+class_extend returns [string extend]:
+	^(EXTENDS ts=type { $extend = $ts.st.ToString(); }) -> { $ts.st } ;
 class_implements returns [List<String> implementList]
 @init {
     $implementList = new List<String>();
 }:
-	(class_implement {$implementList.Add($class_implement.st.ToString()); })+ -> imps(types = { $implementList }) ;
+	(class_implement {$implementList.Add($class_implement.implement); })+ -> imps(types = { $implementList }) ;
 class_implement returns [string implement]:
 	^(IMPLEMENTS ts=type) { $implement = $ts.st.ToString(); } -> { $ts.st };
 	
@@ -1186,11 +1329,53 @@ parameter_array:
 interface_declaration
 @init {
     List<string> preComments = null;
+    String name = "";
+    bool isPartial = false;
 }:
-   ^(c=INTERFACE attributes? modifiers?
-            identifier  type_parameter_constraints_clauses?  variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
+   ^(c=INTERFACE ('partial' { isPartial = true; })? attributes? modifiers?
+            identifier { name = $identifier.st.ToString(); } type_parameter_constraints_clauses?  variant_generic_parameter_list[$type_parameter_constraints_clauses.tpConstraints]?
          class_extends?   { preComments = CollectedComments; } interface_body )
-    -> iface(modifiers = { $modifiers.st }, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
+      {
+         
+         if (isPartial) {
+            // build a serialized descriptor and merge it
+            ClassDescriptorSerialized part = new ClassDescriptorSerialized(name);
+
+            if (preComments != null) { 
+               foreach (String comment in preComments) {
+                  part.Comments += comment ;
+               }
+            }
+            part.Type = "interface";
+            // Union all attributes
+            part.Atts += mkString($attributes.st);
+            // Merge modifiers
+            if ($modifiers.modList != null && $modifiers.modList.Count > 0) {
+               foreach (string m in $modifiers.modList) {
+                  part.Mods.Add(m);
+               }
+            }
+            part.TypeParameterList = mkString($variant_generic_parameter_list.st);
+
+            if ($class_extends.extendList != null && $class_extends.extendList.Count > 0) {
+               foreach (string m in $class_extends.extendList) {
+                  part.ClassExtends.Add(m);
+               }
+            }
+
+            part.ClassBody += mkString($interface_body.st);
+
+            // Place this in our parent's scope (We don't declare a TypeContext scope because interfaces don't have nested types)
+            if (!$TypeContext::partialTypes.ContainsKey(name)) {
+               $TypeContext::partialTypes[name] = part;
+            }
+            else {
+               mergeParts($TypeContext::partialTypes[name], part);
+            }
+         }
+      }
+    -> {isPartial}?
+    -> class(type={ "interface" }, modifiers = { $modifiers.st }, name={ $identifier.st }, typeparams={$variant_generic_parameter_list.st} ,comments = { preComments },
             imps = { $class_extends.st }, body = { $interface_body.st }) ;
 //interface_base: 
 //   	':' interface_type_list ;
