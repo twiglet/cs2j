@@ -696,7 +696,7 @@ class_member_declaration:
 	| i=interface_declaration[$a.tree, $m.tree, null] -> $i
 	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text, false /* isPartial */] -> $m1 
 	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text, false /* isPartial */] -> $m2
-		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $t.tree] -> $pd
+		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $m.modList.Contains("abstract"), $t.tree] -> $pd
 		   | (type_name   '.'   'this') => tn=type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree, $tn.tree] -> $ix1
 		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree, null]	-> $ix2 //this
 	       | field_declaration     -> ^(FIELD[$t.start.Token, "FIELD"] $a? $m? $t field_declaration) // qid
@@ -1388,32 +1388,35 @@ member_name_orig returns [string name, List<string> tyargs]:
 	qid { $name = $qid.name; $tyargs = $qid.tyargs; } ;		// IInterface<int>.Method logic added.
 
 ///////////////////////////////////////////////////////
-property_declaration [CommonTree atts, CommonTree mods, CommonTree type]
+property_declaration [CommonTree atts, CommonTree mods, bool isAbstract, CommonTree type]
 scope { bool emptyGetterSetter; }
 @init {
     $property_declaration::emptyGetterSetter = false;
     CommonTree privateVar = null;               
 }
 :
-	i=member_name   '{'   ads=accessor_declarations[atts, mods, type, $i.text, $i.rawId]   '}' 
-        v=magicMkPropertyVar[mkPrivateMod($mods, $i.tree.Token), type, "__" + $i.tree.Text] { privateVar = $property_declaration::emptyGetterSetter ? $v.tree : null; }-> { privateVar } $ads ;
+	i=member_name   '{'   ads=accessor_declarations[atts, mods, isAbstract, type, $i.text, $i.rawId]   '}' 
+        v=magicMkPropertyVar[mkPrivateMod($mods, $i.tree.Token), type, "__" + $i.tree.Text] { privateVar = !isAbstract && $property_declaration::emptyGetterSetter ? $v.tree : null; }-> { privateVar } $ads ;
 
-accessor_declarations [CommonTree atts, CommonTree mods, CommonTree type, string propName, string rawVarName]:
-    accessor_declaration[atts, mods, type, propName, rawVarName]+;
+accessor_declarations [CommonTree atts, CommonTree mods, bool isAbstract, CommonTree type, string propName, string rawVarName]:
+    accessor_declaration[atts, mods, isAbstract, type, propName, rawVarName]+;
 
-accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, string propName, string rawVarName]
+accessor_declaration [CommonTree atts, CommonTree mods, bool isAbstract, CommonTree type, string propName, string rawVarName]
 @init {
      CommonTree propBlock = null; 
      bool mkBody = false;
 }:
 	la=attributes? lm=accessor_modifier? 
-      (g='get' ((';')=> gbe=';'  { $property_declaration::emptyGetterSetter = true; propBlock = $gbe.tree; mkBody = true; rawVarName = "__" + rawVarName; } 
+      (g='get' ((';')=> gbe=semi  { $property_declaration::emptyGetterSetter = true; propBlock = $gbe.tree; mkBody = !isAbstract; rawVarName = "__" + rawVarName; } 
                 | gb=block { propBlock = $gb.tree; } ) getm=magicPropGetter[atts, $la.tree, mods, $lm.tree, type, $g.token, propBlock, propName, mkBody, rawVarName] -> $getm
-       | s='set' ((';')=> sbe=';'  { $property_declaration::emptyGetterSetter = true; propBlock = $sbe.tree; mkBody = true; rawVarName = "__" + rawVarName; } 
+       | s='set' ((';')=> sbe=semi  { $property_declaration::emptyGetterSetter = true; propBlock = $sbe.tree; mkBody = !isAbstract; rawVarName = "__" + rawVarName; } 
                   | sb=block { propBlock = $sb.tree; } ) setm=magicPropSetter[atts, $la.tree, mods, $lm.tree, type, $s.token, propBlock, propName, mkBody, rawVarName] -> $setm)
     ;
 accessor_modifier:
 	'protected' 'internal'? | 'private' | 'internal' 'protected'?;
+
+semi:
+    ';' ;
 
 ///////////////////////////////////////////////////////
 event_declaration[CommonTree atts, CommonTree mods]:
@@ -1655,8 +1658,8 @@ interface_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree ty
     interface_accessor_declaration[atts, mods, type, propName]+
     ;
 interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, string propName]:
-	la=attributes? (g='get' semi=';' magicPropGetter[atts, $la.tree, mods, null, type, $g.token, $semi.tree, propName, false, ""] -> magicPropGetter
-                    | s='set' semi=';'  magicPropSetter[atts, $la.tree, mods, null, type, $s.token, $semi.tree, propName, false, ""] -> magicPropSetter)
+	la=attributes? (g='get' gbe=semi magicPropGetter[atts, $la.tree, mods, null, type, $g.token, $gbe.tree, propName, false, ""] -> magicPropGetter
+                    | s='set' sbe=semi  magicPropSetter[atts, $la.tree, mods, null, type, $s.token, $sbe.tree, propName, false, ""] -> magicPropSetter)
     ;
 	
 ///////////////////////////////////////////////////////
