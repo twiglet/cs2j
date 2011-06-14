@@ -465,7 +465,7 @@ namespace Twiglet.CS2J.Translator
                     CommonTree typeAST = javaMaker.CUMap[typeName].Tree;
 
                     string claName = typeName.Substring(typeName.LastIndexOf('.')+1); 
-                    string nsDir = typeName.Substring(0,typeName.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar);
+                    string nsDir = typeName.LastIndexOf('.') >= 0 ? typeName.Substring(0,typeName.LastIndexOf('.')).Replace('.', Path.DirectorySeparatorChar) : "";
                     
                     if (cfg.CheatDir != "")
                     {
