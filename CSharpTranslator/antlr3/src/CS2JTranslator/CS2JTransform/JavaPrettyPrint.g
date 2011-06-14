@@ -1268,7 +1268,7 @@ enum_declaration
 	^(ENUM { preComments = CollectedComments; } attributes? modifiers? identifier   enum_base?   enum_body )
     -> enum(comments = { preComments}, modifiers = { $modifiers.st }, name={$identifier.text}, body={$enum_body.st}) ;
 enum_base:
-	':'   integral_type ;
+	type ;
 enum_body:
 	^(ENUM_BODY es+=enum_member_declaration*) -> enum_body(values={$es});
 enum_member_declaration:

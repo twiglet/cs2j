@@ -56,6 +56,16 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
+            public bool EnumsAsNumericConsts
+            {
+                get; set;
+            }
+
+            public bool UnsignedNumbersToSigned
+            {
+                get; set;
+            }
+
             public bool ExperimentalTransforms
             {
                 get; set;
@@ -98,6 +108,9 @@ namespace Twiglet.CS2J.Translator
                 TranslatorKeepParens = true;
                 TranslatorAddTimeStamp = true;
                 TranslatorExceptionIsThrowable = false;
+
+                EnumsAsNumericConsts = false;
+                UnsignedNumbersToSigned = false;
 
                 ExperimentalTransforms = false;
 

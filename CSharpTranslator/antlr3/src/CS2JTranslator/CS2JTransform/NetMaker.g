@@ -2397,7 +2397,7 @@ remove_accessor_declaration:
 enum_declaration:
 	^(ENUM attributes? modifiers?   identifier   enum_base?   enum_body );
 enum_base:
-	':'   integral_type ;
+	type ;
 enum_body:
 	^(ENUM_BODY enum_member_declarations?) ;
 enum_member_declarations:
@@ -2949,9 +2949,9 @@ predefined_type returns [TypeRepTemplate dotNetType]
     | 'sbyte'   { ns = "System.SByte"; }
 	| 'short'   { ns = "System.Int16"; }
     | 'string'  { ns = "System.String"; }
-    | 'uint'    { ns = "System.UInt32"; }
-    | 'ulong'   { ns = "System.UInt64"; }
-    | 'ushort'  { ns = "System.UInt16"; }
+    | 'uint'    { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32"; }
+    | 'ulong'   { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; }
+    | 'ushort'  { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16"; }
     ;
 
 // Don't trust identifier.text in tree grammars: Doesn't work for our magic additions because the text function goes back to the 

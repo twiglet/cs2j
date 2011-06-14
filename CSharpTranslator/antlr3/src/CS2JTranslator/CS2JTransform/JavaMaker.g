@@ -467,6 +467,13 @@ scope TypeContext {
         {"string", "String"}
     };
 
+    Dictionary<string, string> predefined_unsigned_type_map = new Dictionary<string, string>()
+    {
+        {"uint", "int"},
+        {"ulong", "long"},
+        {"ushort", "short"}
+    };
+
     protected CommonTree mkHole() {
         return mkHole(null);
     }
@@ -1439,13 +1446,20 @@ remove_accessor_declaration:
 ///////////////////////////////////////////////////////
 enum_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
+@init {
+   CommonTree constType = null;
+}
 :
-	e='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } enum_base?   enum_body   ';'? 
-            -> ^(ENUM[$e.token, "ENUM"] { dupTree($atts) } { dupTree($mods) } identifier enum_base? enum_body);
+    { Cfg.EnumsAsNumericConsts }? =>  
+           e1='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } magicBoxedType[true,$e1.token,"System.Int32"] { constType = $magicBoxedType.tree; } (enum_base {constType = $enum_base.tree; } )?   enum_body_asnumber[constType]   ';'?
+            -> ^(CLASS[$e1.token, "class"] { dupTree($atts) } { dupTree($mods) } identifier enum_body_asnumber)
+
+   | e2='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } enum_base?   enum_body   ';'? 
+            -> ^(ENUM[$e2.token, "ENUM"] { dupTree($atts) } { dupTree($mods) } identifier enum_base? enum_body);
 enum_base:
-	':'   integral_type ;
-enum_body:
-	'{' (enum_member_declarations ','?)?   '}' -> ^(ENUM_BODY enum_member_declarations? ) ;
+	c=':'   integral_type -> ^(TYPE[$c.token, "TYPE"] integral_type) ;
+enum_body: 
+   '{' (enum_member_declarations ','?)?   '}' -> ^(ENUM_BODY enum_member_declarations? ) ;
 enum_member_declarations
 @init {
     SortedList<int,CommonTree> members = new SortedList<int,CommonTree>();
@@ -1501,6 +1515,25 @@ enum_member_declaration[ SortedList<int,CommonTree> members, ref int next]
 //	'new' | 'public' | 'protected' | 'internal' | 'private' ;
 integral_type: 
 	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
+
+// this escheme translates enums to a class containing numeric constants
+enum_body_asnumber [ CommonTree typeTree ]: 
+   '{' (enum_member_declarations_asnumber[typeTree] (','!)?)?   '}' ;
+enum_member_declarations_asnumber [ CommonTree typeTree ]
+@init {
+   CommonTree prevTree = null;
+}:
+	e1=enum_member_declaration_asnumber[typeTree, prevTree] { prevTree = $e1.thisTree; } 
+         (','! en=enum_member_declaration_asnumber[typeTree, prevTree] { prevTree = $en.thisTree; })* 
+    ;
+enum_member_declaration_asnumber [ CommonTree typeTree, CommonTree prevTree ] returns [ CommonTree thisTree ]
+@init {
+ CommonTree prev = $prevTree;  
+}: 
+	attributes?   identifier { $thisTree = $identifier.tree; }
+           (eq='='   expression -> ^(FIELD[$eq.token, "FIELD"] attributes? PUBLIC[$eq.token, "public"] STATIC[$eq.token, "static"] FINAL[$eq.token, "final"] { dupTree(typeTree) } identifier $eq expression)
+            | magicNumber[$prevTree == null, $identifier.tree.Token, "0"] magicIncrement[$prevTree != null, $identifier.tree.token, $prevTree] 
+                 { prev = $prevTree == null ? $magicNumber.tree : $magicIncrement.tree;  } -> ^(FIELD[$identifier.tree.Token, "FIELD"] attributes? PUBLIC[$identifier.tree.Token, "public"] STATIC[$identifier.tree.Token, "static"] FINAL[$identifier.tree.Token, "final"] { dupTree(typeTree) } identifier ASSIGN[$identifier.tree.Token, "="] { dupTree(prev) })) ;
 
 // B.2.12 Delegates
 delegate_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [Dictionary<String, CommonTree> compUnits]
@@ -1962,6 +1995,9 @@ predefined_type returns [string thetext]
     if (predefined_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
         $predefined_type.tree.Token.Text = newText;
     }
+    if (Cfg.UnsignedNumbersToSigned && predefined_unsigned_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
+        $predefined_type.tree.Token.Text = newText;
+    }
 }:
 	  'bool'    { $thetext = "System.Boolean"; }
     | 'byte'    { $thetext = "System.Byte"; }    
@@ -1975,9 +2011,9 @@ predefined_type returns [string thetext]
     | 'sbyte'   { $thetext = "System.SByte"; } 
 	| 'short'   { $thetext = "System.Int16"; } 
     | 'string'  { $thetext = "System.String"; } 
-    | 'uint'    { $thetext = "System.UInt32"; } 
-    | 'ulong'   { $thetext = "System.UInt64"; } 
-    | 'ushort'  { $thetext = "System.UInt16"; } 
+    | 'uint'    { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32"; } 
+    | 'ulong'   { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; } 
+    | 'ushort'  { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16"; } 
     ;
 
 identifier returns [string thetext]
@@ -2271,3 +2307,18 @@ magicMultiDelClass[IToken tok, CommonTree atts, CommonTree mods, string classNam
 
 //magicClassFromDescriptor[IToken tok, ClassDescriptor klass]:
 //-> ^(CLASS[tok] PAYLOAD[tok, klass.Comments] { dupTree(klass.Atts) } { dupTree(klass.Mods) } { dupTree(klass.Identifier) } { dupTree(klass.TypeParameterConstraintsClauses) } { dupTree(klass.TypeParameterList) } { dupTree(klass.ClassBase) } OPEN_BRACE[tok, "{"] { dupTree(klass.ClassBody) } { emitPartialTypes(klass.PartialTypes) } CLOSE_BRACE[tok, "}"] );
+
+magicBoxedType[bool isOn, IToken tok, String boxedName]:
+    -> { isOn }? ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, boxedName])
+    ->
+;
+
+magicNumber[bool isOn, IToken tok, string number]:
+  -> { isOn }? NUMBER[tok, number]
+  ->
+;
+
+magicIncrement[bool isOn, IToken tok, CommonTree prevExpr]:
+  -> { isOn }? ^(PLUS[tok, "+"] { dupTree(prevExpr) } NUMBER[tok, "1"])
+  ->
+;

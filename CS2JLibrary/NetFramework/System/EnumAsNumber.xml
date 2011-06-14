@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>Enum</Java>
+  <Name>System.EnumAsNumber</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Int32</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.EnumSupport</Import>
+      </Imports>
+      <Java>EnumSupport.isDefined(${enumType}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>enumType</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>IsDefined</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.EnumSupport</Import>
+      </Imports>
+      <Java>EnumSupport.toString(${this}, ${modifier})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>modifier</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Enum.valueOf((Class*[? extends Enum]*)${enumType:15}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Type</Type>
+          <Name>enumType</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Object</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+    <Cast>
+      <Imports />
+      <Java>${to_type}.values()[${expr}]</Java>
+      <From>System.Byte</From>
+    </Cast>
+    <Cast>
+      <Imports />
+      <Java>(byte)(((Enum)${expr}).ordinal())</Java>
+      <From>System.Enum</From>
+      <To>System.Byte</To>
+    </Cast>
+    <Cast>
+      <Imports />
+      <Java>${to_type}.values()[${expr}]</Java>
+      <From>System.Int32</From>
+    </Cast>
+    <Cast>
+      <Imports />
+      <Java>((Enum)${expr}).ordinal()</Java>
+      <From>System.Enum</From>
+      <To>System.Int32</To>
+    </Cast>
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>IJMEeLm8aEBz8xz+22PUOm4mKmY=</DigestValue></Reference></SignedInfo><SignatureValue>GBzy7yxUC2deFlJLdqC849pFbVEg5Zv+sB5LLtV4mnAixFeiQ5PlOHal7FqDSoqMtMpjMYpc9rjRvkWrQSWWWMJ5IAOI4HZBcTy1CYAWXnBXMjoUscMdyFIgzQF7ExrANCDt0LUn7xWCAb2S57bcj7yIREPjDonAM6YPOWi9Xa4=</SignatureValue></Signature></Class>

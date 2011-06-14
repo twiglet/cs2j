@@ -924,11 +924,16 @@ remove_accessor_declaration:
 //	enum declaration
 ///////////////////////////////////////////////////////
 enum_declaration
+scope {
+    String baseType;
+}
 scope NSContext;
 @init {
     $NSContext::searchpath = new List<string>();
     $NSContext::aliases = new List<AliasRepTemplate>();
-    EnumRepTemplate eenum = new EnumRepTemplate();
+    TypeRepTemplate eenum = Cfg.EnumsAsNumericConsts ? (TypeRepTemplate)new ClassRepTemplate() : (TypeRepTemplate)new EnumRepTemplate();
+    $enum_declaration::baseType = "System.Int32";
+    string javatype = "int";
 }
 :
 	'enum'   identifier   enum_base? 
@@ -943,25 +948,48 @@ scope NSContext;
             eenum.Uses = this.CollectUses;
             eenum.Aliases = this.CollectAliases;
             eenum.Imports = new string[] {NSPrefix(ParentNameSpace) + $identifier.text};
+            if (Cfg.EnumsAsNumericConsts) {
+               if (!String.IsNullOrEmpty($enum_base.thetext)) {
+                  $enum_declaration::baseType = $enum_base.thetext;
+                  javatype = $enum_base.javatype;
+               }
+               eenum.Java = javatype;
+               eenum.Inherits = new String[] { "System.EnumAsNumber" };
+            }
         } 
     enum_body   ';'? ;
-enum_base:
-	':'   integral_type ;
+enum_base returns [string thetext, string javatype]:
+	':'   integral_type { $thetext = $integral_type.thetext; $javatype = $integral_type.javatype; } ;
 enum_body:
 	'{' (enum_member_declarations ','?)?   '}' ;
 enum_member_declarations:
 	enum_member_declaration (',' enum_member_declaration)* ;
 enum_member_declaration:
 	attributes?   identifier   ('='   expression)? 
-        { ((EnumRepTemplate)$NSContext::currentTypeRep).Members.Add(new EnumMemberRepTemplate($identifier.text, $expression.text)); } // todo:  are arbitrary expressions really allowed
+      { if (Cfg.EnumsAsNumericConsts) {
+            ((ClassRepTemplate)$NSContext::currentTypeRep).Fields.Add(new FieldRepTemplate($enum_declaration::baseType, $identifier.text)); 
+         }
+         else {
+            ((EnumRepTemplate)$NSContext::currentTypeRep).Members.Add(new EnumMemberRepTemplate($identifier.text, $expression.text)); 
+         } 
+      }
         { DebugDetail("Processing enum member: " + $identifier.text); }
 ;
 //enum_modifiers:
 //	enum_modifier+ ;
 //enum_modifier:
 //	'new' | 'public' | 'protected' | 'internal' | 'private' ;
-integral_type: 
-	'sbyte' | 'byte' | 'short' | 'ushort' | 'int' | 'uint' | 'long' | 'ulong' | 'char' ;
+integral_type returns [string thetext, string javatype]: 
+      'byte'    { $thetext = "System.Byte"; $javatype = "byte"; }    
+    | 'char'    { $thetext = "System.Char"; $javatype = "char"; } 
+    | 'int'     { $thetext = "System.Int32"; $javatype = "int"; }   
+    | 'long'    { $thetext = "System.Int64"; $javatype = "long"; } 
+    | 'sbyte'   { $thetext = "System.SByte"; $javatype = "byte"; } 
+	| 'short'   { $thetext = "System.Int16"; $javatype = "short"; } 
+    | 'uint'    { $thetext = "System.UInt32"; $javatype = "int"; } 
+    | 'ulong'   { $thetext = "System.UInt64"; $javatype = "long"; } 
+    | 'ushort'  { $thetext = "System.UInt16"; $javatype = "short"; } 
+    ;
 
 // B.2.12 Delegates
 delegate_declaration
