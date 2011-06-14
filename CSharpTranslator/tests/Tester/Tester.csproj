@@ -52,6 +52,11 @@
     <Compile Include="FullOuterPartialInner.cs" />
     <Compile Include="PartialOuterPartialInner.cs" />
     <Compile Include="PartialOuterPartialInnerB.cs" />
+    <Compile Include="Enums\PacketTester.cs" />
+    <Compile Include="Enums\Consts.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Enums\" />
+  </ItemGroup>
 </Project>
