@@ -560,21 +560,21 @@ scope TypeContext {
 //        return (CommonTree)adaptor.RulePostProcessing(root);
 //    }
 
-    protected void mergeCompUnits(CUnit cu, List<string> searchPath, List<string> aliasKeys, List<string> aliasNamespaces) {
-       foreach (string s in searchPath) {
-          if (!cu.SearchPath.Contains(s)) {
-             cu.SearchPath.Add(s);
-          }
-          for (int i = 0; i < aliasKeys.Count; i++) {
-             // TODO: ?? Assume alias -> namespace mapping is the same in all files ....
-             if (!cu.NameSpaceAliasKeys.Contains(aliasKeys[i])) {
-                cu.NameSpaceAliasKeys.Add(aliasKeys[i]);
-                cu.NameSpaceAliasValues.Add(aliasNamespaces[i]);
-             }
-          }
-       }
-    }
-
+//     protected void mergeCompUnits(CUnit cu, List<string> searchPath, List<string> aliasKeys, List<string> aliasNamespaces) {
+//        foreach (string s in searchPath) {
+//           if (!cu.SearchPath.Contains(s)) {
+//              cu.SearchPath.Add(s);
+//           }
+//           for (int i = 0; i < aliasKeys.Count; i++) {
+//              // TODO: ?? Assume alias -> namespace mapping is the same in all files ....
+//              if (!cu.NameSpaceAliasKeys.Contains(aliasKeys[i])) {
+//                 cu.NameSpaceAliasKeys.Add(aliasKeys[i]);
+//                 cu.NameSpaceAliasValues.Add(aliasNamespaces[i]);
+//              }
+//           }
+//        }
+//     }
+// 
 }
 
 /********************************************************************************************
@@ -763,7 +763,6 @@ brackets_or_arguments [CommonTree lhs]:
 	brackets[$lhs] | arguments[$lhs] ;
 brackets [CommonTree lhs]:
 	'['   expression_list?   ']' -> ^(INDEX { dupTree($lhs) } expression_list?);	
-// keving: TODO: drop this.
 paren_expression:	
 	'('   expression   ')' -> ^(PARENS expression);
 arguments [CommonTree lhs]: 
