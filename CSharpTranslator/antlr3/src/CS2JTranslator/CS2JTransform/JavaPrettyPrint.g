@@ -1555,7 +1555,7 @@ jump_statement:
 	| ^('return'   expression?) -> return(exp = { $expression.st })
 	| ^('throw'   expression?) -> throw(exp = { $expression.st });
 goto_statement:
-	'goto'   ( identifier -> op(op={"goto"}, post={$identifier.st})
+	'goto'   ( identifier -> op(op={"goto"}, post={$identifier.st}, space={" "})
 			 | 'case'   constant_expression  -> op(op={"goto case"}, post={$constant_expression.st})
 			 | 'default' -> string(payload={"goto default"}) )   ';' ;
 catch_clauses:
