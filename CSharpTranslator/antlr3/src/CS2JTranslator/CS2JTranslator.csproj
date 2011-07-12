@@ -54,6 +54,7 @@
     <Compile Include="CS2JMain\CS2JMain.cs" />
     <Compile Include="CS2JMain\CS2JSettings.cs" />
     <Compile Include="CS2JMain\Main.cs" />
+    <Compile Include="CS2JMain\Obfuscate.cs" />
     <Compile Include="CS2JMain\Templates.cs" />
     <Compile Include="CS2JTemplate\TranslationTemplate.cs" />
     <Compile Include="CS2JTransform\CommonWalker.cs" />
