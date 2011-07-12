@@ -10,7 +10,9 @@ namespace Tester
 			
 			//Tester.RefOut.RefOutTest.RefOutMain(args);
 
-			Tester.PartialUser.PartialMain(args);
+			//Tester.PartialUser.PartialMain(args);
+			
+			Tester.Delegates.EventHandler.Sample.EHMain();
 			
 		}
 	}

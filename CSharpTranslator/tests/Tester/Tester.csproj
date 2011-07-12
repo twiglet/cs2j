@@ -41,19 +41,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="DelegateUser.cs" />
-    <Compile Include="Generics.cs" />
-    <Compile Include="Misc.cs" />
-    <Compile Include="RefOut.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="PartialUser.cs" />
-    <Compile Include="PartialUserTwo.cs" />
-    <Compile Include="PartialInner.cs" />
-    <Compile Include="FullOuterPartialInner.cs" />
-    <Compile Include="PartialOuterPartialInner.cs" />
-    <Compile Include="PartialOuterPartialInnerB.cs" />
     <Compile Include="Enums\PacketTester.cs" />
     <Compile Include="Enums\Consts.cs" />
+    <Compile Include="Generics\Generics.cs" />
+    <Compile Include="Partial\PartialUserTwo.cs" />
+    <Compile Include="Partial\PartialInner.cs" />
+    <Compile Include="Partial\PartialOuterPartialInner.cs" />
+    <Compile Include="Partial\PartialOuterPartialInnerB.cs" />
+    <Compile Include="Partial\PartialUser.cs" />
+    <Compile Include="Partial\FullOuterPartialInner.cs" />
+    <Compile Include="Misc\MiscSyntax.cs" />
+    <Compile Include="Misc\RefOut.cs" />
+    <Compile Include="Misc\Misc.cs" />
+    <Compile Include="Delegates\DelegateUser.cs" />
+    <Compile Include="Delegates\EventHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

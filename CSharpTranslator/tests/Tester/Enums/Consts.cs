@@ -7,8 +7,8 @@ namespace Tester
 		{
 		}
 		
-		public static const int Enuma = 2;
-		public static const int Enumb = 44;
+		public const int Enuma = 2;
+		public const int Enumb = 44;
 		
 	}
 }
