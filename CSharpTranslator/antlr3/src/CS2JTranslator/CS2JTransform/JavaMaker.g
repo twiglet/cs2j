@@ -1369,7 +1369,7 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
 method_body [bool smotherExceptions] returns [CommonTree exceptionList, bool isEmpty]:
 	{smotherExceptions}? b=block nb=magicSmotherExceptions[dupTree($b.tree) ]
        -> $nb 
-   | b=block el=magicThrowsException[true,$b.tree.Token] { $exceptionList=$el.tree; $isEmpty = $b.isEmpty; }   
+   | b=block el=magicThrowsException[Cfg.TranslatorBlanketThrow,$b.tree.Token] { $exceptionList=$el.tree; $isEmpty = $b.isEmpty; }   
        -> $b
          ;
 
@@ -1676,9 +1676,9 @@ interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 	i=identifier   '{'   iads=interface_accessor_declarations[atts, mods, type, $i.text]   '}' -> $iads ;
 interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	identifier   type_parameter_list?
-	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    s=';' magicThrowsException[true,$s.token]
+	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    s=';' magicThrowsException[Cfg.TranslatorBlanketThrow,$s.token]
        -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? magicThrowsException);
+            identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? magicThrowsException?);
 interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
 	e='event'   type   identifier   ';' -> ^(EVENT[$e.token, "EVENT"] { dupTree($atts) } { dupTree($mods) } type identifier)
@@ -1690,8 +1690,8 @@ interface_accessor_declarations [CommonTree atts, CommonTree mods, CommonTree ty
     interface_accessor_declaration[atts, mods, type, propName]+
     ;
 interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree type, string propName]:
-	la=attributes? (g='get' gbe=semi magicPropGetter[atts, $la.tree, mods, null, type, $g.token, $gbe.tree, propName, false, ""] -> magicPropGetter
-                    | s='set' sbe=semi  magicPropSetter[atts, $la.tree, mods, null, type, $s.token, $sbe.tree, propName, false, ""] -> magicPropSetter)
+	la=attributes? (g='get' gbe=semi magicPropGetter[atts, $la.tree, mods, null, type, $g.token, null, propName, false, ""] -> magicPropGetter
+                    | s='set' sbe=semi  magicPropSetter[atts, $la.tree, mods, null, type, $s.token, null, propName, false, ""] -> magicPropSetter)
     ;
 	
 ///////////////////////////////////////////////////////
@@ -1755,8 +1755,8 @@ operator_body:
 
 ///////////////////////////////////////////////////////
 constructor_declaration[CommonTree atts, CommonTree mods, List<string> modList]:
-		i=identifier   '('   p=formal_parameter_list?   s=')'   init=constructor_initializer? b=constructor_body[$init.tree] magicThrowsException[true,$s.token]
-            ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b magicThrowsException);
+		i=identifier   '('   p=formal_parameter_list?   s=')'   init=constructor_initializer? b=constructor_body[$init.tree] magicThrowsException[Cfg.TranslatorBlanketThrow,$s.token]
+            ->  ^(CONSTRUCTOR[$i.tree.Token, "CONSTRUCTOR"] { dupTree($atts) } { dupTree($mods) } $i $p? $b magicThrowsException?);
 constructor_initializer: 
 	':' tok='this' '('   argument_list?   ')' 
          -> ^(APPLY[$tok.token, "APPLY"] $tok argument_list?) SEMI[$tok.token, ";"]
@@ -2087,18 +2087,16 @@ magicCatchVar:
 magicPropGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken getTok, CommonTree body, string propName, bool mkBody, string varName]
 @init {
     CommonTree realBody = body;
-    CommonTree exceptionList = null;
 }: 
-    b=magicGetterBody[mkBody,getTok,varName] { if (mkBody) realBody = $b.tree; } e=magicThrowsException[!mkBody,getTok] { if (!mkBody) exceptionList = $e.tree; }
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } { exceptionList }) 
+    b=magicGetterBody[mkBody,getTok,varName] { if (mkBody) realBody = $b.tree; } e=magicThrowsException[!mkBody && Cfg.TranslatorBlanketThrow,getTok] 
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} IDENTIFIER[getTok, "get"+propName] { dupTree(realBody) } magicThrowsException?) 
     ;
 magicPropSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, IToken setTok, CommonTree body, string propName, bool mkBody, string varName]
 @init {
     CommonTree realBody = body;
-    CommonTree exceptionList = null;
 }: 
-    b=magicSetterBody[mkBody,setTok,varName] { if (mkBody) realBody = $b.tree; } e=magicThrowsException[!mkBody,setTok] { if (!mkBody) exceptionList = $e.tree; }
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } { exceptionList } ) 
+    b=magicSetterBody[mkBody,setTok,varName] { if (mkBody) realBody = $b.tree; } e=magicThrowsException[!mkBody  && Cfg.TranslatorBlanketThrow,setTok] 
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) IDENTIFIER[setTok, "set"+propName] ^(PARAMS[setTok, "PARAMS"] { dupTree(type)} IDENTIFIER[setTok, "value"]) { dupTree(realBody) } magicThrowsException? ) 
     ;
 
 magicSemi:
@@ -2128,8 +2126,8 @@ magicIdxGetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTre
         adaptor.AddChild(name, (CommonTree)adaptor.Create(IDENTIFIER, getTok, "get___idx"));
     }
 }: 
-    magicThrowsException[true,getTok]
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} { name } { dupTree(idxparams) } { dupTree(body) } magicThrowsException) 
+    magicThrowsException[Cfg.TranslatorBlanketThrow,getTok]
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } { dupTree(type)} { name } { dupTree(idxparams) } { dupTree(body) } magicThrowsException?) 
     ;
 magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTree localmods, CommonTree type, CommonTree iface, IToken setTok, CommonTree body, CommonTree idxparams]
 @init {
@@ -2146,8 +2144,8 @@ magicIdxSetter[CommonTree atts, CommonTree localatts, CommonTree mods, CommonTre
     adaptor.AddChild(augParams, (CommonTree)adaptor.Create(IDENTIFIER, setTok, "value"));
 }
 :
-    magicThrowsException[true,setTok] 
-    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) { name } { augParams } { dupTree(body) } magicThrowsException ) 
+    magicThrowsException[Cfg.TranslatorBlanketThrow,setTok] 
+    -> ^(METHOD[$type.token, "METHOD"] { dupTree(mods) } ^(TYPE[setTok, "TYPE"] IDENTIFIER[setTok, "void"] ) { name } { augParams } { dupTree(body) } magicThrowsException? ) 
     ;
 
 // keving: can't get this to work reasonably
@@ -2200,7 +2198,7 @@ magicMainWrapper[bool isOn, IToken tok, CommonTree body]:
          ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "void"]) 
              IDENTIFIER[tok, "main"] ^(PARAMS[tok, "PARAMS"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok,"String"] OPEN_BRACKET[tok, "["] CLOSE_BRACKET[tok, "]"]) IDENTIFIER[tok, "args"]) 
               OPEN_BRACE[tok, "{"] { dupTree(body) } SEMI[tok, ";"] CLOSE_BRACE[tok, "}"] 
-      magicThrowsException)
+      magicThrowsException?)
  -> 
 ;
 
@@ -2220,7 +2218,7 @@ magicFinally[IToken tok, CommonTree statement_list]:
 ;
 
 magicFinalize[IToken tok, CommonTree body]:
- magicThrowsException[true,tok]
+ magicThrowsException[Cfg.TranslatorBlanketThrow,tok]
 ->
     ^(METHOD[tok, "METHOD"]
          PROTECTED[tok, "protected"] 
@@ -2252,18 +2250,18 @@ magicDelegateInterface[IToken tok, CommonTree return_type, CommonTree identifier
 @init {
     AddToImports("java.util.List");
 }:
- e1=magicThrowsException[true, tok] 
- e2=magicThrowsException[true, tok] 
+ e1=magicThrowsException[Cfg.TranslatorBlanketThrow, tok] 
+ e2=magicThrowsException[Cfg.TranslatorBlanketThrow, tok] 
 -> OPEN_BRACE[tok, "{"] // System.Collections.Generic.IList
-         ^(METHOD[tok, "METHOD"] { dupTree(return_type) } IDENTIFIER[tok,"Invoke"] { dupTree(formal_parameter_list) } $e1)
-         ^(METHOD[tok, "METHOD"] ^(TYPE ^(DOT[tok, "."] ^(DOT[tok, "."] ^(DOT[tok, "."] IDENTIFIER[tok, "System"]  IDENTIFIER[tok, "Collections"]) IDENTIFIER[tok, "Generic"]) IDENTIFIER[tok, "IList"]  LTHAN[tok,"<"] ^(TYPE { dupTree( identifier) } { mkGenericArgs(tok, tyArgs) }) GT[tok,">"])) IDENTIFIER[tok,"GetInvocationList"] $e2)
+         ^(METHOD[tok, "METHOD"] { dupTree(return_type) } IDENTIFIER[tok,"Invoke"] { dupTree(formal_parameter_list) } $e1?)
+         ^(METHOD[tok, "METHOD"] ^(TYPE ^(DOT[tok, "."] ^(DOT[tok, "."] ^(DOT[tok, "."] IDENTIFIER[tok, "System"]  IDENTIFIER[tok, "Collections"]) IDENTIFIER[tok, "Generic"]) IDENTIFIER[tok, "IList"]  LTHAN[tok,"<"] ^(TYPE { dupTree( identifier) } { mkGenericArgs(tok, tyArgs) }) GT[tok,">"])) IDENTIFIER[tok,"GetInvocationList"] $e2?)
    CLOSE_BRACE[tok, "}"]
 ;
 
 // First execute all but the last one, then execute the last one and (if non-void) return its result. 
 magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, CommonTree type, CommonTree formal_parameter_list, CommonTree argument_list, List<String> tyArgs]
 :
- e1=magicThrowsException[true, tok] 
+ e1=magicThrowsException[Cfg.TranslatorBlanketThrow, tok] 
 -> {retIsVoid}?
    ^(METHOD[tok, "METHOD"] PUBLIC[tok, "public"] { dupTree($return_type) } IDENTIFIER[tok,"Invoke"] { dupTree($formal_parameter_list) }
       OPEN_BRACE[tok, "{"] 
@@ -2275,7 +2273,7 @@ magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, Comm
                 CLOSE_BRACE[tok, "}"]
             ) 
       CLOSE_BRACE[tok, "}"]
-      magicThrowsException
+      magicThrowsException?
     )
 -> ^(METHOD[tok, "METHOD"] PUBLIC[tok, "public"] { dupTree($return_type) } IDENTIFIER[tok,"Invoke"] { dupTree($formal_parameter_list) }
       OPEN_BRACE[tok, "{"] 
@@ -2290,7 +2288,7 @@ magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, Comm
             ) 
          ^(RETURN[tok, "return"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,"Invoke"]) { $argument_list }))
       CLOSE_BRACE[tok, "}"]
-      magicThrowsException
+      magicThrowsException?
     )
 ;
 

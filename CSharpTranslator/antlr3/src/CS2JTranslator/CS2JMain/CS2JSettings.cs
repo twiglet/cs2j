@@ -56,6 +56,11 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
+            public bool TranslatorBlanketThrow
+            {
+                get; set;
+            }
+
             public bool EnumsAsNumericConsts
             {
                 get; set;
@@ -108,6 +113,7 @@ namespace Twiglet.CS2J.Translator
                 TranslatorKeepParens = true;
                 TranslatorAddTimeStamp = true;
                 TranslatorExceptionIsThrowable = false;
+                TranslatorBlanketThrow = true;
 
                 EnumsAsNumericConsts = false;
                 UnsignedNumbersToSigned = false;
