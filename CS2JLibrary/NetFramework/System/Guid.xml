@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -31,8 +31,37 @@
   <Properties />
   <Events />
   <Indexers />
-  <Constructors />
-  <Fields />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>java.util.UUID</Import>
+      </Imports>
+      <Params />
+      <Java>UUID.randomUUID()</Java>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>java.util.UUID</Import>
+      </Imports>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>g</Name>
+        </Param>
+      </Params>
+      <Java>UUID.fromString(${g})</Java>
+    </Constructor>
+  </Constructors>
+  <Fields>
+    <Field>
+      <Type>System.Guid</Type>
+      <Name>Empty</Name>
+      <Imports>
+        <Import>java.util.UUID</Import>
+      </Imports>
+      <Java>UUID.fromString("00000000-0000-0000-0000-000000000000")</Java>
+    </Field>
+  </Fields>
   <Casts />
   <UnaryOps />
   <BinaryOps />
