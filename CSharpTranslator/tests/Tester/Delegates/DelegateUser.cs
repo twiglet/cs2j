@@ -41,6 +41,7 @@ namespace Tester.DelegateUser
 
 		delegate void TestDelegate (string s);
 		delegate void TestRefDelegate (string s, ref int cumul);
+		delegate void ProcessStringArray(string[] args);
 		static void M (string s)
 		{
 			Console.WriteLine (s);
@@ -49,6 +50,13 @@ namespace Tester.DelegateUser
 		public void Notify (string i)
 		{
 			Console.Out.WriteLine ("Notify: {0}", i);
+		}
+
+		public void PrintMessages (string[] msgs)
+		{
+			foreach (string s in msgs) {
+				Console.Out.WriteLine ("Message: {0}", s);
+			}
 		}
 
 		public void UserResponse (String nameParam, bool resultParam)
@@ -61,6 +69,13 @@ namespace Tester.DelegateUser
 			
 			cbackMember = UserResponse;
 			cbackProperty = new CompleteCallback (UserResponse);
+		}
+
+		public void ProcessArray ()
+		{
+			ProcessStringArray delg = PrintMessages;
+			
+			delg(new string[] {"Hello","Kevin"});
 		}
 
 		public void SwingIt ()
@@ -184,6 +199,7 @@ namespace Tester.DelegateUser
 			myDel.SwingIt ();
 			myDel.HelloGoodbye ();
 			myDel.EventLogger();
+			myDel.ProcessArray();
 		}
 	}
 }

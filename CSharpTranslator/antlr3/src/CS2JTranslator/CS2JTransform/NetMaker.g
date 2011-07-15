@@ -518,16 +518,34 @@ scope MkNonGeneric {
         return root;
     }
 
+    protected CommonTree mkJavaRep(IToken tok, TypeRepTemplate ty) {
+       if (ty.InstantiatedTypes.Length == 0) {
+          return (CommonTree)adaptor.Create(IDENTIFIER, tok, ty.Java);
+       }
+       else {
+          Dictionary<string,CommonTree> tyMap = new Dictionary<string,CommonTree>();
+          int i = 0;
+          foreach (TypeRepTemplate tyArg in ty.InstantiatedTypes) {
+             CommonTree typeRoot = (CommonTree)adaptor.Nil;
+             typeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), typeRoot);
+             adaptor.AddChild(typeRoot, mkJavaRep(tok, tyArg));
+             tyMap[ty.TypeParams[i]] = wrapType(typeRoot, tok);
+             i++;
+          }
+          return mkJavaWrapper(ty.Java, tyMap, tok);  
+       } 
+    }
+
     // either ^(PARAMS (type identifier)*) or ^(ARGS identifier*) depending on value of formal
-    protected CommonTree mkParams(List<ParamRepTemplate> inParams, bool formal, IToken tok) {
+    protected CommonTree mkParams(TypeRepTemplate tyRep, List<ParamRepTemplate> inParams, bool formal, IToken tok) {
         CommonTree root = (CommonTree)adaptor.Nil;
         root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(formal ? PARAMS : ARGS, tok, formal ? "PARAMS" : "ARGS"), root);
         foreach (ParamRepTemplate p in inParams) {
            if (formal) {
-              TypeRepTemplate ty = findType(p.Type);
+              TypeRepTemplate ty = tyRep.BuildType(p.Type, AppEnv, new UnknownRepTemplate(p.Type));
               CommonTree typeRoot = (CommonTree)adaptor.Nil;
               typeRoot = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(TYPE, tok, "TYPE"), typeRoot);
-              adaptor.AddChild(typeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, ty.Java));
+              adaptor.AddChild(typeRoot, mkJavaRep(tok, ty));
               adaptor.AddChild(root, typeRoot);
               AddToImports(ty.Imports);
            }
@@ -686,7 +704,7 @@ scope MkNonGeneric {
 
         adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Invoke"));
         if (delg.Invoke.Params.Count > 0) {
-           adaptor.AddChild(method, mkParams(delg.Invoke.Params, true, tok));
+           adaptor.AddChild(method, mkParams(delg, delg.Invoke.Params, true, tok));
         }
         adaptor.AddChild(method, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
 
@@ -697,7 +715,7 @@ scope MkNonGeneric {
         call = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(APPLY, tok, "APPLY"), call);
         adaptor.AddChild(call, dupTree(methTree));
         if (delg.Invoke.Params.Count > 0) {
-           adaptor.AddChild(call, mkParams(delg.Invoke.Params, false, tok));
+           adaptor.AddChild(call, mkParams(delg, delg.Invoke.Params, false, tok));
         }
         if (returnType.IsA(VoidType, AppEnv)) {
            adaptor.AddChild(ret, call);
