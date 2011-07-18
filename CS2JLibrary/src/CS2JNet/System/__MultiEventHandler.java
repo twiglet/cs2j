@@ -21,6 +21,7 @@
 package CS2JNet.System;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import CS2JNet.JavaSupport.util.ListSupport;
@@ -32,7 +33,12 @@ import CS2JNet.JavaSupport.util.ListSupport;
 public class __MultiEventHandler<TEventArgs> implements EventHandler<TEventArgs> {
  
 	public void Invoke(Object other, TEventArgs e) throws Exception {
-        for (EventHandler<TEventArgs> d : this.GetInvocationList())
+        List<EventHandler<TEventArgs>> copy, members = this.GetInvocationList();
+        synchronized (members)
+        {
+            copy = new LinkedList<EventHandler<TEventArgs>>(members);
+        }
+        for (EventHandler<TEventArgs> d : copy)
         {
             d.Invoke(other, e);
         }

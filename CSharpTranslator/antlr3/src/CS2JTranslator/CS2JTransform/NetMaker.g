@@ -519,7 +519,7 @@ scope MkNonGeneric {
     }
 
     protected CommonTree mkJavaRep(IToken tok, TypeRepTemplate ty) {
-       if (ty.InstantiatedTypes.Length == 0) {
+       if (ty.InstantiatedTypes == null || ty.InstantiatedTypes.Length == 0) {
           return (CommonTree)adaptor.Create(IDENTIFIER, tok, ty.Java);
        }
        else {
@@ -2634,6 +2634,7 @@ embedded_statement[bool isStatementListCtxt]
 	| ^('try' block catch_clauses? finally_clause?)
 	| checked_statement
 	| unchecked_statement
+	| synchronized_statement          		    // Java: synchronized(obj) {}
 	| lock_statement
     | yield_statement
     | ^('unsafe'   block)
@@ -2932,6 +2933,10 @@ checked_statement:
 	'checked'   block ;
 unchecked_statement:
 	^(UNCHECKED block) ;
+
+synchronized_statement: 
+	^(SYNCHRONIZED expression[ObjectType] '{' statement_list '}') ;
+
 lock_statement:
 	'lock'   '('  expression[ObjectType]   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
 

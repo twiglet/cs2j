@@ -1465,6 +1465,7 @@ embedded_statement returns [bool isSemi, bool isIf, bool indent]
                catches = { $catch_clauses.st }, fin = { $finally_clause.st } )
 	| checked_statement -> { $checked_statement.st }
 	| unchecked_statement -> { $unchecked_statement.st }
+    | synchronized_statement -> { $synchronized_statement.st }
 	| lock_statement -> { $lock_statement.st }
 	| yield_statement -> { $yield_statement.st } 
     | ^('unsafe'  { preComments = CollectedComments; }   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
@@ -1564,6 +1565,10 @@ catch_clause:
 	^('catch' type identifier block) -> catch_template(type = { $type.st }, id = { $identifier.st }, block = {$block.st}, blockindent = { $block.isSemi } );
 finally_clause:
 	^('finally'   block) -> fin(block = {$block.st}, blockindent = { $block.isSemi });
+
+synchronized_statement: 
+	^(SYNCHRONIZED expression '{' s+=statement* '}') -> synchstat(exp={ $expression.st }, stats = { $s });
+
 checked_statement
 @init {
     StringTemplate someText = null;

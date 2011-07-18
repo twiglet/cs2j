@@ -250,6 +250,14 @@ lock(<exp>)
 <block(statements = block, indent = indent)>
 >>
 
+synchstat(comments,exp,stats) ::= <<
+<comments; separator=""\n"">
+synchronized (<exp>)
+{
+    <stats>
+}
+>>
+
 yield(comments,exp) ::= <<
 <comments; separator=""\n"">
 yield <if(exp)>return <exp><else>break<endif>;
