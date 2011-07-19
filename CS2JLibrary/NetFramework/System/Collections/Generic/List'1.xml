@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -192,11 +192,13 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports />
-      <Java>new ArrayList*[${T}]*(${collection})</Java>
+      <Imports>
+        <Import>CS2JNet.System.Collections.Generic.GenArrayListSupport</Import>
+      </Imports>
+      <Java>GenArrayListSupport.*[${T}]*toList(${collection})</Java>
       <Params>
         <Param>
-          <Type>System.IEnumerable[T]</Type>
+          <Type>System.Collections.Generic.IEnumerable*[T]*</Type>
           <Name>collection</Name>
         </Param>
       </Params>
