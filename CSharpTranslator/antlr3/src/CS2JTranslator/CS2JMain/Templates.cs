@@ -15,14 +15,9 @@ namespace Twiglet.CS2J.Translator
 group JavaPrettyPrintTemplates;
 
 itsmine(now, includeDate) ::= <<
-//
-//
-// This file was translated from C# to Java by CS2J (http://www.cs2j.com).
-//
-// For more information about CS2J please contact info@twigletsoftware.com
 <if(includeDate)>
 //
-// Translated: <now><\n>
+// Translated by CS2J (http://www.cs2j.com): <now><\n>
 <endif>
 //
 
