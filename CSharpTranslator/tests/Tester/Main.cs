@@ -14,7 +14,8 @@ namespace Tester
 			
 			//Tester.Delegates.EventHandler.Sample.EHMain();
 			
-			Tester.Misc.RenameTest.RNMain("hello world");
+			// Tester.Misc.RenameTest.RNMain("hello world");
+			Tester.Misc.Sorter.Example.SorterMain();
 			
 		}
 	}

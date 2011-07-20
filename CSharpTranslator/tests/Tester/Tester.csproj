@@ -58,6 +58,7 @@
     <Compile Include="Delegates\EventHandler.cs" />
     <Compile Include="Misc\RenameTest.cs" />
     <Compile Include="Misc\newmodifier.cs" />
+    <Compile Include="Misc\Sorter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

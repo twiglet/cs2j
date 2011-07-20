@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -20,6 +20,7 @@
     <Java>${expr}.toCharArray()</Java>
   </Iterable>
   <Methods>
+    <!-- see http://msdn.microsoft.com/en-us/library/dd465121.aspx for string comparison details -->
     <Method>
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
@@ -36,6 +37,20 @@
         </Param>
       </Params>
       <Name>Compare</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>StringSupport.Compare(${arg1}, ${this})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg1</Name>
+        </Param>
+      </Params>
+      <Name>CompareTo</Name>
       <Return>System.Int32</Return>
     </Method>
     <Method>

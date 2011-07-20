@@ -80,7 +80,7 @@ public class StringSupport {
 	
 	public static int Compare(String s1, String s2, boolean ignoreCase)
 	{
-		// Handele nulls, null is smaller than a real string
+		// Handle nulls, null is smaller than a real string
 		if (s1 == null) {
 			if (s2 == null) {
 				return 0;

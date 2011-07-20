@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Comparator</Import>
+  </Imports>
+  <Java>Comparator*[${T}]*</Java>
+  <Name>System.Collections.Generic.IComparer</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Methods>
+    <Method>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>x</Name>
+        </Param>
+        <Param>
+          <Type>T</Type>
+          <Name>y</Name>
+        </Param>
+      </Params>
+    <Java>compare(${x}, ${y})</Java>
+    <Name>Compare</Name>
+    </Method>
+  </Methods>
+  <Properties>
+  </Properties>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>FzD0ISaWZKb/GDgZSI4werJrHHs=</DigestValue></Reference></SignedInfo><SignatureValue>NeU9k5KOXySVLGMadMEZfh5bsC928iltYWSnpm/5N0sN3NSyfZYUPZ3mL8DG8bZPzJbTIla2fkkZH0FbsDbtU1AeTYpFg9C8NSGDeYqR1mNEaCqYUZQmmP5MP9TtyT9dZOItpb4TXSWjKdkahUaw6CbFRn38Az9Wfh+8DdHIzjg=</SignatureValue></Signature></Interface>

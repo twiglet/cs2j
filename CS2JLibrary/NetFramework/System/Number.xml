@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -43,6 +43,17 @@
       </Params>
       <Name>ToString</Name>
       <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Java>${value} == ${this} ? 0 : (${value} > ${this} ? 1 : -1)</Java>
+      <Params>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>CompareTo</Name>
+      <Return>System.Int32</Return>
     </Method>
   </Methods>
   <Properties />
