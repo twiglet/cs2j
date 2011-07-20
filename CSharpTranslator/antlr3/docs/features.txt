@@ -1,0 +1,56 @@
+namespace aliases: no, say yes.
+Support Java's package/class filename convention: yes.
+Comments: yes.
+?? C# Doc comments -> JavaDoc: no(t yet)
+C# annotations: no(t yet)
+C# modifiers -> Java modifiers: yes (not all have an exact translation, e.g. internal)
+Cosmetic: support single statements as blocks.
+ref / out params: yes.
+fix java reserved words:  yes (check for completeness)
+map built in types: yes (but, unsigned ....)
+partial classes: yes.
+extern aliases: no (emit warning)
+overloaded generic type classes: no(t yet)
+nested types: yes (C# nested types map to static java nested types)
+'base' calls: yes
+parenthesis: yes CS2J will automatically add parenthesis only where required.  A command line option will, additionally, retain superfluous parenthesis that are in the C# source.
+dimension separators
+delegates: yes.
+preprocessor: yes.
+is: yes.
+as: yes. (expr is repeated)
+null coalescing expression exp ?? default: yes (expr is repeated)
+Main method: yes
+ToString, GetHashCode, Equals: yes
+Properties: yes (generate setter / getter methods as needed, translate usages of properties to calls to getters/setters)
+events: yes. fields with delegate objects as type
+enums: yes (enums as constants)
+generic type argument variance annotation: no 
+type parameter constraints: yes
+variable number of params: yes
+struct: yes (rewrites to java class, semantic change) add default constructor, call on declaration of variables with struct type
+indexers: yes (generate indexer methods in Java)
+operators: no(t yet) say yes
+conversion operators: yes (implicit conversion isn't supported there must be a cast expression)
+constructor initializers: yes (converted to this / base calls)
+destructor: yes (finalizer method)
+fixed: no
+unsafe: no
+labeled statement: partial (but, what?)
+var: partial
+dynamic: no
+foreach: yes
+throw expression without expression: yes
+catch withough variable: yes
+using statement: yes
+checked/unchecked statement: no
+LINQ: no
+yield: no
+literal numbers: yes
+verbatim string: yes
+ 
+
+
+
+
+
