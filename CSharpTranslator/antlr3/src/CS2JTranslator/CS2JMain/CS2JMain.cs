@@ -31,7 +31,7 @@ namespace Twiglet.CS2J.Translator
 {
     class CS2J
     {
-       private const string VERSION = "2011.1.2";
+       private const string VERSION = "2011.2.2";
        private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
        private static CS2JSettings cfg = new CS2JSettings();
        private static StringTemplateGroup templates = null;
