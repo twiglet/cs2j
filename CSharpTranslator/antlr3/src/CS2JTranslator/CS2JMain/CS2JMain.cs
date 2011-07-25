@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.IO;
 using System.Xml;
 using Antlr.Runtime.Tree;
@@ -31,7 +32,7 @@ namespace Twiglet.CS2J.Translator
 {
     class CS2J
     {
-       private const string VERSION = "2011.1.1";
+       private const string VERSION = "2011.2.2";
        private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
        private static CS2JSettings cfg = new CS2JSettings();
        private static StringTemplateGroup templates = null;
@@ -369,7 +370,7 @@ namespace Twiglet.CS2J.Translator
                 // Verify the signature of the signed XML.
                 if (!VerifyXml(xmlDoc, RsaKey))
                 {
-		           Console.Out.WriteLine("Bad / Missing signature found for " + fullName);
+                   Console.Out.WriteLine("WARNING: Bad / Missing signature found for " + fullName);
                    badXmlTxCount--;
                    if (badXmlTxCount <= 0)
                    {
@@ -418,19 +419,17 @@ namespace Twiglet.CS2J.Translator
             cfg.DebugLevel = saveDebugLevel;
         }
 		
-		private static string limit(string inp) {
-			if (numLines > numLines - 1)
-			    return inp;
-                        // TRIAL ONLY
-			String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
-			if (lines.Length <= numLines) {
-				return inp;
-			}
-		    String[] res = new String[numLines+1];
-			Array.Copy(lines, res, numLines);
-			res[numLines] = "";
-			return String.Join(Environment.NewLine, res);
-		}
+       private static string limit(string inp) {
+          if (numLines > numLines - 1)
+             return inp;
+          // TRIAL ONLY
+          String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
+          if (lines.Length <= numLines) {
+             return inp;
+          }
+          lines[numLines] = Regex.Replace(lines[numLines], "\\w", "x");^M
+          return String.Join(Environment.NewLine, lines);^M
+       }
 
         // Here's where we do the real work...		
         public static void translateFile(string fullName)
