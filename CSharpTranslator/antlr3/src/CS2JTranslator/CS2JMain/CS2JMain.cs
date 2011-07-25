@@ -427,8 +427,8 @@ namespace Twiglet.CS2J.Translator
           if (lines.Length <= numLines) {
              return inp;
           }
-          lines[numLines] = Regex.Replace(lines[numLines], "\\w", "x");^M
-          return String.Join(Environment.NewLine, lines);^M
+          lines[numLines] = Regex.Replace(lines[numLines], "\\w", "x");
+          return String.Join(Environment.NewLine, lines);
        }
 
         // Here's where we do the real work...		
