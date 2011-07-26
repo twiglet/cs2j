@@ -111,7 +111,7 @@ namespace Twiglet.CS2J.Translator
                 KeyFile = null;
 	        Verbosity = 0;	
                 DebugTemplateExtraction = true;	
-	        DebugLevel = 0;		
+	        DebugLevel = 1;		
 	        Warnings = true;		
 	        WarningsFailedResolves = false;		
 
