@@ -10,7 +10,7 @@ WINDOWS
 
 git bash:
 
--- cd My Documents/gitrepos/cs2jCentral/CSharpTranslator\antlr3\build"
+-- cd "My Documents/gitrepos/cs2jCentral/CSharpTranslator\antlr3\build"
 -- git pull
 --- is it clean?
 -- ant -Drelease.tagname=2011.1.2 -Dgoogle.docs.title=CS2JUsersGuide releasefromhere
@@ -32,7 +32,9 @@ WINDOWS
 
 git bash:
 
-When all happy
+When all happy make mail-attachment version and tag
+
+-- ant -Drelease.tagname=2011.1.2 -Dgoogle.docs.title=CS2JUsersGuide -Dexe.extension=.removeme -Dreleasefromhere
 -- ant -Drelease.tagname=2011.1.2 tagme
 -- ant pushme
 
