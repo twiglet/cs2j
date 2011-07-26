@@ -132,6 +132,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
+                        .Add ("translator-make-javadoc-comments=", v => cfg.TranslatorMakeJavadocComments = Boolean.Parse(v))
                         .Add ("experimental-enums-numericconsts", v => cfg.EnumsAsNumericConsts = true)
                         .Add ("experimental-unsigned-translatesigned", v => cfg.UnsignedNumbersToSigned = true)
                         .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))

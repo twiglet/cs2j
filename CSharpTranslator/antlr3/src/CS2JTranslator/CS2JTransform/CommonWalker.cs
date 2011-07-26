@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Xsl;
+using System.IO;
 
 using Antlr.Runtime.Tree;
 using Antlr.Runtime;
@@ -226,6 +229,94 @@ namespace Twiglet.CS2J.Translator.Transform
              foreach (string imp in imps) {
                 AddToImports(imp);
              }
+          }
+       }
+
+       protected const string javaDocXslt = @"<?xml version=""1.0""?>
+
+<xsl:stylesheet version=""1.0""
+xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"">
+
+<xsl:output method=""text""/>
+
+<xsl:template match=""/"">
+ <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""c"">
+ {@code <xsl:value-of select="".""/>}
+</xsl:template>
+
+<xsl:template match=""code"">
+ {@code <xsl:value-of select="".""/>}
+</xsl:template>
+
+<xsl:template match=""b"">
+ <xsl:text>&lt;b></xsl:text><xsl:value-of select="".""/><xsl:text>&lt;/b></xsl:text>
+</xsl:template>
+
+<xsl:template match=""see"">
+ {@link #<xsl:value-of select=""@cref""/>}
+</xsl:template>
+
+<xsl:template match=""paramref"">
+ {@code <xsl:value-of select=""@name""/>}
+</xsl:template>
+
+<xsl:template match=""summary"">
+ <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""remarks"">
+ <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""example"">
+ <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""value"">
+ <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""param"">
+ @param <xsl:value-of select=""@name""/><xsl:text> </xsl:text> <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""exception"">
+ @throws <xsl:value-of select=""@cref""/><xsl:text> </xsl:text> <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""returns"">
+ @return <xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match=""seealso"">
+ @see <xsl:value-of select=""@cref""/>
+</xsl:template>
+
+
+</xsl:stylesheet>";
+
+       private XslCompiledTransform _jdXslTrans = null;
+       protected XslCompiledTransform JdXslTrans
+       {
+          get
+          {
+             if (_jdXslTrans == null)
+             {
+                _jdXslTrans = new XslCompiledTransform();
+
+                // Encode the XML string in a UTF-8 byte array
+                byte[] encodedXsltString = Encoding.UTF8.GetBytes(javaDocXslt);
+
+                // Put the byte array into a stream and rewind it to the beginning
+                MemoryStream msXslt = new MemoryStream(encodedXsltString);
+                msXslt.Flush();
+                msXslt.Position = 0;
+                _jdXslTrans.Load(XmlReader.Create(msXslt));
+             }
+             return _jdXslTrans;
           }
        }
 

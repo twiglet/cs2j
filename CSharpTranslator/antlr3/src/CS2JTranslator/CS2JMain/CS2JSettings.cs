@@ -61,6 +61,11 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
+             public bool TranslatorMakeJavadocComments
+            {
+                get; set;
+            }
+
             public bool EnumsAsNumericConsts
             {
                 get; set;
@@ -114,6 +119,7 @@ namespace Twiglet.CS2J.Translator
                 TranslatorAddTimeStamp = true;
                 TranslatorExceptionIsThrowable = false;
                 TranslatorBlanketThrow = true;
+                TranslatorMakeJavadocComments = true;
 
                 EnumsAsNumericConsts = false;
                 UnsignedNumbersToSigned = false;

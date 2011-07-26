@@ -22,6 +22,9 @@ scope TypeContext {
 @header
 {
 	using System;
+	using System.IO;
+	using System.Xml;
+	using System.Xml.Xsl;
 	using System.Collections;
 	using System.Text;
 	using System.Text.RegularExpressions;
@@ -35,16 +38,80 @@ scope TypeContext {
     // If top level is partial then this will contain the components so that we can mere with other parts down the line
     public ClassDescriptorSerialized PartialDescriptor { get; set; }
 
-    private List<string> collectedComments = null;
+	protected string convertToJavaDoc(string docComment) {
+		string ret = null;
+		try {
+            StringBuilder javaDocStr = new StringBuilder();
+
+			string xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<root>" + docComment + "\n</root>";
+
+			// Encode the XML string in a UTF-8 byte array
+			byte[] encodedString = Encoding.UTF8.GetBytes(xml);
+
+			// Put the byte array into a stream and rewind it to the beginning
+			MemoryStream ms = new MemoryStream(encodedString);
+			ms.Flush();
+			ms.Position = 0;
+
+			// Build the XmlDocument from the MemorySteam of UTF-8 encoded bytes
+			XmlDocument xmlDoc = new XmlDocument();
+			xmlDoc.Load(ms);
+
+            JdXslTrans.Transform(xmlDoc,null,new StringWriter(javaDocStr));
+            ret = javaDocStr.ToString().Trim().Replace("\n", "\n* ");
+            ret = String.Format("/**\n* {0}\n*/", ret);
+        }
+		catch (Exception) 
+		{
+			// skip, just return null
+		}
+		return ret;
+	}
+    
+	private List<string> collectedComments = null;
     List<string> CollectedComments {
         get {
    
             List<string> rets = new List<string>(); 
             if (collectedComments != null) {
-                foreach (string c in collectedComments) {
-                    rets.Add(processComment(c));
+				List<string> savedComments = new List<string>();
+				bool inDoc = false;
+				string xmlDoc = "";
+				foreach (string c in collectedComments) {
+					string line = processComment(c);
+				    if (Cfg.TranslatorMakeJavadocComments && line.TrimStart().StartsWith("///")) {
+						inDoc = true;
+						savedComments.Add(line);
+						xmlDoc += line.TrimStart().Substring(3).TrimStart() + "\n";
+					}
+					else 
+					{
+					    if (inDoc) {
+							string javaDoc = convertToJavaDoc(xmlDoc);
+						    if (javaDoc != null) {
+								rets.Add(javaDoc);
+							} 
+                            else {
+                               rets.AddRange(savedComments); 
+                           }
+							savedComments = new List<string>();
+							inDoc = false;
+							xmlDoc = "";
+						}
+						rets.Add(line);
+					}
                 }
+				if (inDoc) {
+                   string javaDoc = convertToJavaDoc(xmlDoc);
+                   if (javaDoc != null) {
+                      rets.Add(javaDoc);
+                   } 
+                   else {
+                      rets.AddRange(savedComments); 
+                   }
+				}
             }
+
             collectedComments = null;
             
             return rets;
