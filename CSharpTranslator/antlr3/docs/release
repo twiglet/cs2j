@@ -13,6 +13,7 @@ git bash:
 -- cd My Documents/gitrepos/cs2jCentral/CSharpTranslator\antlr3\build"
 -- git pull
 --- is it clean?
+-- ant -Drelease.tagname=2011.1.2 -Dgoogle.docs.title=CS2JUsersGuide releasefromhere
 
 copy archive from "C:\Documents and Settings\developer\build" to ""C:\Documents and Settings\developer\My Documents" and unpack.
 

@@ -71,7 +71,7 @@
     <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
       <fileset dir="${project.dir}/docs/external">
         <include name="README"/>
-        <include name="*.pdf"/>
+        <include name="${google.docs.title}.pdf"/>
       </fileset>
     </copy>
     <zip destfile="${release.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
