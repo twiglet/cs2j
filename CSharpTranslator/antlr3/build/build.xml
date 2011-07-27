@@ -44,7 +44,7 @@
 
   <target name="dist" description="Distribute final zip to final resting place">
     <copy todir="${release.dir}" file="${release.zip}"/>
-    <copy tofile="${release.dir}/cs2j-latest.zip" file="${release.zip}"/>
+    <copy tofile="${release.dir}/cs2j-trial-latest.zip" file="${release.zip}"/>
   </target>
 
   <target name="mkarchive" description="builds a zip file containing the release">
