@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using Twiglet.CS2J.Translator.Utils;
 
@@ -2229,12 +2230,44 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       #region deserialization
 		
+      private static XmlReaderSettings _templateReaderSettings = null;
+
+      /// <summary>
+      /// Reader Settings used when reading translation templates.  Validate against schemas   
+      /// </summary>
+      public static XmlReaderSettings TemplateReaderSettings
+      {
+         get
+         {
+            if (_templateReaderSettings == null)
+            {
+               _templateReaderSettings = new XmlReaderSettings();
+               _templateReaderSettings.ValidationType = ValidationType.Schema;
+               _templateReaderSettings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
+               _templateReaderSettings.ValidationEventHandler += new ValidationEventHandler(ValidationCallBack);
+            }
+            return _templateReaderSettings;
+         }
+      }
+
+      // Display any warnings or errors while validating translation templates.
+      private static void ValidationCallBack(object sender, ValidationEventArgs args)
+      {
+         if (args.Severity == XmlSeverityType.Warning)
+            Console.WriteLine("\tWarning: Matching schema not found.  No validation occurred." + args.Message);
+         else
+            Console.WriteLine("\tValidation error: " + args.Message);
+      }
+
       private static object Deserialize (Stream fs, System.Type t)
       {
          object o = null;
-			
+	
+         // Create the XmlReader object.
+         XmlReader reader = XmlReader.Create(fs, TemplateReaderSettings);
+		
          XmlSerializer serializer = new XmlSerializer (t, Constants.TranslationTemplateNamespace);
-         o = serializer.Deserialize (fs);
+         o = serializer.Deserialize (reader);
          return o;
       }
 

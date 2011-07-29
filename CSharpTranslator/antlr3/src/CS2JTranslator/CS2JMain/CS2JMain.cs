@@ -123,11 +123,11 @@ namespace Twiglet.CS2J.Translator
                         .Add ("cheatdir=", dir => cfg.CheatDir = dir)
                         .Add ("netdir=", dirs => addDirectories(cfg.NetRoot, dirs))
                         .Add ("exnetdir=", dirs => addDirectories(cfg.ExNetRoot, dirs))
+                        .Add ("netschemadir=", dirs => addDirectories(cfg.NetSchemaDir, dirs))
                         .Add ("appdir=", dirs => addDirectories(cfg.AppRoot, dirs))
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
                         .Add ("csdir=", dirs => addDirectories(csDir, dirs))
                         .Add ("excsdir=", dirs => addDirectories(cfg.Exclude, dirs))
-                        .Add ("keyfile=", v => cfg.KeyFile = v)
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
@@ -164,6 +164,17 @@ namespace Twiglet.CS2J.Translator
                     RsaKey.FromXmlString(rsaPubXml);
 
                     // Load .Net templates
+                    // Do we have schemas for the templates?
+                    if (cfg.NetSchemaDir.Count == 0)
+                    {
+                       // By default look for schemas in net dirs
+                       cfg.NetSchemaDir = new List<string>(cfg.NetRoot);
+                    }
+
+                    // Comment out for now.  I don't see how to wrie an xsd file that will allow elements to appear in any order
+                    // foreach (string schemadir in cfg.NetSchemaDir)
+                    //   doFile(schemadir, ".xsd", addNetSchema, null);
+
                     foreach (string r in cfg.NetRoot)
                         doFile(r, ".xml", addNetTranslation, cfg.ExNetRoot);
 
@@ -247,7 +258,7 @@ namespace Twiglet.CS2J.Translator
         {
             string canonicalPath = Path.GetFullPath(root);
             // If this is a directory, walk each file/dir in that directory
-            if (!excludes.Contains(canonicalPath))
+            if (excludes == null || !excludes.Contains(canonicalPath))
             {
                 if (Directory.Exists(canonicalPath))
                 {
@@ -350,6 +361,20 @@ namespace Twiglet.CS2J.Translator
           // Check the signature and return the result.
           return signedXml.CheckSignature(Key);
        }
+
+        // Here's where we do the real work...
+        public static void addNetSchema(string fullName)
+        {
+           try
+           {
+              TypeRepTemplate.TemplateReaderSettings.Schemas.Add("urn:www.twigletsoftware.com:schemas:txtemplate:1:0", fullName);
+              Console.WriteLine(fullName);
+           }
+           catch (Exception e)
+           {
+              throw;
+           }
+        }
 
         // Here's where we do the real work...
         public static void addNetTranslation(string fullName)

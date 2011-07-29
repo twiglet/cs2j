@@ -25,6 +25,7 @@ namespace Twiglet.CS2J.Translator
             public string CheatDir { get; set; }
             public IList<string> NetRoot { get; set; }
             public IList<string> ExNetRoot { get; set; }
+            public IList<string> NetSchemaDir { get; set; }
             public IList<string> AppRoot { get; set; }
             public IList<string> ExAppRoot { get; set; }
             public IList<string> Exclude { get; set; }
@@ -102,6 +103,7 @@ namespace Twiglet.CS2J.Translator
 	        CheatDir = "";
 	        NetRoot = new List<string>();
 	        ExNetRoot = new List<string>();
+	        NetSchemaDir = new List<string>();
 	        AppRoot = new List<string>();
 	        ExAppRoot = new List<string>();
 	        Exclude = new List<string>();
