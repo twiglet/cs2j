@@ -1416,7 +1416,7 @@ type_name returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, bool h
 
          $dotNetType = $dtg.dotNetType;
          if (!$dotNetType.IsUnknownType) {
-            if ($dotNetType.TypeParams.Length == $dtg.argTrees.Count) {
+            if ($dotNetType.TypeParams.Length > 0 && $dotNetType.TypeParams.Length == $dtg.argTrees.Count) {
                int i = 0;
                foreach (CommonTree ty in $dtg.argTrees) {
                   tyMap[$dotNetType.TypeParams[i]] = wrapType(ty, $dt.tree.Token);
