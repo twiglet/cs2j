@@ -1286,10 +1286,10 @@ TS:
     (' '  |  '\t' | '\u00A0' ) 
     { Skip(); } ;
 DOC_LINE_COMMENT
-    : 	('///' ~('\n'|'\r')*  ('\r' | '\n')+)
+    : 	('///' ~('\n'|'\r')*  ('\r' | '\n')*)
     {$channel=Hidden;} ;
 LINE_COMMENT
-    :	('//' ~('\n'|'\r')*  ('\r' | '\n')+)
+    :	('//' ~('\n'|'\r')*  ('\r' | '\n')*)
     {$channel=Hidden;} ;
 COMMENT:
    '/*'
