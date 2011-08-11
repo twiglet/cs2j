@@ -12,7 +12,7 @@ options {
     tokenVocab=cs;
     ASTLabelType=CommonTree;
     language=CSharp2;
-    superClass='Twiglet.CS2J.Translator.Transform.CommonWalker';
+    superClass='CommonWalker';
 }
 
 // A scope to keep track of the namespaces available at any point in the program
@@ -30,6 +30,7 @@ scope NSContext {
 	using System;
 	using System.Text;
 	using Twiglet.CS2J.Translator.TypeRep;
+    using Twiglet.CS2J.Translator.Transform;
 }
 
 @members 
@@ -1120,7 +1121,7 @@ formal_parameter_list returns [List<ParamRepTemplate> paramlist]
 	p1=formal_parameter { $paramlist.Add($p1.param); } (',' pn=formal_parameter { $paramlist.Add($pn.param); })* ;
 formal_parameter returns [ParamRepTemplate param]:
 	attributes?   (fp=fixed_parameter { $param = $fp.param; } | pa=parameter_array { $param = $pa.param; }) 
-	| a='__arglist' { Warning($a.line, "[UNSUPPORTED] __arglist"); } ;	// __arglist is undocumented, see google
+	| a='__arglist' { Warning($a.line, "[UNSUPPORTED] __arglist");  $param=new ParamRepTemplate("System.Object[]", "__arglist", false); } ;	// __arglist is undocumented, see google
 fixed_parameters returns [List<ParamRepTemplate> paramlist]
 @init {
     $paramlist = new List<ParamRepTemplate>();
