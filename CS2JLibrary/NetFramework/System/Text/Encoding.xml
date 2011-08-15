@@ -26,6 +26,26 @@
       <Name>GetBytes</Name>
       <Return>System.Byte[]</Return>
     </Method>
+    <Method>
+      <Imports />
+      <Java>new String(${buf}, ${index}, ${count}, ${this:16}.getCharset())</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buf</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>count</Name>
+        </Param>
+      </Params>
+      <Name>GetString</Name>
+      <Return>System.String</Return>
+    </Method>
   </Methods>
   <Properties>
     <Property>
