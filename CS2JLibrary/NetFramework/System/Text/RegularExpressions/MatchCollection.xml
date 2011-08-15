@@ -9,53 +9,21 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.util.regex.*</Import>
+    <Import>java.util.List</Import>
+    <Import>CS2JNet.System.Text.RegularExpressions.Match</Import>
   </Imports>
-  <Java>Pattern</Java>
-  <Name>System.Text.RegularExpressions.Group</Name>
+  <Java>List*[Match]*</Java>
+  <Name>System.Text.RegularExpressions.MatchCollection</Name>
   <Uses />
   <Inherits>
-    <Type>System.Text.RegularExpressions.Capture</Type>
+    <Type>System.Collections.Generic.IList*[System.Text.RegularExpressions.Match]*</Type>
   </Inherits>
   <Methods />
-  <Properties>
-    <Property>
-      <Imports />
-      <Java>${this:16}.find()</Java>
-      <Type>System.Boolean</Type>
-      <Name>Success</Name>
-      <Get>${this:16}.find()</Get>
-      <Set>${this:16}.setSuccess(${value})</Set>
-    </Property>
-    <Property>
-      <Imports />
-      <Type>System.String</Type>
-      <Name>Value</Name>
-      <Get>${this:16}.getValue()</Get>
-    </Property>
-  </Properties>
+  <Properties />
   <Events />
-  <Indexers />
+  <Indexers>
+  </Indexers>
   <Constructors>
-    <Constructor>
-      <Imports>
-        <Import>java.util.regex.*</Import>
-      </Imports>
-      <Java>new Pattern()</Java>
-      <Params />
-    </Constructor>
-    <Constructor>
-      <Imports>
-        <Import>java.util.regex.*</Import>
-      </Imports>
-      <Java>new Pattern(${pattern})</Java>
-      <Params>
-        <Param>
-          <Type>System.String</Type>
-          <Name>pattern</Name>
-        </Param>
-      </Params>
-    </Constructor>
   </Constructors>
   <Fields />
   <Casts />

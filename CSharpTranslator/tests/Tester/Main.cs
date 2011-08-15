@@ -16,6 +16,7 @@ namespace Tester
 			
 			// Tester.Misc.RenameTest.RNMain("hello world");
 			Tester.Misc.Sorter.Example.SorterMain();
+			Tester.Misc.RegexTest.RegexMain();
 			
 		}
 	}

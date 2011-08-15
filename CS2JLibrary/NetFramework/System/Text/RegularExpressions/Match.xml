@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -9,16 +9,50 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.util.regex.*</Import>
+    <Import>CS2JNet.System.Text.RegularExpressions.Match</Import>
   </Imports>
-  <Java>Matcher</Java>
+  <Java>Match</Java>
   <Name>System.Text.RegularExpressions.Match</Name>
   <Uses />
   <Inherits>
     <Type>System.Text.RegularExpressions.Group</Type>
   </Inherits>
-  <Methods />
-  <Properties />
+  <Methods>
+    <Method>
+      <Java>${this:16}.nextMatch()</Java>
+      <Params>
+      </Params>
+      <Name>NextMatch</Name>
+      <Return>System.Text.RegularExpressions.Match</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Text.RegularExpressions.GroupCollection</Import>
+      </Imports>
+      <Type>System.Text.RegularExpressions.GroupCollection</Type>
+      <Name>Groups</Name>
+      <Get>GroupCollection.mk(${this})</Get>
+    </Property>
+    <Property>
+      <Type>System.Int32</Type>
+      <Name>Length</Name>
+      <Get>${this}.length()</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>System.String</Type>
+      <Name>Value</Name>
+      <Get>${this:16}.getValue()</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>System.Bool</Type>
+      <Name>Success</Name>
+      <Get>${this:16}.getSuccess()</Get>
+    </Property>
+  </Properties>
   <Events />
   <Indexers />
   <Constructors />

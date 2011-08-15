@@ -9,53 +9,43 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.util.regex.*</Import>
+    <Import>CS2JNet.System.Text.RegularExpressions.GroupCollection</Import>
   </Imports>
-  <Java>Pattern</Java>
-  <Name>System.Text.RegularExpressions.Group</Name>
+  <Java>GroupCollection</Java>
+  <Name>System.Text.RegularExpressions.GroupCollection</Name>
   <Uses />
   <Inherits>
-    <Type>System.Text.RegularExpressions.Capture</Type>
+    <Type>System.Collections.ICollection</Type>
   </Inherits>
   <Methods />
-  <Properties>
-    <Property>
-      <Imports />
-      <Java>${this:16}.find()</Java>
-      <Type>System.Boolean</Type>
-      <Name>Success</Name>
-      <Get>${this:16}.find()</Get>
-      <Set>${this:16}.setSuccess(${value})</Set>
-    </Property>
-    <Property>
-      <Imports />
-      <Type>System.String</Type>
-      <Name>Value</Name>
-      <Get>${this:16}.getValue()</Get>
-    </Property>
-  </Properties>
+  <Properties />
   <Events />
-  <Indexers />
-  <Constructors>
-    <Constructor>
-      <Imports>
-        <Import>java.util.regex.*</Import>
-      </Imports>
-      <Java>new Pattern()</Java>
-      <Params />
-    </Constructor>
-    <Constructor>
-      <Imports>
-        <Import>java.util.regex.*</Import>
-      </Imports>
-      <Java>new Pattern(${pattern})</Java>
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Type>System.Text.RegularExpressions.Group</Type>
+      <Get>${this:16}.get(${key})</Get>
+    </Indexer>
+    <Indexer>
+      <Imports />
+      <Warning>CS2J does not yet support Named groups in Regular Expressions</Warning>
       <Params>
         <Param>
           <Type>System.String</Type>
-          <Name>pattern</Name>
+          <Name>key</Name>
         </Param>
       </Params>
-    </Constructor>
+      <Type>System.Text.RegularExpressions.Group</Type>
+      <Get>${this:16}.get(${key})</Get>
+    </Indexer>
+  </Indexers>
+  <Constructors>
   </Constructors>
   <Fields />
   <Casts />
