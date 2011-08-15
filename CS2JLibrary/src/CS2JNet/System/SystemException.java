@@ -24,21 +24,21 @@ package CS2JNet.System;
  * @author keving
  *
  */
-public class InvalidOperationException extends SystemException {
+public class SystemException extends Exception {
 	
-	public InvalidOperationException() {
+	public SystemException() {
 		
 	}
 	
-	public InvalidOperationException(String msg) {
+	public SystemException(String msg) {
 		super(msg);
 	}
 	
-	public InvalidOperationException(Throwable inner) {
+	public SystemException(Throwable inner) {
 		super(inner);
 	}
 	
-	public InvalidOperationException(String msg, Throwable inner) {
+	public SystemException(String msg, Throwable inner) {
 		super(msg, inner);
 	}
 	
