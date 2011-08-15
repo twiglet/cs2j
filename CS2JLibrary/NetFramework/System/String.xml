@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -250,6 +250,24 @@
       </Params>
       <Name>IsNullOrEmpty</Name>
       <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>StringSupport.join(${value}, ${separator})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>separator</Name>
+        </Param>
+        <Param>
+          <Type>System.String[]</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Join</Name>
+      <Return>System.String</Return>
     </Method>
     <Method>
       <Imports>

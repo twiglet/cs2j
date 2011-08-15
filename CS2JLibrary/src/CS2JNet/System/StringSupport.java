@@ -24,6 +24,7 @@ package CS2JNet.System;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,6 +102,31 @@ public class StringSupport {
 		}
 	}
 
+	public static String join(Collection<?> s, String delimiter) {
+	     StringBuilder builder = new StringBuilder();
+	     Iterator<?> iter = s.iterator();
+	     while (iter.hasNext()) {
+	         builder.append(iter.next());
+	         if (!iter.hasNext()) {
+	           break;                  
+	         }
+	         builder.append(delimiter);
+	     }
+	     return builder.toString();
+	 }
+	
+	public static String join(Object[] s, String delimiter) {
+	     StringBuilder builder = new StringBuilder();
+	     for (int i = 0; i < s.length; i++) {
+	         builder.append(s[i].toString());
+	         if (i == s.length - 1) {
+	           break;                  
+	         }
+	         builder.append(delimiter);
+	     }
+	     return builder.toString();
+	 }
+	
 	public static String Trim(String in, char[] filters, boolean trimStart, boolean trimEnd)
 	{
 		// Locate first non-trimmable index
