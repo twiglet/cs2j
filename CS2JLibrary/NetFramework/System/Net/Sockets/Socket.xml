@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Net.Sockets.NetSocket</Import>
+  </Imports>
+  <Java>NetSocket</Java>
+  <Name>System.Net.Sockets.Socket</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Params>
+      </Params>
+      <Name>Accept</Name>
+      <Return>System.Net.Sockets.Socket</Return>
+      <Java>${this:16}.accept()</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Net.EndPoint</Type>
+          <Name>localEP</Name>
+        </Param>
+      </Params>
+      <Name>Bind</Name>
+      <Return>System.Void</Return>
+      <Java>${this:16}.bind(${localEP})</Java>
+    </Method>
+    <Method>
+      <Params>
+      </Params>
+      <Name>Close</Name>
+      <Return>System.Void</Return>
+      <Java>${this:16}.close()</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>backLog</Name>
+        </Param>
+      </Params>
+      <Name>Listen</Name>
+      <Return>System.Void</Return>
+      <Java>${this:16}.listen(${backLog})</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+      </Params>
+      <Name>Receive</Name>
+      <Return>System.Int32</Return>
+      <Java>${this:16}.receive(${buffer})</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Net.Sockets.SocketFlags</Type>
+          <Name>socketFlags</Name>
+        </Param>
+      </Params>
+      <Name>Receive</Name>
+      <Return>System.Int32</Return>
+      <Java>${this:16}.receive(${buffer}, ${socketFlags})</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>size</Name>
+        </Param>
+        <Param>
+          <Type>System.Net.Sockets.SocketFlags</Type>
+          <Name>socketFlags</Name>
+        </Param>
+      </Params>
+      <Name>Receive</Name>
+      <Return>System.Int32</Return>
+      <Java>${this:16}.receive(${buffer}, ${size}, ${socketFlags})</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+      </Params>
+      <Name>Send</Name>
+      <Return>System.Int32</Return>
+      <Java>${this:16}.send(${buffer})</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Net.Sockets.SocketFlags</Type>
+          <Name>socketFlags</Name>
+        </Param>
+      </Params>
+      <Name>Send</Name>
+      <Return>System.Int32</Return>
+      <Java>${this:16}.send(${buffer}, ${socketFlags})</Java>
+    </Method>
+    <Method>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>size</Name>
+        </Param>
+        <Param>
+          <Type>System.Net.Sockets.SocketFlags</Type>
+          <Name>socketFlags</Name>
+        </Param>
+      </Params>
+      <Name>Send</Name>
+      <Return>System.Int32</Return>
+      <Java>${this:16}.send(${buffer}, ${size}, ${socketFlags})</Java>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Type>System.Net.EndPoint</Type>
+      <Name>RemoteEndPoint</Name>
+      <Get>${this:16}.getRemoteEndPoint()</Get>
+    </Property>
+    <Property>
+      <Type>System.Net.EndPoint</Type>
+      <Name>LocalEndPoint</Name>
+      <Get>${this:16}.getLocalEndPoint()</Get>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+  	<Constructor>
+  	  <Params>
+  	    <Param>
+  	      <Type>System.Net.Sockets.AddressFamily</Type>
+  	      <Name>addressFamily</Name>
+  	    </Param>
+  	    <Param>
+  	      <Type>System.Net.Sockets.SocketType</Type>
+  	      <Name>socketType</Name>
+  	    </Param>
+  	    <Param>
+  	      <Type>System.Net.Sockets.ProtocolType</Type>
+  	      <Name>protocolType</Name>
+  	    </Param>
+  	  </Params>
+  	  <Imports>
+  	    <Import>CS2JNet.System.Net.Sockets.NetSocket</Import>
+  	  </Imports>
+  	  <Java>new NetSocket(${addressFamily}, ${socketType}, ${protocolType})</Java>
+  	</Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>SN3u4jP6NT27ku+roqFb8+ai8ss=</DigestValue></Reference></SignedInfo><SignatureValue>IDeU7DwlyrEORnFANQXDU9BSzSqxdUghEJlNqR97r026Ia06GJcmTEXLJrOZPrImgzMHmRYbc3pnd1F/6C02D1GphfR/JkDcC/k+3K6OMiXyv+o2R5bOourI8ysEUap+KLwBYAOhwRW9ZRix1KnfPD2yBO+Pd11oMA/JyuuDNoI=</SignatureValue></Signature></Class>
