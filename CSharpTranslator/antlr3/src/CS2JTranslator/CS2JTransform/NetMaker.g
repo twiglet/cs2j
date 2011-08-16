@@ -94,7 +94,7 @@ scope MkNonGeneric {
     public override void AddToImports(string imp) {
         // Don't add import if its namespace is within our type
 //       if (!imp.StartsWith($NSContext::currentNS+".")) {
-        if (imp != null && (CompUnitName == null || CompUnitName.Length == 0 || !imp.StartsWith(NSPrefix(CompUnitName)))) { 
+        if (imp != null && imp.Contains(".") && (CompUnitName == null || CompUnitName.Length == 0 || !imp.StartsWith(NSPrefix(CompUnitName)))) { 
             Imports.Add(imp);
         }
   //      }

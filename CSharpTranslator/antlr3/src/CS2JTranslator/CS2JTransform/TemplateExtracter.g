@@ -869,8 +869,13 @@ method_declaration [bool isPartial, string returnType]:
 method_header [string returnType] returns [MethodRepTemplate meth]:
 	member_name  '('   fpl=formal_parameter_list?   ')'   
     type_parameter_constraints_clauses? 
-        { DebugDetail("Processing method declaration: " + $member_name.name); }
-        {  $meth = new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist); }
+      { DebugDetail("Processing method declaration: " + $member_name.name); }
+      {  
+         $meth = new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist); 
+         if ($member_name.name != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+            $meth.JavaName = toJavaConvention(CSharpEntity.METHOD, $member_name.name);
+         }
+      }
 ;
 method_body returns[bool isEmpty]:
 	block {$isEmpty = $block.isEmpty; };

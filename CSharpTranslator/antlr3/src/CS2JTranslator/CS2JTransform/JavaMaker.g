@@ -1303,11 +1303,11 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
     bool isMain = isVoid || isInt;
     bool isMainHasArg = false;
     bool isGetHashCode = isInt;
+    string newMethodName = "";
 }:
         // TODO:  According to the spec the C# Main() method should be static and not public.  We aren't checking for lack of public 
         // we can check the modifiers in modList if we want to enforce that.
 		member_name { isToString = $member_name.text == "ToString"; isGetHashCode &= $member_name.text == "GetHashCode"; isEquals = $member_name.text == "Equals"; isMain &= $member_name.text == "Main"; }
-        magicIdentifier[$member_name.tree.Token, $member_name.full_name.Replace(".","___")]
         (type_parameter_list { isToString = false; isMain = false; })? 
         '(' 
             // We are looking for ToString(), and Main(string[] args), where arg is optional.  
@@ -1347,6 +1347,15 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
         mainCall=magicMainExit[isMain, isInt, $member_name.tree.Token, $mainApply.tree]
         mainMethod=magicMainWrapper[isMain, $member_name.tree.Token, $mainCall.tree]
     
+        {
+            newMethodName = $member_name.full_name.Replace(".","___");
+            if (newMethodName != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+               // Leave Main() as it is because we are going to wrap it with a special main method
+               newMethodName = toJavaConvention(CSharpEntity.METHOD, newMethodName);
+            }
+        } 
+
+        magicIdentifier[$member_name.tree.Token, newMethodName]
 
         { if (isToString) {
               $magicIdentifier.tree.Token.Text = "toString";

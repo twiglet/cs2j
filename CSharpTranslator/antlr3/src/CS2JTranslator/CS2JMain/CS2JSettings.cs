@@ -62,7 +62,12 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
-             public bool TranslatorMakeJavadocComments
+            public bool TranslatorMakeJavadocComments
+            {
+                get; set;
+            }
+
+            public bool TranslatorMakeJavaNamingConventions
             {
                 get; set;
             }
@@ -122,6 +127,7 @@ namespace Twiglet.CS2J.Translator
                 TranslatorExceptionIsThrowable = false;
                 TranslatorBlanketThrow = true;
                 TranslatorMakeJavadocComments = true;
+                TranslatorMakeJavaNamingConventions = true;
 
                 EnumsAsNumericConsts = false;
                 UnsignedNumbersToSigned = false;

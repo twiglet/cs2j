@@ -133,6 +133,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
                         .Add ("translator-make-javadoc-comments=", v => cfg.TranslatorMakeJavadocComments = Boolean.Parse(v))
+                        .Add ("translator-make-java-naming-conventions=", v => cfg.TranslatorMakeJavaNamingConventions = Boolean.Parse(v))
                         .Add ("experimental-enums-numericconsts", v => cfg.EnumsAsNumericConsts = true)
                         .Add ("experimental-unsigned-translatesigned", v => cfg.UnsignedNumbersToSigned = true)
                         .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))
@@ -368,11 +369,10 @@ namespace Twiglet.CS2J.Translator
            try
            {
               TypeRepTemplate.TemplateReaderSettings.Schemas.Add("urn:www.twigletsoftware.com:schemas:txtemplate:1:0", fullName);
-              Console.WriteLine(fullName);
            }
            catch (Exception e)
            {
-              throw;
+              Console.Error.WriteLine("{0} error: {1}", fullName, e.Message);
            }
         }
 

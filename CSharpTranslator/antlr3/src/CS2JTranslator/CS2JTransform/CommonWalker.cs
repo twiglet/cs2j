@@ -320,8 +320,32 @@ xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"">
           }
        }
 
-    }
+       protected string toJavaConvention(CSharpEntity type, string str)
+       {
+          string ret = String.Empty;
 
+          if (str == null || str.Length == 0)
+          {
+             return ret;
+          }
+
+          switch(type)
+          {
+             case CSharpEntity.METHOD:
+                ret = new StringBuilder(str.Length).Append(Char.ToLower(str[0]))
+                   .Append(str.Substring(1))
+                   .ToString();
+                break;
+          }
+          return ret;
+       }
+    }
+    
+   public enum CSharpEntity
+   {
+      METHOD
+   }
+       
     // Wraps a compilation unit with its imports search path
     public class CUnit {
 

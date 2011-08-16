@@ -684,6 +684,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
       // Method name
       public string Name { get; set; }
 
+      // Method name in Java (defaults to Name)
+      private string _javaName = null;
+      public string JavaName { 
+         get
+         {
+            return (_javaName == null || _javaName.Length == 0) ? Name : _javaName; 
+         }
+         set
+         {
+            _javaName = value;
+         }
+      }
+
       private string[] _typeParams = null;
       [XmlArrayItem("Name")]
       public string[] TypeParams { 
@@ -837,21 +850,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
          // special for ToString -> toString
          // special for Equals -> equals
          // special for GetHashCode -> hashCode
-         if (Name == "ToString" && Params.Count == 0)
+         if (JavaName == "ToString" && Params.Count == 0)
          {
             methStr.Append("toString");
          }  
-         else if (Name == "Equals" && Params.Count == 1)
+         else if (JavaName == "Equals" && Params.Count == 1)
          {
             methStr.Append("equals");
          }  
-         else if (Name == "GetHashCode" && Params.Count == 0)
+         else if (JavaName == "GetHashCode" && Params.Count == 0)
          {
             methStr.Append("hashCode");
          }  
          else
          {
-            methStr.Append(Name);
+            methStr.Append(JavaName);
          }
          return methStr.ToString() + mkJavaParams(Params);
       }
@@ -889,7 +902,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 			
-         return Return == other.Return && Name == other.Name && IsStatic == other.IsStatic && IsPartialDefiner == other.IsPartialDefiner && base.Equals(other);
+         return Return == other.Return && Name == other.Name && JavaName == other.JavaName && IsStatic == other.IsStatic && IsPartialDefiner == other.IsPartialDefiner && base.Equals(other);
       }
 
       public override bool Equals (object obj)
@@ -926,7 +939,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ IsPartialDefiner.GetHashCode() ^ base.GetHashCode();
+         return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ (JavaName ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ IsPartialDefiner.GetHashCode() ^ base.GetHashCode();
       }
       #endregion
 
@@ -942,10 +955,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
       }
 
-      public override string mkJava()
-      {
-         return "${this:16}.Invoke" +  mkJavaParams(this.Params);
-      }
+//      public override string mkJava()
+//      {
+//         return "${this:16}.Invoke" +  mkJavaParams(this.Params);
+//      }
    }
 
    //  A user-defined cast from one type to another
