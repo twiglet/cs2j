@@ -2961,7 +2961,7 @@ predefined_type returns [TypeRepTemplate dotNetType]
 
 }:
 	  'bool'    { ns = "System.Boolean"; }
-    | 'byte'    { ns = "System.Byte"; }
+    | 'byte'    { ns = Cfg.UnsignedNumbersToSigned ? "System.Byte" : "System.Byte"; }
     | 'char'    { ns = "System.Char"; }
     | 'decimal' { ns = "System.Decimal"; }
     | 'double'  { ns = "System.Double"; }
@@ -2969,7 +2969,7 @@ predefined_type returns [TypeRepTemplate dotNetType]
     | 'int'     { ns = "System.Int32"; }
     | 'long'    { ns = "System.Int64"; }
     | 'object'  { ns = "System.Object"; }
-    | 'sbyte'   { ns = "System.SByte"; }
+    | 'sbyte'   { ns = "System.Byte"; }
 	| 'short'   { ns = "System.Int16"; }
     | 'string'  { ns = "System.String"; }
     | 'uint'    { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32"; }
