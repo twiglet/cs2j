@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -100,6 +100,20 @@
       </Params>
       <Name>InvokeMember</Name>
       <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.TypeSupport</Import>
+      </Imports>
+      <Java>TypeSupport.GetTypeCode(${type})</Java>
+      <Params>
+        <Param>
+          <Type>System.Type</Type>
+          <Name>type</Name>
+        </Param>
+      </Params>
+      <Name>GetTypeCode</Name>
+      <Return>System.TypeCode</Return>
     </Method>
   </Methods>
   <Properties>

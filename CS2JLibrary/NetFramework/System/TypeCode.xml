@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Enum xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.TypeCode</Import>
+  </Imports>
+  <Java>TypeCode</Java>
+  <Name>System.TypeCode</Name>
+  <Inherits>
+    <Type>System.Enum</Type>
+  </Inherits>
+  <Members>
+    <Member>
+      <Java>${this:16}.Empty</Java>
+      <Name>Empty</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Object</Java>
+      <Name>Object</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.DBNull</Java>
+      <Name>DBNull</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Boolean</Java>
+      <Name>Boolean</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Char</Java>
+      <Name>Char</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.SByte</Java>
+      <Name>SByte</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Byte</Java>
+      <Name>Byte</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Int16</Java>
+      <Name>Int16</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.UInt16</Java>
+      <Name>UInt16</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Int32</Java>
+      <Name>Int32</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.UInt32</Java>
+      <Name>UInt32</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Int64</Java>
+      <Name>Int64</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.UInt64</Java>
+      <Name>UInt64</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Single</Java>
+      <Name>Single</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Double</Java>
+      <Name>Double</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Decimal</Java>
+      <Name>Decimal</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.DateTime</Java>
+      <Name>DateTime</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.String</Java>
+      <Name>String</Name>
+    </Member>
+  </Members>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>mo6ChmPjcAlAo0NBWLLZbsocykw=</DigestValue></Reference></SignedInfo><SignatureValue>RlUioSuamZxr9dmH+n+zDAoS31RAR3VRqGwbq0J8Ew28sRdZoXTjz2yJwWvSZIzMRNeMc0v8VZbLRMEM39bSKH51gWKuQ8TFyzTBwMzQDeDsNO5kzdxcE1DYGnZKKplPDKPM8n9mlpuDYginKU8dk3dA/CtPgAmc7X90AuPIhew=</SignatureValue></Signature></Enum>

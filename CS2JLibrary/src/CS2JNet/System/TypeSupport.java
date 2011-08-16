@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import CS2JNet.System.Reflection.BindingFlags;
 
@@ -172,6 +173,83 @@ public class TypeSupport {
 	public static Field GetField(Class myType,
 			String fieldName) throws NoSuchFieldException, Exception {
 		return GetField(myType, fieldName, BindingFlags.getDefault());
+	}
+
+	public static TypeCode GetTypeCode(Class myType) {
+		TypeCode ret = TypeCode.Object;
+		
+		if (myType.isPrimitive()) {
+		
+			if (myType.equals(Boolean.TYPE)) {
+				ret = TypeCode.Boolean;
+			}	
+			else if (myType.equals(Character.TYPE)) {
+				ret = TypeCode.Char;
+			}
+			else if (myType.equals(Byte.TYPE)) {
+				ret = TypeCode.Byte;
+			}
+			else if (myType.equals(Short.TYPE)) {
+				ret = TypeCode.Int16;
+			}
+			else if (myType.equals(Integer.TYPE)) {
+				ret = TypeCode.Int32;
+			}
+			else if (myType.equals(Long.TYPE)) {
+				ret = TypeCode.Int64;
+			}
+			else if (myType.equals(Float.TYPE)) {
+				ret = TypeCode.Single;
+			}
+			else if (myType.equals(Double.TYPE)) {
+				ret = TypeCode.Double;
+			}
+			else if (myType.equals(Void.TYPE)) {
+				// No equivalent, return object I guess
+			}
+		}
+		else {
+			if (myType.isInstance(Boolean.FALSE)) {
+				ret = TypeCode.Boolean;
+			}	
+			else if (myType.isInstance(Character.MAX_VALUE)) {
+				ret = TypeCode.Char;
+			}
+			else if (myType.isInstance(Byte.MAX_VALUE)) {
+				ret = TypeCode.Byte;
+			}
+			else if (myType.isInstance(Short.MAX_VALUE)) {
+				ret = TypeCode.Int16;
+			}
+			else if (myType.isInstance(Integer.MAX_VALUE)) {
+				ret = TypeCode.Int32;
+			}
+			else if (myType.isInstance(Long.MAX_VALUE)) {
+				ret = TypeCode.Int64;
+			}
+			else if (myType.isInstance(Float.MAX_VALUE)) {
+				ret = TypeCode.Single;
+			}
+			else if (myType.isInstance(Double.MAX_VALUE)) {
+				ret = TypeCode.Double;
+			}
+			else if (myType.isInstance(new Date())) {
+				ret = TypeCode.Double;
+			}
+			else if (myType.isInstance("")) {
+				ret = TypeCode.String;
+			}
+		}
+		return ret;
+	}
+	
+	public static void Testmain(String[] args)
+	{
+		Boolean b = true;
+		int i = 0;
+		System.out.println(TypeCode.Boolean);
+		System.out.println(GetTypeCode(b.getClass()));
+		System.out.println(GetTypeCode(((Integer)i).getClass()));
 	}
 
 }
