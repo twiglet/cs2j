@@ -2277,10 +2277,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
          object o = null;
 	
          // Create the XmlReader object.
-         XmlReader reader = XmlReader.Create(fs, TemplateReaderSettings);
+         // XmlReader reader = XmlReader.Create(fs, TemplateReaderSettings);
 		
          XmlSerializer serializer = new XmlSerializer (t, Constants.TranslationTemplateNamespace);
-         o = serializer.Deserialize (reader);
+         //o = serializer.Deserialize (reader);
+         o = serializer.Deserialize (fs);
          return o;
       }
 
