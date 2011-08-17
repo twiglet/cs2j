@@ -21,7 +21,7 @@ DOS prompt:
 
 cd "C:\Documents and Settings\developer\My Documents\cs2j-2011.1.2\cs2j-2011.1.2"
 
--- "CS2JTranslator\bin\cs2j.exe" -debug=1 -translator-timestamp-files=false -translator-keep-parens=false -netdir=NetFramework -dumpxmls -xmldir=z:\keving\tmp\xml\se -odir=z:\keving\tmp\java\se\src -csdir="C:\Documents and Settings\developer\My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core"
+-- "CS2JTranslator\bin\cs2j.exe" -debug=1 -translator-timestamp-files=false -translator-keep-parens=false -translator-make-java-naming-conventions=false -netdir=NetFramework -dumpxmls -xmldir=z:\keving\tmp\xml\se -odir=z:\keving\tmp\java\se\src -csdir="C:\Documents and Settings\developer\My Documents\svnrepos\ScormEngineNet\src\app\ScormEngine.Core"
 
 MAC
 
