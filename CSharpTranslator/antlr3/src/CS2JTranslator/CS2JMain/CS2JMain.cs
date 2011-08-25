@@ -134,8 +134,8 @@ namespace Twiglet.CS2J.Translator
                         .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
                         .Add ("translator-make-javadoc-comments=", v => cfg.TranslatorMakeJavadocComments = Boolean.Parse(v))
                         .Add ("translator-make-java-naming-conventions=", v => cfg.TranslatorMakeJavaNamingConventions = Boolean.Parse(v))
-                        .Add ("experimental-enums-numericconsts", v => cfg.EnumsAsNumericConsts = true)
-                        .Add ("experimental-unsigned-translatesigned", v => cfg.UnsignedNumbersToSigned = true)
+                        .Add ("experimental-enums-numericconsts=", v => cfg.EnumsAsNumericConsts = Boolean.Parse(v))
+                        .Add ("experimental-unsigned-translatesigned=", v => cfg.UnsignedNumbersToSigned = Boolean.Parse(v))
                         .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))
                         .Add ("internal-isjavaish", v => cfg.InternalIsJavaish = true)
                         ;
