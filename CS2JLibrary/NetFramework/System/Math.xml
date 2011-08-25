@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -165,6 +165,18 @@
       </Params>
       <Name>Round</Name>
       <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.round(${s})</Java>
+      <Params>
+        <Param>
+          <Type>System.Single</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+      <Name>Round</Name>
+      <Return>System.Single</Return>
     </Method>
     <Method>
       <Imports />
