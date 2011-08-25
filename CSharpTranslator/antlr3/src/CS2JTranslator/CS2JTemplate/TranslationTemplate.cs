@@ -203,6 +203,55 @@ namespace Twiglet.CS2J.Translator.TypeRep
       #endregion
    }
 
+   // Represents a variable number of parameters
+   public class ParamArrayRepTemplate : ParamRepTemplate, IEquatable<ParamArrayRepTemplate>
+   {
+
+      public ParamArrayRepTemplate ()
+      {
+      }
+
+      public ParamArrayRepTemplate(ParamArrayRepTemplate copyFrom) : base(copyFrom)
+      {
+      }
+
+      public ParamArrayRepTemplate (string t, string a) : base(t, a)
+      {
+      }
+
+      #region Equality
+      public bool Equals (ParamArrayRepTemplate other)
+      {
+         return base.Equals(other);
+      }
+
+      public override bool Equals (object obj)
+      {
+			
+         ParamArrayRepTemplate temp = obj as ParamArrayRepTemplate;
+			
+         if (!Object.ReferenceEquals (temp, null))
+            return this.Equals (temp);
+         return false;
+      }
+
+      public static bool operator == (ParamArrayRepTemplate a1, ParamArrayRepTemplate a2)
+      {
+         return Object.Equals (a1, a2);
+      }
+
+      public static bool operator != (ParamArrayRepTemplate a1, ParamArrayRepTemplate a2)
+      {
+         return !(a1 == a2);
+      }
+
+      public override int GetHashCode ()
+      {
+         return base.GetHashCode ();
+      }
+      #endregion
+   }
+
    // A namespace alias entry.
    public class AliasRepTemplate : IEquatable<AliasRepTemplate>
    {
@@ -391,14 +440,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
 
-      protected string mkJavaParams(IList<ParamRepTemplate> pars) {
+      protected string mkJavaParams(IList<ParamRepTemplate> pars, ParamArrayRepTemplate paramarr) {
          StringBuilder parStr = new StringBuilder();
          parStr.Append("(");
          foreach (ParamRepTemplate p in pars) {
             parStr.Append("${"+p.Name+"},");
          }
          if (parStr[parStr.Length-1] == ',') {
+            // remove trailing comma
             parStr.Remove(parStr.Length-1,1);
+         }
+         if (paramarr != null)
+         {
+            // ${*]n} means all parameters with position (1,2,..) greater than n
+            // so ${*]0} means all arguments, ${*]1} means all but first etc.
+            parStr.Append("${" + (pars.Count > 0 ? "," : "") + "*]"+pars.Count.ToString()+"}");
          }
          parStr.Append(")");
          return parStr.ToString();
@@ -569,6 +625,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 		
+      private ParamArrayRepTemplate _paramArray = null;
+      public ParamArrayRepTemplate ParamArray {
+         get
+         {
+            return _paramArray;
+         }
+         set
+         {
+            _paramArray = value;
+         }
+
+      }
+		
       public override string mkJava() {
          string constructorName = "CONSTRUCTOR";
          if (SurroundingType != null) {
@@ -578,7 +647,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                 constructorName += mkTypeParams(SurroundingType.TypeParams);
             }
          }
-         return "new " + constructorName + mkJavaParams(Params);
+         return "new " + constructorName + mkJavaParams(Params, ParamArray);
       }
 		
       public override string[] mkImports() {
@@ -602,6 +671,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             Params.Add(new ParamRepTemplate(p));
          }
+         ParamArray = copyFrom.ParamArray;
       }
 
       public ConstructorRepTemplate (List<ParamRepTemplate> pars) : base()
@@ -624,6 +694,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
                p.Apply(args);
             }
          }
+         if (ParamArray != null)
+            ParamArray.Apply(args);
+         
          base.Apply(args);
       }
 
@@ -642,6 +715,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   return false;
             }
          }
+
+         if (ParamArray != other.ParamArray)
+            return false;
 
          return base.Equals(other);
       }
@@ -673,13 +749,13 @@ namespace Twiglet.CS2J.Translator.TypeRep
             hashCode = hashCode ^ o.GetHashCode() ;
          }
 			
-         return base.GetHashCode () ^ hashCode;
+         return base.GetHashCode () ^ hashCode ^ (ParamArray == null ? 0 : ParamArray.GetHashCode());
       }
       #endregion
    }
 
    // Method has the same info as a delegate as a constructor plus a name and return type
-   public class MethodRepTemplate : ConstructorRepTemplate, IEquatable<ConstructorRepTemplate>
+   public class MethodRepTemplate : ConstructorRepTemplate, IEquatable<MethodRepTemplate>
    {
       // Method name
       public string Name { get; set; }
@@ -866,7 +942,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             methStr.Append(JavaName);
          }
-         return methStr.ToString() + mkJavaParams(Params);
+         return methStr.ToString() + mkJavaParams(Params, ParamArray);
       }
 		
       // TODO: filter out redefined type names
@@ -1340,6 +1416,16 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 		
+      private ParamArrayRepTemplate _paramArray = null;
+      public ParamArrayRepTemplate ParamArray {
+         get {
+            return _paramArray;
+         }
+         set {
+            _paramArray = value;
+         }
+      }
+		
       private List<ParamRepTemplate> _setParams = null;
       private List<ParamRepTemplate> SetParams {
          get {
@@ -1356,13 +1442,30 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 		
+      private ParamArrayRepTemplate _setParamArray = null;
+      public ParamArrayRepTemplate SetParamArray {
+         get {
+            if (_setParamArray == null)
+            {
+               return ParamArray;
+            }
+            else
+            {
+               return _setParamArray;
+            }
+         }
+         set {
+            _setParamArray = value;
+         }
+      }
+		
       [XmlElementAttribute("Get")]
       public override string JavaGet {
          get {
             if (!CanRead) return null;
             if (_javaGet == null) {
                if (_java == null) {
-                  return (CanRead ? "${this:16}.get___idx" + mkJavaParams(Params) : null);
+                  return (CanRead ? "${this:16}.get___idx" + mkJavaParams(Params, ParamArray) : null);
                }
                else {
                   return _java;
@@ -1379,7 +1482,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override string JavaSet { 
          get {
             if (_javaSet == null) {
-               return (CanWrite ? "${this:16}.set___idx" + mkJavaParams(SetParams): null);
+               return (CanWrite ? "${this:16}.set___idx" + mkJavaParams(SetParams, SetParamArray): null);
             }
             else {
                return _javaSet;
@@ -1400,10 +1503,17 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             Params.Add(new ParamRepTemplate(p));
          }
-         foreach (ParamRepTemplate p in copyFrom.SetParams)
+         if (copyFrom._setParams != null)
          {
-            SetParams.Add(new ParamRepTemplate(p));
+            foreach (ParamRepTemplate p in copyFrom._setParams)
+            {
+               SetParams.Add(new ParamRepTemplate(p));
+            }
          }
+
+         _paramArray = copyFrom._paramArray;
+         _setParamArray = copyFrom._setParamArray;
+
          if (!String.IsNullOrEmpty(copyFrom.JavaGet))
          {
             JavaGet = copyFrom.JavaGet;
@@ -1412,8 +1522,6 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             JavaSet = copyFrom.JavaSet;
          }
-
-
       }
 
       public IndexerRepTemplate(string fType, List<ParamRepTemplate> pars)
@@ -1444,6 +1552,12 @@ namespace Twiglet.CS2J.Translator.TypeRep
                p.Apply(args);
             }
          }
+
+         if (_paramArray != null)
+            _paramArray.Apply(args);
+         if (_setParamArray != null)
+            _setParamArray.Apply(args);
+
          base.Apply(args);
       }
 
@@ -1462,6 +1576,12 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   return false;
             }
          }
+
+         if (ParamArray != other.ParamArray)
+            return false;
+
+         if (SetParamArray != other.SetParamArray)
+            return false;
 
          return base.Equals(other);
       }
@@ -1493,7 +1613,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             hashCode = hashCode ^ o.GetHashCode() ;
          }
 			
-         return base.GetHashCode () ^ hashCode;
+         return base.GetHashCode () ^ hashCode ^  (ParamArray == null ? 0 : ParamArray.GetHashCode()) ^ (_setParamArray == null ? 0 : _setParamArray.GetHashCode());
       }
       #endregion
    }
@@ -2881,6 +3001,73 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return base.Resolve(name, forWrite, AppEnv);
       }
 
+      /// <summary>
+      /// Can we match Params + ParamArray against args   
+      /// </summary>
+      /// 
+      protected bool matchParamsToArgs(IList<ParamRepTemplate> param, ParamArrayRepTemplate paramArray, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+         int argsLength = args == null ? 0 : args.Count;
+         int paramsLength = param == null ? 0 : param.Count;
+         
+         if (paramsLength > 0)
+         {
+            // Check fixed parameters against args 
+            if (argsLength < paramsLength)
+            {
+               // Length of required fixed Parameters is greater than number of available arguments 
+               return false; 
+            }
+            else
+            {
+               // Check fixed Parameters against args
+               // check that for each argument in the caller its type 'IsA' the type of the formal parameter
+               for (int idx = 0; idx < paramsLength; idx++) {
+                  if (args[idx] == null || !args[idx].IsA(BuildType(param[idx].Type, AppEnv, new UnknownRepTemplate(param[idx].Type)),AppEnv))
+                  {
+                     // An argument doesn't match
+                     return false; 
+                  }
+               }
+            }
+         }
+
+         if (argsLength == paramsLength)
+            // OK, fixed args check out.
+            return true;
+
+         if (paramArray == null)
+            // Extra args and no param array
+            return false;
+
+         // We have args left over, check param argument. 
+
+         String paramsTypeStr = paramArray.Type ?? "System.Object";
+         if (!paramsTypeStr.EndsWith("[]"))
+            // Type should be an array, maybe print a warning if it isn't?
+            paramsTypeStr = paramsTypeStr + "[]";
+
+         TypeRepTemplate paramsType = BuildType(paramsTypeStr, AppEnv, new UnknownRepTemplate(paramsTypeStr));
+         
+         if (argsLength == paramsLength + 1 && args[argsLength - 1].IsA(paramsType,AppEnv))
+         {
+            // Can pass an array as final argument
+            return true;
+         }
+  
+         // Check additional args against params element type
+         // Remove final array marker
+         paramsTypeStr = paramsTypeStr.Remove(paramsTypeStr.Length-2);
+         paramsType = BuildType(paramsTypeStr, AppEnv, new UnknownRepTemplate(paramsTypeStr));
+
+         for (int idx = paramsLength; idx < argsLength; idx++)
+         {
+            if (args[idx] == null || !args[idx].IsA(paramsType,AppEnv))
+               return false;
+         }
+         return true;
+      }
+
       public override ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
@@ -2889,42 +3076,13 @@ namespace Twiglet.CS2J.Translator.TypeRep
             ResolveResult res = null;
             foreach (MethodRepTemplate m in Methods)
             {
-               if (m.Name == name)
+               if (m.Name == name && matchParamsToArgs(m.Params, m.ParamArray, args, AppEnv))
                {
-                  bool matchingArgs = true;
-                  // If either params are null then make sure both represent zero length args
-                  if (m.Params == null || args == null)
-                  {
-                     // Are they both zero length?
-                     matchingArgs = (m.Params == null || m.Params.Count == 0) && (args == null || args.Count == 0);
-                  }
-                  else
-                  {
-                     // Are num args the same?
-                     if (m.Params.Count != args.Count)
-                     {
-                        matchingArgs = false;
-                     }
-                     else
-                     {
-                        // check that for each argument in the caller its type 'IsA' the type of the formal argument
-                        for (int idx = 0; idx < m.Params.Count; idx++) {
-                           if (args[idx] == null || !args[idx].IsA(BuildType(m.Params[idx].Type, AppEnv, new UnknownRepTemplate(m.Params[idx].Type)),AppEnv))
-                           {
-                              matchingArgs = false;
-                              break;
-                           }
-                        }
-                     }
-                  }
-                  if (matchingArgs)
-                  {
-                     res = new ResolveResult();
-                     res.Result = m;
-                     res.ResultType = BuildType(m.Return, AppEnv);
-                     if (!m.IsPartialDefiner)
-                       return res;
-                  }
+                  res = new ResolveResult();
+                  res.Result = m;
+                  res.ResultType = BuildType(m.Return, AppEnv);
+                  if (!m.IsPartialDefiner)
+                     return res;
                }
             }
             if (res != null)
@@ -2943,43 +3101,16 @@ namespace Twiglet.CS2J.Translator.TypeRep
                {
                   // Is p's type a delegate?
                   DelegateRepTemplate del = BuildType(p.Type, AppEnv, null) as DelegateRepTemplate;
-                  if (del != null)
+                  if (del != null && matchParamsToArgs(del.Invoke.Params, del.Invoke.ParamArray, args, AppEnv))
                   {
-                     bool matchingArgs = true;
-                     if (del.Invoke.Params == null || args == null)
-                     {
-                        // Are they both zero length?
-                        matchingArgs = (del.Invoke.Params == null || del.Invoke.Params.Count == 0) && (args == null || args.Count == 0);
-                     }
-                     else
-                     {
-                        // Are num args the same?
-                        if (del.Invoke.Params.Count != args.Count)
-                        {
-                           matchingArgs = false;
-                        }
-                        else
-                        {
-                           // check that for each argument in the caller its type 'IsA' the type of the formal argument
-                           for (int idx = 0; idx < del.Invoke.Params.Count; idx++) {
-                              if (args[idx] == null || !args[idx].IsA(BuildType(del.Invoke.Params[idx].Type, AppEnv, new UnknownRepTemplate(del.Invoke.Params[idx].Type)),AppEnv))
-                              {
-                                 matchingArgs = false;
-                                 break;
-                              }
-                           }
-                        }
-                     }
-                     if (matchingArgs)
-                     {
-                        ResolveResult delRes = new ResolveResult();
-                        delRes.Result = del;
-                        delRes.ResultType = BuildType(del.Invoke.Return, AppEnv);
-                        DelegateResolveResult res = new DelegateResolveResult();
-                        res.Result = p;
-                        res.ResultType = BuildType(p.Type, AppEnv);
-                        res.DelegateResult = delRes;
-                        return res;                     }
+                     ResolveResult delRes = new ResolveResult();
+                     delRes.Result = del;
+                     delRes.ResultType = BuildType(del.Invoke.Return, AppEnv);
+                     DelegateResolveResult res = new DelegateResolveResult();
+                     res.Result = p;
+                     res.ResultType = BuildType(p.Type, AppEnv);
+                     res.DelegateResult = delRes;
+                     return res;                     
                   }
                }
             }            
@@ -2994,38 +3125,12 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             foreach (IndexerRepTemplate i in Indexers)
             {
-               bool matchingArgs = true;
-               // If either params are null then make sure both represent zero length args
-               if (i.Params == null || args == null)
+               if (matchParamsToArgs(i.Params, i.ParamArray, args, AppEnv))
                {
-                  // Are they both zero length?
-                  matchingArgs = (i.Params == null || i.Params.Count == 0) && (args == null || args.Count == 0);
-               }
-               else
-               {
-                  // Are num args the same?
-                  if (i.Params.Count != args.Count)
-                  {
-                     matchingArgs = false;
-                  }
-                  else
-                  {
-                     // check that for each argument in the caller its type 'IsA' the type of the formal argument
-                     for (int idx = 0; idx < i.Params.Count; idx++) {
-                        if (args[idx] == null || !args[idx].IsA(BuildType(i.Params[idx].Type, AppEnv, new UnknownRepTemplate(i.Params[idx].Type)),AppEnv))
-                        {
-                           matchingArgs = false;
-                           break;
-                        }
-                     }
-                  }
-                  if (matchingArgs)
-                  {
-                     ResolveResult res = new ResolveResult();
-                     res.Result = i;
-                     res.ResultType = BuildType(i.Type, AppEnv);
-                     return res;
-                  }
+                  ResolveResult res = new ResolveResult();
+                  res.Result = i;
+                  res.ResultType = BuildType(i.Type, AppEnv);
+                  return res;
                }
             }
          }
@@ -3301,44 +3406,16 @@ namespace Twiglet.CS2J.Translator.TypeRep
                {
                   // Is f's type a delegate?
                   DelegateRepTemplate del = BuildType(f.Type, AppEnv, null) as DelegateRepTemplate;
-                  if (del != null)
+                  if (del != null && matchParamsToArgs(del.Invoke.Params, del.Invoke.ParamArray, args, AppEnv))
                   {
-                     bool matchingArgs = true;
-                     if (del.Invoke.Params == null || args == null)
-                     {
-                        // Are they both zero length?
-                        matchingArgs = (del.Invoke.Params == null || del.Invoke.Params.Count == 0) && (args == null || args.Count == 0);
-                     }
-                     else
-                     {
-                        // Are num args the same?
-                        if (del.Invoke.Params.Count != args.Count)
-                        {
-                           matchingArgs = false;
-                        }
-                        else
-                        {
-                           // check that for each argument in the caller its type 'IsA' the type of the formal argument
-                           for (int idx = 0; idx < del.Invoke.Params.Count; idx++) {
-                              if (args[idx] == null || !args[idx].IsA(BuildType(del.Invoke.Params[idx].Type, AppEnv, new UnknownRepTemplate(del.Invoke.Params[idx].Type)),AppEnv))
-                              {
-                                 matchingArgs = false;
-                                 break;
-                              }
-                           }
-                        }
-                     }
-                     if (matchingArgs)
-                     {
-                        ResolveResult delRes = new ResolveResult();
-                        delRes.Result = del;
-                        delRes.ResultType = BuildType(del.Invoke.Return, AppEnv);
-                        DelegateResolveResult res = new DelegateResolveResult();
-                        res.Result = f;
-                        res.ResultType = BuildType(f.Type, AppEnv);
-                        res.DelegateResult = delRes;
-                        return res;
-                     }
+                     ResolveResult delRes = new ResolveResult();
+                     delRes.Result = del;
+                     delRes.ResultType = BuildType(del.Invoke.Return, AppEnv);
+                     DelegateResolveResult res = new DelegateResolveResult();
+                     res.Result = f;
+                     res.ResultType = BuildType(f.Type, AppEnv);
+                     res.DelegateResult = delRes;
+                     return res;
                   }
                }
             }            
@@ -3372,33 +3449,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             foreach (ConstructorRepTemplate c in Constructors)
             {
-               bool matchingArgs = true;
-               // If either params are null then make sure both represent zero length args
-               if (c.Params == null || args == null)
-               {
-                  // Are they both zero length?
-                  matchingArgs = (c.Params == null || c.Params.Count == 0) && (args == null || args.Count == 0);
-               }
-               else
-               {
-                  // Are num args the same?
-                  if (c.Params.Count != args.Count)
-                  {
-                     matchingArgs = false;
-                  }
-                  else
-                  {
-                     // check that for each argument in the caller its type 'IsA' the type of the formal argument
-                     for (int idx = 0; idx < c.Params.Count; idx++) {
-                        if (args[idx] == null || !args[idx].IsA(BuildType(c.Params[idx].Type, AppEnv, new UnknownRepTemplate(c.Params[idx].Type)),AppEnv))
-                        {
-                           matchingArgs = false;
-                           break;
-                        }
-                     }
-                  }
-               }
-               if (matchingArgs)
+               if (matchParamsToArgs(c.Params, c.ParamArray, args, AppEnv))
                {
                   ResolveResult res = new ResolveResult();
                   res.Result = c;

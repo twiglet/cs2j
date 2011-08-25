@@ -316,11 +316,13 @@ scope TypeContext {
             // ${this}.fred -> fred
             ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}\\.", String.Empty);
             // (a,${var},b) -> (a,b)
-            ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\},", String.Empty);
+            ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}\\s*,", String.Empty);
             // (a,${var}) -> (a)
-            ret = Regex.Replace(ret, ",\\$\\{[\\w:]+?\\}", String.Empty);
+            ret = Regex.Replace(ret, ",\\s*\\$\\{[\\w:]+?\\}", String.Empty);
             // (${var}) -> ()
             ret = Regex.Replace(ret, "\\$\\{[\\w:]+?\\}", String.Empty);
+            // ${,?.+,?} ->
+            ret = Regex.Replace(ret, "\\$\\{,?[^\\}]+?,?\\}", String.Empty);
         }
         // If we have a generic type then we can scrub its generic arguments
         // by susbstituting with an empty dictionary, now tidy up the brackets
@@ -328,9 +330,11 @@ scope TypeContext {
         ret = Regex.Replace(ret, "\\s*<(\\s*,\\s*)*>\\s*", String.Empty);
         return ret;
     }
-    
+
+    //
     public class ReplacementDescriptor {
         private string replacementText = "";
+        private IList<StringTemplate> replacementTextList = null;
         private int replacementPrec = -1;
         public ReplacementDescriptor(string txt, int prec)
         {
@@ -343,10 +347,41 @@ scope TypeContext {
             replacementPrec = Int32.MaxValue;
         }
 
+        public ReplacementDescriptor(IList<StringTemplate> txts)
+        {
+            replacementTextList = txts == null ? new List<StringTemplate>() : txts;
+            replacementPrec = Int32.MaxValue;
+        }
+
         public string replace(Match m) {
             // Console.Out.WriteLine("prec: {0} {1} {2} {3}", m.Value, m.Groups.Count, m.Groups[0], m.Groups[1]);
-            int patternPrec = (String.IsNullOrEmpty(m.Groups[1].Value) ? -1 : Int32.Parse(m.Groups[1].Value));
-            return String.Format(replacementPrec < patternPrec ? "({0})" : "{0}", replacementText);
+            if (!String.IsNullOrEmpty(m.Groups[2].Value) && replacementTextList != null) {
+               // pattern has form ${(,)?v](n)(:p)?(,)?}
+               StringBuilder txtBuf = new StringBuilder();
+               bool first = true;
+               for (int idx = Int32.Parse(m.Groups[2].Value); idx < replacementTextList.Count; idx++) {
+                  String argTxt = replacementTextList[idx] == null ? String.Empty : replacementTextList[idx].ToString();
+                  if (!first)
+                     txtBuf.Append(",");
+                  txtBuf.Append(argTxt);
+                  first = false;
+               }
+               if (txtBuf.Length > 0) {
+                  if (!String.IsNullOrEmpty(m.Groups[1].Value))
+                     txtBuf.Insert(0,",");
+                  if (!String.IsNullOrEmpty(m.Groups[4].Value))
+                     txtBuf.Append(",");
+               }
+               return txtBuf.ToString();
+            }
+            else {
+               int patternPrec = (String.IsNullOrEmpty(m.Groups[3].Value) ? -1 : Int32.Parse(m.Groups[3].Value));
+               return String.Format("{0}" + (replacementPrec < patternPrec ? "({1})" : "{1}") + "{2}", 
+                                    !String.IsNullOrEmpty(m.Groups[1].Value) ? "," : String.Empty,
+                                    replacementText,
+                                    !String.IsNullOrEmpty(m.Groups[4].Value) ? "," : String.Empty
+                                    );
+            }
         }
     }
 
@@ -356,7 +391,7 @@ scope TypeContext {
         ret = ret.Replace("*[","<").Replace("]*",">");
         foreach (string v in templateMap.Keys) {
             MatchEvaluator myEvaluator = new MatchEvaluator(templateMap[v].replace);
-            ret = Regex.Replace(ret, Regex.Escape("${" + v) + "(?::(?<prec>\\d+))?}", myEvaluator);
+            ret = Regex.Replace(ret, "\\$\\{(,)?" + Regex.Escape(v) + "(?:\\](\\d+))?(?::(\\d+))?(,)?}", myEvaluator);
         }
         ret = cleanTemplate(ret);
         return ret;
@@ -596,7 +631,10 @@ primary_expression returns [int precedence]
       ^(JAVAWRAPPER t=identifier 
                   (k=identifier v=wrapped 
                        {
-                         templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "/* CS2J: <sorry, untranslated expression> */", $v.precedence); 
+                         if ($k.st.ToString() == "*")
+                            templateMap["*"] = new ReplacementDescriptor($v.ppArgs); 
+                         else
+                            templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "/* CS2J: <sorry, untranslated expression> */", $v.precedence); 
                        }
                   )*) 
              -> string(payload = { fillTemplate($t.st.ToString(), templateMap) })
@@ -676,8 +714,12 @@ paren_expression:
 	'('   expression   ')' ;
 arguments: 
 	'('   argument_list?   ')' ;
-argument_list: 
-	^(ARGS args+=argument+) -> list(items= {$args}, sep={", "});
+argument_list returns [IList<StringTemplate> ppArgs]
+@init {
+   $ppArgs = new List<StringTemplate>();
+}
+: 
+	^(ARGS (argument { $ppArgs.Add($argument.st); })+) -> list(items= {$ppArgs}, sep={", "});
 // 4.0
 argument:
 	argument_name   argument_value
@@ -716,18 +758,23 @@ rank_specifier:
 // dim_separators: 
 //	','+ ;
 
-wrapped returns [int precedence]
+wrapped returns [int precedence, IList<StringTemplate> ppArgs]
 @init {
     $precedence = int.MaxValue;
+    $ppArgs = new List<StringTemplate>();
     Dictionary<string,ReplacementDescriptor> templateMap = new Dictionary<string,ReplacementDescriptor>();
 }:
     ^(JAVAWRAPPEREXPRESSION expression) { $precedence = $expression.precedence; } -> { $expression.st } 
     | ^(JAVAWRAPPERARGUMENT argument_value) { $precedence = $argument_value.precedence; } -> { $argument_value.st } 
+    | ^(JAVAWRAPPERARGUMENTLIST argument_list) { $ppArgs = $argument_list.ppArgs; } -> { $argument_list.st } 
     | ^(JAVAWRAPPERTYPE type) -> { $type.st } 
     | ^(JAVAWRAPPER t=identifier 
          (k=identifier v=wrapped 
             {
-               templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "<sorry, untranslated expression>", $v.precedence); 
+               if ($k.st.ToString() == "*")
+                  templateMap["*"] = new ReplacementDescriptor($v.ppArgs); 
+               else
+                  templateMap[$k.st.ToString()] = new ReplacementDescriptor($v.st != null ? $v.st.ToString() : "/* CS2J: <sorry, untranslated expression> */", $v.precedence); 
             }
           )*) -> string(payload = {fillTemplate($t.st.ToString(), templateMap)})
     ;

@@ -270,6 +270,53 @@ scope MkNonGeneric {
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
 
+    protected CommonTree wrapArgumentList(CommonTree e, IToken tok) {
+        CommonTree root = (CommonTree)adaptor.Nil;
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERARGUMENTLIST, tok, "ARGUMENTLIST"), root);
+        adaptor.AddChild(root, dupTree(e));
+
+        return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    protected CommonTree mkArgumentList(CommonTree e1, IToken tok) {
+        CommonTree argList = (CommonTree)adaptor.Nil;
+        argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
+        adaptor.AddChild(argList, dupTree(e1));
+
+        return (CommonTree)adaptor.RulePostProcessing(argList);
+    }
+
+    protected CommonTree mkArgumentList(CommonTree e1, CommonTree e2, IToken tok) {
+        CommonTree argList = (CommonTree)adaptor.Nil;
+        argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
+        adaptor.AddChild(argList, dupTree(e1));
+        adaptor.AddChild(argList, dupTree(e2));
+
+        return (CommonTree)adaptor.RulePostProcessing(argList);
+    }
+
+    protected CommonTree mkArgumentList(IToken tok, params CommonTree[] es) {
+        CommonTree argList = (CommonTree)adaptor.Nil;
+        argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
+        if (es != null) {
+           foreach (CommonTree e in es) {
+              adaptor.AddChild(argList, dupTree(e));
+           }
+        }
+        return (CommonTree)adaptor.RulePostProcessing(argList);
+    }
+
+    protected CommonTree mkArgumentList(IToken tok, IList<CommonTree> es) {
+        CommonTree argList = (CommonTree)adaptor.Nil;
+        argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
+        if (es != null) {
+           foreach (CommonTree e in es) {
+              adaptor.AddChild(argList, dupTree(e));
+           }
+        }
+        return (CommonTree)adaptor.RulePostProcessing(argList);
+    }
+
     protected CommonTree wrapType(CommonTree t, IToken tok) {
         CommonTree root = (CommonTree)adaptor.Nil;
         root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERTYPE, tok, "TYPE"), root);
@@ -282,6 +329,95 @@ scope MkNonGeneric {
         root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "EXPRESSION"), root);
         adaptor.AddChild(root, (CommonTree)adaptor.Create(IDENTIFIER, tok, t.Java));
         return (CommonTree)adaptor.RulePostProcessing(root);
+    }
+
+    /// <summary>
+    /// Populates the param Map that gives values for tokens in a Java template
+    /// </summary>
+    /// <param name="pMap">
+    /// A <see cref="Dictionary<System.String, CommonTree>"/>. The map to populate.
+    /// </param>
+    /// <param name="ps">
+    /// A <see cref="IList<ParamRepTemplate>"/>. The parameters.
+    /// </param>
+    /// <param name="argTrees">
+    /// A <see cref="IList<CommonTree>"/>. The expressions for each parameter.
+    /// </param>
+    /// <param name="argTreeTypeofTypes">
+    /// A <see cref="IList<TypeRepTemplate>"/>. (May be null). The type of each argument.
+    /// </param>
+    /// <param name="argListTree">
+    /// A <see cref="CommonTree"/>. (May be null). A Tree with the list of arguments. If needed and not provided then we build it from argTrees.
+    /// </param>
+    /// <param name="incStar">
+    /// A <see cref="System.Boolean"/>. If true then substitute for arglist parameters ("${*]n}") using argListTree.
+    /// </param>
+    /// <param name="tok">
+    /// A <see cref="IToken"/> Mark created trees with this token's posiition.
+    /// </param>
+    protected void populateParamMap(Dictionary<string,CommonTree> pMap, IList<ParamRepTemplate> ps, 
+                                    IList<CommonTree> argTrees, IList<TypeRepTemplate> argTreeTypeofTypes, CommonTree argListTree, 
+                                    bool incStar, IToken tok) {
+       populateParamMap(pMap, ps, argTrees, argTreeTypeofTypes, argListTree, incStar, null, null, tok);
+    }
+
+    /// <summary>
+    /// Populates the param Map that gives values for tokens in a Java template
+    /// </summary>
+    /// <param name="pMap">
+    /// A <see cref="Dictionary<System.String, CommonTree>"/>. The map to populate.
+    /// </param>
+    /// <param name="ps">
+    /// A <see cref="IList<ParamRepTemplate>"/>. The parameters.
+    /// </param>
+    /// <param name="argTrees">
+    /// A <see cref="IList<CommonTree>"/>. The expressions for each parameter.
+    /// </param>
+    /// <param name="argTreeTypeofTypes">
+    /// A <see cref="IList<TypeRepTemplate>"/>. (May be null). The type of each argument.
+    /// </param>
+    /// <param name="argListTree">
+    /// A <see cref="CommonTree"/>. (May be null). A Tree with the list of arguments. If needed and not provided then we build it from argTrees.
+    /// </param>
+    /// <param name="incStar">
+    /// A <see cref="System.Boolean"/>. If true then substitute for arglist parameters ("${*]n}") using argListTree.
+    /// </param>
+    /// <param name="typeParams">
+    /// A <see cref="String[]"/>. (May be null). Array of Type Parameter Names.
+    /// </param>
+    /// <param name="typeTrees">
+    /// A <see cref="IList<CommonTree>"/> (May be null). Types to substitute for typeParams.
+    /// </param>
+    /// <param name="tok">
+    /// A <see cref="IToken"/> Mark created trees with this token's posiition.
+    /// </param>
+    protected void populateParamMap(Dictionary<string,CommonTree> pMap, IList<ParamRepTemplate> ps, 
+                                   IList<CommonTree> argTrees, IList<TypeRepTemplate> argTreeTypeofTypes, CommonTree argListTree, 
+                                   bool incStar, String[] typeParams, IList<CommonTree> typeTrees,
+                                   IToken tok) {
+      for (int idx = 0; idx < ps.Count; idx++) {
+         pMap[ps[idx].Name] = wrapArgument(argTrees[idx], tok);
+         if (ps[idx].Name.StartsWith("TYPEOF") && argTreeTypeofTypes != null && argTreeTypeofTypes[idx] != null) {
+            // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
+            pMap[ps[idx].Name + "_TYPE"] = wrapTypeOfType(argTreeTypeofTypes[idx], tok);
+         }
+      }
+      if (incStar)
+      { 
+         pMap["*"] = wrapArgumentList(argListTree != null ? argListTree : mkArgumentList(tok, argTrees), tok);
+      }
+      if (typeTrees != null && typeTrees.Count == typeParams.Length) {
+         int idx = 0;
+         foreach (CommonTree ty in typeTrees)
+         {
+            pMap[typeParams[idx]] = wrapType(ty, tok);
+            idx++;
+         }
+      }
+   }
+
+    protected bool wantsStar(String template) {
+       return template.Contains("${*") || template.Contains("${,*");
     }
 
     protected CommonTree mkArray(CommonTree t, IToken tok) {
@@ -881,13 +1017,7 @@ scope {
                if (!String.IsNullOrEmpty(indexerRep.JavaGet)) {
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                   myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
-                  for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
-                     myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
-                     if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
-                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                        myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
-                     }
-                  }
+                  populateParamMap(myMap, indexerRep.Params, $expression_list.expTrees, $expression_list.expTreeTypeofTypes, null, wantsStar(indexerResult.Result.Java), $ie.tree.Token);
                   ret = mkJavaWrapper(indexerResult.Result.Java, myMap, $ie.tree.Token);
                   AddToImports(indexerResult.Result.Imports);
                   $dotNetType = indexerResult.ResultType; 
@@ -906,15 +1036,9 @@ scope {
                if (idType != null) {
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                   myMap["this"] = wrapExpression($i2.tree, $i2.tree.Token);
-                  for (int idx = 0; idx < idType.Invoke.Params.Count; idx++) {
-                     myMap[idType.Invoke.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
-                     if (idType.Invoke.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
-                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                        myMap[idType.Invoke.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
-                     }
-                  }
-                  AddToImports(idType.Invoke.Imports);
+                  populateParamMap(myMap, idType.Invoke.Params, $argument_list.argTrees, $argument_list.argTreeTypeofTypes, $argument_list.tree, wantsStar(idType.Invoke.Java), $i2.tree.Token);
                   ret = mkJavaWrapper(idType.Invoke.Java, myMap, $i2.tree.Token);
+                  AddToImports(idType.Invoke.Imports);
                   $dotNetType = AppEnv.Search(idType.Invoke.Return);
                }
             }
@@ -954,14 +1078,7 @@ scope {
                      }
                     calleeMethod = calleeResult.Result as MethodRepTemplate;
                   }
-
-                  for (int idx = 0; idx < calleeMethod.Params.Count; idx++) {
-                     myMap[calleeMethod.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $i2.tree.Token);
-                     if (calleeMethod.Params[idx].Name.StartsWith("TYPEOF") && $argument_list.argTreeTypeofTypes[idx] != null) {
-                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                        myMap[calleeMethod.Params[idx].Name + "_TYPE"] = wrapTypeOfType($argument_list.argTreeTypeofTypes[idx], $i2.tree.Token);
-                     }
-                  }
+                  populateParamMap(myMap, calleeMethod.Params, $argument_list.argTrees, $argument_list.argTreeTypeofTypes, $argument_list.tree, wantsStar(calleeMethod.Java), $i2.tree.Token);
                   ret = mkJavaWrapper(calleeMethod.Java, myMap, $i2.tree.Token);
                   AddToImports(calleeMethod.Imports);
                   $dotNetType = calleeResult.ResultType; 
@@ -1166,17 +1283,10 @@ scope {
                if (!String.IsNullOrEmpty(conResult.Result.Warning)) Warning($n.line, conResult.Result.Warning);
                 ConstructorRepTemplate conRep = conResult.Result as ConstructorRepTemplate;
                 Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
-                for (int idx = 0; idx < conRep.Params.Count; idx++) {
-                    myMap[conRep.Params[idx].Name] = wrapArgument($argument_list.argTrees[idx], $n.token);
-                }
-                if ($type.argTrees != null && $type.argTrees.Count == $type.dotNetType.TypeParams.Length) {
-                   int idx = 0;
-                   foreach (CommonTree ty in $type.argTrees)
-                   {
-                      myMap[$type.dotNetType.TypeParams[idx]] = wrapType(ty, $n.token);
-                      idx++;
-                   }
-                }
+                populateParamMap(myMap, conRep.Params, $argument_list.argTrees, $argument_list.argTreeTypeofTypes, 
+                                 $argument_list.tree, wantsStar(conResult.Result.Java), 
+                                 $type.dotNetType == null ? null : $type.dotNetType.TypeParams, $type.argTrees, 
+                                 $n.token);
                 ret = mkJavaWrapper(conResult.Result.Java, myMap, $n.token);
                 AddToImports(conResult.Result.Imports);
                 $dotNetType = conResult.ResultType; 
@@ -1765,14 +1875,7 @@ assignment
                         // need to translate to set___idx(args, get___idx(args) <op> rhs)
                         Dictionary<string,CommonTree> rhsMap = new Dictionary<string,CommonTree>();
                         rhsMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
-                        for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
-                           rhsMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
-                           if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
-                              // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                              rhsMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
-                           }
-                        }
-                        
+                        populateParamMap(rhsMap, indexerRep.Params, $expression_list.expTrees, $expression_list.expTreeTypeofTypes, null, wantsStar(indexerRep.JavaGet), $ie.tree.Token);
                         CommonTree rhsIdxTree = mkJavaWrapper(indexerRep.JavaGet, rhsMap, $ia.tree.Token);
                         newRhsExp = mkOpExp(mkOpExp($ia.tree), rhsIdxTree, $irhs.tree);
                      }
@@ -1784,13 +1887,7 @@ assignment
                   Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                   myMap["this"] = wrapExpression($ie.tree, $ie.tree.Token);
                   myMap["value"] = wrapExpression(newRhsExp, newRhsExp.Token);
-                  for (int idx = 0; idx < indexerRep.Params.Count; idx++) {
-                     myMap[indexerRep.Params[idx].Name] = wrapArgument($expression_list.expTrees[idx], $ie.tree.Token);
-                     if (indexerRep.Params[idx].Name.StartsWith("TYPEOF") && $expression_list.expTreeTypeofTypes[idx] != null) {
-                        // if this argument is a typeof expression then add a TYPEOF_TYPEOF-> typeof's type mapping
-                        myMap[indexerRep.Params[idx].Name + "_TYPE"] = wrapTypeOfType($expression_list.expTreeTypeofTypes[idx], $ie.tree.Token);
-                     }
-                  }
+                  populateParamMap(myMap, indexerRep.Params, $expression_list.expTrees, $expression_list.expTreeTypeofTypes, null, wantsStar(indexerRep.JavaSet), $ie.tree.Token);
                   if (goodTx) {
                      ret = mkJavaWrapper(indexerRep.JavaSet, myMap, $ie.tree.Token);
                      AddToImports(indexerRep.Imports);
@@ -2020,11 +2117,12 @@ scope MkNonGeneric, PrimitiveRep;
             ResolveResult calleeResult = $n9.dotNetType.Resolve("Combine", args, AppEnv);
             if (calleeResult != null) {
                if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($pl.line, calleeResult.Result.Warning);
-                  
+               IList<CommonTree> argTrees = new List<CommonTree>();
+               argTrees.Add($n9.tree);
+               argTrees.Add($n92.tree);
                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
-               myMap[calleeMethod.Params[0].Name] = wrapArgument($n9.tree, $pl.token);
-               myMap[calleeMethod.Params[1].Name] = wrapArgument($n92.tree, $pl.token);
+               populateParamMap(myMap, calleeMethod.Params, argTrees, null, null, wantsStar(calleeMethod.Java), $pl.token);
                ret = mkJavaWrapper(calleeMethod.Java, myMap, $pl.token);
                AddToImports(calleeMethod.Imports);
                $dotNetType = calleeResult.ResultType; 
@@ -2046,10 +2144,12 @@ scope MkNonGeneric, PrimitiveRep;
             if (calleeResult != null) {
                if (!String.IsNullOrEmpty(calleeResult.Result.Warning)) Warning($ne.line, calleeResult.Result.Warning);
                   
+               IList<CommonTree> argTrees = new List<CommonTree>();
+               argTrees.Add($n10.tree);
+               argTrees.Add($n102.tree);
                Dictionary<string,CommonTree> myMap = new Dictionary<string,CommonTree>();
                MethodRepTemplate calleeMethod = calleeResult.Result as MethodRepTemplate;
-               myMap[calleeMethod.Params[0].Name] = wrapArgument($n10.tree, $ne.token);
-               myMap[calleeMethod.Params[1].Name] = wrapArgument($n102.tree, $ne.token);
+               populateParamMap(myMap, calleeMethod.Params, argTrees, null, null, wantsStar(calleeMethod.Java), $ne.token);
                ret = mkJavaWrapper(calleeMethod.Java, myMap, $ne.token);
                AddToImports(calleeMethod.Imports);
                $dotNetType = calleeResult.ResultType; 

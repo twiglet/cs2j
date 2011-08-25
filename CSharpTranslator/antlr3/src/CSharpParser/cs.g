@@ -155,6 +155,7 @@ tokens {
             JAVAWRAPPER;
             JAVAWRAPPEREXPRESSION;
             JAVAWRAPPERARGUMENT;
+            JAVAWRAPPERARGUMENTLIST;
             JAVAWRAPPERTYPE;
             SEP;
             KGHOLE;

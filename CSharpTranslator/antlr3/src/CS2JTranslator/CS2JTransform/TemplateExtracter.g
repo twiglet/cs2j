@@ -871,7 +871,8 @@ method_header [string returnType] returns [MethodRepTemplate meth]:
     type_parameter_constraints_clauses? 
       { DebugDetail("Processing method declaration: " + $member_name.name); }
       {  
-         $meth = new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist); 
+         $meth = new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist);
+         $meth.ParamArray = $fpl.paramarr;
          if ($member_name.name != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
             $meth.JavaName = toJavaConvention(CSharpEntity.METHOD, $member_name.name);
          }
@@ -1020,7 +1021,9 @@ scope NSContext;
             if ($variant_generic_parameter_list.tyargs != null && $variant_generic_parameter_list.tyargs.Count > 0) {
                 multiDelegateClass.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
-            multiDelegateClass.Methods.Add(new MethodRepTemplate($return_type.thetext, "Invoke", null, $formal_parameter_list.paramlist));
+            MethodRepTemplate invokeMethodRep = new MethodRepTemplate($return_type.thetext, "Invoke", null, $formal_parameter_list.paramlist);
+            invokeMethodRep.ParamArray = $formal_parameter_list.paramarr;
+            multiDelegateClass.Methods.Add(invokeMethodRep);
             multiDelegateClass.Methods.Add(new MethodRepTemplate("System.Collections.Generic.List*[" + delIfaceName + "]*", "GetInvocationList", null, null));
             AppEnv[genericNameSpace] = multiDelegateClass;
             multiDelegateClass.Uses = this.CollectUses;
@@ -1034,6 +1037,7 @@ scope NSContext;
                 dlegate.TypeParams = $variant_generic_parameter_list.tyargs.ToArray();
             }
             dlegate.Invoke = new InvokeRepTemplate($return_type.thetext, "Invoke", null, $formal_parameter_list.paramlist);
+            dlegate.Invoke.ParamArray = $formal_parameter_list.paramarr;
             AppEnv[genericNameSpace] = dlegate;
             dlegate.Uses = this.CollectUses;
             dlegate.Aliases = this.CollectAliases;
@@ -1119,13 +1123,15 @@ constructor_constraint:
 return_type returns [string thetext]:
 	type { $thetext = $type.thetext; }
 	|  v='void' { $thetext = $v.text; } ;
-formal_parameter_list returns [List<ParamRepTemplate> paramlist]
+formal_parameter_list returns [List<ParamRepTemplate> paramlist, ParamArrayRepTemplate paramarr]
 @init {
     $paramlist = new List<ParamRepTemplate>();
 }:
-	p1=formal_parameter { $paramlist.Add($p1.param); } (',' pn=formal_parameter { $paramlist.Add($pn.param); })* ;
-formal_parameter returns [ParamRepTemplate param]:
-	attributes?   (fp=fixed_parameter { $param = $fp.param; } | pa=parameter_array { $param = $pa.param; }) 
+	p1=formal_parameter { if ($p1.param != null) $paramlist.Add($p1.param); if ($p1.paramarr != null) $paramarr = $p1.paramarr; } 
+        (',' pn=formal_parameter { if ($pn.param != null) $paramlist.Add($pn.param); if ($pn.paramarr != null) $paramarr = $pn.paramarr; })* ;
+
+formal_parameter returns [ParamRepTemplate param, ParamArrayRepTemplate paramarr]:
+	attributes?   (fp=fixed_parameter { $param = $fp.param; } | pa=parameter_array { $paramarr = $pa.param; }) 
 	| a='__arglist' { Warning($a.line, "[UNSUPPORTED] __arglist");  $param=new ParamRepTemplate("System.Object[]", "__arglist", false); } ;	// __arglist is undocumented, see google
 fixed_parameters returns [List<ParamRepTemplate> paramlist]
 @init {
@@ -1144,8 +1150,8 @@ default_argument:
 	'=' expression;
 parameter_modifier:
 	'ref' | 'out' | 'this' ;
-parameter_array returns [ParamRepTemplate param]:
-	'params'   t=type   i=identifier { $param=new ParamRepTemplate($t.thetext, $i.text, false); } ;
+parameter_array returns [ParamArrayRepTemplate param]:
+	'params'   t=type   i=identifier { $param=new ParamArrayRepTemplate($t.thetext, $i.text); } ;
 
 ///////////////////////////////////////////////////////
 interface_declaration[bool isPartial] 
@@ -1219,7 +1225,8 @@ interface_property_declaration [string returnType]:
 interface_method_declaration [string returnType]:
 	identifier   gal=generic_argument_list?
 	    '('   fpl=formal_parameter_list?   ')'  
-        {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist); 
+        {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist);
+           meth.ParamArray = $formal_parameter_list.paramarr;
            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
         type_parameter_constraints_clauses?   ';' 
         { DebugDetail("Processing interface method declaration: " + $identifier.text); }
@@ -1232,7 +1239,9 @@ interface_event_declaration:
 interface_indexer_declaration [string returnType]: 
 	// attributes?    'new'?    type   
 	'this'   '['   fpl=formal_parameter_list   ']'   '{'   interface_accessor_declarations   '}' 
-         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new IndexerRepTemplate($returnType, $fpl.paramlist)); }
+         { IndexerRepTemplate indexer = new IndexerRepTemplate($returnType, $fpl.paramlist);
+           indexer.ParamArray = $fpl.paramarr;
+           ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(indexer); }
            { DebugDetail("Processing interface indexer declaration"); }
  ;
 interface_accessor_declarations returns [bool hasGetter, bool hasSetter]
@@ -1341,7 +1350,9 @@ indexer_declaration [string returnType, string prefix]:
 indexer_declarator [string returnType, string prefix]:
 	//(type_name '.')?   
 	'this'   '['   fpl=formal_parameter_list   ']' 
-         {  ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(new IndexerRepTemplate($returnType, $fpl.paramlist)); }
+         { IndexerRepTemplate indexer = new IndexerRepTemplate($returnType, $fpl.paramlist);
+           indexer.ParamArray = $fpl.paramarr;
+           ((InterfaceRepTemplate)$NSContext::currentTypeRep).Indexers.Add(indexer); }
         { DebugDetail("Processing indexer declaration"); }
     ;
 	
@@ -1399,6 +1410,7 @@ constructor_declarator:
 	identifier   '('   fpl=formal_parameter_list?   ')'   constructor_initializer? 
          {  
               ConstructorRepTemplate cRep = new ConstructorRepTemplate($fpl.paramlist);
+              cRep.ParamArray = $fpl.paramarr;
               cRep.SurroundingType = $NSContext::currentTypeRep;
               ((ClassRepTemplate)$NSContext::currentTypeRep).Constructors.Add(cRep);
               DebugDetail("Processing constructor declaration");

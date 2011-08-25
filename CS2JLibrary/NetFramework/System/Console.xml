@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -30,38 +30,16 @@
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
-      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}), ${arg})</Java>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt})${,*]1})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
           <Name>fmt</Name>
         </Param>
-        <Param>
-          <Type>System.Object</Type>
+        <ParamArray>
+          <Type>System.Object[]</Type>
           <Name>arg</Name>
-        </Param>
-      </Params>
-      <Name>Write</Name>
-      <Return>System.Void</Return>
-    </Method>
-    <Method>
-      <Imports>
-        <Import>CS2JNet.System.StringSupport</Import>
-      </Imports>
-      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}), ${arg1}, ${arg2})</Java>
-      <Params>
-        <Param>
-          <Type>System.String</Type>
-          <Name>fmt</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg1</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg2</Name>
-        </Param>
+        </ParamArray>
       </Params>
       <Name>Write</Name>
       <Return>System.Void</Return>
@@ -89,38 +67,16 @@
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
-      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n", ${arg})</Java>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n"${,*]1})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
           <Name>fmt</Name>
         </Param>
-        <Param>
-          <Type>System.Object</Type>
+        <ParamArray>
+          <Type>System.Object[]</Type>
           <Name>arg</Name>
-        </Param>
-      </Params>
-      <Name>WriteLine</Name>
-      <Return>System.Void</Return>
-    </Method>
-    <Method>
-      <Imports>
-        <Import>CS2JNet.System.StringSupport</Import>
-      </Imports>
-      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n", ${arg1}, ${arg2})</Java>
-      <Params>
-        <Param>
-          <Type>System.String</Type>
-          <Name>fmt</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg1</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg2</Name>
-        </Param>
+        </ParamArray>
       </Params>
       <Name>WriteLine</Name>
       <Return>System.Void</Return>
