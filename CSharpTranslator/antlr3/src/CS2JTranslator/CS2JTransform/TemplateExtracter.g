@@ -1227,6 +1227,9 @@ interface_method_declaration [string returnType]:
 	    '('   fpl=formal_parameter_list?   ')'  
         {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist);
            meth.ParamArray = $formal_parameter_list.paramarr;
+           if ($identifier.text != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+              meth.JavaName = toJavaConvention(CSharpEntity.METHOD, $identifier.text);
+           }
            ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
         type_parameter_constraints_clauses?   ';' 
         { DebugDetail("Processing interface method declaration: " + $identifier.text); }

@@ -1694,11 +1694,24 @@ interface_member_declaration:
 		;
 interface_property_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
 	i=identifier   '{'   iads=interface_accessor_declarations[atts, mods, type, $i.text]   '}' -> $iads ;
-interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]:
+interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]
+@init {
+    string newMethodName = "";
+}:
 	identifier   type_parameter_list?
 	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    s=';' magicThrowsException[Cfg.TranslatorBlanketThrow,$s.token]
+        {
+            newMethodName = $identifier.text.Replace(".","___");
+            if (newMethodName != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+               // Leave Main() as it is because we are going to wrap it with a special main method
+               newMethodName = toJavaConvention(CSharpEntity.METHOD, newMethodName);
+            }
+        } 
+
+        magicIdentifier[$identifier.tree.Token, newMethodName]
+
        -> ^(METHOD { dupTree($atts) } { dupTree($mods) } { dupTree($type) } 
-            identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? magicThrowsException?);
+            magicIdentifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? magicThrowsException?);
 interface_event_declaration [CommonTree atts, CommonTree mods]:
 	//attributes?   'new'?   
 	e='event'   type   identifier   ';' -> ^(EVENT[$e.token, "EVENT"] { dupTree($atts) } { dupTree($mods) } type identifier)
