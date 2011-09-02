@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -52,7 +52,7 @@
     </Method>
     <Method>
       <Imports>
-        <Import>CS2JNet.System.*</Import>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
       </Imports>
       <Java>DateTimeSupport.ToString(${this}, ${format})</Java>
       <Params>

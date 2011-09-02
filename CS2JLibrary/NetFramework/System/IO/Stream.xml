@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -9,7 +9,7 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.io.*</Import>
+    <Import>java.io.InputStream</Import>
   </Imports>
   <Java>InputStream</Java>
   <Name>System.IO.Stream</Name>
@@ -83,7 +83,7 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <Import>java.io.*</Import>
+        <Import>java.io.FileInputStream</Import>
       </Imports>
       <Java>new FileInputStream(${path})</Java>
       <Params>

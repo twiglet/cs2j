@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -25,6 +25,7 @@
     <Constructor>
       <Imports>
         <Import>java.io.BufferedWriter</Import>
+        <Import>java.io.FileWriter</Import>
       </Imports>
       <Java>new BufferedWriter(new FileWriter(${path}))</Java>
       <Params>
@@ -37,6 +38,7 @@
     <Constructor>
       <Imports>
         <Import>java.io.BufferedWriter</Import>
+        <Import>java.io.FileWriter</Import>
       </Imports>
       <Java>new BufferedWriter(new FileWriter(${path},${append}))</Java>
       <Params>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -18,7 +18,9 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>java.io.*</Import>
+        <Import>java.io.BufferedWriter</Import>
+        <Import>java.io.OutputStreamWriter</Import>
+        <Import>java.io.FileOutputStream</Import>
         <Import>java.nio.charset.Charset</Import>
       </Imports>
       <Java>new BufferedWriter(new OutputStreamWriter(new FileOutputStream(${path}), Charset.forName("UTF-8")))</Java>
@@ -33,7 +35,8 @@
     </Method>
     <Method>
       <Imports>
-        <Import>java.io.*</Import>
+        <Import>java.io.FileOutputStream</Import>
+        <Import>java.io.BufferedOutputStream</Import>
       </Imports>
       <Java>new BufferedOutputStream(new FileOutputStream(${path}))</Java>
       <Params>
