@@ -1222,6 +1222,7 @@ scope {
                 if (!staticType.IsUnknownType) {
                     AddToImports(staticType.Imports);
                     $dotNetType = staticType;
+                    $thedottedtext =  (implicitThis || String.IsNullOrEmpty($e1.thedottedtext)  ? "" : $e1.thedottedtext + ".") + $i.thetext;
                     found = true;
                 }
             }
