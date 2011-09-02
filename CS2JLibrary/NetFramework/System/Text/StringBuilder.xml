@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -26,6 +26,24 @@
         </Param>
       </Params>
       <Name>Append</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>${this:16}.append(String.format(StringSupport.CSFmtStrToJFmtStr(${format})${,*]1}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>format</Name>
+        </Param>
+      </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>args</Name>
+      </ParamArray>
+      <Name>AppendFormat</Name>
       <Return>System.Text.StringBuilder</Return>
     </Method>
     <Method>
