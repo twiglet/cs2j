@@ -1293,6 +1293,7 @@ variable_declarator:
 method_declaration [CommonTree atts, CommonTree mods, List<string> modList, CommonTree type, string typeText, bool isPartial]
 @init {
     bool isToString = false;
+    bool isClone = false;
     bool isEquals = false;
     bool isEqualsArg = false;
     CommonTree exceptions = null;
@@ -1307,12 +1308,17 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
 }:
         // TODO:  According to the spec the C# Main() method should be static and not public.  We aren't checking for lack of public 
         // we can check the modifiers in modList if we want to enforce that.
-		member_name { isToString = $member_name.text == "ToString"; isGetHashCode &= $member_name.text == "GetHashCode"; isEquals = $member_name.text == "Equals"; isMain &= $member_name.text == "Main"; }
+		member_name { isToString = $member_name.text == "ToString"; 
+                      isGetHashCode &= $member_name.text == "GetHashCode"; 
+                      isEquals = $member_name.text == "Equals"; 
+                      isMain &= $member_name.text == "Main"; 
+                      isClone = $member_name.text == "Clone"; 
+                    }
         (type_parameter_list { isToString = false; isMain = false; })? 
         '(' 
             // We are looking for ToString(), and Main(string[] args), where arg is optional.  
             (formal_parameter_list 
-              { isToString = false; isGetHashCode = false;
+              { isToString = false; isGetHashCode = false; isClone = false;
                 isEqualsArg = $formal_parameter_list.numArgs == 1;
                 if (isMain) {
                     isMain = false;
@@ -1335,11 +1341,11 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
               }
             )?   
         ')'  
-        ( type_parameter_constraints_clauses { isToString = false; isEquals = false; isMain = false; })?   
+        ( type_parameter_constraints_clauses { isToString = false; isEquals = false; isMain = false; isClone = false; })?   
         // Only have throw Exceptions if IsJavaish
         throw_exceptions?
 
-        b=method_body[isToString || isGetHashCode || (isEquals && isEqualsArg)] 
+        b=method_body[isToString || isGetHashCode || (isEquals && isEqualsArg) || isClone] 
 
         // build main method if required
         argParam=magicMainArgs[isMain && isMainHasArg, $member_name.tree.Token]
@@ -1365,6 +1371,9 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
           }
           if (isEquals && isEqualsArg) {
               $magicIdentifier.tree.Token.Text = "equals";
+          }
+          if (isClone) {
+              $magicIdentifier.tree.Token.Text = "clone";
           }
           exceptions = IsJavaish ? $throw_exceptions.tree : $b.exceptionList;
        }
