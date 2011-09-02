@@ -165,6 +165,22 @@ scope NSContext {
        return ty.ToString();
     }
 
+    private Dictionary<string,string> methodRenames = null;
+
+    protected Dictionary<string,string> MethodRenames
+    {
+       get {
+          if (methodRenames == null) {
+             methodRenames = new Dictionary<string,string>();
+             methodRenames["ToString"] = "toString"; 
+             methodRenames["Equals"] = "equals"; 
+             methodRenames["GetHashCode"] = "getHashCode"; 
+             methodRenames["Clone"] = "clone"; 
+          }
+          return methodRenames;
+       }
+    }
+
 }
 
 /********************************************************************************************
@@ -873,7 +889,10 @@ method_header [string returnType] returns [MethodRepTemplate meth]:
       {  
          $meth = new MethodRepTemplate($returnType, $member_name.name, ($member_name.tyargs == null ? null : $member_name.tyargs.ToArray()), $fpl.paramlist);
          $meth.ParamArray = $fpl.paramarr;
-         if ($member_name.name != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+         if (MethodRenames.ContainsKey($member_name.name)) {
+            $meth.JavaName = MethodRenames[$member_name.name];
+         }
+         else if ($member_name.name != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
             $meth.JavaName = toJavaConvention(CSharpEntity.METHOD, $member_name.name);
          }
       }
@@ -1227,10 +1246,14 @@ interface_method_declaration [string returnType]:
 	    '('   fpl=formal_parameter_list?   ')'  
         {  MethodRepTemplate meth = new MethodRepTemplate($returnType, $identifier.text, (gal == null ? null : $gal.tyargs.ToArray()), $fpl.paramlist);
            meth.ParamArray = $formal_parameter_list.paramarr;
-           if ($identifier.text != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+           if (MethodRenames.ContainsKey($identifier.text)) {
+              meth.JavaName = MethodRenames[$identifier.text];
+           }
+           else if ($identifier.text != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
               meth.JavaName = toJavaConvention(CSharpEntity.METHOD, $identifier.text);
            }
-           ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); }
+           ((InterfaceRepTemplate)$NSContext::currentTypeRep).Methods.Add(meth); 
+        }
         type_parameter_constraints_clauses?   ';' 
         { DebugDetail("Processing interface method declaration: " + $identifier.text); }
 ;

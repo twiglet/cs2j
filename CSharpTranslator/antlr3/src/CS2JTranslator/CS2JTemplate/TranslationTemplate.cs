@@ -923,25 +923,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
          else {
             methStr.Append("${this:16}.");
          }
-         // special for ToString -> toString
-         // special for Equals -> equals
-         // special for GetHashCode -> hashCode
-         if (JavaName == "ToString" && Params.Count == 0)
-         {
-            methStr.Append("toString");
-         }  
-         else if (JavaName == "Equals" && Params.Count == 1)
-         {
-            methStr.Append("equals");
-         }  
-         else if (JavaName == "GetHashCode" && Params.Count == 0)
-         {
-            methStr.Append("hashCode");
-         }  
-         else
-         {
-            methStr.Append(JavaName);
-         }
+
+         methStr.Append(JavaName);
+         
          return methStr.ToString() + mkJavaParams(Params, ParamArray);
       }
 		
