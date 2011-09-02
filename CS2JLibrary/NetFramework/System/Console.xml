@@ -36,11 +36,11 @@
           <Type>System.String</Type>
           <Name>fmt</Name>
         </Param>
-        <ParamArray>
-          <Type>System.Object[]</Type>
-          <Name>arg</Name>
-        </ParamArray>
       </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>arg</Name>
+      </ParamArray>
       <Name>Write</Name>
       <Return>System.Void</Return>
     </Method>
@@ -73,11 +73,11 @@
           <Type>System.String</Type>
           <Name>fmt</Name>
         </Param>
-        <ParamArray>
-          <Type>System.Object[]</Type>
-          <Name>arg</Name>
-        </ParamArray>
       </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>arg</Name>
+      </ParamArray>
       <Name>WriteLine</Name>
       <Return>System.Void</Return>
     </Method>
