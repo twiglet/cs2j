@@ -36,18 +36,32 @@
     </sequential>
   </macrodef>
 
-  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,signtxfiles,tagme,mkcs2jlibprojsrc,mkarchive"/>
+  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,signtxfiles,tagme,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
-  <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
+  <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
   
-  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="init,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive"/>
+  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="clean,init,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
   <target name="dist" description="Distribute final zip to final resting place">
     <copy todir="${release.dir}" file="${release.zip}"/>
     <copy tofile="${release.dir}/cs2j-trial-latest.zip" file="${release.zip}"/>
   </target>
 
-  <target name="mkarchive" description="builds a zip file containing the release">
+  <target name="mkmailarchive" description="builds a zip file containing the release, adds dummy extension to executables" if="mailsafe.exe.extension" depends="mkreleasefiles">
+    <move todir="${build.dir}/archive/cs2j-${release.tagname}" includeemptydirs="false">
+      <fileset dir="${build.dir}/archive/cs2j-${release.tagname}">
+        <include name="**/*.exe"/>
+      </fileset>
+      <mapper type="glob" from="*" to="*${mailsafe.exe.extension}"/>
+    </move>
+    <zip destfile="${release.mailsafe.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
+  </target>
+
+  <target name="mkarchive" description="builds a zip file containing the release" depends="mkreleasefiles">
+    <zip destfile="${release.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
+  </target>
+
+  <target name="mkreleasefiles" description="creates a set of release files">
     <mkdir dir="${build.dir}/archive/cs2j-${release.tagname}"/>
     <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
       <fileset dir="${cs2j.library.project}" includes="NetFramework/**/*.xml"/>
@@ -59,12 +73,6 @@
       <fileset dir="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}">
         <exclude name="*.vshost.*"/>
         <include name="*.exe"/>
-      </fileset>
-      <globmapper from="*.exe" to="*.exe${exe.extension}"/>
-    </copy>
-    <copy todir="${build.dir}/archive/cs2j-${release.tagname}/CS2JTranslator/bin">
-      <fileset dir="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}">
-        <exclude name="*.vshost.*"/>
         <include name="*.dll"/>
       </fileset>
     </copy>
@@ -74,7 +82,6 @@
         <include name="${google.docs.title}.pdf"/>
       </fileset>
     </copy>
-    <zip destfile="${release.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
   </target>
 
   <target name="mkcs2jlibprojsrc" description="Build CS2JLibrary Project source for distribution">
