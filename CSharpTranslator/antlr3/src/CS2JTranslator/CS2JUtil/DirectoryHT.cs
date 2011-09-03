@@ -19,9 +19,12 @@ namespace Twiglet.CS2J.Translator.Utils
 
         private Dictionary<string, DirectoryHT<TValue>> children = new Dictionary<string, DirectoryHT<TValue>>();
 
+        private IList<string> alts = new List<string>();
+
         public DirectoryHT(DirectoryHT<TValue> p)
         {
             _parent = p;
+            alts.Add("");
         }
 
         public DirectoryHT()
@@ -38,6 +41,13 @@ namespace Twiglet.CS2J.Translator.Utils
         public DirectoryHT<TValue> Parent
         {  
             get { return _parent; }
+        }
+
+        // When searching for A.B.C.D.E we will first search for each A.B.C.D.<alt>.E where <alt> comes from Alts
+        // This allows to override the default translations where necessary
+        public IList<string> Alts
+        {  
+            get { return alts; }
         }
 
         // p is key to a sub directory
@@ -183,28 +193,60 @@ namespace Twiglet.CS2J.Translator.Utils
 
         // search for name, given searchPath
         // searchPath is searched in reverse order
+
+        // When searching for A.B.C.D.E we will first search for each A.B.C.D.<alt>.E where <alt> comes from Alts
+        // This allows to override the default translations where necessary
         public TValue Search(IList<string> searchPath, string name, TValue def) {
-            TValue ret = def;
-            bool found = false;
+            
+            // First check against each element of the search path 
             if (searchPath != null)
             {
-                for (int i = searchPath.Count-1; i >= 0; i--) {
-                    String ns = searchPath[i];
-                    String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
-                    if (this.ContainsKey(fullName)) {
-                        ret = this[fullName];
-                        found = true;
-                        break;
-                    }
-                }
+               // check against each alt override in turn
+               foreach  (string altIterator in Alts) {
+                  string alt = altIterator.EndsWith(".")  ? altIterator : altIterator + ".";
+               
+                  for (int i = searchPath.Count-1; i >= 0; i--) {
+                     String ns = searchPath[i];
+                     String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
+                     // insert alt after last period
+                     int lastPeriod = fullName.LastIndexOf('.')+1;
+                     fullName = fullName.Substring(0,lastPeriod) + alt + fullName.Substring(lastPeriod);
+                    // Console.WriteLine(fullName);
+                     if (this.ContainsKey(fullName)) {
+                        return this[fullName];
+                     }
+                  }
+               }
+
+               // Not in alts, check kosher
+               for (int i = searchPath.Count-1; i >= 0; i--) {
+                  String ns = searchPath[i];
+                  String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
+                  // Console.WriteLine(fullName);
+                  if (this.ContainsKey(fullName)) {
+                     return this[fullName];
+                  }
+               }
             }
+
             // Check if name is fully qualified
-            if (!found && this.ContainsKey(name)) {
-                ret = this[name];
+            foreach  (string altIterator in Alts) {
+               string alt = altIterator.EndsWith(".")  ? altIterator : altIterator + ".";
+               // insert alt after last period
+               int lastPeriod = name.LastIndexOf('.')+1;
+               string fullName = name.Substring(0,lastPeriod) + alt + name.Substring(lastPeriod);
+               // Console.WriteLine(fullName);
+               if (this.ContainsKey(fullName)) {
+                  return this[fullName];
+               }
             }
-            //        if (ret != null)
-            //            Console.Out.WriteLine("findType: found {0}", ret.TypeName);
-            return ret;
+
+            // Not in alt, check kosher
+            // Console.WriteLine(name);
+            if (this.ContainsKey(name)) {
+               return this[name];
+            }
+            return def;
         }
 
         // search for name, given searchPath

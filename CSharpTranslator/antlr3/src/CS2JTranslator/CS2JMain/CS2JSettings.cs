@@ -30,6 +30,9 @@ namespace Twiglet.CS2J.Translator
             public IList<string> ExAppRoot { get; set; }
             public IList<string> Exclude { get; set; }
             public IList<string> MacroDefines { get; set; }
+
+            public IList<string> AltTranslations { get; set; }
+
             public string XmlDir { get; set; }
             public string EnumDir { get; set; }
             public int Verbosity { get; set; }
@@ -113,6 +116,7 @@ namespace Twiglet.CS2J.Translator
 	        ExAppRoot = new List<string>();
 	        Exclude = new List<string>();
 	        MacroDefines = new List<string>();
+	        AltTranslations = new List<string>();
 	        XmlDir = Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs");
                 EnumDir = Path.Combine(Directory.GetCurrentDirectory(), "enums");
                 KeyFile = null;

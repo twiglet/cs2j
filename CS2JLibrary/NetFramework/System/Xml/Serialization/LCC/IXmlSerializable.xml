@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.Serialization.LCC.IXmlSerializable</Import>
+  </Imports>
+  <Java>IXmlSerializable</Java>
+  <Name>System.Xml.Serialization.IXmlSerializable</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getValue()</Java>
+      <Type>System.String</Type>
+      <Name>Value</Name>
+      <Get>${this:16}.getValue()</Get>
+      <Set>${this:16}.setValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>SiUhORBUjQ/2aYjJrS7nmB9D7c8=</DigestValue></Reference></SignedInfo><SignatureValue>B5pXm+f7e2+z7PlAmqp1DoJ3dIZnqxZGHs8b0anRWpYtPjIWm0kc4+KTC/n9uPU9+OINcskAJfSU6X4HDXhOq1mrDUaPTKC/dRBGdqCReA7T5geYxFv+xOM5Rge5hzkkZajUftben1I7BQVbsXhKfbujN18rNza2BrMAvMyZw1s=</SignatureValue></Signature></Interface>

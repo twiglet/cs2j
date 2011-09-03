@@ -91,8 +91,7 @@ namespace Twiglet.CS2J.Translator
             long startTime = DateTime.Now.Ticks;
             IList<string> csDir = new List<string>();
             XmlTextWriter enumXmlWriter = null;			
-            AppEnv = new DirectoryHT<TypeRepTemplate>(null);
-			
+
             // Use a try/catch block for parser exceptions
             try
             {
@@ -128,6 +127,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
                         .Add ("csdir=", dirs => addDirectories(csDir, dirs))
                         .Add ("excsdir=", dirs => addDirectories(cfg.Exclude, dirs))
+                        .Add ("alttranslations=", asub => cfg.AltTranslations.Add(asub)) 							
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
@@ -151,6 +151,17 @@ namespace Twiglet.CS2J.Translator
                         // No work
                         Environment.Exit(0);
  
+
+                    AppEnv = new DirectoryHT<TypeRepTemplate>();
+                    foreach (string alt in cfg.AltTranslations)
+                    {
+                       AppEnv.Alts.Add(alt);                       
+                    }
+                    if (cfg.TranslatorMakeJavaNamingConventions && !AppEnv.Alts.Contains("LCC"))
+                    {
+                       // Search lowerCamelCase
+                       AppEnv.Alts.Add("LCC");                       
+                    }
 
                     // Initialise RSA signing key so that we can verify signatures
                     RsaKey = new RSACryptoServiceProvider();
