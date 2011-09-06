@@ -160,14 +160,14 @@ namespace Twiglet.CS2J.Translator
  
 
                     AppEnv = new DirectoryHT<TypeRepTemplate>();
-                    foreach (string alt in cfg.AltTranslations)
-                    {
-                       AppEnv.Alts.Add(alt);                       
-                    }
-                    if (cfg.TranslatorMakeJavaNamingConventions && !AppEnv.Alts.Contains("LCC"))
+                    if (cfg.TranslatorMakeJavaNamingConventions)
                     {
                        // Search lowerCamelCase
                        AppEnv.Alts.Add("LCC");                       
+                    }
+                    foreach (string alt in cfg.AltTranslations)
+                    {
+                       AppEnv.Alts.Add(alt);                       
                     }
 
                     // Initialise RSA signing key so that we can verify signatures
