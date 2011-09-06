@@ -1633,7 +1633,7 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
 :
     ^(TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; boxedName = $predefined_type.dotNetType.BoxedName; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
-           | 'void' { $dotNetType = AppEnv["System.Void"]; } )  
+           | 'void' { $dotNetType = VoidType; } )  
         (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
         magicBoxedType[isPredefined && pTree != null && !String.IsNullOrEmpty(boxedName), (pTree != null ? pTree.Token : null), boxedName]
        { $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
