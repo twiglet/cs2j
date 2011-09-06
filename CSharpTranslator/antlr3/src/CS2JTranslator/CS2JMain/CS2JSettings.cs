@@ -85,6 +85,11 @@ namespace Twiglet.CS2J.Translator
                 get; set;
             }
 
+            public bool UnsignedNumbersToBiggerSignedNumbers
+            {
+                get; set;
+            }
+
             public bool ExperimentalTransforms
             {
                 get; set;
@@ -135,6 +140,7 @@ namespace Twiglet.CS2J.Translator
 
                 EnumsAsNumericConsts = false;
                 UnsignedNumbersToSigned = false;
+                UnsignedNumbersToBiggerSignedNumbers = false;
 
                 ExperimentalTransforms = false;
 

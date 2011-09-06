@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>byte</Java>
+  <Name>System.SByte</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Byte.valueOf(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Byte</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>Byte.MIN_VALUE</Java>
+      <Type>System.Byte</Type>
+      <Name>MinValue</Name>
+      <Get>Byte.MIN_VALUE</Get>
+      <Set>${this:16}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Byte.MAX_VALUE</Java>
+      <Type>System.Byte</Type>
+      <Name>MaxValue</Name>
+      <Get>Byte.MAX_VALUE</Get>
+      <Set>${this:16}.setMaxValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+<!--
+    <Cast>
+      <Imports />
+      <Java>((Number)${expr}).byteValue()</Java>
+      <From>System.Object</From>
+      <To>System.Byte</To>
+    </Cast>
+-->
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>9UV0KDy27dm2PgLpXQYexqZHgrI=</DigestValue></Reference></SignedInfo><SignatureValue>hK2py13asxC+KdyfudqYmjri02cTXjfeJE0dZPGWELurbR2AdYFni3yJapmhPErkXLGfmjVBr9nr/mWl+Xq1NbmYhfV20A5+AnKwcA9V6qhQb/qLg10+J0HpCQItZOgUmGXjkZ3uqMEGxHuyUilxYoYz6HPOl0OdU3UlZl8kxvg=</SignatureValue></Signature></Class>

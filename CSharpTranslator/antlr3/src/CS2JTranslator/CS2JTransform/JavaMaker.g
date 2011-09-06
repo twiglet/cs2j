@@ -474,6 +474,14 @@ scope TypeContext {
         {"ushort", "short"}
     };
 
+    Dictionary<string, string> predefined_embiggen_unsigned_type_map = new Dictionary<string, string>()
+    {
+        {"byte", "short"},
+        {"ushort", "int"},
+        {"uint", "long"},
+        {"ulong", "long"}
+    };
+
     protected CommonTree mkHole() {
         return mkHole(null);
     }
@@ -2029,12 +2037,18 @@ predefined_type returns [string thetext]
     if (predefined_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
         $predefined_type.tree.Token.Text = newText;
     }
-    if (Cfg.UnsignedNumbersToSigned && predefined_unsigned_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText)) {
+    if (Cfg.UnsignedNumbersToSigned && predefined_unsigned_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText))    {
+        $predefined_type.tree.Token.Text = newText;
+    }
+    if (Cfg.UnsignedNumbersToBiggerSignedNumbers && predefined_embiggen_unsigned_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText))    {
         $predefined_type.tree.Token.Text = newText;
     }
 }:
 	  'bool'    { $thetext = "System.Boolean"; }
-    | 'byte'    { $thetext = "System.Byte"; }    
+    | 'byte'    { $thetext = Cfg.UnsignedNumbersToSigned ? "System.SByte" : "System.Byte"; 
+                  if (Cfg.UnsignedNumbersToBiggerSignedNumbers)
+                     $thetext = "System.Short"; 
+                }    
     | 'char'    { $thetext = "System.Char"; } 
     | 'decimal' { $thetext = "System.Decimal"; } 
     | 'double'  { $thetext = "System.Double"; } 
@@ -2045,9 +2059,18 @@ predefined_type returns [string thetext]
     | 'sbyte'   { $thetext = "System.SByte"; } 
 	| 'short'   { $thetext = "System.Int16"; } 
     | 'string'  { $thetext = "System.String"; } 
-    | 'uint'    { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32"; } 
-    | 'ulong'   { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; } 
-    | 'ushort'  { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16"; } 
+    | 'uint'    { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32";
+                  if (Cfg.UnsignedNumbersToBiggerSignedNumbers)
+                     $thetext = "System.Int64"; 
+                } 
+    | 'ulong'   { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; 
+                  if (Cfg.UnsignedNumbersToBiggerSignedNumbers)
+                     $thetext = "System.Int64"; 
+                } 
+    | 'ushort'  { $thetext = Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16"; 
+                  if (Cfg.UnsignedNumbersToBiggerSignedNumbers)
+                     $thetext = "System.Int32"; 
+                } 
     ;
 
 identifier returns [string thetext]
