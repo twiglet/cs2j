@@ -2117,7 +2117,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   {
                      // cast from us
                      TypeRepTemplate toTy = BuildType(c.To, AppEnv);
-                     if (toTy.IsA(castTo, AppEnv))
+                     if (toTy.IsA(castTo, AppEnv) && castTo.IsA(toTy, AppEnv))
                      {
                         ResolveResult res = new ResolveResult();
                         res.Result = c;
@@ -2162,8 +2162,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   if (c.To == null || (toTy != null && toTy.TypeName == TypeName))
                   {
                      // cast to us
-                     TypeRepTemplate fromTy = BuildType(c.From, AppEnv); 
-                     if (castFrom.IsA(fromTy, AppEnv))
+                     TypeRepTemplate fromTy = BuildType(c.From, AppEnv);
+                     if (castFrom.IsA(fromTy, AppEnv) && fromTy.IsA(castFrom, AppEnv))
                      {
                         ResolveResult res = new ResolveResult();
                         res.Result = c;
