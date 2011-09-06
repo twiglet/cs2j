@@ -131,7 +131,7 @@ namespace Twiglet.CS2J.Translator
                 TranslatorExceptionIsThrowable = false;
                 TranslatorBlanketThrow = true;
                 TranslatorMakeJavadocComments = true;
-                TranslatorMakeJavaNamingConventions = false;
+                TranslatorMakeJavaNamingConventions = true;
 
                 EnumsAsNumericConsts = false;
                 UnsignedNumbersToSigned = false;
