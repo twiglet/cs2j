@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -36,14 +36,14 @@
         </Param>
       </Params>
       <Name>Parse</Name>
-      <Return>System.Byte</Return>
+      <Return>System.SByte</Return>
     </Method>
   </Methods>
   <Properties>
     <Property>
       <Imports />
       <Java>Byte.MIN_VALUE</Java>
-      <Type>System.Byte</Type>
+      <Type>System.SByte</Type>
       <Name>MinValue</Name>
       <Get>Byte.MIN_VALUE</Get>
       <Set>${this:16}.setMinValue(${value})</Set>
@@ -51,7 +51,7 @@
     <Property>
       <Imports />
       <Java>Byte.MAX_VALUE</Java>
-      <Type>System.Byte</Type>
+      <Type>System.SByte</Type>
       <Name>MaxValue</Name>
       <Get>Byte.MAX_VALUE</Get>
       <Set>${this:16}.setMaxValue(${value})</Set>
