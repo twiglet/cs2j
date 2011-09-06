@@ -1687,6 +1687,25 @@ namespace Twiglet.CS2J.Translator.TypeRep
    [Serializable]
    public abstract class TypeRepTemplate : TranslationBase, IEquatable<TypeRepTemplate>
    {
+      private string _variant = "";
+      // Translation Variant
+      [XmlAttribute("variant")]
+      [System.ComponentModel.DefaultValueAttribute("")]
+      public string Variant { 
+         get
+         {
+            if (_variant == null)
+            {
+               _variant = "";
+            }
+            return _variant;
+         }
+         set
+         {
+            _variant = value;
+         }
+      }
+
       // Type Name
       [XmlElementAttribute("Name")]
       public string TypeName { get; set; }
@@ -1884,8 +1903,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
          TypeName = null;
          Uses = null;
          Aliases = null;
-
       }
+
       protected TypeRepTemplate(string typeName)
          : this()
       {
@@ -1958,6 +1977,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
          IsExplicitNull = copyFrom.IsExplicitNull;
          IsUnboxedType = copyFrom.IsUnboxedType;
+         Variant = copyFrom.Variant;
       }
 
       protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
@@ -2493,7 +2513,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return IsExplicitNull == other.IsExplicitNull && IsUnboxedType == other.IsUnboxedType && TypeName == other.TypeName && base.Equals(other);
+         return IsExplicitNull == other.IsExplicitNull && IsUnboxedType == other.IsUnboxedType && TypeName == other.TypeName && Variant == other.Variant && base.Equals(other);
       }
 
       public override bool Equals (object obj)
@@ -2547,7 +2567,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ IsUnboxedType.GetHashCode() ^ hashCode;
+         return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ IsUnboxedType.GetHashCode() ^ Variant.GetHashCode() ^ hashCode;
       }
       #endregion		
 		
