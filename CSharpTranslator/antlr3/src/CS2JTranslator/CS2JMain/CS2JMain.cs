@@ -86,6 +86,12 @@ namespace Twiglet.CS2J.Translator
                 strs.Add(Path.GetFullPath(argDirs[i]));
         }
 		
+        private static void addStrings(IList<string> strs, string rawStr) {
+            string[] strDirs = rawStr.Split(';');
+            for (int i = 0; i < strDirs.Length; i++)
+               strs.Add(strDirs[i]);
+        }
+		
         public static void CS2JMain(string[] args)
         {
             long startTime = DateTime.Now.Ticks;
@@ -127,7 +133,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
                         .Add ("csdir=", dirs => addDirectories(csDir, dirs))
                         .Add ("excsdir=", dirs => addDirectories(cfg.Exclude, dirs))
-                        .Add ("alt-translations=", asub => cfg.AltTranslations.Add(asub)) 							
+                        .Add ("alt-translations=", alts => addStrings(cfg.AltTranslations, alts)) 							
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
