@@ -127,7 +127,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
                         .Add ("csdir=", dirs => addDirectories(csDir, dirs))
                         .Add ("excsdir=", dirs => addDirectories(cfg.Exclude, dirs))
-                        .Add ("alttranslations=", asub => cfg.AltTranslations.Add(asub)) 							
+                        .Add ("alt-translations=", asub => cfg.AltTranslations.Add(asub)) 							
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
@@ -424,7 +424,15 @@ namespace Twiglet.CS2J.Translator
             try {
                 TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
                 // Fullname has form: <path>/<key>.xml
-                AppEnv[t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "")] = t;
+                string txKey = t.TypeName+(t.TypeParams != null && t.TypeParams.Length > 0 ? "'" + t.TypeParams.Length.ToString() : "");
+                if (!String.IsNullOrEmpty(t.Variant))
+                {
+                   AppEnv.Add(txKey, t, t.Variant);
+                }
+                else
+                {
+                   AppEnv.Add(txKey, t);
+                }
             } catch (Exception e) {
                 Console.WriteLine ("WARNING -- Could not import " + fullName + " (" + e.Message + ")");
             }
