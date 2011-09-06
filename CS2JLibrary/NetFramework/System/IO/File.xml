@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -185,4 +185,4 @@
   <Casts />
   <UnaryOps />
   <BinaryOps />
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>4Xi9u1+VH4Hued2Hsq+O7cKR3I4=</DigestValue></Reference></SignedInfo><SignatureValue>KlzEAuKG6MHgRi4qXSoF5UBumXJ22m3n9LwfRedxNCtP2fZQ0w0YiyZ/ffQX7KWoB1UY4vtlx5iEHprk1M4Nphl+LqRG5GXwMdj292jrvcSG0HzW2vwW/tTVwnZDyjjfjmLX2pIpFW6UPf6HykZ8zQBmXMhPSCDKedkBV2DqCvY=</SignatureValue></Signature></Class>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>TBZHwEiP93PrWtoJNDg2/1ZYwjE=</DigestValue></Reference></SignedInfo><SignatureValue>Q93a6W87/seu/9tF/jihtZcoTi8JnA23TNcC4xyJ/fmfmYAjr00PW9twMaqS982FFtfUn6A5aiBZX2pNbWJWYBsN08RddL5QoUjtM+eIiu3mUOIn3fNpKsLUJRADPYV8nFI/9fhY0GfPHoAM8y0RRSTho+Fjg8vZznigEEg6miE=</SignatureValue></Signature></Class>
