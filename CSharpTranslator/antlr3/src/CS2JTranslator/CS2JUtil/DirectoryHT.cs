@@ -6,6 +6,26 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
+
+/*
+  DirectoryHT is a dictionary, designed to model C#'s class name space.  
+
+  Keys are dot separated strings (e.g. System.IO.TextWriter).  The value stored has
+  a parameterized type (in CS2J we are storing TypeRepTemplates).
+
+  Each Key can point to a list of possible values, indexed by variant.
+
+  Valid variants are stored in the Alts property. The Alts are ordered by priority,
+  lowest to highest.  We return the value with highest priority variant.  
+
+  There is a default variant (with variant specified by the Default property). This is
+  always valid and has lowest ptiority.
+
+  Default Default (ahem!) is the empty string.
+
+ */
+
+
 namespace Twiglet.CS2J.Translator.Utils
 {
 
@@ -13,18 +33,28 @@ namespace Twiglet.CS2J.Translator.Utils
     public class DirectoryHT<TValue> : IDictionary<string, TValue>
     {
 
-        private DirectoryHT<TValue> _parent = null;
+        private DirectoryHT<TValue> parent = null;
 
-        private Dictionary<string, TValue> leaves = new Dictionary<string, TValue>();
+        // Leaves are a dictionary from Variant to Entry
+        private Dictionary<string, Dictionary<string, TValue>> leaves = new Dictionary<string, Dictionary<string, TValue>>();
 
+        // Children point to sub directories.
         private Dictionary<string, DirectoryHT<TValue>> children = new Dictionary<string, DirectoryHT<TValue>>();
 
+        // The enabled Variants, in priority order.
         private IList<string> alts = new List<string>();
+
+        // Default Variant (always enabled)
+        private string _default = String.Empty;
 
         public DirectoryHT(DirectoryHT<TValue> p)
         {
-            _parent = p;
-            alts.Add("");
+            parent = p;
+            if (p != null)
+            {
+               Default = p.Default;
+               Alts = p.Alts;
+            }
         }
 
         public DirectoryHT()
@@ -32,7 +62,7 @@ namespace Twiglet.CS2J.Translator.Utils
         { }
 
 
-        public Dictionary<string, TValue> Leaves
+        public Dictionary<string, Dictionary<string, TValue>> Leaves
         {
             get { return leaves; }
         }
@@ -40,14 +70,36 @@ namespace Twiglet.CS2J.Translator.Utils
         // p is key to a sub directory
         public DirectoryHT<TValue> Parent
         {  
-            get { return _parent; }
+            get { return parent; }
         }
 
-        // When searching for A.B.C.D.E we will first search for each A.B.C.D.<alt>.E where <alt> comes from Alts
+        // When looking for A.B.C.D.E We get a dictionary of variants. We will first look for each
+        // variant in Alts before falling back on the default (variant = Default)
         // This allows to override the default translations where necessary
+        // Alts appearing later in the list have priority. 
         public IList<string> Alts
         {  
             get { return alts; }
+            set
+            {
+               alts = value;
+               foreach (KeyValuePair<string, DirectoryHT<TValue>> child in children)
+                  child.Value.Alts = value;
+            }
+        }
+
+        public string Default
+        {
+           get
+           {
+              return _default;
+           }
+           set
+           {
+              _default = value;
+              foreach (KeyValuePair<string,DirectoryHT<TValue>> child in children)
+                 child.Value.Default = value;
+           }
         }
 
         // p is key to a sub directory
@@ -65,14 +117,49 @@ namespace Twiglet.CS2J.Translator.Utils
             }
         }
 
+        private bool hasLeaf(Dictionary<string,TValue> variants)
+        {
+           if (variants == null)
+              return false;
+           if (variants.ContainsKey(Default))
+              return true;
+           foreach (string alt in Alts)
+           {
+              if (variants.ContainsKey(alt))
+                  return true;
+           }
+           return false;
+        }
+
+        private TValue getLeaf(Dictionary<string,TValue> variants)
+        {
+           return getLeaf(variants, default(TValue));
+        }
+
+        private TValue getLeaf(Dictionary<string,TValue> variants, TValue def)
+        {
+           if (variants == null)
+              return def;
+           for (int i = Alts.Count - 1; i >= 0; i--)
+           {
+              if (variants.ContainsKey(Alts[i]))
+                  return variants[Alts[i]];
+           }
+           if (variants.ContainsKey(Default))
+              return variants[Default];
+           return def;
+        }
+
         #region IDictionary Members
+
+
 
         public bool ContainsKey(string key)
         {
             string[] components = key.Split(new char[] { '.' }, 2);
             if (components.Length == 1)
             {
-                return leaves.ContainsKey(components[0]);
+               return leaves.ContainsKey(components[0]) ? hasLeaf(leaves[components[0]]) : false; 
             }
             else
             {
@@ -111,7 +198,10 @@ namespace Twiglet.CS2J.Translator.Utils
             {
                 List<string> keys = new List<string>();
                 foreach (string k in leaves.Keys)
-                    keys.Add(k);
+                {
+                   if (hasLeaf(leaves[k]))
+                      keys.Add(k);
+                }
                 foreach (KeyValuePair<string, DirectoryHT<TValue>> de in children)
                     foreach (string k in de.Value.Keys)
                         keys.Add(de.Key + "." + k);
@@ -128,7 +218,14 @@ namespace Twiglet.CS2J.Translator.Utils
             }
             else
             {
-                return children[components[0]].Remove(components[1]);
+               if (children.ContainsKey(components[0]))
+               {
+                  return children[components[0]].Remove(components[1]);
+               }
+               else
+               {
+                  return false;
+               }
             }
         }
 
@@ -138,8 +235,13 @@ namespace Twiglet.CS2J.Translator.Utils
             get
             {
                 List<TValue> vals = new List<TValue>();
-                foreach (TValue v in leaves.Values)
-                    vals.Add(v);
+                foreach (Dictionary<string,TValue> variants in leaves.Values)
+                {
+                   if (hasLeaf(variants))
+                   {
+                      vals.Add(getLeaf(variants));
+                   }
+                }
                 foreach (KeyValuePair<string, DirectoryHT<TValue>> de in children)
                     foreach (TValue v in de.Value.Values)
                         vals.Add(v);
@@ -155,9 +257,14 @@ namespace Twiglet.CS2J.Translator.Utils
                 string[] components = key.Split(new char[] { '.' }, 2);
                 if (components.Length == 1)
                 {
-                    TValue val = leaves[key];
-                    // keving: this isn't typesafe!: return (val != null ? val : children[components[0]]);
-                    return val;
+                   if (leaves.ContainsKey(key) && hasLeaf(leaves[key]))
+                   {
+                      return getLeaf(leaves[key]); 
+                   }
+                   else
+                   {
+                      throw new KeyNotFoundException(key);
+                   }
                 }
                 else
                 {
@@ -170,25 +277,27 @@ namespace Twiglet.CS2J.Translator.Utils
                 Add(key, value);
             }
         }
+
         public bool TryGetValue(string key, out TValue value)
         {
             string[] components = key.Split(new char[] { '.' }, 2);
             if (components.Length == 1)
             {
-                return leaves.TryGetValue(key, out value);
+               if (leaves.ContainsKey(components[0]) && hasLeaf(leaves[components[0]]))
+               {
+                  value = getLeaf(leaves[components[0]]);
+                  return true;
+               }
             }
             else
             {
-                if (children.ContainsKey(components[0]))
+               if (children.ContainsKey(components[0]))
                 {
-                    return children[components[0]].TryGetValue(components[1], out value);
-                }
-                else
-                {
-                    value = default(TValue);
-                    return false;
+                   return children[components[0]].TryGetValue(components[1], out value);
                 }
             }
+            value = default(TValue);
+            return false;
         }
 
         // search for name, given searchPath
@@ -198,54 +307,28 @@ namespace Twiglet.CS2J.Translator.Utils
         // This allows to override the default translations where necessary
         public TValue Search(IList<string> searchPath, string name, TValue def) {
             
+           bool doneGlobal = false;
             // First check against each element of the search path 
             if (searchPath != null)
             {
-               // check against each alt override in turn
-               foreach  (string altIterator in Alts) {
-                  string alt = altIterator.EndsWith(".")  ? altIterator : altIterator + ".";
-               
-                  for (int i = searchPath.Count-1; i >= 0; i--) {
-                     String ns = searchPath[i];
-                     String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
-                     // insert alt after last period
-                     int lastPeriod = fullName.LastIndexOf('.')+1;
-                     fullName = fullName.Substring(0,lastPeriod) + alt + fullName.Substring(lastPeriod);
-                    // Console.WriteLine(fullName);
-                     if (this.ContainsKey(fullName)) {
-                        return this[fullName];
-                     }
-                  }
-               }
-
-               // Not in alts, check kosher
                for (int i = searchPath.Count-1; i >= 0; i--) {
                   String ns = searchPath[i];
+                  if (String.IsNullOrEmpty(ns))
+                     doneGlobal = true;
                   String fullName = (ns ?? "") + (String.IsNullOrEmpty(ns) ? "" : ".") + name;
-                  // Console.WriteLine(fullName);
                   if (this.ContainsKey(fullName)) {
                      return this[fullName];
                   }
                }
             }
-
-            // Check if name is fully qualified
-            foreach  (string altIterator in Alts) {
-               string alt = altIterator.EndsWith(".")  ? altIterator : altIterator + ".";
-               // insert alt after last period
-               int lastPeriod = name.LastIndexOf('.')+1;
-               string fullName = name.Substring(0,lastPeriod) + alt + name.Substring(lastPeriod);
-               // Console.WriteLine(fullName);
-               if (this.ContainsKey(fullName)) {
-                  return this[fullName];
+            // Not in search path, check for fully qualified name
+            if (!doneGlobal)
+            {
+               if (this.ContainsKey(name)) {
+                  return this[name];
                }
             }
-
-            // Not in alt, check kosher
-            // Console.WriteLine(name);
-            if (this.ContainsKey(name)) {
-               return this[name];
-            }
+            // Not found *anywhere*!
             return def;
         }
 
@@ -261,11 +344,6 @@ namespace Twiglet.CS2J.Translator.Utils
 
         public TValue Search(string name, TValue def) {
             return Search(new List<string>(), name, def);
-        }
-
-        public void Add(KeyValuePair<string, TValue> item)
-        {
-            this.Add(item.Key, item.Value);
         }
 
         public bool Contains(KeyValuePair<string, TValue> item)
@@ -290,18 +368,32 @@ namespace Twiglet.CS2J.Translator.Utils
             Copy(this, array, arrayIndex);
         }
 
+        public void Add(KeyValuePair<string, TValue> item)
+        {
+           Add(item.Key, item.Value);
+        }
+
         public void Add(string key, TValue value)
+        {
+           Add(key, value, Default);
+        }
+
+        public void Add(string key, TValue value, string variant)
         {
             string[] components = key.Split(new char[] { '.' }, 2);
             if (components.Length == 1)
             {
-                leaves[components[0]] = value;
+               if (!leaves.ContainsKey(components[0]))
+               {
+                  leaves[components[0]] = new Dictionary<string, TValue>();
+               }
+               leaves[components[0]][variant] = value;
             }
             else
             {
                 if (!children.ContainsKey(components[0]))
                     children[components[0]] = new DirectoryHT<TValue>(this);
-                children[components[0]].Add(components[1], value);
+                children[components[0]].Add(components[1], value, variant);
             }
         }
 
@@ -314,9 +406,12 @@ namespace Twiglet.CS2J.Translator.Utils
                     yield return new KeyValuePair<string, TValue>(de.Key + "." + cur.Key, cur.Value);
                 }
             }
-            foreach (KeyValuePair<string, TValue> de in leaves)
+            foreach (KeyValuePair<string, Dictionary<string, TValue>> de in leaves)
             {
-                yield return new KeyValuePair<string, TValue>(de.Key, de.Value);
+               if (hasLeaf(de.Value))
+               {
+                  yield return new KeyValuePair<string, TValue>(de.Key, getLeaf(de.Value));
+               }
             }
         }
 
