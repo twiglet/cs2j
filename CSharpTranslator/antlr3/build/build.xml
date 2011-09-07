@@ -79,6 +79,7 @@
     <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
       <fileset dir="${project.dir}/docs/external">
         <include name="README"/>
+        <include name="CHANGELOG"/>
         <include name="${google.docs.title}.pdf"/>
       </fileset>
     </copy>

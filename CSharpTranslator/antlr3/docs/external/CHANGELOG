@@ -1,0 +1,24 @@
+2011-09-07  2011.2.4
+
+	* add option -experimental-unsigned-to-bigger-signed=true/false (default: false).
+
+	If true then unsigned data types (byte, ushort etc.) are converted to the next larger signed
+	type (short, int, etc.).
+
+	* support for translation template variants.  You can provide a number of alternative
+	translation templates by adding a variant="<variant>" attribute in the template's root.
+	These can be selected at runtime with the -alt-translations option.
+
+	* support for methods, constructors, etc. with variable number of arguments (the params
+	key word).  Translation templates have a ParamArray section to describe these arguments.
+	See, e.g., the translation template for System/Console.xml.
+
+	* add option -translator-make-java-naming-conventions=true/false (default:true).
+
+	If true then convert method names to follow Java conventions (e.g. ExecutePool() is
+	rewritten to executePool()). This option enables the LCC translation template variant.
+	See, e.g., System/LCC/IDisposable.xml.
+
+	* rename Clone() methods to be clone() to override default Object.clone()
+
+
