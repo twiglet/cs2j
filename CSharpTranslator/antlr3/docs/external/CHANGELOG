@@ -19,6 +19,8 @@
 	rewritten to executePool()). This option enables the LCC translation template variant.
 	See, e.g., System/LCC/IDisposable.xml.
 
-	* rename Clone() methods to be clone() to override default Object.clone()
+	* rename Clone() methods to be clone() and so override default Object.clone().
+
+	* the usual bug fixes and improvements to translation templates.
 
 
