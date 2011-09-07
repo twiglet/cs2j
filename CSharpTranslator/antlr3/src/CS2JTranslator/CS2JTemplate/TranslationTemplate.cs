@@ -1274,6 +1274,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          set { _javaGet = value; }
       }
                 
+/*
       public override string Java
       {
          get
@@ -1281,6 +1282,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             return JavaGet;
          }
       }
+      */
 
       protected string _javaSet = null;
       [XmlElementAttribute("Set")]
@@ -1348,7 +1350,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override string mkJava ()
       {
          // favour JavaGet
-         return null;
+         return JavaGet;
       }
 		
       #region Equality
@@ -2647,6 +2649,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
+      [XmlArrayItem("Cast")]
       public override List<CastRepTemplate> Casts {
          get {
             if (_casts == null)
