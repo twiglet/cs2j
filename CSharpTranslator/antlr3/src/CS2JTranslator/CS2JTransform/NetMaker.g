@@ -3062,7 +3062,7 @@ predefined_type returns [TypeRepTemplate dotNetType]
 
 }:
 	  'bool'    { ns = "System.Boolean"; }
-    | 'byte'    { ns = Cfg.UnsignedNumbersToSigned ? "System.Byte" : "System.SByte"; }
+    | 'byte'    { ns = Cfg.UnsignedNumbersToSigned ? "System.SByte" : "System.Byte"; }
     | 'char'    { ns = "System.Char"; }
     | 'decimal' { ns = "System.Decimal"; }
     | 'double'  { ns = "System.Double"; }
