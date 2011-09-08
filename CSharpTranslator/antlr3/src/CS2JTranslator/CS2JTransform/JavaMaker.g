@@ -698,20 +698,23 @@ modifier:
 	'new' -> /* No new in Java*/ | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
 	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | e='extern'  { Warning($e.line, "[UNSUPPORTED] 'extern' modifier"); }  | 'virtual' -> | 'override' -> /* not in Java, maybe convert to override annotation */;
 
-class_member_declaration:   
+class_member_declaration
+@init {
+   List<string> modifierList = new List<string>();
+}:   
 	a=attributes?
-	m=modifiers?
-	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, $m.modList) } $ct constant_declarators)
+    (m=modifiers { modifierList = $m.modList; })?
+	( c='const'   ct=type   constant_declarators   ';' -> ^(FIELD[$c.token, "FIELD"] $a? $m? { addConstModifiers($c.token, modifierList) } $ct constant_declarators)
 	| ev=event_declaration[$a.tree, $m.tree] -> $ev 
-	| p='partial' (v1=void_type m3=method_declaration[$a.tree, $m.tree, $m.modList, $v1.tree, $v1.text, true /* isPartial */] -> { $m3.tree != null}? $m3
+	| p='partial' (v1=void_type m3=method_declaration[$a.tree, $m.tree, modifierList, $v1.tree, $v1.text, true /* isPartial */] -> { $m3.tree != null}? $m3
                                                                                                                               -> 
 			   | pi=interface_declaration[$a.tree, $m.tree, $p] -> $pi
 			   | pc=class_declaration[$a.tree, $m.tree, $p, false /* toplevel */] -> $pc
 			   | ps=struct_declaration[$a.tree, $m.tree, $p, false /* toplevel */] -> $ps)
 	| i=interface_declaration[$a.tree, $m.tree, null] -> $i
-	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, $m.modList, $v2.tree, $v2.text, false /* isPartial */] -> $m1 
-	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, $m.modList, $t.tree, $t.text, false /* isPartial */] -> $m2
-		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, $m.modList.Contains("abstract"), $t.tree] -> $pd
+	| v2=void_type   m1=method_declaration[$a.tree, $m.tree, modifierList, $v2.tree, $v2.text, false /* isPartial */] -> $m1 
+	| t=type ( (member_name  type_parameter_list? '(') => m2=method_declaration[$a.tree, $m.tree, modifierList, $t.tree, $t.text, false /* isPartial */] -> $m2
+		   | (member_name   '{') => pd=property_declaration[$a.tree, $m.tree, modifierList.Contains("abstract"), $t.tree] -> $pd
 		   | (type_name   '.'   'this') => tn=type_name '.' ix1=indexer_declaration[$a.tree, $m.tree, $t.tree, $tn.tree] -> $ix1
 		   | ix2=indexer_declaration[$a.tree, $m.tree, $t.tree, null]	-> $ix2 //this
 	       | field_declaration     -> ^(FIELD[$t.start.Token, "FIELD"] $a? $m? $t field_declaration) // qid
@@ -724,7 +727,7 @@ class_member_declaration:
 	| ed=enum_declaration[$a.tree, $m.tree] -> $ed
 	| dd=delegate_declaration[$a.tree, $m.tree, false /* toplevel */] -> { mkFlattenDictionary($dd.tree.Token,$dd.compUnits) }
 	| co3=conversion_operator_declaration -> ^(CONVERSION_OPERATOR[$co3.start.Token, "CONVERSION"] $a? $m? $co3)
-	| con3=constructor_declaration[$a.tree, $m.tree, $m.modList]	-> $con3
+	| con3=constructor_declaration[$a.tree, $m.tree, modifierList]	-> $con3
 	| de3=destructor_declaration -> $de3
 	) 
 	;
