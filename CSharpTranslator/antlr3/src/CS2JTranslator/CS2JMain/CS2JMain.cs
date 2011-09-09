@@ -83,7 +83,10 @@ namespace Twiglet.CS2J.Translator
         private static void addDirectories(IList<string> strs, string rawStr) {
             string[] argDirs = rawStr.Split(';');
             for (int i = 0; i < argDirs.Length; i++)
-                strs.Add(Path.GetFullPath(argDirs[i]));
+            {
+               string dir = Path.GetFullPath(argDirs[i]).TrimEnd(Path.DirectorySeparatorChar);
+               strs.Add(dir);
+            }
         }
 		
         private static void addStrings(IList<string> strs, string rawStr) {
@@ -277,7 +280,7 @@ namespace Twiglet.CS2J.Translator
         {
             string canonicalPath = Path.GetFullPath(root);
             // If this is a directory, walk each file/dir in that directory
-            if (excludes == null || !excludes.Contains(canonicalPath))
+            if (excludes == null || !excludes.Contains(canonicalPath.TrimEnd(Path.DirectorySeparatorChar)))
             {
                 if (Directory.Exists(canonicalPath))
                 {
