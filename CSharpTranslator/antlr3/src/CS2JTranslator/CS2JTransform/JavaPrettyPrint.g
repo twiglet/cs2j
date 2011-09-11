@@ -766,7 +766,7 @@ wrapped returns [int precedence, IList<StringTemplate> ppArgs]
 }:
     ^(JAVAWRAPPEREXPRESSION expression) { $precedence = $expression.precedence; } -> { $expression.st } 
     | ^(JAVAWRAPPERARGUMENT argument_value) { $precedence = $argument_value.precedence; } -> { $argument_value.st } 
-    | ^(JAVAWRAPPERARGUMENTLIST argument_list) { $ppArgs = $argument_list.ppArgs; } -> { $argument_list.st } 
+    | ^(JAVAWRAPPERARGUMENTLIST (argument_list  { $ppArgs = $argument_list.ppArgs; })?) -> { $argument_list.st } 
     | ^(JAVAWRAPPERTYPE type) -> { $type.st } 
     | ^(JAVAWRAPPER t=identifier 
          (k=identifier v=wrapped 

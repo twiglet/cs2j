@@ -256,7 +256,7 @@ scope MkNonGeneric {
 
     protected CommonTree wrapExpression(CommonTree e, IToken tok) {
         CommonTree root = (CommonTree)adaptor.Nil;
-        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "EXPRESSION"), root);
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPEREXPRESSION, tok, "JAVAWRAPPEREXPRESSION"), root);
         adaptor.AddChild(root, dupTree(e));
 
         return (CommonTree)adaptor.RulePostProcessing(root);
@@ -264,7 +264,7 @@ scope MkNonGeneric {
 
     protected CommonTree wrapArgument(CommonTree e, IToken tok) {
         CommonTree root = (CommonTree)adaptor.Nil;
-        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERARGUMENT, tok, "ARGUMENT"), root);
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERARGUMENT, tok, "JAVAWRAPPERARGUMENT"), root);
         adaptor.AddChild(root, dupTree(e));
 
         return (CommonTree)adaptor.RulePostProcessing(root);
@@ -272,13 +272,16 @@ scope MkNonGeneric {
 
     protected CommonTree wrapArgumentList(CommonTree e, IToken tok) {
         CommonTree root = (CommonTree)adaptor.Nil;
-        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERARGUMENTLIST, tok, "ARGUMENTLIST"), root);
+        root = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(JAVAWRAPPERARGUMENTLIST, tok, "JAVAWRAPPERARGUMENTLIST"), root);
         adaptor.AddChild(root, dupTree(e));
 
         return (CommonTree)adaptor.RulePostProcessing(root);
     }
 
     protected CommonTree mkArgumentList(CommonTree e1, IToken tok) {
+        if (adaptor.IsNil(e1))
+           return e1;
+
         CommonTree argList = (CommonTree)adaptor.Nil;
         argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
         adaptor.AddChild(argList, dupTree(e1));
@@ -297,6 +300,9 @@ scope MkNonGeneric {
 
     protected CommonTree mkArgumentList(IToken tok, params CommonTree[] es) {
         CommonTree argList = (CommonTree)adaptor.Nil;
+        if (es == null || es.Length == 0)
+           return argList;
+
         argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
         if (es != null) {
            foreach (CommonTree e in es) {
@@ -308,6 +314,9 @@ scope MkNonGeneric {
 
     protected CommonTree mkArgumentList(IToken tok, IList<CommonTree> es) {
         CommonTree argList = (CommonTree)adaptor.Nil;
+        if (es == null || es.Count == 0)
+           return argList;
+
         argList = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(ARGS, tok, "ARGS"), argList);
         if (es != null) {
            foreach (CommonTree e in es) {
