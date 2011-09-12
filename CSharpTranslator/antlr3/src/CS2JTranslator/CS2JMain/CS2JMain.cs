@@ -77,22 +77,27 @@ namespace Twiglet.CS2J.Translator
             Console.Out.WriteLine(" [-warning-resolve-failures <true/false>]                                    (show warnings for resolve failures, default true)");
             Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
             Console.Out.WriteLine(" <directory or file name to be translated>");
-            Environment.Exit(0);
         }
 		
-        private static void addDirectories(IList<string> strs, string rawStr) {
-            string[] argDirs = rawStr.Split(';');
+        private static IList<string> mkDirectories(string rawStr) {
+            IList<string> strs = new List<string>();
+            char splitChar = rawStr.IndexOf(';') >= 0 ? ';' : '|';
+            string[] argDirs = rawStr.Split(splitChar);
             for (int i = 0; i < argDirs.Length; i++)
             {
                string dir = Path.GetFullPath(argDirs[i]).TrimEnd(Path.DirectorySeparatorChar);
                strs.Add(dir);
             }
+            return strs;
         }
 		
-        private static void addStrings(IList<string> strs, string rawStr) {
-            string[] strDirs = rawStr.Split(';');
+        private static IList<string> mkStrings(string rawStr) {
+            IList<string> strs = new List<string>();
+            char splitChar = rawStr.IndexOf(';') >= 0 ? ';' : '|';
+            string[] strDirs = rawStr.Split(splitChar);
             for (int i = 0; i < strDirs.Length; i++)
                strs.Add(strDirs[i]);
+            return strs;
         }
 		
         public static void CS2JMain(string[] args)
@@ -100,6 +105,8 @@ namespace Twiglet.CS2J.Translator
             long startTime = DateTime.Now.Ticks;
             IList<string> csDir = new List<string>();
             XmlTextWriter enumXmlWriter = null;			
+            bool doHelp = false;
+            bool doEarlyExit = false;
 
             // Use a try/catch block for parser exceptions
             try
@@ -117,7 +124,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("warnings=", v => cfg.Warnings = Boolean.Parse(v))
                         .Add ("warnings-resolve-failures=", v => cfg.WarningsFailedResolves = Boolean.Parse(v))
                         .Add ("version", v => showVersion())
-                        .Add ("help|h|?", v => showUsage())
+                        .Add ("help|h|?", v => {doHelp = true; doEarlyExit = true; })
                         .Add ("showcsharp", v => cfg.DumpCSharp = true)
                         .Add ("showjava", v => cfg.DumpJava = true)
                         .Add ("showjavasyntax", v => cfg.DumpJavaSyntax = true)
@@ -129,14 +136,14 @@ namespace Twiglet.CS2J.Translator
                         .Add ("xmldir=", dir => cfg.XmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
                         .Add ("odir=", dir => cfg.OutDir = dir)
                         .Add ("cheatdir=", dir => cfg.CheatDir = dir)
-                        .Add ("netdir=", dirs => addDirectories(cfg.NetRoot, dirs))
-                        .Add ("exnetdir=", dirs => addDirectories(cfg.ExNetRoot, dirs))
-                        .Add ("netschemadir=", dirs => addDirectories(cfg.NetSchemaDir, dirs))
-                        .Add ("appdir=", dirs => addDirectories(cfg.AppRoot, dirs))
-                        .Add ("exappdir=", dirs => addDirectories(cfg.ExAppRoot, dirs))
-                        .Add ("csdir=", dirs => addDirectories(csDir, dirs))
-                        .Add ("excsdir=", dirs => addDirectories(cfg.Exclude, dirs))
-                        .Add ("alt-translations=", alts => addStrings(cfg.AltTranslations, alts)) 							
+                        .Add("netdir=", dirs => cfg.NetRoot = mkDirectories(dirs))
+                        .Add("exnetdir=", dirs => cfg.ExNetRoot = mkDirectories(dirs))
+                        .Add("netschemadir=", dirs => cfg.NetSchemaDir = mkDirectories(dirs))
+                        .Add("appdir=", dirs => cfg.AppRoot = mkDirectories(dirs))
+                        .Add("exappdir=", dirs => cfg.ExAppRoot = mkDirectories(dirs))
+                        .Add("csdir=", dirs => csDir = mkDirectories(dirs))
+                        .Add("excsdir=", dirs => cfg.Exclude = mkDirectories(dirs))
+                        .Add("alt-translations=", alts => cfg.AltTranslations = mkStrings(alts)) 							
                         .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
                         .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
                         .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
@@ -154,13 +161,30 @@ namespace Twiglet.CS2J.Translator
                     // Final argument is translation target
                     foreach (string s in p.Parse (args))
                     {
-                       addDirectories(csDir, s);
+                       if (s.StartsWith("-") || s.StartsWith("/"))
+                       {
+                          Console.WriteLine("Unrecognized Option: " + s);
+                          doEarlyExit = true;
+                       }
+                       else
+                       {
+                          csDir = mkDirectories(s);
+                       }
                     }
 
-                    if (csDir == null || csDir.Count == 0)
+                    if (cfg.Verbosity > 0) showVersion();
+
+                    if (doHelp) showUsage();
+                    if (csDir == null || csDir.Count == 0) {
                         // No work
+                       Console.WriteLine("Please specify files to translate with -csdir option");
+                       doEarlyExit = true;
+                    }
+
+                    if (doEarlyExit)
+                    {
                         Environment.Exit(0);
- 
+                    }
 
                     AppEnv = new DirectoryHT<TypeRepTemplate>();
                     if (cfg.TranslatorMakeJavaNamingConventions)
