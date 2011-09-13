@@ -1,3 +1,37 @@
+2011-09-13
+
+	* revamped option names (sorry!). See user guide.
+	    added:
+                        -config=<ini file>
+
+	    renamed:
+                        -dumpxmls  -->  -dump-xmls
+                        -xmldir  -->  -out-xml-dir
+                        -odir  -->  -out-java-dir
+			-netdir  -->  -net-templates-dir
+			-exnetdir  -->  -ex-net-templates-dir
+			-appdir  -->  -app-dir
+			-exappdir  -->  -ex-app-dir
+			-csdir  -->  -cs-dir
+			-excsdir  -->  -ex-cs-dir
+
+                        -showcsharp  -->  -show-csharp
+                        -showjavasyntax  -->  -show-javasyntax
+                        -showjava  -->  -show-java
+                        -showtokens  -->  -show-tokens
+                        -dumpenums  -->  -dump-enums
+                        -enumdir  -->  -out-enum-dir
+                        -cheatdir  -->  -cheat-dir
+
+                        -translator-keep-parens  -->  -keep-parens
+                        -translator-timestamp-files  -->  -timestamp-files
+                        -translator-blanket-throw  -->  -blanket-throw
+                        -translator-exception-is-throwable  -->  -exception-is-throwable
+                        -translator-make-javadoc-comments  --> -make-javadoc-comments
+                        -translator-make-java-naming-conventions	 -->  -make-java-naming-conventions
+
+                        -experimental-enums-numericconsts  -->  -experimental-enums-to-numeric-consts
+
 2011-09-07  2011.2.4
 
 	* add option -experimental-unsigned-to-bigger-signed=true/false (default: false).

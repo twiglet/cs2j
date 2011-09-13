@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CB5C2235-43B2-4B37-B866-D5D33F0E68B0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Nini</RootNamespace>
+    <AssemblyName>Nini</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Config\AliasText.cs" />
+    <Compile Include="Config\ArgvConfigSource.cs" />
+    <Compile Include="Config\ConfigBase.cs" />
+    <Compile Include="Config\ConfigCollection.cs" />
+    <Compile Include="Config\ConfigSourceBase.cs" />
+    <Compile Include="Config\DotNetConfigSource.cs" />
+    <Compile Include="Config\IConfig.cs" />
+    <Compile Include="Config\IConfigSource.cs" />
+    <Compile Include="Config\IniConfig.cs" />
+    <Compile Include="Config\IniConfigSource.cs" />
+    <Compile Include="Config\RegistryConfigSource.cs" />
+    <Compile Include="Config\XmlConfigSource.cs" />
+    <Compile Include="Ini\IniDocument.cs" />
+    <Compile Include="Ini\IniException.cs" />
+    <Compile Include="Ini\IniItem.cs" />
+    <Compile Include="Ini\IniReader.cs" />
+    <Compile Include="Ini\IniSection.cs" />
+    <Compile Include="Ini\IniSectionCollection.cs" />
+    <Compile Include="Ini\IniWriter.cs" />
+    <Compile Include="Util\ArgvParser.cs" />
+    <Compile Include="Util\OrderedList.cs" />
+    <Compile Include="Util\OrderedListEnumerator.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

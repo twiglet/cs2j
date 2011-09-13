@@ -11,8 +11,6 @@
     <RootNamespace>CS2JTranslator</RootNamespace>
     <AssemblyName>cs2j</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -24,7 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>--debug 5 -experimental-transforms=true -translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/libomv -odir=/Users/keving/tmp/java/libomv/src -csdir=/Users/keving/Projects/libomv-0.8.3-source/Programs/VisualParamGenerator/ -excsdir=/Users/keving/Projects/libomv-0.8.3-source/Programs/VisualParamGenerator/template.cs</Commandlineparameters>
+    <Commandlineparameters>-config /Users/keving/tmp/secs2j.ini</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -96,6 +94,10 @@
     <ProjectReference Include="..\NDesk.Options\NDesk.Options.csproj">
       <Project>{E6ACBB37-AF38-45E1-B399-0CEE63809A15}</Project>
       <Name>NDesk.Options</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Nini\Nini.csproj">
+      <Project>{CB5C2235-43B2-4B37-B866-D5D33F0E68B0}</Project>
+      <Name>Nini</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

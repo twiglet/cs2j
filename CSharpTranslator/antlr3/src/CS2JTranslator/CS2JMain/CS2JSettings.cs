@@ -32,17 +32,36 @@ namespace Twiglet.CS2J.Translator
                  isDefault = false;
               }
            }
-           public void setIfDefault(T newVal)
+           public void SetIfDefault(T newVal)
+           {
+              if (IsDefault)
+              {
+                 optValue = newVal;
+              }
+           }
+     
+           public void SetDefault(T newVal)
+           {
+              optValue = newVal;
+           }
+
+        }
+
+        public class CS2JOptionStrings : CS2JOption<IList<string>>
+        {
+           public void Add(IList<string> newVal)
            {
               if (IsDefault)
               {
                  Value = newVal;
               }
-           }
-     
-           public void setDefault(T newVal)
-           {
-              optValue = newVal;
+              else
+              {
+                 foreach (string s in newVal)
+                 {
+                    Value.Add(s);
+                 }
+              }
            }
         }
 
@@ -202,8 +221,8 @@ namespace Twiglet.CS2J.Translator
             }
 
             // NetRoot
-            private CS2JOption<IList<string>> optNetRoot = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptNetRoot { 
+            private CS2JOptionStrings optNetRoot = new CS2JOptionStrings();
+            public CS2JOptionStrings OptNetRoot { 
                get
                {
                   return optNetRoot;
@@ -221,8 +240,8 @@ namespace Twiglet.CS2J.Translator
             }
 
             // ExNetRoot
-            private CS2JOption<IList<string>> optExNetRoot = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptExNetRoot { 
+            private CS2JOptionStrings optExNetRoot = new CS2JOptionStrings();
+            public CS2JOptionStrings OptExNetRoot { 
                get
                {
                   return optExNetRoot;
@@ -240,8 +259,8 @@ namespace Twiglet.CS2J.Translator
             }
 
             // NetSchemaDir
-            private CS2JOption<IList<string>> optNetSchemaDir = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptNetSchemaDir { 
+            private CS2JOptionStrings optNetSchemaDir = new CS2JOptionStrings();
+            public CS2JOptionStrings OptNetSchemaDir { 
                get
                {
                   return optNetSchemaDir;
@@ -259,8 +278,8 @@ namespace Twiglet.CS2J.Translator
             }
 
             // AppRoot
-            private CS2JOption<IList<string>> optAppRoot = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptAppRoot { 
+            private CS2JOptionStrings optAppRoot = new CS2JOptionStrings();
+            public CS2JOptionStrings OptAppRoot { 
                get
                {
                   return optAppRoot;
@@ -278,8 +297,8 @@ namespace Twiglet.CS2J.Translator
             }
 
             // ExAppRoot
-            private CS2JOption<IList<string>> optExAppRoot = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptExAppRoot { 
+            private CS2JOptionStrings optExAppRoot = new CS2JOptionStrings();
+            public CS2JOptionStrings OptExAppRoot { 
                get
                {
                   return optExAppRoot;
@@ -296,28 +315,47 @@ namespace Twiglet.CS2J.Translator
                }
             }
 
-            // Exclude
-            private CS2JOption<IList<string>> optExclude = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptExclude { 
+            // CsDir
+            private CS2JOptionStrings optCsDir = new CS2JOptionStrings();
+            public CS2JOptionStrings OptCsDir { 
                get
                {
-                  return optExclude;
+                  return optCsDir;
                }
             }
-            public IList<string> Exclude { 
+            public IList<string> CsDir { 
                get
                { 
-                  return optExclude.Value; 
+                  return optCsDir.Value; 
                }
                set
                {
-                  optExclude.Value = value;
+                  optCsDir.Value = value;
+               }
+            }
+
+            // ExCsDir
+            private CS2JOptionStrings optExCsDir = new CS2JOptionStrings();
+            public CS2JOptionStrings OptExCsDir { 
+               get
+               {
+                  return optExCsDir;
+               }
+            }
+            public IList<string> ExCsDir { 
+               get
+               { 
+                  return optExCsDir.Value; 
+               }
+               set
+               {
+                  optExCsDir.Value = value;
                }
             }
 
             // MacroDefines
-            private CS2JOption<IList<string>> optMacroDefines = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptMacroDefines { 
+            private CS2JOptionStrings optMacroDefines = new CS2JOptionStrings();
+            public CS2JOptionStrings OptMacroDefines { 
                get
                {
                   return optMacroDefines;
@@ -335,8 +373,8 @@ namespace Twiglet.CS2J.Translator
             }
 
             // AltTranslations
-            private CS2JOption<IList<string>> optAltTranslations = new CS2JOption<IList<string>>();
-            public CS2JOption<IList<string>> OptAltTranslations { 
+            private CS2JOptionStrings optAltTranslations = new CS2JOptionStrings();
+            public CS2JOptionStrings OptAltTranslations { 
                get
                {
                   return optAltTranslations;
@@ -717,48 +755,49 @@ namespace Twiglet.CS2J.Translator
             public CS2JSettings ()
             {
 		
-               OptDisplayTokens.setDefault(false);
+               OptDisplayTokens.SetDefault(false);
                 
                 // dump parse trees to stdout
-	        OptDumpCSharp.setDefault(false);
-	        OptDumpJavaSyntax.setDefault(false);
-	        OptDumpJava.setDefault(false);
+	        OptDumpCSharp.SetDefault(false);
+	        OptDumpJavaSyntax.SetDefault(false);
+	        OptDumpJava.SetDefault(false);
 	
-	        OptDumpXmls.setDefault(false);
-	        OptDumpEnums.setDefault(false);
-	        OptOutDir.setDefault(Directory.GetCurrentDirectory());
-	        OptCheatDir.setDefault("");
-	        OptNetRoot.setDefault(new List<string>());
-	        OptExNetRoot.setDefault(new List<string>());
-	        OptNetSchemaDir.setDefault(new List<string>());
-	        OptAppRoot.setDefault(new List<string>());
-	        OptExAppRoot.setDefault(new List<string>());
-	        OptExclude.setDefault(new List<string>());
-	        OptMacroDefines.setDefault(new List<string>());
-	        OptAltTranslations.setDefault(new List<string>());
-	        OptXmlDir.setDefault(Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs"));
-                OptEnumDir.setDefault(Path.Combine(Directory.GetCurrentDirectory(), "enums"));
-                OptKeyFile.setDefault(null);
-	        OptVerbosity.setDefault(0);	
-                OptDebugTemplateExtraction.setDefault(true);	
-	        OptDebugLevel.setDefault(1);		
-	        OptWarnings.setDefault(true);		
-	        OptWarningsFailedResolves.setDefault(false);		
+	        OptDumpXmls.SetDefault(false);
+	        OptDumpEnums.SetDefault(false);
+	        OptOutDir.SetDefault(Directory.GetCurrentDirectory());
+	        OptCheatDir.SetDefault("");
+	        OptNetRoot.SetDefault(new List<string>());
+	        OptExNetRoot.SetDefault(new List<string>());
+	        OptNetSchemaDir.SetDefault(new List<string>());
+	        OptAppRoot.SetDefault(new List<string>());
+	        OptExAppRoot.SetDefault(new List<string>());
+	        OptCsDir.SetDefault(new List<string>());
+	        OptExCsDir.SetDefault(new List<string>());
+	        OptMacroDefines.SetDefault(new List<string>());
+	        OptAltTranslations.SetDefault(new List<string>());
+	        OptXmlDir.SetDefault(Path.Combine(Directory.GetCurrentDirectory(), "tmpXMLs"));
+                OptEnumDir.SetDefault(Path.Combine(Directory.GetCurrentDirectory(), "enums"));
+                OptKeyFile.SetDefault(null);
+	        OptVerbosity.SetDefault(0);	
+                OptDebugTemplateExtraction.SetDefault(true);	
+	        OptDebugLevel.SetDefault(1);		
+	        OptWarnings.SetDefault(true);		
+	        OptWarningsFailedResolves.SetDefault(false);		
 
-                OptTranslatorKeepParens.setDefault(true);
-                OptTranslatorAddTimeStamp.setDefault(true);
-                OptTranslatorExceptionIsThrowable.setDefault(false);
-                OptTranslatorBlanketThrow.setDefault(true);
-                OptTranslatorMakeJavadocComments.setDefault(true);
-                OptTranslatorMakeJavaNamingConventions.setDefault(true);
+                OptTranslatorKeepParens.SetDefault(true);
+                OptTranslatorAddTimeStamp.SetDefault(true);
+                OptTranslatorExceptionIsThrowable.SetDefault(false);
+                OptTranslatorBlanketThrow.SetDefault(true);
+                OptTranslatorMakeJavadocComments.SetDefault(true);
+                OptTranslatorMakeJavaNamingConventions.SetDefault(true);
 
-                OptEnumsAsNumericConsts.setDefault(false);
-                OptUnsignedNumbersToSigned.setDefault(false);
-                OptUnsignedNumbersToBiggerSignedNumbers.setDefault(false);
+                OptEnumsAsNumericConsts.SetDefault(false);
+                OptUnsignedNumbersToSigned.SetDefault(false);
+                OptUnsignedNumbersToBiggerSignedNumbers.SetDefault(false);
 
-                OptExperimentalTransforms.setDefault(false);
+                OptExperimentalTransforms.SetDefault(false);
 
-                OptInternalIsJavaish.setDefault(false);
+                OptInternalIsJavaish.SetDefault(false);
             }
 	}
 }

@@ -27,6 +27,7 @@ using Twiglet.CS2J.Translator.TypeRep;
 
 using CS2JConstants = Twiglet.CS2J.Translator.Utils.Constants;
 using Twiglet.CS2J.Translator.Extract;
+using Nini.Config;
 
 namespace Twiglet.CS2J.Translator
 {
@@ -36,6 +37,7 @@ namespace Twiglet.CS2J.Translator
        private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
        private static CS2JSettings cfg = new CS2JSettings();
        private static StringTemplateGroup templates = null;
+       private static bool doEarlyExit = false;
 
        private static RSACryptoServiceProvider RsaKey = null;
        private static int badXmlTxCountTrigger = 3 + 4 - 2;
@@ -78,35 +80,143 @@ namespace Twiglet.CS2J.Translator
             Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
             Console.Out.WriteLine(" <directory or file name to be translated>");
         }
-		
-        private static IList<string> mkDirectories(string rawStr) {
+
+        private static IList<string> mkDirectories(string rawStr)
+        {
             IList<string> strs = new List<string>();
-            char splitChar = rawStr.IndexOf(';') >= 0 ? ';' : '|';
-            string[] argDirs = rawStr.Split(splitChar);
-            for (int i = 0; i < argDirs.Length; i++)
+            if (!String.IsNullOrEmpty(rawStr))
             {
-               string dir = Path.GetFullPath(argDirs[i]).TrimEnd(Path.DirectorySeparatorChar);
-               strs.Add(dir);
+               char splitChar = rawStr.IndexOf(';') >= 0 ? ';' : '|';
+               string[] argDirs = rawStr.Split(splitChar);
+               for (int i = 0; i < argDirs.Length; i++)
+               {
+                  string dir = Path.GetFullPath(argDirs[i]).TrimEnd(Path.DirectorySeparatorChar);
+                  strs.Add(dir);
+               }
             }
             return strs;
         }
-		
-        private static IList<string> mkStrings(string rawStr) {
+
+        private static IList<string> mkStrings(string rawStr)
+        {
             IList<string> strs = new List<string>();
-            char splitChar = rawStr.IndexOf(';') >= 0 ? ';' : '|';
-            string[] strDirs = rawStr.Split(splitChar);
-            for (int i = 0; i < strDirs.Length; i++)
-               strs.Add(strDirs[i]);
+            if (!String.IsNullOrEmpty(rawStr))
+            {
+               char splitChar = rawStr.IndexOf(';') >= 0 ? ';' : '|';
+               string[] strDirs = rawStr.Split(splitChar);
+               for (int i = 0; i < strDirs.Length; i++)
+                  strs.Add(strDirs[i]);
+            }
             return strs;
         }
+
+        private static bool parseBoolOption(String opt)
+        {
+           bool ret = true;
+           // counter intuitive, but captures plain -opt as opt is true
+           if (!String.IsNullOrEmpty(opt))
+           {
+              try
+              {
+                 ret = Convert.ToBoolean(opt); 
+              }
+              catch
+              {
+                 // Not true/false. try as int
+                 try
+                 {
+                    ret = Convert.ToBoolean(Int32.Parse(opt));
+                 }
+                 catch
+                 {
+                    // ok give in
+                 }
+              }
+           }
+           return ret;
+        }
 		
+        private static void updateFromConfigFile(string inifile, CS2JSettings cfg)
+        {
+            try
+            {
+                IConfigSource source = new IniConfigSource(Path.GetFullPath(inifile));
+                IConfig general = source.Configs["General"];
+                
+                // Debug / Verbosity
+                cfg.OptVerbosity.SetIfDefault(general.GetInt("verbose", cfg.Verbosity));
+                cfg.OptDebugLevel.SetIfDefault(general.GetInt("debug", cfg.DebugLevel));
+                cfg.OptDebugTemplateExtraction.SetIfDefault(general.GetBoolean("debug-template-extraction", cfg.DebugTemplateExtraction));
+
+                // Control warnings
+                cfg.OptWarnings.SetIfDefault(general.GetBoolean("warnings", cfg.Warnings));
+                cfg.OptWarningsFailedResolves.SetIfDefault(general.GetBoolean("warnings-resolve-failures", cfg.WarningsFailedResolves));
+
+                // Dump internal structures
+                cfg.OptDumpCSharp.SetIfDefault(general.GetBoolean("show-csharp", cfg.DumpCSharp));
+                cfg.OptDumpJavaSyntax.SetIfDefault(general.GetBoolean("show-javasyntax", cfg.DumpJavaSyntax));
+                cfg.OptDumpJava.SetIfDefault(general.GetBoolean("show-java", cfg.DumpJava));
+                cfg.OptDisplayTokens.SetIfDefault(general.GetBoolean("show-tokens", cfg.DisplayTokens));
+
+                // Preprocessor tokens
+                cfg.OptMacroDefines.SetIfDefault(mkStrings(general.Get("define", "")));
+
+                // Output enum list, parsed translation files
+                cfg.OptDumpEnums.SetIfDefault(general.GetBoolean("dump-enums", cfg.DumpEnums));
+                cfg.OptEnumDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("out-enum-dir", cfg.EnumDir)));
+
+                cfg.OptDumpXmls.SetIfDefault(general.GetBoolean("dump-xmls", cfg.DumpXmls));
+                cfg.OptXmlDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("out-xml-dir", cfg.XmlDir)));
+
+                // Source and output for translation files and templates
+                cfg.OptCheatDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("cheat-dir", cfg.CheatDir)));
+
+                cfg.OptNetRoot.SetIfDefault(mkDirectories(general.Get("net-templates-dir", "")));
+                cfg.OptExNetRoot.SetIfDefault(mkDirectories(general.Get("ex-net-templates-dir", "")));
+                cfg.OptNetSchemaDir.SetIfDefault(mkDirectories(general.Get("net-schema-dir", "")));
+
+                cfg.OptAppRoot.SetIfDefault(mkDirectories(general.Get("app-dir", "")));
+                cfg.OptExAppRoot.SetIfDefault(mkDirectories(general.Get("ex-app-dir", "")));
+
+                cfg.OptCsDir.SetIfDefault(mkDirectories(general.Get("cs-dir", "")));
+                cfg.OptExCsDir.SetIfDefault(mkDirectories(general.Get("ex-cs-dir", "")));
+
+                cfg.OptOutDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("out-java-dir", cfg.OutDir)));
+
+                // Enable Alternate Translation Templates
+                cfg.OptAltTranslations.SetIfDefault(mkStrings(general.Get("alt-translations", "")));
+
+                // Boolean flags
+                cfg.OptTranslatorKeepParens.SetIfDefault(general.GetBoolean("keep-parens", cfg.TranslatorKeepParens));
+                cfg.OptTranslatorAddTimeStamp.SetIfDefault(general.GetBoolean("timestamp-files", cfg.TranslatorAddTimeStamp));
+                cfg.OptTranslatorBlanketThrow.SetIfDefault(general.GetBoolean("blanket-throw", cfg.TranslatorBlanketThrow));
+                cfg.OptTranslatorExceptionIsThrowable.SetIfDefault(general.GetBoolean("exception-is-throwable", cfg.TranslatorExceptionIsThrowable));
+                cfg.OptTranslatorMakeJavadocComments.SetIfDefault(general.GetBoolean("make-javadoc-comments", cfg.TranslatorMakeJavadocComments));
+                cfg.OptTranslatorMakeJavaNamingConventions.SetIfDefault(general.GetBoolean("make-java-naming-conventions", cfg.TranslatorMakeJavaNamingConventions));
+
+                IConfig experimental = source.Configs["Experimental"];
+
+                cfg.OptEnumsAsNumericConsts.SetIfDefault(general.GetBoolean("enums-to-numeric-consts", cfg.EnumsAsNumericConsts));
+                cfg.OptUnsignedNumbersToSigned.SetIfDefault(general.GetBoolean("unsigned-to-signed", cfg.UnsignedNumbersToSigned));
+                cfg.OptUnsignedNumbersToBiggerSignedNumbers.SetIfDefault(general.GetBoolean("unsigned-to-bigger-signed", cfg.UnsignedNumbersToBiggerSignedNumbers));
+                cfg.OptExperimentalTransforms.SetIfDefault(general.GetBoolean("transforms", cfg.ExperimentalTransforms));
+
+                IConfig internl = source.Configs["Internal"];
+
+                cfg.OptInternalIsJavaish.SetIfDefault(internl.GetBoolean("isjavaish", cfg.InternalIsJavaish));
+            }
+            catch (IOException)
+            {
+                Console.WriteLine("ERROR: Could not read configuration file " + Path.GetFullPath(inifile));
+                doEarlyExit = true;
+            }
+        }
+
         public static void CS2JMain(string[] args)
         {
             long startTime = DateTime.Now.Ticks;
-            IList<string> csDir = new List<string>();
             XmlTextWriter enumXmlWriter = null;			
             bool doHelp = false;
-            bool doEarlyExit = false;
 
             // Use a try/catch block for parser exceptions
             try
@@ -118,43 +228,44 @@ namespace Twiglet.CS2J.Translator
                     if (cfg.Verbosity >= 2) Console.Error.WriteLine("Parsing Command Line Arguments...");
 
                     OptionSet p = new OptionSet ()
-                        .Add ("v", v => cfg.Verbosity++)
+                        .Add ("config=", f => updateFromConfigFile(f, cfg))
+                        .Add ("v", v => cfg.Verbosity = cfg.OptVerbosity.IsDefault ? 1 : cfg.Verbosity + 1)
                         .Add ("debug=", v => cfg.DebugLevel = Int32.Parse(v))
-                        .Add ("debug-template-extraction=", v => cfg.DebugTemplateExtraction = Boolean.Parse(v))
-                        .Add ("warnings=", v => cfg.Warnings = Boolean.Parse(v))
-                        .Add ("warnings-resolve-failures=", v => cfg.WarningsFailedResolves = Boolean.Parse(v))
-                        .Add ("version", v => showVersion())
+                        .Add ("debug-template-extraction:", v => cfg.DebugTemplateExtraction = parseBoolOption(v))
+                        .Add ("warnings:", v => cfg.Warnings = parseBoolOption(v))
+                        .Add ("warnings-resolve-failures:", v => cfg.WarningsFailedResolves = parseBoolOption(v))
+                        .Add ("version:", v => { if (parseBoolOption(v)) showVersion(); })
                         .Add ("help|h|?", v => {doHelp = true; doEarlyExit = true; })
-                        .Add ("showcsharp", v => cfg.DumpCSharp = true)
-                        .Add ("showjava", v => cfg.DumpJava = true)
-                        .Add ("showjavasyntax", v => cfg.DumpJavaSyntax = true)
-                        .Add ("showtokens", v => cfg.DisplayTokens = true)
-                        .Add ("D=", def => cfg.MacroDefines.Add(def)) 							
-                        .Add ("dumpenums", v => cfg.DumpEnums = true)
-                        .Add ("enumdir=", dir => cfg.EnumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
-                        .Add ("dumpxmls", v => cfg.DumpXmls = true)
-                        .Add ("xmldir=", dir => cfg.XmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
-                        .Add ("odir=", dir => cfg.OutDir = dir)
-                        .Add ("cheatdir=", dir => cfg.CheatDir = dir)
-                        .Add("netdir=", dirs => cfg.NetRoot = mkDirectories(dirs))
-                        .Add("exnetdir=", dirs => cfg.ExNetRoot = mkDirectories(dirs))
-                        .Add("netschemadir=", dirs => cfg.NetSchemaDir = mkDirectories(dirs))
-                        .Add("appdir=", dirs => cfg.AppRoot = mkDirectories(dirs))
-                        .Add("exappdir=", dirs => cfg.ExAppRoot = mkDirectories(dirs))
-                        .Add("csdir=", dirs => csDir = mkDirectories(dirs))
-                        .Add("excsdir=", dirs => cfg.Exclude = mkDirectories(dirs))
-                        .Add("alt-translations=", alts => cfg.AltTranslations = mkStrings(alts)) 							
-                        .Add ("translator-keep-parens=", v => cfg.TranslatorKeepParens = Boolean.Parse(v))
-                        .Add ("translator-timestamp-files=", v => cfg.TranslatorAddTimeStamp = Boolean.Parse(v))
-                        .Add ("translator-blanket-throw=", v => cfg.TranslatorBlanketThrow = Boolean.Parse(v))
-                        .Add ("translator-exception-is-throwable=", v => cfg.TranslatorExceptionIsThrowable = Boolean.Parse(v))
-                        .Add ("translator-make-javadoc-comments=", v => cfg.TranslatorMakeJavadocComments = Boolean.Parse(v))
-                        .Add ("translator-make-java-naming-conventions=", v => cfg.TranslatorMakeJavaNamingConventions = Boolean.Parse(v))
-                        .Add ("experimental-enums-numericconsts=", v => cfg.EnumsAsNumericConsts = Boolean.Parse(v))
-                        .Add ("experimental-unsigned-to-signed=", v => cfg.UnsignedNumbersToSigned = Boolean.Parse(v))
-                        .Add ("experimental-unsigned-to-bigger-signed=", v => cfg.UnsignedNumbersToBiggerSignedNumbers = Boolean.Parse(v))
-                        .Add ("experimental-transforms=", v => cfg.ExperimentalTransforms = Boolean.Parse(v))
-                        .Add ("internal-isjavaish", v => cfg.InternalIsJavaish = true)
+                        .Add ("show-csharp:", v => cfg.DumpCSharp = parseBoolOption(v))
+                        .Add ("show-java:", v => cfg.DumpJava = parseBoolOption(v))
+                        .Add ("show-javasyntax:", v => cfg.DumpJavaSyntax = parseBoolOption(v))
+                        .Add ("show-tokens:", v => cfg.DisplayTokens = parseBoolOption(v))
+                        .Add ("D=", def => cfg.OptMacroDefines.Add(mkStrings(def))) 							
+                        .Add ("dump-enums:", v => cfg.DumpEnums = parseBoolOption(v))
+                        .Add ("out-enum-dir=", dir => cfg.EnumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
+                        .Add ("dump-xmls:", v => cfg.DumpXmls = parseBoolOption(v))
+                        .Add ("out-xml-dir=", dir => cfg.XmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
+                        .Add ("out-java-dir=", dir => cfg.OutDir = dir)
+                        .Add ("cheat-dir=", dir => cfg.CheatDir = dir)
+                        .Add ("net-templates-dir=", dirs => cfg.OptNetRoot.Add(mkDirectories(dirs)))
+                        .Add ("ex-net-templates-dir=", dirs => cfg.OptExNetRoot.Add(mkDirectories(dirs)))
+                        .Add ("net-schema-dir=", dirs => cfg.OptNetSchemaDir.Add(mkDirectories(dirs)))
+                        .Add ("app-dir=", dirs => cfg.OptAppRoot.Add(mkDirectories(dirs)))
+                        .Add ("ex-app-dir=", dirs => cfg.OptExAppRoot.Add(mkDirectories(dirs)))
+                        .Add ("cs-dir=", dirs => cfg.OptCsDir.Add(mkDirectories(dirs)))
+                        .Add ("ex-cs-dir=", dirs => cfg.OptExCsDir.Add(mkDirectories(dirs)))
+                        .Add ("alt-translations=", alts => cfg.OptAltTranslations.Add(mkStrings(alts)))
+                        .Add ("keep-parens:", v => cfg.TranslatorKeepParens = parseBoolOption(v))
+                        .Add ("timestamp-files:", v => cfg.TranslatorAddTimeStamp = parseBoolOption(v))
+                        .Add ("blanket-throw:", v => cfg.TranslatorBlanketThrow = parseBoolOption(v))
+                        .Add ("exception-is-throwable:", v => cfg.TranslatorExceptionIsThrowable = parseBoolOption(v))
+                        .Add ("make-javadoc-comments:", v => cfg.TranslatorMakeJavadocComments = parseBoolOption(v))
+                        .Add ("make-java-naming-conventions:", v => cfg.TranslatorMakeJavaNamingConventions = parseBoolOption(v))
+                        .Add ("experimental-enums-to-numeric-consts:", v => cfg.EnumsAsNumericConsts = parseBoolOption(v))
+                        .Add ("experimental-unsigned-to-signed:", v => cfg.UnsignedNumbersToSigned = parseBoolOption(v))
+                        .Add ("experimental-unsigned-to-bigger-signed:", v => cfg.UnsignedNumbersToBiggerSignedNumbers = parseBoolOption(v))
+                        .Add ("experimental-transforms:", v => cfg.ExperimentalTransforms = parseBoolOption(v))
+                        .Add ("internal-isjavaish:", v => cfg.InternalIsJavaish = parseBoolOption(v))
                         ;
 					
                     //TODO: fix enum dump
@@ -163,21 +274,21 @@ namespace Twiglet.CS2J.Translator
                     {
                        if (s.StartsWith("-") || s.StartsWith("/"))
                        {
-                          Console.WriteLine("Unrecognized Option: " + s);
+                          Console.WriteLine("ERROR: Unrecognized Option: " + s);
                           doEarlyExit = true;
                        }
                        else
                        {
-                          csDir = mkDirectories(s);
+                          cfg.OptCsDir.Add(mkDirectories(s));
                        }
                     }
 
                     if (cfg.Verbosity > 0) showVersion();
 
                     if (doHelp) showUsage();
-                    if (csDir == null || csDir.Count == 0) {
+                    if (cfg.CsDir == null || cfg.CsDir.Count == 0) {
                         // No work
-                       Console.WriteLine("Please specify files to translate with -csdir option");
+                       Console.WriteLine("Please specify files to translate with -cs-dir option");
                        doEarlyExit = true;
                     }
 
@@ -228,7 +339,7 @@ namespace Twiglet.CS2J.Translator
                     if (cfg.AppRoot.Count == 0)
                     {
                         // By default translation target is application root
-                       foreach (string s in csDir)
+                       foreach (string s in cfg.CsDir)
                        {
                           cfg.AppRoot.Add(s);
                        }
@@ -268,8 +379,8 @@ namespace Twiglet.CS2J.Translator
                         templates = new StringTemplateGroup(new StringReader(Templates.JavaTemplateGroup));
                     }
 
-                    foreach (string r in csDir)
-                        doFile(r, ".cs", translateFile, cfg.Exclude); // translate it
+                    foreach (string r in cfg.CsDir)
+                        doFile(r, ".cs", translateFile, cfg.ExCsDir); // translate it
 
                     if (cfg.DebugLevel >= 1 && partialTypes.Count > 0) Console.Out.WriteLine("Writing out collected partial types");
                     foreach (KeyValuePair<string, ClassDescriptorSerialized> entry in partialTypes)
