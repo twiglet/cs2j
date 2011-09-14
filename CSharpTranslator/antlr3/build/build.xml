@@ -83,6 +83,11 @@
         <include name="${google.docs.title}.pdf"/>
       </fileset>
     </copy>
+    <copy todir="${build.dir}/archive/cs2j-${release.tagname}">
+      <fileset dir="${project.dir}/resources">
+        <include name="DefaultSettings.ini"/>
+      </fileset>
+    </copy>
   </target>
 
   <target name="mkcs2jlibprojsrc" description="Build CS2JLibrary Project source for distribution">
