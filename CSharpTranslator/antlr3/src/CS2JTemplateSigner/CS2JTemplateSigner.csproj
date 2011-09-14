@@ -11,8 +11,8 @@
     <RootNamespace>CS2JTemplateSigner</RootNamespace>
     <AssemblyName>CS2JTemplateSigner</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <StartupObject>Twiglet.CS2J.Utility.TemplateSigner</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>

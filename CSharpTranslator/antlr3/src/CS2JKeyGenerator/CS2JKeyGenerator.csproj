@@ -10,6 +10,7 @@
     <RootNamespace>CS2JKeyGenerator</RootNamespace>
     <AssemblyName>CS2JKeyGenerator</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <StartupObject>Twiglet.CS2J.Utility.KeyGenerator</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
