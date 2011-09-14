@@ -60,25 +60,26 @@ namespace Twiglet.CS2J.Translator
             Console.Out.WriteLine("Usage: " + Path.GetFileNameWithoutExtension(System.Environment.GetCommandLineArgs()[0]));
             Console.Out.WriteLine(" [-help]                                                                     (this usage message)");
             Console.Out.WriteLine(" [-v]                                                                        (be [somewhat more] verbose, repeat for more verbosity)");
-            Console.Out.WriteLine(" [-D <macroVariable>]                                                        (define <macroVariable>, option can be repeated)");
-            Console.Out.WriteLine(" [-showtokens]                                                               (the lexer prints the tokenized input to the console)");
-            Console.Out.WriteLine(" [-showcsharp] [-showjavasyntax] [-showjava]                                 (show parse tree at various stages of the translation)");
-            Console.Out.WriteLine(" [-dumpxml] [-xmldir <directory to dump xml database>]                       (dump the translation repository as xml files)");
-            Console.Out.WriteLine(" [-dumpenums <enum xml file>]                                                (create an xml file documenting enums)");
-            Console.Out.WriteLine(" [-netdir <root of .NET Framework Class Library translations>+]              (can be multiple directories, separated by semi-colons)");
-            Console.Out.WriteLine(" [-exnetdir <directories/files to be excluded from translation repository>+] (can be multiple directories/files, separated by semi-colons)");
-            Console.Out.WriteLine(" [-appdir <root of C# application>]");
-            Console.Out.WriteLine(" [-exappdir <directories/files to be excluded from translation repository>+] (can be multiple directories/files, separated by semi-colons)");
-            Console.Out.WriteLine(" [-csdir <directories/files to be translated>+]                              (can be multiple directories/files, separated by semi-colons)");
-            Console.Out.WriteLine(" [-excsdir <directories/files to be excluded from translation>+]             (can be multiple directories/files, separated by semi-colons)");
-            Console.Out.WriteLine(" [-odir <root of translated classes>]");
-            Console.Out.WriteLine(" [-cheatdir <root of translation 'cheat' files>]");
+            Console.Out.WriteLine(" [-D <macroVariable>]                                                        (define C# preprocessor <macroVariable>, option can be repeated)");
+            Console.Out.WriteLine(" [-show-tokens]                                                              (the lexer prints the tokenized input to the console)");
+            Console.Out.WriteLine(" [-show-csharp] [-show-javasyntax] [-show-java]                              (show parse tree at various stages of the translation)");
+            Console.Out.WriteLine(" [-dump-xmls] [-out-xml-dir <directory to dump xml database>]                 (dump the translation repository as xml files)");
+            Console.Out.WriteLine(" [-net-templates-dir <root of Library translation templates>+]               (can be multiple directories, separated by semi-colons)");
+            Console.Out.WriteLine(" [-ex-net-templates-dir <directories/files to be excluded>+]                 (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-alt-translations <template variants>+]                                    (enable these translaton template variants, can be repeated)");
+            Console.Out.WriteLine(" [-app-dir <root of C# application>]                                         (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-ex-app-dir <directories/files to be excluded>+]                           (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-cs-dir <directories/files to be translated>+]                             (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-ex-cs-dir <directories/files to be excluded from translation>+]           (can be multiple directories/files, separated by semi-colons)");
+            Console.Out.WriteLine(" [-out-java-dir <root of translated classes>]                                (write Java classes here)");
             Console.Out.WriteLine(" [-debug <level>]                                                            (set debug level, default 0)");
             Console.Out.WriteLine(" [-debug-template-extraction <true/false>]                                   (show debug messages during template extraction, default true)");
             Console.Out.WriteLine(" [-warnings <true/false>]                                                    (show warnings, default true)");
             Console.Out.WriteLine(" [-warning-resolve-failures <true/false>]                                    (show warnings for resolve failures, default true)");
-            Console.Out.WriteLine(" [-translator-keep-parens <true/false>]                                      (keep parens from source, default true)");
-            Console.Out.WriteLine(" <directory or file name to be translated>");
+            Console.Out.WriteLine(" [-keep-parens <true/false>]                                                 (keep parens from source, default true)");
+            Console.Out.WriteLine(" [-make-javadoc-comments <true/false>]                                       (convert C# documentation comments to Javadoc, default true)");
+            Console.Out.WriteLine(" [-make-java-naming-conventions <true/false>]                                (convert method names to follow Java conventions, default true)");
+            Console.Out.WriteLine(" <directory or file name to be translated>                                   (as cs-dir option)");
         }
 
         private static IList<string> mkDirectories(string rawStr)
@@ -196,10 +197,10 @@ namespace Twiglet.CS2J.Translator
 
                 IConfig experimental = source.Configs["Experimental"];
 
-                cfg.OptEnumsAsNumericConsts.SetIfDefault(general.GetBoolean("enums-to-numeric-consts", cfg.EnumsAsNumericConsts));
-                cfg.OptUnsignedNumbersToSigned.SetIfDefault(general.GetBoolean("unsigned-to-signed", cfg.UnsignedNumbersToSigned));
-                cfg.OptUnsignedNumbersToBiggerSignedNumbers.SetIfDefault(general.GetBoolean("unsigned-to-bigger-signed", cfg.UnsignedNumbersToBiggerSignedNumbers));
-                cfg.OptExperimentalTransforms.SetIfDefault(general.GetBoolean("transforms", cfg.ExperimentalTransforms));
+                cfg.OptEnumsAsNumericConsts.SetIfDefault(experimental.GetBoolean("enums-to-numeric-consts", cfg.EnumsAsNumericConsts));
+                cfg.OptUnsignedNumbersToSigned.SetIfDefault(experimental.GetBoolean("unsigned-to-signed", cfg.UnsignedNumbersToSigned));
+                cfg.OptUnsignedNumbersToBiggerSignedNumbers.SetIfDefault(experimental.GetBoolean("unsigned-to-bigger-signed", cfg.UnsignedNumbersToBiggerSignedNumbers));
+                cfg.OptExperimentalTransforms.SetIfDefault(experimental.GetBoolean("transforms", cfg.ExperimentalTransforms));
 
                 IConfig internl = source.Configs["Internal"];
 
@@ -286,7 +287,7 @@ namespace Twiglet.CS2J.Translator
                     if (cfg.Verbosity > 0) showVersion();
 
                     if (doHelp) showUsage();
-                    if (cfg.CsDir == null || cfg.CsDir.Count == 0) {
+                    if (!doEarlyExit && (cfg.CsDir == null || cfg.CsDir.Count == 0)) {
                         // No work
                        Console.WriteLine("Please specify files to translate with -cs-dir option");
                        doEarlyExit = true;
