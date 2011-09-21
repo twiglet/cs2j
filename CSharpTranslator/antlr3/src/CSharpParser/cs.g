@@ -1359,7 +1359,7 @@ PP_CONDITIONAL:
 fragment
 IF_TOKEN
 	@init { bool process = true; }:
-	('#'   TS*  'if'   TS+   ppe = PP_EXPRESSION)
+	('#'   TS*  'if'   TS*   ppe = PP_EXPRESSION)
 {
     // if our parent is processing check this if
     Debug.Assert(Processing.Count > 0, "Stack underflow preprocessing.  IF_TOKEN");
