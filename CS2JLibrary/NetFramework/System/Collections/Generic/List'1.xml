@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -183,6 +183,9 @@
       </Params>
     </Constructor>
     <Constructor>
+      <Imports>
+        <Import>java.util.Arrays</Import>
+      </Imports>
       <Java>new ArrayList*[${T}]*(Arrays.asList(${collection}))</Java>
       <Params>
         <Param>
