@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -84,11 +84,13 @@
   </Methods>
   <Properties>
     <Property>
-      <Imports />
-      <Java>System.out</Java>
+      <Imports>
+        <Import>java.io.PrintWriter</Import>
+      </Imports>
+      <Java>new PrintWriter(System.out)</Java>
       <Type>System.IO.TextWriter</Type>
       <Name>Out</Name>
-      <Get>System.out</Get>
+      <Get>new PrintWriter(System.out)</Get>
       <Set>${this:16}.setOut(${value})</Set>
     </Property>
   </Properties>
