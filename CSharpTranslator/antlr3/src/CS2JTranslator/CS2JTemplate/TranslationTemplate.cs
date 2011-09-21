@@ -1826,7 +1826,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
-      // Client can set _isUnboxedType.  If so then we know the expression / type is inboxed 
+      // Client can set _isUnboxedType.  If so then we know the expression / type is unboxed 
       private bool _isUnboxedType = false;
       [XmlIgnore]
       public bool IsUnboxedType
@@ -1841,18 +1841,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
-      // Client can set BoxedName.  If so then we know how to cast an expression to its boxed type 
-      private string _boxedName = null;
-      [XmlIgnore]
-      public string BoxedName
-      {
+      private String _boxedJava = null;
+      public String BoxedJava {
          get
          {
-            return _boxedName;
+            if (String.IsNullOrEmpty(_boxedJava))
+            {
+               _boxedJava = Java; 
+            }
+            return _boxedJava;
          }
          set
          {
-            _boxedName = value;
+            _boxedJava = value;
          }
       }
 
@@ -1861,7 +1862,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          get
          {
-            return (String.IsNullOrEmpty(BoxedName) ? "" : "((" + BoxedName + ")${expr})");
+            return (String.IsNullOrEmpty(BoxedJava) ? "" : "((" + BoxedJava + ")${expr})");
          }
       }
 
@@ -1980,6 +1981,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          IsExplicitNull = copyFrom.IsExplicitNull;
          IsUnboxedType = copyFrom.IsUnboxedType;
          Variant = copyFrom.Variant;
+         BoxedJava = copyFrom.BoxedJava;
       }
 
       protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
@@ -2515,7 +2517,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return IsExplicitNull == other.IsExplicitNull && IsUnboxedType == other.IsUnboxedType && TypeName == other.TypeName && Variant == other.Variant && base.Equals(other);
+         return IsExplicitNull == other.IsExplicitNull && IsUnboxedType == other.IsUnboxedType && 
+                TypeName == other.TypeName && Variant == other.Variant && BoxedJava == other.BoxedJava && base.Equals(other);
       }
 
       public override bool Equals (object obj)
@@ -2569,7 +2572,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ IsUnboxedType.GetHashCode() ^ Variant.GetHashCode() ^ hashCode;
+         return (Java ?? String.Empty).GetHashCode() ^ IsExplicitNull.GetHashCode() ^ IsUnboxedType.GetHashCode() ^ 
+            Variant.GetHashCode() ^ BoxedJava.GetHashCode() ^ hashCode;
       }
       #endregion		
 		

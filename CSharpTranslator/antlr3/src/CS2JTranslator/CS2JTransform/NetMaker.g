@@ -209,20 +209,6 @@ scope MkNonGeneric {
         }
     }
 
-    // Map of Java built in types to their object based equivalents
-    Dictionary<string, string> primitive_to_object_type_map = new Dictionary<string, string>()
-    {
-        {"byte", "Byte"},
-        {"short", "Short"},
-        {"int", "Integer"},
-        {"long", "Long"},
-        {"float", "Float"},
-        {"double", "Double"},
-        {"boolean", "Boolean"},
-        {"char", "Character"}
-    };
-
-
     protected TypeRepTemplate SymTabLookup(string name) {
         return SymTabLookup(name, null);
     }
@@ -1229,6 +1215,7 @@ scope {
                 // Not a variable, not a property read, is it a type name?
                 TypeRepTemplate staticType = findType(textSoFar);
                 if (!staticType.IsUnknownType) {
+                    ret = mkJavaWrapper(staticType.Java, new Dictionary<string,CommonTree>(), $i.tree.Token);
                     AddToImports(staticType.Imports);
                     $dotNetType = staticType;
                     $thedottedtext =  (implicitThis || String.IsNullOrEmpty($e1.thedottedtext)  ? "" : $e1.thedottedtext + ".") + $i.thetext;
@@ -1632,7 +1619,6 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
    bool hasRank = false;
    bool isPredefined = false;
    CommonTree pTree = null;
-   string boxedName = null;
 }
 @after {
    if ($dotNetType.Tree == null) {
@@ -1640,14 +1626,14 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
    }
 }
 :
-    ^(TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; boxedName = $predefined_type.dotNetType.BoxedName; } 
+    ^(t=TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = VoidType; } )  
         (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
-        magicBoxedType[isPredefined && pTree != null && !String.IsNullOrEmpty(boxedName), (pTree != null ? pTree.Token : null), boxedName]
+        magicBoxedType[$dotNetType != null && !String.IsNullOrEmpty($dotNetType.BoxedJava), $t.token, $dotNetType == null ? "" : $dotNetType.BoxedJava]
        { $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
-    -> { $PrimitiveRep::primitiveTypeAsObject && $p.tree != null && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedName) }? ^(TYPE[$p.tree.Token, "TYPE"] IDENTIFIER[$p.tree.Token,$dotNetType.BoxedName] '*'* '?'?)
-    -> ^(TYPE predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
+    -> { $PrimitiveRep::primitiveTypeAsObject && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'* '?'?)
+    -> ^(TYPE[$t.token, "TYPE"] predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
 
 non_nullable_type returns [TypeRepTemplate dotNetType]:
@@ -3066,9 +3052,6 @@ predefined_type returns [TypeRepTemplate dotNetType]
     $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns, new UnknownRepTemplate(ns)));
     $dotNetType.IsUnboxedType = true;
     string newText = null;
-    if (primitive_to_object_type_map.TryGetValue($predefined_type.tree.Token.Text, out newText))
-       $dotNetType.BoxedName = newText;
-
 }:
 	  'bool'    { ns = "System.Boolean"; }
     | 'byte'    { ns = Cfg.UnsignedNumbersToSigned ? "System.SByte" : "System.Byte"; }
