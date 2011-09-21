@@ -232,6 +232,32 @@ scope TypeContext {
         return root;
     }
 
+    // mods is a list of modifiers.  contains is a list of token types, return true if mods has a member of contains
+    protected bool containsMods(CommonTree mods, int[] contains) {
+       
+       bool ret = false;
+
+        if (mods != null) {
+           // Is root node the one we are looking for?
+           if (!mods.IsNil) {
+              
+              if (Array.IndexOf(contains,adaptor.GetType(mods)) >= 0) {
+                 ret = true;
+              }
+           }
+           else {
+              for (int i = 0; i < adaptor.GetChildCount(mods); i++) {
+                 CommonTree child = (CommonTree)adaptor.GetChild(mods,i);
+                 if (Array.IndexOf(contains,adaptor.GetType(child)) >= 0) {
+                    ret = true;
+                    break;
+                 }
+              } 
+           }
+        }
+        return ret;
+    }
+
     // Add modToAdd to mods.
     protected CommonTree mkAddMod(CommonTree mods, CommonTree modToAdd) {
        
@@ -695,7 +721,7 @@ modifiers returns [List<string> modList]
 }:
 	 (modifier { if ($modifier.tree != null) $modList.Add( $modifier.tree.Text); })+ ;
 modifier: 
-	'new' -> /* No new in Java*/ | 'public' | 'protected' | 'private' | 'internal' ->  /* translate to package-private */| 'unsafe' ->  | 'abstract' | 'sealed' -> FINAL["final"] | 'static'
+	'new' -> /* No new in Java*/ | 'public' | 'protected' | 'private' | i='internal' ->  PUBLIC[$i.token, "public"] /* translate to public .... */| 'unsafe' ->  | 'abstract' | s='sealed' -> FINAL[$s.token, "final"] | 'static'
 	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | e='extern'  { Warning($e.line, "[UNSUPPORTED] 'extern' modifier"); }  | 'virtual' -> | 'override' -> /* not in Java, maybe convert to override annotation */;
 
 class_member_declaration
@@ -1257,9 +1283,16 @@ attribute_argument_expression:
 
 class_declaration[CommonTree atts, CommonTree mods, CommonTree partial, bool toplevel] returns [string name]
 scope TypeContext;
+@init {
+    CommonTree mangledMods = toplevel ? mkRemoveMods($mods, new int[] {STATIC}) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, "static"));
+    // If no access modifier then type is internal, which we relax to public
+    if (toplevel && !containsMods(mangledMods, new int[] {PUBLIC, PRIVATE})) {
+       mangledMods =  addModifier(mangledMods, (CommonTree)adaptor.Create(PUBLIC, "public"));
+    }
+}
 :
-	c='class' identifier  { $TypeContext::typeName = $identifier.thetext; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.thetext, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body ';'? 
-    -> ^(CLASS[$c.token, "class"] { dupTree($partial) } { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
+	c='class' identifier  { $TypeContext::typeName = $identifier.thetext; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.thetext, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   class_body ';'?
+    -> ^(CLASS[$c.token, "class"] { dupTree($partial) } { dupTree($atts) } { mangledMods } identifier type_parameter_constraints_clauses? type_parameter_list? class_base?  class_body );
 
 type_parameter_list returns [List<string> names] 
 @init {
@@ -1476,14 +1509,19 @@ enum_declaration[CommonTree atts, CommonTree mods] returns [string name]
 scope TypeContext;
 @init {
    CommonTree constType = null;
+   CommonTree mangledMods = mkRemoveMods($mods, new int[] {STATIC});
+   // If no access modifier then type is internal, which we relax to public
+   if (!containsMods(mangledMods, new int[] {PUBLIC, PRIVATE})) {
+      mangledMods =  addModifier(mangledMods, (CommonTree)adaptor.Create(PUBLIC, "public"));
+   }
 }
 :
     { Cfg.EnumsAsNumericConsts }? =>  
            e1='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } magicBoxedType[true,$e1.token,"System.Int32"] { constType = $magicBoxedType.tree; } (enum_base {constType = $enum_base.tree; } )?   enum_body_asnumber[constType]   ';'?
-            -> ^(CLASS[$e1.token, "class"] { dupTree($atts) } { dupTree($mods) } identifier enum_body_asnumber)
-
+            -> ^(CLASS[$e1.token, "class"] { dupTree($atts) } { mangledMods } identifier enum_body_asnumber)
    | e2='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } enum_base?   enum_body   ';'? 
-            -> ^(ENUM[$e2.token, "ENUM"] { dupTree($atts) } { dupTree($mods) } identifier enum_base? enum_body);
+            -> ^(ENUM[$e2.token, "ENUM"] { dupTree($atts) } { mangledMods } identifier enum_base? enum_body);
+
 enum_base:
 	c=':'   integral_type -> ^(TYPE[$c.token, "TYPE"] integral_type) ;
 enum_body: 
@@ -1567,6 +1605,12 @@ enum_member_declaration_asnumber [ CommonTree typeTree, CommonTree prevTree ] re
 delegate_declaration[CommonTree atts, CommonTree mods, bool toplevel] returns [Dictionary<String, CommonTree> compUnits]
 scope TypeContext;
 @init {
+    CommonTree mangledMods = toplevel ? mkRemoveMods($mods, new int[] {STATIC}) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, "static"));
+    // If no access modifier then type is internal, which we relax to public
+    if (toplevel && !containsMods(mangledMods, new int[] {PUBLIC, PRIVATE})) {
+       mangledMods =  addModifier(mangledMods, (CommonTree)adaptor.Create(PUBLIC, "public"));
+    }
+
     $compUnits = new Dictionary<String,CommonTree>();
     CommonTree delClassMemberNodes = null;
     CommonTree ifTree = null;
@@ -1590,14 +1634,14 @@ scope TypeContext;
          AddToImports("CS2JNet.JavaSupport.util.ListSupport");
          $NSContext::namespaces.Add("System.Collection"); // System.Collection.Ilist used in multi invoke method
       }
-      magicMultiDelClass[$d.token, $atts, toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")), multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
+      magicMultiDelClass[$d.token, $atts, mangledMods, multiDelName, ifTree, $type_parameter_constraints_clauses.tree, $variant_generic_parameter_list.tree, $magicMultiInvokerMethod.tree, delClassMemberNodes] 
       {
          $compUnits.Add(multiDelName, $magicMultiDelClass.tree);
       }
       -> 
 //    ^(DELEGATE[$d.token, "DELEGATE"] { dupTree($atts) } { dupTree($mods) }  return_type   identifier type_parameter_constraints_clauses?  variant_generic_parameter_list?   
 //		'('   formal_parameter_list?   ')' );
-    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $d.token, "static")) }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
+    ^(INTERFACE[$d.token, "interface"] { dupTree($atts) } { mangledMods }  identifier { dupTree($type_parameter_constraints_clauses.tree) }  { dupTree($variant_generic_parameter_list.tree) }  magicDelegateInterface)
     ;
 delegate_modifiers:
 	modifier+ ;
@@ -1679,10 +1723,17 @@ parameter_array:
 ///////////////////////////////////////////////////////
 interface_declaration[CommonTree atts, CommonTree mods, CommonTree partial] returns [string name]
 scope TypeContext;
+@init {
+    CommonTree mangledMods = mkRemoveMods($mods, new int[] {STATIC});
+    // If no access modifier then type is internal, which we relax to public
+    if (!containsMods(mangledMods, new int[] {PUBLIC, PRIVATE})) {
+       mangledMods =  addModifier(mangledMods, (CommonTree)adaptor.Create(PUBLIC, "public"));
+    }
+}
 :
 	c='interface'   identifier { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; }  variant_generic_parameter_list? 
     	interface_base?   type_parameter_constraints_clauses?   interface_body   ';'? 
-    -> ^(INTERFACE[$c.token, "interface"] { dupTree($partial) } { dupTree($atts) } { dupTree($mods) } identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
+    -> ^(INTERFACE[$c.token, "interface"] { dupTree($partial) } { dupTree($atts) } { mangledMods } identifier type_parameter_constraints_clauses? variant_generic_parameter_list? interface_base?  interface_body );
 
 interface_base:
 	c=':'   ts+=type (','   ts+=type)* -> ^(EXTENDS[$c.token,"extends"] $ts)*;
@@ -1741,9 +1792,16 @@ interface_accessor_declaration [CommonTree atts, CommonTree mods, CommonTree typ
 ///////////////////////////////////////////////////////
 struct_declaration[CommonTree atts, CommonTree mods, CommonTree partial, bool toplevel] returns [string name]
 scope TypeContext;
+@init {
+    CommonTree mangledMods = toplevel ? mkRemoveMods($mods, new int[] {STATIC}) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, "static"));
+    // If no access modifier then type is internal, which we relax to public
+    if (toplevel && !containsMods(mangledMods, new int[] {PUBLIC, PRIVATE})) {
+       mangledMods =  addModifier(mangledMods, (CommonTree)adaptor.Create(PUBLIC, "public"));
+    }
+}
 :
 	c='struct'  identifier  { $TypeContext::typeName = $identifier.thetext; } type_parameter_list? { $name = mkGenericTypeAlias($identifier.thetext, $type_parameter_list.names); }  class_base?   type_parameter_constraints_clauses?   struct_body[$identifier.thetext]  ';'?  
-    -> ^(CLASS[$c.token, "class"] { dupTree($partial) } { dupTree($atts) } { toplevel ? dupTree($mods) : addModifier($mods, (CommonTree)adaptor.Create(STATIC, $c.token, "static")) } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
+    -> ^(CLASS[$c.token, "class"] { dupTree($partial) } { dupTree($atts) } { mangledMods } identifier type_parameter_constraints_clauses? type_parameter_list? class_base? struct_body );
 
 struct_body [string structName]:
 	o='{'  magicDefaultConstructor[$o.token, structName] class_member_declarations? e='}' 
