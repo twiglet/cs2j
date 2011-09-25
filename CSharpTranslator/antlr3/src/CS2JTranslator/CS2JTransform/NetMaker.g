@@ -106,6 +106,10 @@ scope MkNonGeneric {
         }
     }
 
+    protected TypeRepTemplate findType(TypeRepRef name) {
+       return findType(name.Type);
+    }
+
     protected TypeRepTemplate findType(string name) {
         if ($NSContext::globalTypeVariables.Contains(name)) {
             return new TypeVarRepTemplate(name);
@@ -954,7 +958,7 @@ modifier:
 class_member_declaration:
     ^(CONST attributes? modifiers? type constant_declarators[$type.dotNetType])
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? method_body exception*)
+    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]? method_body exception*)
     | interface_declaration
     | class_declaration
     | ^(FIELD attributes? modifiers? type field_declaration[$type.tree, $type.dotNetType])
@@ -971,7 +975,7 @@ constructor_declaration
 @init {
    bool isStatic = false;
 }:
-    ^(c=CONSTRUCTOR attributes? (modifiers { isStatic = $modifiers.modList.Contains("static"); })? identifier  formal_parameter_list? block exception* sb=magicSmotherExceptionsThrow[$block.tree, "ExceptionInInitializerError"])
+    ^(c=CONSTRUCTOR attributes? (modifiers { isStatic = $modifiers.modList.Contains("static"); })? identifier  formal_parameter_list[null,null]? block exception* sb=magicSmotherExceptionsThrow[$block.tree, "ExceptionInInitializerError"])
       -> { isStatic }? ^(STATIC_CONSTRUCTOR[$c.token, "CONSTRUCTOR"] attributes? modifiers? $sb)
       ->  ^($c attributes? modifiers? identifier formal_parameter_list? block exception*)
        ;
@@ -1034,7 +1038,7 @@ scope {
                   populateParamMap(myMap, idType.Invoke.Params, $argument_list.argTrees, $argument_list.argTreeTypeofTypes, $argument_list.tree, wantsStar(idType.Invoke.Java), $i2.tree.Token);
                   ret = mkJavaWrapper(idType.Invoke.Java, myMap, $i2.tree.Token);
                   AddToImports(idType.Invoke.Imports);
-                  $dotNetType = AppEnv.Search(idType.Invoke.Return);
+                  $dotNetType = AppEnv.Search(idType.Invoke.Return.Type);
                }
             }
             else {
@@ -1298,17 +1302,20 @@ scope {
 	| checked_expression            		// checked (...
 	| unchecked_expression          		// unchecked {...}
 	| default_value_expression      		// default
-	| ^(d='delegate'   formal_parameter_list?   block)
-      {
-         if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate) {
-            // Since 'type' is a delegate then we assume that argument_list[0] will be a method group name.
-            // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
-            // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
-            DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
-            ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $formal_parameter_list.tree, $block.tree, delType, $d.token);
-            $dotNetType = $typeCtxt;
-         }
-      }
+	| ^(d='delegate'  
+        formal_parameter_list[$typeCtxt != null && $typeCtxt is DelegateRepTemplate ? ((DelegateRepTemplate)$typeCtxt).Invoke.Params : null,
+                              $typeCtxt != null && $typeCtxt is DelegateRepTemplate ? ((DelegateRepTemplate)$typeCtxt).Invoke.ParamArray : null]?   
+        block)
+            {
+                if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate) {
+                   // Since 'type' is a delegate then we assume that argument_list[0] will be a method group name.
+                   // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
+                   // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
+                   DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
+                   ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $formal_parameter_list.tree, $block.tree, delType, $d.token);
+                   $dotNetType = $typeCtxt;
+                }
+            }   
 	| typeof_expression          { $dotNetType = $typeof_expression.dotNetType; $typeofType = $typeof_expression.typeofType; }   // typeof(Foo).Name
 	;
 
@@ -1630,8 +1637,8 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = VoidType; } )  
         (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
-        magicBoxedType[$dotNetType != null && !String.IsNullOrEmpty($dotNetType.BoxedJava), $t.token, $dotNetType == null ? "" : $dotNetType.BoxedJava]
-       { $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
+        magicBoxedType[isPredefined && $dotNetType != null && !String.IsNullOrEmpty($dotNetType.BoxedJava), $t.token, $dotNetType == null ? "" : $dotNetType.BoxedJava]
+       { if (isPredefined) $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
     -> { $PrimitiveRep::primitiveTypeAsObject && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'* '?'?)
     -> ^(TYPE[$t.token, "TYPE"] predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
@@ -2195,13 +2202,14 @@ anonymous_function_signature[TypeRepTemplate typeCtxt] returns [bool isTypedPara
 @init {
     $isTypedParams = true;
     CommonTree ret = null;
-    List<CommonTree> ids = new List<CommonTree>(); 
+    List<CommonTree> ids = new List<CommonTree>();
+    int idx = 0;
 }
 @after {
     if (ret != null)
         $anonymous_function_signature.tree = ret;
 }:
-	^(PARAMS fixed_parameter+)
+	^(PARAMS fixed_parameter[$typeCtxt != null && $typeCtxt is DelegateRepTemplate && idx < ((DelegateRepTemplate)$typeCtxt).Invoke.Params.Count ? ((DelegateRepTemplate)$typeCtxt).Invoke.Params[idx++\] : null]+)
 	| ^(p=PARAMS_TYPELESS (identifier { ids.Add($identifier.tree); })+)
       {
          if ($typeCtxt != null && $typeCtxt is DelegateRepTemplate && ids.Count == ((DelegateRepTemplate)$typeCtxt).Invoke.Params.Count) {
@@ -2470,7 +2478,7 @@ scope SymTab;
 }:
 	method_header   method_body ;
 method_header:
-    ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list?);
+    ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]?);
 method_body:
 	block ;
 member_name
@@ -2548,18 +2556,23 @@ constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
 	type ;
-formal_parameter_list:
-    ^(PARAMS formal_parameter+) ;
-formal_parameter:
-	attributes?   (fixed_parameter | parameter_array) 
+formal_parameter_list[IList<ParamRepTemplate> pInfos, ParamArrayRepTemplate paInfo]
+@init {
+   int idx = 0;
+}:
+    ^(PARAMS formal_parameter[$pInfos != null && idx < $pInfos.Count ? $pInfos[idx++\] : null, $paInfo]+) ;
+
+formal_parameter[ParamRepTemplate pInfo, ParamArrayRepTemplate paInfo]
+:
+	attributes?   (fixed_parameter[$pInfo] | parameter_array[$paInfo]) 
 	| '__arglist';	// __arglist is undocumented, see google
 //fixed_parameters:
 //	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
-fixed_parameter
+fixed_parameter[ParamRepTemplate pInfo]
 scope PrimitiveRep;
 @init {
-    $PrimitiveRep::primitiveTypeAsObject = false;
+    $PrimitiveRep::primitiveTypeAsObject = $pInfo != null ? $pInfo.Type.ForceBoxed : false;
     bool isRefOut = false;
 }:
       (parameter_modifier { isRefOut = $parameter_modifier.isRefOut; if (isRefOut) { $PrimitiveRep::primitiveTypeAsObject = true; AddToImports("CS2JNet.JavaSupport.language.RefSupport");} })?   
@@ -2575,7 +2588,11 @@ parameter_modifier returns [bool isRefOut]
    $isRefOut = true;
 }:
 	'ref' -> | 'out' -> | 'this' { $isRefOut = false;};
-parameter_array:
+parameter_array[ParamArrayRepTemplate paInfo]
+scope PrimitiveRep;
+@init {
+    $PrimitiveRep::primitiveTypeAsObject = $paInfo != null ? $paInfo.Type.ForceBoxed : false;
+}:
 	^(p='params'   type   identifier { $SymTab::symtab[$identifier.thetext] = findType("System.Array", new TypeRepTemplate[] {$type.dotNetType}); }) ;
 
 
@@ -2597,7 +2614,7 @@ scope SymTab;
     ^(e=EVENT attributes? modifiers? t=type i=identifier magicEventCollectionType[$t.tree.Token, $t.tree] )
       { AddToImports("CS2JNet.JavaSupport.language.IEventCollection"); }
       ->   ^(METHOD[$e.token, "METHOD"] attributes? modifiers? magicEventCollectionType identifier EXCEPTION[$i.tree.Token, "Exception"])
-    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list? exception*)
+    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]? exception*)
 		;
 
 ///////////////////////////////////////////////////////
