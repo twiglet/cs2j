@@ -1069,14 +1069,14 @@ scope NSContext;
             }
             ParamRepTemplate param = new ParamRepTemplate();
             param.Name = "a";
-            param.Type = delIfaceName;
+            param.Type = new TypeRepRef(delIfaceName);
             adder.Params.Add(param);
             param = new ParamRepTemplate();
             param.Name = "b";
-            param.Type = delIfaceName;
+            param.Type = new TypeRepRef(delIfaceName);
             adder.Params.Add(param);
 
-            adder.Return = delIfaceName;
+            adder.Return = new TypeRepRef(delIfaceName);
             adder.IsStatic = true;
             adder.Java = "__Multi"+$identifier.text + ".Combine(${a},${b})";
             adder.Imports = new string[] {multiDelegateClass.TypeName};
@@ -1089,14 +1089,14 @@ scope NSContext;
             }
             param = new ParamRepTemplate();
             param.Name = "a";
-            param.Type = delIfaceName;
+            param.Type = new TypeRepRef(delIfaceName);
             remover.Params.Add(param);
             param = new ParamRepTemplate();
             param.Name = "b";
-            param.Type = delIfaceName;
+            param.Type = new TypeRepRef(delIfaceName);
             remover.Params.Add(param);
 
-            remover.Return = delIfaceName;
+            remover.Return = new TypeRepRef(delIfaceName);
             remover.IsStatic = true;
             remover.Java = "__Multi"+$identifier.text + ".Remove(${a},${b})";
             remover.Imports = new string[] {multiDelegateClass.TypeName};

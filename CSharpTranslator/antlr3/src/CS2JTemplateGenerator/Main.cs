@@ -84,7 +84,7 @@ namespace Twiglet.CS2J.Utility
             foreach (ParameterInfo p in m.GetParameters())
             {
                 ParamRepTemplate paramRep = new ParamRepTemplate();
-                paramRep.Type = TypeHelper.buildTypeName(p.ParameterType);
+                paramRep.Type = new TypeRepRef(TypeHelper.buildTypeName(p.ParameterType));
                 paramRep.Name = p.Name;
                 ps.Add(paramRep);
             }
@@ -128,7 +128,7 @@ namespace Twiglet.CS2J.Utility
                 }
                 MethodRepTemplate methRep = new MethodRepTemplate();
                 methRep.Name = m.Name;
-                methRep.Return = TypeHelper.buildTypeName(m.ReturnType);
+                methRep.Return = new TypeRepRef(TypeHelper.buildTypeName(m.ReturnType));
                 if (m.IsGenericMethod)
                 {
                     string[] tParams = new string[m.GetGenericArguments().Length];
@@ -152,7 +152,7 @@ namespace Twiglet.CS2J.Utility
             {
                 PropRepTemplate propRep = new PropRepTemplate();
                 propRep.Name = p.Name;
-                propRep.Type = TypeHelper.buildTypeName(p.PropertyType);
+                propRep.Type = new TypeRepRef(TypeHelper.buildTypeName(p.PropertyType));
                 propRep.CanRead = p.CanRead;
                 propRep.CanWrite = p.CanWrite;
                 iface.Properties.Add(propRep);
@@ -163,7 +163,7 @@ namespace Twiglet.CS2J.Utility
             {
                 FieldRepTemplate eventRep = new FieldRepTemplate();
                 eventRep.Name = e.Name;
-                eventRep.Type = TypeHelper.buildTypeName(e.EventHandlerType);
+                eventRep.Type = new TypeRepRef(TypeHelper.buildTypeName(e.EventHandlerType));
                 iface.Events.Add(eventRep);
             }
         }
@@ -185,7 +185,7 @@ namespace Twiglet.CS2J.Utility
             {
                 FieldRepTemplate fieldRep = new FieldRepTemplate();
                 fieldRep.Name = f.Name;
-                fieldRep.Type = TypeHelper.buildTypeName(f.FieldType);
+                fieldRep.Type = new TypeRepRef(TypeHelper.buildTypeName(f.FieldType));
                 klass.Fields.Add(fieldRep);
             }
             // Grab Casts
@@ -194,8 +194,8 @@ namespace Twiglet.CS2J.Utility
                 if (m.IsSpecialName && (m.Name == "op_Explicit" || m.Name == "op_Implicit"))
                 {
                     CastRepTemplate cast = new CastRepTemplate();
-                    cast.To = TypeHelper.buildTypeName(m.ReturnType);
-                    cast.From = TypeHelper.buildTypeName(m.GetParameters()[0].ParameterType);
+                    cast.To = new TypeRepRef(TypeHelper.buildTypeName(m.ReturnType));
+                                             cast.From = new TypeRepRef(TypeHelper.buildTypeName(m.GetParameters()[0].ParameterType));
                     klass.Casts.Add(cast);
                 }
 

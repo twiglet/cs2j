@@ -111,17 +111,146 @@ namespace Twiglet.CS2J.Translator.TypeRep
    {
       Clean, MarkAuto
    }
+
+   public class TypeRepRef
+   {
+
+      private class TypeVarMapper
+      {
+         private Dictionary<string,TypeRepTemplate> myArgMap;
+         private TypeRepRef inTy;
+
+         public TypeVarMapper(Dictionary<string,TypeRepTemplate> inArgMap, TypeRepRef ty)
+         {
+            myArgMap = inArgMap;
+            inTy = ty;
+         }
+
+         public string ReplaceFromMap(Match m)
+         {
+            if (myArgMap.ContainsKey(m.Value))
+            {
+               // If the replacement type is primitive then tell cs2j to use the Boxed version when emitting type. 
+               inTy.ForceBoxed = true;
+               return myArgMap[m.Value].mkSafeTypeName();
+            }
+            return m.Value;
+         }
+      }
+
+      // if ForceBoxed is true then any primitive types should be emitted as the boxed rep.
+      private bool _forceBoxed = false;
+      [XmlAttribute("box")]
+      [System.ComponentModel.DefaultValueAttribute(false)]
+      public bool ForceBoxed
+      {
+         get
+         {
+            return _forceBoxed;
+         }
+         set
+         {
+            _forceBoxed = value;
+         }
+      }
+
+      private string _type = "";
+      [XmlText]
+      public string Type
+      {
+         get
+         {
+            return _type;
+         }
+         set
+         {
+            _type = value.Replace("<","*[").Replace(">","]*");
+         }
+      }
+
+      public TypeRepRef()
+      {
+         
+      }
+
+      public TypeRepRef(TypeRepRef copyFrom)
+      {
+         ForceBoxed = copyFrom.ForceBoxed;
+         Type = copyFrom.Type;
+      }
+
+      public TypeRepRef(string t)
+      {
+         ForceBoxed = false;
+         Type = t;
+      }
+
+      public void SubstituteInType(Dictionary<string,TypeRepTemplate> argMap)
+      {
+         if (!String.IsNullOrEmpty(Type))
+         {
+            TypeVarMapper mapper = new TypeVarMapper(argMap, this);
+            Type = Regex.Replace(Type, @"([\w|\.]+)*", new MatchEvaluator(mapper.ReplaceFromMap));
+         }
+      }
+
+      // public static implicit operator string(TypeRepRef t) 
+      // {
+      //    return t.ToString();
+      // }
+
+      public override string ToString()
+      {
+         return Type;
+      }
+
+      #region Equality
+      public bool Equals (TypeRepRef other)
+      {
+         if (other == null)
+            return false;
+
+         return ForceBoxed == other.ForceBoxed && Type == other.Type;
+      }
+
+      public override bool Equals (object obj)
+      {
+			
+         TypeRepRef temp = obj as TypeRepRef;
+			
+         if (!Object.ReferenceEquals (temp, null))
+            return this.Equals (temp);
+         return false;
+      }
+
+      public static bool operator == (TypeRepRef a1, TypeRepRef a2)
+      {
+         return Object.Equals (a1, a2);
+      }
+
+      public static bool operator != (TypeRepRef a1, TypeRepRef a2)
+      {
+         return !(a1 == a2);
+      }
+
+      public override int GetHashCode ()
+      {
+         return (Type ?? String.Empty).GetHashCode () ^ ForceBoxed.GetHashCode();
+      }
+      #endregion
+   }
 	
    // Simple <type> <name> pairs to represent formal parameters
    public class ParamRepTemplate : IEquatable<ParamRepTemplate>, IApplyTypeArgs
    {
-      private string _type;
-      public string Type { 
+      private TypeRepRef _type = null;
+      public TypeRepRef Type { 
          get { return _type; }
          set {
-            _type=value.Replace("<","*[").Replace(">","]*");
+            _type=value;
          }
       }
+
       public string Name { get; set; }
 
       // ref or out param?
@@ -137,10 +266,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public ParamRepTemplate(ParamRepTemplate copyFrom)
       {
 
-         if (!String.IsNullOrEmpty(copyFrom.Type))
+         if (copyFrom.Type != null)
          {
-            Type = copyFrom.Type;
+            Type = new TypeRepRef(copyFrom.Type);
          }
+
          if (!String.IsNullOrEmpty(copyFrom.Name))
          {
             Name = copyFrom.Name;
@@ -150,21 +280,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public ParamRepTemplate (string t, string a)
       {
-         Type = t;
+         Type = new TypeRepRef(t);
          Name = a;
          IsByRef = false;
       }
 
       public ParamRepTemplate (string t, string a, bool isbyref)
       {
-         Type = t;
+         Type = new TypeRepRef(t);
          Name = a;
          IsByRef = isbyref;
       }
 
       public void Apply(Dictionary<string,TypeRepTemplate> args)
       {
-         Type = TemplateUtilities.SubstituteInType(Type, args);
+         Type.SubstituteInType(args);
       }
 
       #region Equality
@@ -198,7 +328,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public override int GetHashCode ()
       {
-         return (Type ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ IsByRef.GetHashCode();
+         int hashCode = Type != null ? Type.GetHashCode() : 0;
+
+         return hashCode ^ (Name ?? String.Empty).GetHashCode () ^ IsByRef.GetHashCode();
       }
       #endregion
    }
@@ -533,10 +665,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
    public class IterableRepTemplate : TranslationBase, IEquatable<IterableRepTemplate>
    {
 
-      public String ElementType {
+      public TypeRepRef ElementType {
          get; set;
       }
-		
+
       public override string mkJava() {
          return "${expr}";
       }
@@ -548,21 +680,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public IterableRepTemplate(String ty)
          : base()
       {
-         ElementType = ty;
+         ElementType = new TypeRepRef(ty);
       }
 
       public IterableRepTemplate(TypeRepTemplate parent, IterableRepTemplate copyFrom)
          : base(parent, copyFrom)
       {
-         if (!String.IsNullOrEmpty(copyFrom.ElementType))
+         if (copyFrom != null)
          {
-            ElementType = copyFrom.ElementType;
+            ElementType = new TypeRepRef(copyFrom.ElementType);
          }
       }
 
       public IterableRepTemplate (String ty, string[] imps, string javaRep) : base(imps, javaRep)
       {
-         ElementType = ty;
+         ElementType = new TypeRepRef(ty);
       }
 
 
@@ -570,7 +702,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          if (ElementType != null)
          {
-            ElementType = TemplateUtilities.SubstituteInType(ElementType, args);
+            ElementType.SubstituteInType(args);
          }
          base.Apply(args);
       }
@@ -607,7 +739,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public override int GetHashCode ()
       {	
-         return base.GetHashCode () ^ ElementType.GetHashCode();
+         int hashCode = ElementType != null ? ElementType.GetHashCode() : 0;
+
+         return hashCode ^ base.GetHashCode ();
       }
       #endregion
    }
@@ -803,11 +937,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public TypeRepTemplate[] InstantiatedTypes { get; set; }
 
       // Return type
-      private string _return;
-      public string Return { 
+      private TypeRepRef _return = new TypeRepRef();
+      public TypeRepRef Return { 
          get { return _return; }
          set {
-            _return=value.Replace("<","*[").Replace(">","]*");
+            _return=value;
          }
       }		
 
@@ -871,10 +1005,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                InstantiatedTypes[i] = copyFrom.InstantiatedTypes[i].Instantiate(null);
             }
          }
-         if (!String.IsNullOrEmpty(copyFrom.Return))
-         {
-            Return = copyFrom.Return;
-         }
+         Return = new TypeRepRef(copyFrom.Return);
 
          IsStatic = copyFrom.IsStatic;
          IsPartialDefiner = copyFrom.IsPartialDefiner;
@@ -885,7 +1016,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          Name = methodName;
          TypeParams = tParams;
-         Return = retType;
+         Return = new TypeRepRef(retType);
          IsStatic = false;
          IsPartialDefiner = false;
       }
@@ -934,7 +1065,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          if (Return != null)
          {
-            Return = TemplateUtilities.SubstituteInType(Return,args);
+            Return.SubstituteInType(args);
          }
          base.Apply(args);
       }
@@ -999,7 +1130,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
          }
 
-         return hashCode ^ (Return ?? String.Empty).GetHashCode () ^ (Name ?? String.Empty).GetHashCode () ^ (JavaName ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ IsPartialDefiner.GetHashCode() ^ base.GetHashCode();
+         hashCode = hashCode ^ (Return != null ? Return.GetHashCode() : 0);
+
+
+         return hashCode ^ (Name ?? String.Empty).GetHashCode () ^ (JavaName ?? String.Empty).GetHashCode () ^ IsStatic.GetHashCode() ^ IsPartialDefiner.GetHashCode() ^ base.GetHashCode();
       }
       #endregion
 
@@ -1025,19 +1159,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
    public class CastRepTemplate : TranslationBase, IEquatable<CastRepTemplate>
    {
       // From and To are fully qualified types
-      private string _from;
-      public string From { 
+      private TypeRepRef _from;
+      public TypeRepRef From { 
          get { return _from; }
          set {
-            _from=value.Replace("<","*[").Replace(">","]*");
+            _from = value; 
          }
       }		
 
-      private string _to;
-      public string To { 
+      private TypeRepRef _to;
+      public TypeRepRef To { 
          get { return _to; }
          set {
-            _to=value.Replace("<","*[").Replace(">","]*");
+            _to= value;
          }
       }
 
@@ -1050,21 +1184,21 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public CastRepTemplate(TypeRepTemplate parent, CastRepTemplate copyFrom)
          : base(parent, copyFrom)
       {
-         if (!String.IsNullOrEmpty(copyFrom.From))
+         if (copyFrom.From != null)
          {
-            From = copyFrom.From;
+            From = new TypeRepRef(copyFrom.From);
          }
-         if (!String.IsNullOrEmpty(copyFrom.To))
+         if (copyFrom.To != null)
          {
-            To = copyFrom.To;
+            To = new TypeRepRef(copyFrom.To);
          }
 
       }
 
       public CastRepTemplate (string fType, string tType, string[] imps, string java) : base(imps, java)
       {
-         From = fType;
-         To = tType;
+         From = new TypeRepRef(fType);
+         To = new TypeRepRef(tType);
       }
 
       public CastRepTemplate (string fType, string tType) : this(fType, tType, null, null)
@@ -1087,7 +1221,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          else {
             if (SurroundingType != null) {
                String myType = SurroundingType.TypeName.Substring(SurroundingType.TypeName.LastIndexOf('.') + 1);
-               String toType = To.Substring(To.LastIndexOf('.') + 1);
+               String toType = To.Type.Substring(To.Type.LastIndexOf('.') + 1);
                if (myType == toType)
                {
                   // just overload various casts to my type
@@ -1100,7 +1234,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             }
             else
             {
-               return "__cast_" + To.Replace('.','_') + "(${expr})";
+               return "__cast_" + To.Type.Replace('.','_') + "(${expr})";
             }
          }
       }
@@ -1109,11 +1243,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          if (From != null)
          {
-            From = TemplateUtilities.SubstituteInType(From, args);
+            From.SubstituteInType(args);
          }
          if (To != null)
          { 
-            To = TemplateUtilities.SubstituteInType(To, args);
+            To.SubstituteInType(args);
          }
          base.Apply(args);
       }
@@ -1149,7 +1283,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public override int GetHashCode ()
       {
-         return (From ?? String.Empty).GetHashCode() ^ (To ?? String.Empty).GetHashCode() ^ base.GetHashCode();
+         int hashCode = From != null ? From.GetHashCode() : 0;
+         hashCode = hashCode ^ (To != null ? To.GetHashCode() : 0);
+
+
+         return hashCode ^ base.GetHashCode();
       }
       #endregion
 		
@@ -1159,11 +1297,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
    public class FieldRepTemplate : TranslationBase, IEquatable<FieldRepTemplate>
    {
 
-      private string _type;
-      public string Type { 
+      private TypeRepRef _type;
+      public TypeRepRef Type { 
          get { return _type; }
          set {
-            _type=value.Replace("<","*[").Replace(">","]*");
+            _type=value;
          }
       }		
       public string Name { get; set; }
@@ -1180,16 +1318,16 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
             Name = copyFrom.Name;
          }
-         if (!String.IsNullOrEmpty(copyFrom.Type))
+         if (copyFrom.Type != null)
          {
-            Type = copyFrom.Type;
+            Type = new TypeRepRef(copyFrom.Type);
          }
       }
 
       public FieldRepTemplate(string fType, string fName, string[] imps, string javaGet)
          : base(imps, javaGet)
       {
-         Type = fType;
+         Type = new TypeRepRef(fType);
          Name = fName;
       }
 
@@ -1206,7 +1344,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          if (Type != null)
          {
-            Type = TemplateUtilities.SubstituteInType(Type, args);
+            Type.SubstituteInType(args);
          }
          base.Apply(args);
       }
@@ -1242,7 +1380,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public override int GetHashCode ()
       {
-         return (Type ?? String.Empty).GetHashCode() ^ (Name ?? String.Empty).GetHashCode() ^ base.GetHashCode();
+         int hashCode = Type != null ? Type.GetHashCode() : 0;
+         return hashCode ^ (Name ?? String.Empty).GetHashCode() ^ base.GetHashCode();
       }
       #endregion
 		
@@ -1422,7 +1561,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                {
                   _setParams.Add(p);
                }
-               _setParams.Add(new ParamRepTemplate(Type,"value"));
+               _setParams.Add(new ParamRepTemplate(Type.Type,"value"));
             }
             return _setParams;
          }
@@ -2347,9 +2486,18 @@ namespace Twiglet.CS2J.Translator.TypeRep
       // "type_name"
       // "<type>[]"
       // "<type>[<type>, ...]"
+      public TypeRepTemplate BuildType(TypeRepRef typeRep, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+         return BuildType(typeRep.Type, AppEnv, null);
+      }
       public TypeRepTemplate BuildType(string typeRep, DirectoryHT<TypeRepTemplate> AppEnv)
       {
          return BuildType(typeRep, AppEnv, null);
+      }
+
+      public TypeRepTemplate BuildType(TypeRepRef typeRep, DirectoryHT<TypeRepTemplate> AppEnv, TypeRepTemplate def)
+      {
+         return BuildType(typeRep.Type, AppEnv, def);
       }
 
       public TypeRepTemplate BuildType(string typeRep, DirectoryHT<TypeRepTemplate> AppEnv, TypeRepTemplate def)
@@ -2641,11 +2789,11 @@ namespace Twiglet.CS2J.Translator.TypeRep
             {
                _enumCasts = new List<CastRepTemplate> ();
                CastRepTemplate kast = new CastRepTemplate();
-               kast.From = "System.Int32";
+               kast.From = new TypeRepRef("System.Int32");
                kast.Java = "${TYPEOF_totype:16}.values()[${expr}]";
                _enumCasts.Add(kast);
                kast = new CastRepTemplate();
-               kast.To = "System.Int32";
+               kast.To = new TypeRepRef("System.Int32");
                kast.Java = "((Enum)${expr}).ordinal()";
                _enumCasts.Add(kast);
             }
@@ -3034,7 +3182,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                // Check fixed Parameters against args
                // check that for each argument in the caller its type 'IsA' the type of the formal parameter
                for (int idx = 0; idx < paramsLength; idx++) {
-                  if (args[idx] == null || !args[idx].IsA(BuildType(param[idx].Type, AppEnv, new UnknownRepTemplate(param[idx].Type)),AppEnv))
+                  if (args[idx] == null || !args[idx].IsA(BuildType(param[idx].Type, AppEnv, new UnknownRepTemplate(param[idx].Type.Type)),AppEnv))
                   {
                      // An argument doesn't match
                      return false; 
@@ -3053,7 +3201,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
          // We have args left over, check param argument. 
 
-         String paramsTypeStr = paramArray.Type ?? "System.Object";
+         String paramsTypeStr = paramArray.Type.Type ?? "System.Object";
          if (!paramsTypeStr.EndsWith("[]"))
             // Type should be an array, maybe print a warning if it isn't?
             paramsTypeStr = paramsTypeStr + "[]";
@@ -3644,6 +3792,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public UnknownRepTemplate (string typeName) : base(typeName)
       {
          Inherits = new String[] { "System.Object" };
+      }
+
+      public UnknownRepTemplate (TypeRepRef typeName) : this(typeName.Type)
+      {
       }
 
       public UnknownRepTemplate (UnknownRepTemplate copyFrom) : base(copyFrom)
