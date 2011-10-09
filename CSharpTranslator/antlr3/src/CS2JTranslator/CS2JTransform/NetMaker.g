@@ -9,7 +9,7 @@ options {
     ASTLabelType=CommonTree;
 	output=AST;
     language=CSharp2;
-    superClass='Twiglet.CS2J.Translator.Transform.CommonWalker';
+    superClass='Twiglet.CS2J.Translator.Transform.NetFragments';
 }
 
 // A scope to keep track of the namespace search path available at any point in the program
