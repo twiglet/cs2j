@@ -913,6 +913,28 @@ scope MkNonGeneric {
         return root;
     }
 
+        // Used from parseString() to set up dynamic scopes
+        public override void InitParser()
+        {
+           // Set up dynamic scopes
+           NSContext_stack.Push(new NSContext_scope());
+           PrimitiveRep_stack.Push(new PrimitiveRep_scope());
+           MkNonGeneric_stack.Push(new MkNonGeneric_scope());
+           // Set up dynamic scopes
+
+           $PrimitiveRep::primitiveTypeAsObject = false;
+           $MkNonGeneric::scrubGenericArgs = false;
+
+           $NSContext::namespaces = SearchPath ?? new List<string>();
+           $NSContext::globalNamespaces = SearchPath ?? new List<string>();
+
+           $NSContext::typeVariables = new List<string>();
+           $NSContext::globalTypeVariables = new List<string>();
+
+           $NSContext::baseClass = ObjectType;
+           $NSContext::interfaceList = new List<InterfaceRepTemplate>();
+
+        }
 }
 
 public compilation_unit

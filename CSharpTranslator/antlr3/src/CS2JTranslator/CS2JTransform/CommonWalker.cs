@@ -18,7 +18,7 @@ using Twiglet.CS2J.Translator;
 
 namespace Twiglet.CS2J.Translator.Transform
 {
-    public class CommonWalker : TreeParser
+    public abstract class CommonWalker : TreeParser
     {
        // CONSTANTS
 
@@ -126,6 +126,11 @@ namespace Twiglet.CS2J.Translator.Transform
             return (String.IsNullOrEmpty(ns) ? "" : ns + ".");
         }
 
+        // Used from parseString() to set up dynamic scopes
+        public virtual void InitParser()
+        {
+        }
+
         // Routines to parse strings to ANTLR Trees on the fly, used to generate fragments needed by the transformation
        public CommonTree parseString(string startRule, string inStr)
        {
@@ -163,6 +168,7 @@ namespace Twiglet.CS2J.Translator.Transform
           javaMaker.TraceDestination = Console.Error;
           javaMaker.Cfg = Cfg;
           javaMaker.IsJavaish = true;
+          javaMaker.InitParser();
 
           // Try and call a rule like CSParser.namespace_body() 
           // Use reflection to find the rule to use.
@@ -177,19 +183,23 @@ namespace Twiglet.CS2J.Translator.Transform
 
           CommonTree javaSyntaxAST = (CommonTree)javaSyntaxRet.Tree;
 
-//           CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(javaSyntaxAST);
-// 
-//           javaSyntaxNodes.TokenStream = csTree.TokenStream;
-//                     
-//           NetMaker netMaker = new NetMaker(javaSyntaxNodes);
-//           netMaker.TraceDestination = Console.Error;
-// 
-//           netMaker.Cfg = Cfg;
-//           netMaker.AppEnv = AppEnv;
-//           
-//           CommonTree javaAST = (CommonTree)netMaker.class_member_declarations().Tree;
-//           
-          return javaSyntaxAST;
+           CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(javaSyntaxAST);
+ 
+           javaSyntaxNodes.TokenStream = csTreeStream.TokenStream;
+                     
+           NetMaker netMaker = new NetMaker(javaSyntaxNodes);
+           netMaker.TraceDestination = Console.Error;
+ 
+           netMaker.Cfg = Cfg;
+           netMaker.AppEnv = AppEnv;
+           netMaker.InitParser();
+           
+           CommonTree javaAST = (CommonTree)netMaker.class_member_declarations().Tree;
+
+           // snaffle additional imports
+           this.AddToImports(netMaker.Imports);
+           
+          return javaAST;
        }
 
         // If true, then we are parsing some JavaIsh fragment
@@ -320,7 +330,7 @@ xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"">
           }
        }
 
-       protected string toJavaConvention(CSharpEntity type, string str)
+       public string toJavaConvention(CSharpEntity type, string str)
        {
           string ret = String.Empty;
 
