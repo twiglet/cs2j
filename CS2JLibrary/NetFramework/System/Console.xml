@@ -84,14 +84,10 @@
   </Methods>
   <Properties>
     <Property>
-      <Imports>
-        <Import>java.io.PrintWriter</Import>
-      </Imports>
-      <Java>new PrintWriter(System.out)</Java>
+      <Java>System.out</Java>
       <Type>System.IO.TextWriter</Type>
       <Name>Out</Name>
-      <Get>new PrintWriter(System.out)</Get>
-      <Set>${this:16}.setOut(${value})</Set>
+      <Get>System.out</Get>
     </Property>
   </Properties>
   <Events />

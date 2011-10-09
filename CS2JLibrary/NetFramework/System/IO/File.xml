@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -18,12 +18,12 @@
   <Methods>
     <Method>
       <Imports>
-        <Import>java.io.BufferedWriter</Import>
+        <Import>java.io.PrintWriter</Import>
         <Import>java.io.OutputStreamWriter</Import>
         <Import>java.io.FileOutputStream</Import>
         <Import>java.nio.charset.Charset</Import>
       </Imports>
-      <Java>new BufferedWriter(new OutputStreamWriter(new FileOutputStream(${path}), Charset.forName("UTF-8")))</Java>
+      <Java>new PrintWriter(new OutputStreamWriter(new FileOutputStream(${path}), Charset.forName("UTF-8")))</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

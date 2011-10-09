@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -9,9 +9,9 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.io.Writer</Import>
+    <Import>java.io.PrintStream</Import>
   </Imports>
-  <Java>Writer</Java>
+  <Java>PrintStream</Java>
   <Name>System.IO.TextWriter</Name>
   <Uses />
   <Inherits>
@@ -27,7 +27,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this:16}.write(${arg} + System.getProperty("line.separator"))</Java>
+      <Java>${this:16}.println(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
@@ -39,7 +39,7 @@
     </Method>
     <Method>
       <Imports />
-      <Java>${this:16}.write(${arg})</Java>
+      <Java>${this:16}.print(${arg})</Java>
       <Params>
         <Param>
           <Type>System.Object</Type>
