@@ -1996,6 +1996,17 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
 
+      // True if we have a separate representation for boxed and unboxed versions
+      // (true for primitive types like int)
+      [XmlIgnore]
+      public bool HasBoxedRep
+      {
+         get
+         {
+            return Java != BoxedJava;
+         }
+      }
+
       [XmlIgnore]
       public string BoxExpressionTemplate
       {
@@ -2205,7 +2216,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
       // Resolve a method call (name and arg types)
-      public virtual ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public virtual ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
          if (Inherits != null)
          {
@@ -2243,7 +2254,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
       // Resolve a indexer call (arg types)
-      public virtual ResolveResult ResolveIndexer(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public virtual ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
          if (Inherits != null)
          {
@@ -2753,7 +2764,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return fmt.ToString(); 
       }
 
-      protected string mkFormattedTypeName()
+      public string mkFormattedTypeName()
       {
          return mkFormattedTypeName(true, "<", ">");
       }
@@ -3227,7 +3238,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return true;
       }
 
-      public override ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
          if (Methods != null)
@@ -3277,7 +3288,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return base.Resolve(name, args, AppEnv);
       }
 
-      public override ResolveResult ResolveIndexer(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
          if (Indexers != null)
@@ -3553,7 +3564,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
 
-      public override ResolveResult Resolve(String name, List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
          // Look for a property which holds a delegate with the right type
@@ -3601,7 +3612,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return base.Resolve(name, forWrite, AppEnv);
       }
 
-      public ResolveResult Resolve(List<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public ResolveResult Resolve(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
       {
         
          if (Constructors != null)
