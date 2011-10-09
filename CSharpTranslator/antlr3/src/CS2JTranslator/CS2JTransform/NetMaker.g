@@ -27,10 +27,11 @@ scope NSContext {
     // all typevariables in all scopes
     List<string> globalTypeVariables;
 
-    // Does this type implement ICollection?
-    bool IsGenericICollection;
-    string GenericICollectionTyVar;
-    bool IsICollection;
+    // Base Class
+    ClassRepTemplate baseClass;
+
+    // Supported interfaces
+    IList<InterfaceRepTemplate> interfaceList;
 }
 
 // A scope to keep track of the mapping from variables to types
@@ -111,10 +112,10 @@ scope MkNonGeneric {
     }
 
     protected TypeRepTemplate findType(string name) {
-        if ($NSContext::globalTypeVariables.Contains(name)) {
+        if ($NSContext.Count > 0 && $NSContext::globalTypeVariables != null && $NSContext::globalTypeVariables.Contains(name)) {
             return new TypeVarRepTemplate(name);
         }
-        return AppEnv.Search($NSContext::globalNamespaces, name, new UnknownRepTemplate(name));
+        return AppEnv.Search($NSContext.Count > 0 ? $NSContext::globalNamespaces : null, name, new UnknownRepTemplate(name));
     }
 
     protected TypeRepTemplate findType(string name, ICollection<TypeRepTemplate> args) {
@@ -190,6 +191,46 @@ scope MkNonGeneric {
                 dateType = (ClassRepTemplate)AppEnv.Search("System.DateTime", new UnknownRepTemplate("System.DateTime"));
             }
             return dateType;
+        }
+    }
+
+    // For classes that implement some specific interface types (such as IEnumerable) we add
+    // additional methods so that they can support an equivalent Java Interface (e.g. Iterable).
+    // The keys of this map are the supported interface. We map them to a set of imports that are
+    // needed for the additional methods
+    // TODO: Move this to Fragments where the code is maintained.
+    private Dictionary<InterfaceRepTemplate, IList<string>> supportedInterfaces = null;
+    protected Dictionary<InterfaceRepTemplate, IList<string>> SupportedInterfaces {
+        get {
+            if (supportedInterfaces == null) {
+                supportedInterfaces = new Dictionary<InterfaceRepTemplate, IList<string>>();
+                supportedInterfaces[IEnumerableType] = new List<String>();
+                supportedInterfaces[GenericIEnumerableType] = new List<String>();
+                supportedInterfaces[ICollectionType] = new List<String>();
+                supportedInterfaces[GenericICollectionType] = new List<String>();
+            }
+            return supportedInterfaces;
+        }
+    }
+
+
+    private InterfaceRepTemplate iEnumerableType = null;
+    protected InterfaceRepTemplate IEnumerableType {
+        get {
+            if (iEnumerableType == null) {
+                iEnumerableType = (InterfaceRepTemplate)findType("System.Collections.IEnumerable");
+            }
+            return iEnumerableType;
+        }
+    }
+
+    private InterfaceRepTemplate genericIEnumerableType = null;
+    protected InterfaceRepTemplate GenericIEnumerableType {
+        get {
+            if (genericIEnumerableType == null) {
+                genericIEnumerableType = (InterfaceRepTemplate)findType("System.Collections.Generic.IEnumerable", new TypeRepTemplate[] {ObjectType});
+            }
+            return genericIEnumerableType;
         }
     }
 
@@ -615,6 +656,31 @@ scope MkNonGeneric {
         return ret;
     }
 
+    protected CommonTree boxTypesAsRequired(CommonTree fpTree, IList<ParamRepTemplate> fpTemps, IList<CommonTree> boxedTypeTrees, IToken tok) {
+
+       if (fpTree == null) {
+          return fpTree;
+       }
+       CommonTree ret =  (CommonTree)adaptor.Nil;
+       ret = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(PARAMS, tok, "PARAMS"), ret);
+
+       int typeIdx = 0;
+       for (int i = 0; i < adaptor.GetChildCount(fpTree); i++) {
+          // on one level is all the attributes, types, names, etc. of the parameters.  Scan down taking each TYPE node and
+          // modifying it if necessary
+          CommonTree child = (CommonTree)adaptor.GetChild(fpTree,i);
+          if (adaptor.GetType(child) == TYPE) {
+             if (fpTemps[typeIdx].Type.ForceBoxed && boxedTypeTrees[typeIdx] != null) {
+                child = boxedTypeTrees[typeIdx];
+             }
+             typeIdx++;
+          }
+          adaptor.AddChild(ret, (CommonTree)adaptor.DupTree(child));
+       } 
+
+       return ret;
+    }
+
     private Dictionary<int,int> _assOpMap = null;
     protected Dictionary<int,int> AssOpMap {
         get {
@@ -951,9 +1017,8 @@ scope NSContext, PrimitiveRep, MkNonGeneric;
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>();
 
-    $NSContext::IsGenericICollection = false;
-    $NSContext::GenericICollectionTyVar = "";
-    $NSContext::IsICollection = false;
+    $NSContext::baseClass = ObjectType;
+    $NSContext::interfaceList = new List<InterfaceRepTemplate>();
 
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
@@ -977,10 +1042,84 @@ modifier:
 	'new' | 'public' | 'protected' | 'private' | 'abstract' | 'sealed' | 'static'
 	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override' | FINAL ;
 	
-class_member_declaration:
+class_member_declaration
+@init {
+   ResolveResult methodResult = null;
+   MethodRepTemplate methodTemplate = null;
+}:
     ^(CONST attributes? modifiers? type constant_declarators[$type.dotNetType])
     | ^(EVENT attributes? modifiers? event_declaration)
-    | ^(METHOD attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]? method_body exception*)
+    | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]? method_body exception*) 
+      {
+
+         // Look to see if this method is implementing an interface or overriding a base method
+         foreach (InterfaceRepTemplate ifaceTy in $NSContext::interfaceList) {
+            methodResult = ifaceTy.Resolve($identifier.thetext, $formal_parameter_list.paramTypes ?? new List<TypeRepTemplate>(), AppEnv);
+            if (methodResult != null)
+               break;
+         }
+         if (methodResult == null)
+            methodResult = $NSContext::baseClass.Resolve($identifier.thetext, $formal_parameter_list.paramTypes ?? new List<TypeRepTemplate>(), AppEnv);
+
+         if (methodResult != null) {
+            // Scan return and parameter types to see if they need to be boxed
+            // this occurs for primitive types that are substituing for a type parameter in the 
+            // parent / interface definition.
+            methodTemplate = methodResult.Result as MethodRepTemplate; 
+         }
+         else {
+            // Check for property read
+            if ($identifier.thetext.StartsWith("get") && ($formal_parameter_list.paramTypes == null || $formal_parameter_list.paramTypes.Count == 0)){
+               string propName = $identifier.thetext.Substring(3);
+               foreach (InterfaceRepTemplate ifaceTy in $NSContext::interfaceList) {
+                  methodResult = ifaceTy.Resolve(propName, false, AppEnv);
+                  if (methodResult != null)
+                     break;
+               }
+               if (methodResult == null)
+                  methodResult = $NSContext::baseClass.Resolve(propName, false, AppEnv);
+
+               if (methodResult != null) {
+                  // create a methodRepTemplate with appropriate Return and args
+                  PropRepTemplate prop = methodResult.Result as PropRepTemplate; 
+                  methodTemplate = new MethodRepTemplate();
+                  methodTemplate.Return = prop.Type;
+               }               
+            }
+            else if ($identifier.thetext.StartsWith("set") && $formal_parameter_list.paramTypes != null && $formal_parameter_list.paramTypes.Count == 1) {
+               string propName = $identifier.thetext.Substring(3);
+               foreach (InterfaceRepTemplate ifaceTy in $NSContext::interfaceList) {
+                  methodResult = ifaceTy.Resolve(propName, true, AppEnv);
+                  if (methodResult != null)
+                     break;
+               }
+               if (methodResult == null)
+                  methodResult = $NSContext::baseClass.Resolve(propName, true, AppEnv);
+
+               if (methodResult != null) {
+                  // create a methodRepTemplate with appropriate Return and args
+                  PropRepTemplate prop = methodResult.Result as PropRepTemplate; 
+                  methodTemplate = new MethodRepTemplate();
+                  methodTemplate.Return = new TypeRepRef("System.Void");
+                  ParamRepTemplate pram = new ParamRepTemplate(); 
+                  pram.Type = prop.Type;
+                  pram.Name = "value"; 
+                  methodTemplate.Params.Add(pram);
+               }               
+            }
+         }
+
+         // (Optionally) rewrite the method name
+         if ($identifier.thetext != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+            // Leave Main() as it is because we wrap it with a special main method
+            $identifier.tree.Token.Text = toJavaConvention(CSharpEntity.METHOD, $identifier.thetext);
+         }
+      }
+        -> ^(METHOD attributes? modifiers? { dupTree(methodTemplate != null && methodTemplate.Return.ForceBoxed && $type.boxedTree != null ? $type.boxedTree : $type.tree) } 
+              identifier type_parameter_constraints_clauses? type_parameter_list? 
+                 { methodTemplate != null ? boxTypesAsRequired($formal_parameter_list.tree, methodTemplate.Params, $formal_parameter_list.boxedTypeTrees, $identifier.tree.Token) : dupTree($formal_parameter_list.tree) } 
+              method_body exception*) 
+
     | interface_declaration
     | class_declaration
     | ^(FIELD attributes? modifiers? type field_declaration[$type.tree, $type.dotNetType])
@@ -1567,7 +1706,7 @@ type_name returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, bool h
       -> ^($d $dt $dtg)
      ;
 
-type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, bool hasTyArgs]
+type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, bool hasTyArgs, string thetext]
 @init {
    $hasTyArgs = false;
    $argTrees = new List<CommonTree>();
@@ -1591,6 +1730,9 @@ type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonT
                $argTrees = $ga.argTrees;
             }
          }
+         // TODO: we ignore generic arguments. At the moment this is used to create a member_name so that
+         // we can search for methods in their parents.
+         $thetext = $t.thetext;
       } 
       -> {!this.in_member_name && !$dotNetType.IsUnknownType}? { mkJavaWrapper($dotNetType.Java, tyMap, $t.tree.Token) } 
       -> $t $ga?
@@ -1643,7 +1785,7 @@ scope PrimitiveRep;
 	t1=type { $tyTypes.Add($t1.dotNetType); $argTrees.Add(dupTree($t1.tree)); } (',' tn=type { $tyTypes.Add($tn.dotNetType); $argTrees.Add(dupTree($tn.tree)); })* ;
 
 // keving: TODO: Look for type vars
-type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
+type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree boxedTree]
 @ init {
    bool hasRank = false;
    bool isPredefined = false;
@@ -1653,14 +1795,24 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees]
    if ($dotNetType.Tree == null) {
       $dotNetType.Tree = $type.tree;
    }
+   if ($boxedTree == null) {
+      $boxedTree = $type.tree;
+   }
 }
 :
     ^(t=TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = VoidType; } )  
         (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
-        magicBoxedType[isPredefined && $dotNetType != null && !String.IsNullOrEmpty($dotNetType.BoxedJava), $t.token, $dotNetType == null ? "" : $dotNetType.BoxedJava]
-       { if (isPredefined) $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null); }
+        magicBoxedType[$dotNetType != null && $dotNetType.HasBoxedRep, $t.token, $dotNetType == null ? "" : $dotNetType.BoxedJava]
+       { 
+         if (isPredefined) {
+             $dotNetType.Tree = ($magicBoxedType.tree != null ? dupTree($magicBoxedType.tree) : null);
+         }
+         if ($magicBoxedType.tree != null) {
+            $boxedTree = $magicBoxedType.tree;
+         }
+       }
     -> { $PrimitiveRep::primitiveTypeAsObject && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'* '?'?)
     -> ^(TYPE[$t.token, "TYPE"] predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
@@ -2349,9 +2501,8 @@ scope NSContext,SymTab;
     $NSContext::typeVariables = new List<string>();
     $NSContext::globalTypeVariables = new List<string>(((NSContext_scope)$NSContext.ToArray()[1]).globalTypeVariables);
 
-    $NSContext::IsGenericICollection = false;
-    $NSContext::GenericICollectionTyVar = "";
-    $NSContext::IsICollection = false;
+    $NSContext::baseClass = ObjectType;
+    $NSContext::interfaceList = new List<InterfaceRepTemplate>();
 
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
@@ -2375,7 +2526,7 @@ scope NSContext,SymTab;
 				$SymTab::symtab["this"] = classTypeRep;
 				ClassRepTemplate baseType = ObjectType;
 				if (classTypeRep.Inherits != null && classTypeRep.Inherits.Length > 0) {
-					// if Inherits[0] Take first class as super
+                   // Find a class that we extend
                    foreach (String super in classTypeRep.Inherits) {
 					  ClassRepTemplate parent = AppEnv.Search(classTypeRep.Uses, super, null) as ClassRepTemplate;
                       if (parent != null) {
@@ -2386,12 +2537,6 @@ scope NSContext,SymTab;
 				}
 				$SymTab::symtab["super"] = baseType;
 			}
-            if ($NSContext::IsICollection) {
-                Debug(10, $NSContext::currentNS + " is a Collection");
-            }
-            if ($NSContext::IsGenericICollection) {
-                Debug(10, $NSContext::currentNS + " is a Generic Collection");
-            }
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
     -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
@@ -2416,42 +2561,62 @@ class_implements returns [bool hasExtends, TypeRepTemplate extendDotNetType]
 @init {
     CommonTree extends = null; 
 }:
-	(class_implement_or_extend[extends == null] { if ($class_implement_or_extend.extends != null) {
-                                    extends = $class_implement_or_extend.extends;
-                                    $hasExtends = true; 
-                                    $extendDotNetType = $class_implement_or_extend.extendDotNetType;  
-                                  }})+
+	(class_implement_or_extend[extends == null] 
+         { if ($class_implement_or_extend.extends != null) {
+               extends = $class_implement_or_extend.extends;
+               $hasExtends = true; 
+               $extendDotNetType = $class_implement_or_extend.dotNetType;  
+               $NSContext::baseClass = ((ClassRepTemplate)$class_implement_or_extend.dotNetType);
+            }
+            else {
+               // An interface
+               $NSContext::interfaceList.Add((InterfaceRepTemplate)$class_implement_or_extend.dotNetType);
+            }
+         })+
     ->  { extends } class_implement_or_extend*;
 
-class_implement_or_extend[bool lookingForBase] returns [CommonTree extends, TypeRepTemplate extendDotNetType]
+class_implement_or_extend[bool lookingForBase] returns [CommonTree extends, TypeRepTemplate dotNetType]
 @init {
     $extends = null;
 }:
 	^(i=IMPLEMENTS t=type  magicExtends[$lookingForBase && $t.dotNetType is ClassRepTemplate, $i.token, $t.tree]
             { if ($lookingForBase && $t.dotNetType is ClassRepTemplate) {
                     $extends = $magicExtends.tree;
-                    $extendDotNetType = $t.dotNetType;
                 }
-               if($t.dotNetType.IsA(ICollectionType,AppEnv)) $NSContext::IsICollection = true; 
-               if($t.dotNetType.IsA(GenericICollectionType,AppEnv) && $t.dotNetType.TypeParams.Length > 0) {
-                    $NSContext::IsGenericICollection = true;
-                    $NSContext::GenericICollectionTyVar = $t.dotNetType.TypeParams[0];
-               }
+                $dotNetType = $t.dotNetType;
             } ) 
               -> { $lookingForBase && $t.dotNetType is ClassRepTemplate }? 
               -> ^($i $t);
 	
 class_body
 @init {
-    CommonTree collectorNodes = null;
-    if ($NSContext::IsGenericICollection) {
-        collectorNodes = this.parseString("class_member_declarations", Fragments.GenericCollectorMethods($NSContext::GenericICollectionTyVar, $NSContext::GenericICollectionTyVar + "__" + dummyTyVarCtr++));
-        AddToImports("java.util.Iterator");
-        AddToImports("java.util.Collection");
-        AddToImports("java.util.ArrayList");
+    CommonTree collectNodes = null;
+    string newMethods = "";
+    foreach (KeyValuePair<InterfaceRepTemplate,IList<string>> member in SupportedInterfaces) {
+       InterfaceRepTemplate supportedIface = member.Key;
+       IList<string> supportedIfaceImports = member.Value;
+       bool sup = false;
+       List<String> targs = new List<String>(); 
+       foreach (InterfaceRepTemplate implementedIface in $NSContext::interfaceList) {
+          if (implementedIface.IsA(supportedIface, AppEnv)) {
+             sup = true;
+             foreach (TypeRepTemplate t in implementedIface.InstantiatedTypes) {
+                targs.Add(t.mkFormattedTypeName());
+             }
+             break;
+          }
+       }
+       if (sup) {
+         newMethods = newMethods + this.getMethods(supportedIface.TypeName, targs);
+//         AddToImports(supportedIface.Imports);
+         AddToImports(supportedIfaceImports);
+       }
+    }
+    if (!String.IsNullOrEmpty(newMethods)) {
+        collectNodes = this.parseString("class_member_declarations", newMethods);
     }
 }:
-	'{' class_member_declarations? '}' -> '{' class_member_declarations? { dupTree(collectorNodes) } '}' ;
+	'{' class_member_declarations? '}' -> '{' class_member_declarations? { dupTree(collectNodes) } '}' ;
 class_member_declarations:
 	class_member_declaration+ ;
 
@@ -2503,7 +2668,7 @@ method_header:
     ^(METHOD_HEADER attributes? modifiers? type member_name type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]?);
 method_body:
 	block ;
-member_name
+member_name returns [string thetext]
 @init {
    // in_member_name is used by type_or-generic so that we don't treat the member name as a type.
     string preTy = null;
@@ -2513,7 +2678,7 @@ member_name
 @after{
     this.in_member_name = save_in_member_name;
 }:
-    t1=type_or_generic[""] { preTy = ($t1.dotNetType == null ? "" : $t1.dotNetType.TypeName); }('.' tn=type_or_generic[preTy+"."] { preTy = ($tn.dotNetType == null ? "" : $tn.dotNetType.TypeName); })*
+    t1=type_or_generic[""] { $thetext = $t1.thetext; preTy = ($t1.dotNetType == null ? "" : $t1.dotNetType.TypeName); }('.' tn=type_or_generic[preTy+"."] { $thetext += "." + $tn.thetext; preTy = ($tn.dotNetType == null ? "" : $tn.dotNetType.TypeName); })*
     //(type '.') => type '.' identifier 
     //| identifier
     ;
@@ -2578,27 +2743,49 @@ constructor_constraint:
 	'new'   '('   ')' ;
 return_type:
 	type ;
-formal_parameter_list[IList<ParamRepTemplate> pInfos, ParamArrayRepTemplate paInfo]
+formal_parameter_list[IList<ParamRepTemplate> pInfos, ParamArrayRepTemplate paInfo] returns [IList<TypeRepTemplate> paramTypes, IList<CommonTree> boxedTypeTrees]
 @init {
    int idx = 0;
+   $paramTypes = new List<TypeRepTemplate>();
+   $boxedTypeTrees = new List<CommonTree>();
 }:
-    ^(PARAMS formal_parameter[$pInfos != null && idx < $pInfos.Count ? $pInfos[idx++\] : null, $paInfo]+) ;
+    ^(PARAMS (formal_parameter[$pInfos != null && idx < $pInfos.Count ? $pInfos[idx++\] : null, $paInfo]
+                 { $paramTypes.Add($formal_parameter.paramType); $boxedTypeTrees.Add($formal_parameter.boxedTypeTree); }
+             )+   
+     ) ;
 
-formal_parameter[ParamRepTemplate pInfo, ParamArrayRepTemplate paInfo]
+formal_parameter[ParamRepTemplate pInfo, ParamArrayRepTemplate paInfo] returns [TypeRepTemplate paramType, CommonTree boxedTypeTree]
+@init {
+   $boxedTypeTree = null;
+   $paramType = null;
+}
 :
-	attributes?   (fixed_parameter[$pInfo] | parameter_array[$paInfo]) 
+	attributes?   (fixed_parameter[$pInfo] {$paramType = $fixed_parameter.paramType; $boxedTypeTree = $fixed_parameter.boxedTypeTree; }
+                   | parameter_array[$paInfo] { $boxedTypeTree = $parameter_array.boxedTypeTree; } ) 
 	| '__arglist';	// __arglist is undocumented, see google
+
 //fixed_parameters:
 //	fixed_parameter   (','   fixed_parameter)* ;
 // 4.0
-fixed_parameter[ParamRepTemplate pInfo]
+
+fixed_parameter[ParamRepTemplate pInfo] returns [TypeRepTemplate paramType, CommonTree boxedTypeTree]
 scope PrimitiveRep;
 @init {
     $PrimitiveRep::primitiveTypeAsObject = $pInfo != null ? $pInfo.Type.ForceBoxed : false;
     bool isRefOut = false;
 }:
-      (parameter_modifier { isRefOut = $parameter_modifier.isRefOut; if (isRefOut) { $PrimitiveRep::primitiveTypeAsObject = true; AddToImports("CS2JNet.JavaSupport.language.RefSupport");} })?   
-            type   identifier  { $type.dotNetType.IsWrapped = isRefOut; $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  default_argument? magicRef[isRefOut, $type.tree != null ? $type.tree.Token : null, $type.tree]
+      (parameter_modifier 
+         { isRefOut = $parameter_modifier.isRefOut; 
+           if (isRefOut) { 
+              $PrimitiveRep::primitiveTypeAsObject = true; 
+              AddToImports("CS2JNet.JavaSupport.language.RefSupport");
+           } 
+         })?   
+      type   { $boxedTypeTree = $type.boxedTree; } 
+      identifier  { $paramType = $type.dotNetType; $type.dotNetType.IsWrapped = isRefOut; $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  
+      default_argument? 
+      magicRef[isRefOut, $type.tree != null ? $type.tree.Token : null, $type.tree]
+
    -> {isRefOut}? magicRef identifier default_argument?
    -> parameter_modifier? type identifier default_argument?
    ;
@@ -2610,12 +2797,13 @@ parameter_modifier returns [bool isRefOut]
    $isRefOut = true;
 }:
 	'ref' -> | 'out' -> | 'this' { $isRefOut = false;};
-parameter_array[ParamArrayRepTemplate paInfo]
+
+parameter_array[ParamArrayRepTemplate paInfo] returns [TypeRepTemplate paramType, CommonTree boxedTypeTree]
 scope PrimitiveRep;
 @init {
     $PrimitiveRep::primitiveTypeAsObject = $paInfo != null ? $paInfo.Type.ForceBoxed : false;
 }:
-	^(p='params'   type   identifier { $SymTab::symtab[$identifier.thetext] = findType("System.Array", new TypeRepTemplate[] {$type.dotNetType}); }) ;
+	^(p='params'   type  { $boxedTypeTree = $type.boxedTree; } identifier { $SymTab::symtab[$identifier.thetext] = findType("System.Array", new TypeRepTemplate[] {$type.dotNetType}); $paramType = $SymTab::symtab[$identifier.thetext]; }) ;
 
 
 ///////////////////////////////////////////////////////
@@ -2637,6 +2825,12 @@ scope SymTab;
       { AddToImports("CS2JNet.JavaSupport.language.IEventCollection"); }
       ->   ^(METHOD[$e.token, "METHOD"] attributes? modifiers? magicEventCollectionType identifier EXCEPTION[$i.tree.Token, "Exception"])
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]? exception*)
+      {
+            if ($identifier.thetext != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
+               // Leave Main() as it is because we are going to wrap it with a special main method
+               $identifier.tree.Token.Text = toJavaConvention(CSharpEntity.METHOD, $identifier.thetext);
+            }
+       }
 		;
 
 ///////////////////////////////////////////////////////
