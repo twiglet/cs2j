@@ -18,28 +18,21 @@
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
 
-package CS2JNet.System.Collections.Generic;
-
-import java.util.Collection;
-
+package CS2JNet.System.Collections.LCC;
 
 /**
- * @author kevin.glynn@twigletsoftware.com
+ * Mimics Net's IEnumerator interface
+ * 
+ * @author keving
  *
+ * @param <T>
  */
-public interface ICollectionSupport<T> extends Collection<T> {
+public interface IEnumerator<T> {
+
+	T getCurrent() throws Exception;
 	
-
-    public   boolean Contains(T x) throws Exception;
-    
-    public   void Add(T x) throws Exception;
-    
-    public   boolean Remove(T x) throws Exception;
-
-    public   void Clear() throws Exception;
-
-    public   IEnumeratorSupport<T> GetEnumerator() throws Exception;
-
-    public   void CopyTo(T[] arr,  int i) throws Exception;
-
+	boolean moveNext() throws Exception;
+	
+	void reset() throws Exception;
+	
 }

@@ -6,9 +6,9 @@
     Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
 -->
-<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+<Interface variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.Collections.IEnumerable</Import>
+    <Import>CS2JNet.System.Collections.LCC.IEnumerable</Import>
   </Imports>
   <Java>IEnumerable*[${E}]*</Java>
   <Name>System.Collections.Generic.IEnumerable</Name>
@@ -23,7 +23,7 @@
   </Properties>
   <Methods>
     <Method>
-      <Java>${this:16}.GetEnumerator()</Java>
+      <Java>${this:16}.getEnumerator()</Java>
       <Params/>
       <Name>GetEnumerator</Name>
       <Return>System.Collections.Generic.IEnumerator*[E]*</Return>

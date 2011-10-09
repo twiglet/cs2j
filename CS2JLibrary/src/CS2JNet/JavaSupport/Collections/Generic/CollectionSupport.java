@@ -26,8 +26,8 @@ import org.apache.commons.lang.NullArgumentException;
 
 import CS2JNet.JavaSupport.CS2JRunTimeException;
 import CS2JNet.System.ArgumentException;
-import CS2JNet.System.Collections.Generic.ICollectionSupport;
-import CS2JNet.System.Collections.Generic.IEnumeratorSupport;
+import CS2JNet.System.Collections.ICollection;
+import CS2JNet.System.Collections.IEnumerator;
 
 /**
  * A concrete implementation of .Net's ICollection that wraps a Collection
@@ -36,7 +36,7 @@ import CS2JNet.System.Collections.Generic.IEnumeratorSupport;
  *
  * @param <T>
  */
-public class CollectionSupport<T> implements ICollectionSupport<T> {
+public class CollectionSupport<T> implements ICollection<T> {
 
 	private Collection<T> myCollection = null;
 	
@@ -153,7 +153,7 @@ public class CollectionSupport<T> implements ICollectionSupport<T> {
 
 
 	@Override
-	public IEnumeratorSupport<T> GetEnumerator() throws Exception {
+	public IEnumerator<T> GetEnumerator() throws Exception {
 		return new EnumeratorSupport<T>(myCollection.iterator());
 	}
 

@@ -9,9 +9,9 @@
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.lang.Iterable</Import>
+    <Import>CS2JNet.System.Collections.IEnumerable</Import>
   </Imports>
-  <Java>Iterable</Java>
+  <Java>IEnumerable</Java>
   <Name>System.Collections.IEnumerable</Name>
   <Uses />
   <Inherits> <Type>System.Object</Type> </Inherits>

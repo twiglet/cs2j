@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import CS2JNet.JavaSupport.CS2JRunTimeException;
-import CS2JNet.System.Collections.Generic.IEnumeratorSupport;
+import CS2JNet.System.Collections.IEnumerator;
 
 /**
  * A concrete implementation of .Net's Enumerator that wraps an Iterator
@@ -33,7 +33,7 @@ import CS2JNet.System.Collections.Generic.IEnumeratorSupport;
  *
  * @param <T>
  */
-public class EnumeratorSupport<T> implements IEnumeratorSupport<T> {
+public class EnumeratorSupport<T> implements IEnumerator<T> {
 
 	private Iterator<T> myIterator = null;
 	private T myCurrent = null;

@@ -18,7 +18,7 @@
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
 
-package CS2JNet.System.Collections.Generic;
+package CS2JNet.System.Collections;
 
 /**
  * Mimics Net's IEnumerator interface
@@ -27,12 +27,9 @@ package CS2JNet.System.Collections.Generic;
  *
  * @param <T>
  */
-public interface IEnumeratorSupport<T> extends Iterable<T>{
+public interface IEnumerable<T> extends Iterable<T>{
 
-	T getCurrent() throws Exception;
-	
-	boolean MoveNext() throws Exception;
-	
-	void Reset() throws Exception;
+	//IEnumerator IEnumerable___GetEnumerator() throws Exception;
+	IEnumerator<T> GetEnumerator() throws Exception;
 	
 }

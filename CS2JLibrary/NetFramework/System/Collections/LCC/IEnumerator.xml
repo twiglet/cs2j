@@ -8,13 +8,13 @@
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.Collections.IEnumerator</Import>
+    <Import>CS2JNet.System.Collections.LCC.IEnumerator</Import>
   </Imports>
   <Java>IEnumerator</Java>
   <Name>System.Collections.IEnumerator</Name>
   <Methods>
     <Method>
-      <Java>${this:16}.MoveNext()</Java>
+      <Java>${this:16}.moveNext()</Java>
       <Params />
       <Name>MoveNext</Name>
       <Return>System.Boolean</Return>
