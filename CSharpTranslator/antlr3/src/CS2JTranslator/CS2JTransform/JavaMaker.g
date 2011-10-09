@@ -1399,10 +1399,6 @@ method_declaration [CommonTree atts, CommonTree mods, List<string> modList, Comm
     
         {
             newMethodName = $member_name.full_name.Replace(".","___");
-            if (newMethodName != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
-               // Leave Main() as it is because we are going to wrap it with a special main method
-               newMethodName = toJavaConvention(CSharpEntity.METHOD, newMethodName);
-            }
         } 
 
         magicIdentifier[$member_name.tree.Token, newMethodName]
@@ -1764,10 +1760,6 @@ interface_method_declaration [CommonTree atts, CommonTree mods, CommonTree type]
 	    '('   formal_parameter_list?   ')'   type_parameter_constraints_clauses?    s=';' magicThrowsException[Cfg.TranslatorBlanketThrow,$s.token]
         {
             newMethodName = $identifier.text.Replace(".","___");
-            if (newMethodName != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
-               // Leave Main() as it is because we are going to wrap it with a special main method
-               newMethodName = toJavaConvention(CSharpEntity.METHOD, newMethodName);
-            }
         } 
 
         magicIdentifier[$identifier.tree.Token, newMethodName]
