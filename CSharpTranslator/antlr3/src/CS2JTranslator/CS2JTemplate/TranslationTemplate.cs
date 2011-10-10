@@ -3218,11 +3218,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
             paramsTypeStr = paramsTypeStr + "[]";
 
          TypeRepTemplate paramsType = BuildType(paramsTypeStr, AppEnv, new UnknownRepTemplate(paramsTypeStr));
-         
-         if (argsLength == paramsLength + 1 && args[argsLength - 1].IsA(paramsType,AppEnv))
+
+         if (argsLength == paramsLength + 1)
          {
-            // Can pass an array as final argument
-            return true;
+             if (args[argsLength - 1].IsA(paramsType, AppEnv))
+             {
+                 // Can pass an array as final argument
+                 return true;
+             }
          }
   
          // Check additional args against params element type

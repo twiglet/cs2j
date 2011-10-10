@@ -656,7 +656,7 @@ scope MkNonGeneric {
         return ret;
     }
 
-    protected CommonTree boxTypesAsRequired(CommonTree fpTree, IList<ParamRepTemplate> fpTemps, IList<CommonTree> boxedTypeTrees, IToken tok) {
+    protected CommonTree boxTypesAsRequired(CommonTree fpTree, IList<ParamRepTemplate> fpTemps, ParamRepTemplate fpTempArray, IList<CommonTree> boxedTypeTrees, IToken tok) {
 
        if (fpTree == null) {
           return fpTree;
@@ -670,7 +670,9 @@ scope MkNonGeneric {
           // modifying it if necessary
           CommonTree child = (CommonTree)adaptor.GetChild(fpTree,i);
           if (adaptor.GetType(child) == TYPE) {
-             if (fpTemps[typeIdx].Type.ForceBoxed && boxedTypeTrees[typeIdx] != null) {
+             if (((typeIdx < fpTemps.Count && fpTemps[typeIdx].Type.ForceBoxed) ||
+                  (typeIdx == fpTemps.Count && fpTempArray != null && fpTempArray.Type.ForceBoxed))
+                 && boxedTypeTrees[typeIdx] != null) {
                 child = boxedTypeTrees[typeIdx];
              }
              typeIdx++;
@@ -1117,7 +1119,7 @@ class_member_declaration
       }
         -> ^(METHOD attributes? modifiers? { dupTree(methodTemplate != null && methodTemplate.Return.ForceBoxed && $type.boxedTree != null ? $type.boxedTree : $type.tree) } 
               identifier type_parameter_constraints_clauses? type_parameter_list? 
-                 { methodTemplate != null ? boxTypesAsRequired($formal_parameter_list.tree, methodTemplate.Params, $formal_parameter_list.boxedTypeTrees, $identifier.tree.Token) : dupTree($formal_parameter_list.tree) } 
+                 { methodTemplate != null ? boxTypesAsRequired($formal_parameter_list.tree, methodTemplate.Params, methodTemplate.ParamArray, $formal_parameter_list.boxedTypeTrees, $identifier.tree.Token) : dupTree($formal_parameter_list.tree) } 
               method_body exception*) 
 
     | interface_declaration
@@ -2761,7 +2763,7 @@ formal_parameter[ParamRepTemplate pInfo, ParamArrayRepTemplate paInfo] returns [
 }
 :
 	attributes?   (fixed_parameter[$pInfo] {$paramType = $fixed_parameter.paramType; $boxedTypeTree = $fixed_parameter.boxedTypeTree; }
-                   | parameter_array[$paInfo] { $boxedTypeTree = $parameter_array.boxedTypeTree; } ) 
+                   | parameter_array[$paInfo] { $paramType = $parameter_array.paramType; $boxedTypeTree = $parameter_array.boxedTypeTree; } ) 
 	| '__arglist';	// __arglist is undocumented, see google
 
 //fixed_parameters:
