@@ -209,7 +209,7 @@ namespace Twiglet.CS2J.Translator.Transform
 				ret = ret | this.remove(el);
 			}
 		}
-		return false;
+		return ret;
 	}
 
 	public int size() {
@@ -235,9 +235,8 @@ namespace Twiglet.CS2J.Translator.Transform
 		return ret;
 	}
 
-        // NOTE: Moved <S> to after the method name, like C# not Java, to help the poor parser.
-	public ${T1}[] toArray<${T1}>(${T1}[] a) {
-		ArrayList<${T}> ret = new ArrayList<${T}>(this.size());
+	public T__S[] toArray<T__S>(T__S[] a) {
+		System.Collections.Generic.IList<${T}> ret = new System.Collections.Generic.List<${T}>(this.size());
 		for (${T} el : this) {
 			ret.add(el);
 		}
