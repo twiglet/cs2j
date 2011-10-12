@@ -1815,7 +1815,7 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
             $boxedTree = $magicBoxedType.tree;
          }
        }
-    -> { $PrimitiveRep::primitiveTypeAsObject && !hasRank && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'* '?'?)
+    -> { $PrimitiveRep::primitiveTypeAsObject && !hasRank && $dotNetType.HasBoxedRep && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'* '?'?)
     -> ^(TYPE[$t.token, "TYPE"] predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
 

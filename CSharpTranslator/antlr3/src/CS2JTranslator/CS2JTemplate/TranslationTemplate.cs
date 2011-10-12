@@ -1998,12 +1998,18 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       // True if we have a separate representation for boxed and unboxed versions
       // (true for primitive types like int)
-      [XmlIgnore]
+      private bool hasBoxedRep = false;
+      [XmlAttribute("has_boxed_rep")]
+      [System.ComponentModel.DefaultValueAttribute(false)]
       public bool HasBoxedRep
       {
          get
          {
-            return Java != BoxedJava;
+            return hasBoxedRep;
+         }
+         set
+         {
+            hasBoxedRep = value;
          }
       }
 
@@ -2132,6 +2138,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          IsUnboxedType = copyFrom.IsUnboxedType;
          Variant = copyFrom.Variant;
          BoxedJava = copyFrom.BoxedJava;
+         HasBoxedRep = copyFrom.HasBoxedRep;
       }
 
       protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
@@ -2212,6 +2219,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          {
              InstantiatedTypes[i] = args[TypeParams[i]];
          }
+         BoxedJava = TemplateUtilities.SubstituteInType(BoxedJava,args);
          base.Apply(args);
       }
 
