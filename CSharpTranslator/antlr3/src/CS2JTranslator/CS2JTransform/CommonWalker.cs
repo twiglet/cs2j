@@ -134,6 +134,11 @@ namespace Twiglet.CS2J.Translator.Transform
         // Routines to parse strings to ANTLR Trees on the fly, used to generate fragments needed by the transformation
        public CommonTree parseString(string startRule, string inStr)
        {
+           return parseString(startRule, inStr, true);
+       }
+
+       public CommonTree parseString(string startRule, string inStr, bool includeNet)
+       {
             
           if (Cfg.Verbosity > 5) Console.WriteLine("Parsing fragment ");
             
@@ -181,25 +186,28 @@ namespace Twiglet.CS2J.Translator.Transform
 
           TreeRuleReturnScope javaSyntaxRet = (TreeRuleReturnScope) mi.Invoke(javaMaker, new object[0]);
 
-          CommonTree javaSyntaxAST = (CommonTree)javaSyntaxRet.Tree;
+          CommonTree retAST = (CommonTree)javaSyntaxRet.Tree;
 
-           CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(javaSyntaxAST);
+          if (includeNet) {
+             CommonTreeNodeStream javaSyntaxNodes = new CommonTreeNodeStream(retAST);
  
-           javaSyntaxNodes.TokenStream = csTreeStream.TokenStream;
+             javaSyntaxNodes.TokenStream = csTreeStream.TokenStream;
                      
-           NetMaker netMaker = new NetMaker(javaSyntaxNodes);
-           netMaker.TraceDestination = Console.Error;
+             NetMaker netMaker = new NetMaker(javaSyntaxNodes);
+             netMaker.TraceDestination = Console.Error;
  
-           netMaker.Cfg = Cfg;
-           netMaker.AppEnv = AppEnv;
-           netMaker.InitParser();
+             netMaker.Cfg = Cfg;
+             netMaker.AppEnv = AppEnv;
+             netMaker.IsJavaish = true;
+             netMaker.InitParser();
            
-           CommonTree javaAST = (CommonTree)netMaker.class_member_declarations().Tree;
+             retAST = (CommonTree)netMaker.class_member_declarations().Tree;
 
-           // snaffle additional imports
-           this.AddToImports(netMaker.Imports);
-           
-          return javaAST;
+             // snaffle additional imports
+             this.AddToImports(netMaker.Imports);
+          }
+
+          return retAST;
        }
 
         // If true, then we are parsing some JavaIsh fragment

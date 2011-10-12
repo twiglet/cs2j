@@ -1623,7 +1623,7 @@ scope TypeContext;
             magicMultiInvokerMethod[$d.token, $return_type.tree, $return_type.thetext == "Void" || $return_type.thetext == "System.Void", ifTree, $formal_parameter_list.tree, mkArgsFromParams($d.token, $formal_parameter_list.tree), $variant_generic_parameter_list.tyargs] 
       {
          multiDelName = "__Multi" + delName;
-         delClassMemberNodes = this.parseString("class_member_declarations", this.MultiDelegateMethods(mkTypeString(delName, $variant_generic_parameter_list.tyargs), mkTypeString(multiDelName, $variant_generic_parameter_list.tyargs),mkTypeArgString($variant_generic_parameter_list.tyargs)));
+         delClassMemberNodes = this.parseString("class_member_declarations", this.MultiDelegateMethods(mkTypeString(delName, $variant_generic_parameter_list.tyargs), mkTypeString(multiDelName, $variant_generic_parameter_list.tyargs),mkTypeArgString($variant_generic_parameter_list.tyargs)), false);
          AddToImports("java.util.List");
          AddToImports("java.util.LinkedList");
          AddToImports("java.util.ArrayList");
