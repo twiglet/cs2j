@@ -6,9 +6,9 @@
     Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 
 -->
-<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+<Interface variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.Collections.ICollection</Import>
+    <Import>CS2JNet.System.Collections.LCC.ICollection</Import>
   </Imports>
   <Java>ICollection*[${T}]*</Java>
   <Name>System.Collections.Generic.ICollection</Name>
@@ -16,7 +16,7 @@
     <Name>T</Name>
   </TypeParams>
   <Inherits>
-    <Type>>System.Collections.Generic.IEnumerable*[T]*</Type>
+    <Type>System.Collections.Generic.IEnumerable*[T]*</Type>
   </Inherits>
   <Iterable>
     <ElementType>T</ElementType>

@@ -18,14 +18,17 @@
    Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
 
-package CS2JNet.System.Collections;
+package CS2JNet.System.Collections.LCC;
 
 import java.util.Collection;
 
 
 /**
- * @author kevin.glynn@twigletsoftware.com
+ * Mimics Net's IEnumerator interface
+ * 
+ * @author keving
  *
+ * @param <T>
  */
 public interface ICollection<T> extends IEnumerable<T>,Collection<T> {
 	
@@ -38,8 +41,8 @@ public interface ICollection<T> extends IEnumerable<T>,Collection<T> {
 
     public   void Clear() throws Exception;
 
-    public   IEnumerator<T> GetEnumerator() throws Exception;
+    public   IEnumerator<T> getEnumerator() throws Exception;
 
-    public   void CopyTo(T[] arr,  int i) throws Exception;
+    public   void copyTo(T[] arr,  int i) throws Exception;
 
 }

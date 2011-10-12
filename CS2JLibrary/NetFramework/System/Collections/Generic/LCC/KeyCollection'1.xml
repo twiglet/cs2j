@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+     <Import>CS2JNet.JavaSupport.Collections.Generic.CollectionSupport</Import>
+  </Imports>
+  <Java>CollectionSupport*[${T}]*</Java>
+  <!-- Actually: System.Collections.Generic.Dictionary<TKey, TValue>.KeyCollection -->
+  <Name>System.Collections.Generic.KeyCollection</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+  </Inherits>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Collections.Generic.KeyCollectionSupport</Import>
+      </Imports>
+      <Java>${this:16}.copyTo(${array}, ${index})</Java>
+      <Params>
+        <Param>
+          <Type>T[]</Type>
+          <Name>array</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index</Name>
+        </Param>
+      </Params>
+      <Name>CopyTo</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.LCC.EnumeratorSupport</Import>
+      </Imports>
+      <Java>new EnumeratorSupport*[T]*(${this:16}.iterator())</Java>
+      <Params>
+      </Params>
+      <Name>GetEnumerator</Name>
+      <Return>System.Collections.Generic.IEnumerator*[T]*</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+  </Indexers>
+  <Constructors>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>cUmprobnXdg5Nhlk8vAMJ2coyAo=</DigestValue></Reference></SignedInfo><SignatureValue>XKTAn+4HQ4/anCQ8npTwr1Yrf3AxZc69HuV6muqqws96mCfCvaUhIqmlc2rZsw4CaXd+0bkFunIbLLgqHBaOePb1eKyp29uHhXODO/68lb8kfcPHB4aGO5LKWNPGw3mQoKK4RjuuRdOWZpx1wg7P5BGr+bGdX/gVk8pUUhHzDHs=</SignatureValue></Signature></Class>
