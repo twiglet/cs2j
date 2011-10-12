@@ -31,7 +31,10 @@ scope NSContext {
     ClassRepTemplate baseClass;
 
     // Supported interfaces
-    IList<InterfaceRepTemplate> interfaceList;
+    List<InterfaceRepTemplate> interfaceList;
+
+    // methods that should not be renamed
+    List<string> blackListedMethods;
 }
 
 // A scope to keep track of the mapping from variables to types
@@ -194,20 +197,34 @@ scope MkNonGeneric {
         }
     }
 
+    public class SupportedInterfaceInfo {
+
+       public SupportedInterfaceInfo() {
+          Imports = new List<string>();
+          BlackListedMethods = new List<string>();
+       }
+
+       public List<string> Imports { get; set; }
+       public List<string> BlackListedMethods { get; set; }
+    }
+
     // For classes that implement some specific interface types (such as IEnumerable) we add
     // additional methods so that they can support an equivalent Java Interface (e.g. Iterable).
     // The keys of this map are the supported interface. We map them to a set of imports that are
     // needed for the additional methods
     // TODO: Move this to Fragments where the code is maintained.
-    private Dictionary<InterfaceRepTemplate, IList<string>> supportedInterfaces = null;
-    protected Dictionary<InterfaceRepTemplate, IList<string>> SupportedInterfaces {
+    private Dictionary<InterfaceRepTemplate, SupportedInterfaceInfo> supportedInterfaces = null;
+    protected Dictionary<InterfaceRepTemplate, SupportedInterfaceInfo> SupportedInterfaces {
         get {
             if (supportedInterfaces == null) {
-                supportedInterfaces = new Dictionary<InterfaceRepTemplate, IList<string>>();
-                supportedInterfaces[IEnumerableType] = new List<String>();
-                supportedInterfaces[GenericIEnumerableType] = new List<String>();
-                supportedInterfaces[ICollectionType] = new List<String>();
-                supportedInterfaces[GenericICollectionType] = new List<String>();
+                supportedInterfaces = new Dictionary<InterfaceRepTemplate, SupportedInterfaceInfo>();
+                supportedInterfaces[IEnumerableType] = new SupportedInterfaceInfo();
+                supportedInterfaces[GenericIEnumerableType] = new SupportedInterfaceInfo();
+                supportedInterfaces[ICollectionType] = new SupportedInterfaceInfo();
+
+                supportedInterfaces[GenericICollectionType] = new SupportedInterfaceInfo();
+                supportedInterfaces[GenericICollectionType].BlackListedMethods.AddRange(new string[] {"Add", "Clear", "Contains", "Remove"});
+                supportedInterfaces[GenericICollectionType].Imports.AddRange(new string[] {"java.util.Collection"});
             }
             return supportedInterfaces;
         }
@@ -988,6 +1005,7 @@ scope MkNonGeneric {
            NSContext_stack.Push(new NSContext_scope());
            PrimitiveRep_stack.Push(new PrimitiveRep_scope());
            MkNonGeneric_stack.Push(new MkNonGeneric_scope());
+           SymTab_stack.Push(new SymTab_scope());
            // Set up dynamic scopes
 
            $PrimitiveRep::primitiveTypeAsObject = false;
@@ -1001,6 +1019,9 @@ scope MkNonGeneric {
 
            $NSContext::baseClass = ObjectType;
            $NSContext::interfaceList = new List<InterfaceRepTemplate>();
+           $NSContext::blackListedMethods = new List<string>();
+
+           $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
 
         }
 }
@@ -1021,6 +1042,7 @@ scope NSContext, PrimitiveRep, MkNonGeneric;
 
     $NSContext::baseClass = ObjectType;
     $NSContext::interfaceList = new List<InterfaceRepTemplate>();
+    $NSContext::blackListedMethods = new List<string>();
 
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
@@ -1045,7 +1067,11 @@ modifier:
 	| 'readonly' | 'volatile' | 'extern' | 'virtual' | 'override' | FINAL ;
 	
 class_member_declaration
+scope SymTab;
 @init {
+
+   $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
+
    ResolveResult methodResult = null;
    MethodRepTemplate methodTemplate = null;
 }:
@@ -1112,9 +1138,13 @@ class_member_declaration
          }
 
          // (Optionally) rewrite the method name
-         if ($identifier.thetext != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
-            // Leave Main() as it is because we wrap it with a special main method
-            $identifier.tree.Token.Text = toJavaConvention(CSharpEntity.METHOD, $identifier.thetext);
+         if ($identifier.thetext != "Main") {
+            if (!$NSContext::blackListedMethods.Contains($identifier.thetext)) {
+               if (Cfg.TranslatorMakeJavaNamingConventions) {
+                  // Leave Main() as it is because we wrap it with a special main method
+                  $identifier.tree.Token.Text = toJavaConvention(CSharpEntity.METHOD, $identifier.thetext);
+               }
+            }
          }
       }
         -> ^(METHOD attributes? modifiers? { dupTree(methodTemplate != null && methodTemplate.Return.ForceBoxed && $type.boxedTree != null ? $type.boxedTree : $type.tree) } 
@@ -1777,14 +1807,26 @@ qid_part:
 
 generic_argument_list returns [List<TypeRepTemplate> argTypes, List<CommonTree> argTrees]: 
 	'<'   type_arguments   '>' { $argTypes = $type_arguments.tyTypes; $argTrees = $type_arguments.argTrees; };
-type_arguments  returns [List<TypeRepTemplate> tyTypes, List<CommonTree> argTrees]
+
+type_arguments returns [List<TypeRepTemplate> tyTypes, List<CommonTree> argTrees]
 scope PrimitiveRep;
 @init {
     $PrimitiveRep::primitiveTypeAsObject = true;
     $tyTypes = new List<TypeRepTemplate>();
     $argTrees = new List<CommonTree>();
 }: 
-	t1=type { $tyTypes.Add($t1.dotNetType); $argTrees.Add(dupTree($t1.tree)); } (',' tn=type { $tyTypes.Add($tn.dotNetType); $argTrees.Add(dupTree($tn.tree)); })* ;
+	t1=type_argument { $tyTypes.Add($t1.dotNetType); $argTrees.Add(dupTree($t1.tree)); }  (',' tn=type_argument { $tyTypes.Add($tn.dotNetType); $argTrees.Add(dupTree($tn.tree)); } )* ;
+
+public type_argument returns [TypeRepTemplate dotNetType]:
+    {this.IsJavaish}?=> javaish_type_argument {$dotNetType = $javaish_type_argument.dotNetType; }
+   | type {$dotNetType = $type.dotNetType; }
+;
+public javaish_type_argument returns [TypeRepTemplate dotNetType]:
+      ('?' 'extends')=> '?' 'extends' type  {$dotNetType = $type.dotNetType; }
+   | '?'  {$dotNetType = new TypeVarRepTemplate("?"); }
+   | type {$dotNetType = $type.dotNetType; }
+;
+
 
 // keving: TODO: Look for type vars
 type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree boxedTree]
@@ -2505,6 +2547,7 @@ scope NSContext,SymTab;
 
     $NSContext::baseClass = ObjectType;
     $NSContext::interfaceList = new List<InterfaceRepTemplate>();
+    $NSContext::blackListedMethods = new List<string>();
 
     $SymTab::symtab = new Dictionary<string, TypeRepTemplate>();
 }
@@ -2594,9 +2637,10 @@ class_body
 @init {
     CommonTree collectNodes = null;
     string newMethods = "";
-    foreach (KeyValuePair<InterfaceRepTemplate,IList<string>> member in SupportedInterfaces) {
+    foreach (KeyValuePair<InterfaceRepTemplate,SupportedInterfaceInfo> member in SupportedInterfaces) {
        InterfaceRepTemplate supportedIface = member.Key;
-       IList<string> supportedIfaceImports = member.Value;
+       IList<string> supportedIfaceImports = member.Value.Imports;
+       IList<string> supportedIfaceBlackList = member.Value.BlackListedMethods;
        bool sup = false;
        List<String> targs = new List<String>(); 
        foreach (InterfaceRepTemplate implementedIface in $NSContext::interfaceList) {
@@ -2610,8 +2654,8 @@ class_body
        }
        if (sup) {
          newMethods = newMethods + this.getMethods(supportedIface.TypeName, targs);
-//         AddToImports(supportedIface.Imports);
          AddToImports(supportedIfaceImports);
+         $NSContext::blackListedMethods.AddRange(supportedIfaceBlackList);
        }
     }
     if (!String.IsNullOrEmpty(newMethods)) {
