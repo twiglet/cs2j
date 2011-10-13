@@ -47,6 +47,11 @@ scope PrimitiveRep {
     bool primitiveTypeAsObject;
 }
 
+// When this scope is true, then type should generate a fresh dotNetType so that we can update it without affecting all other types
+scope ForceUnsharedType {
+    bool fresh;
+}
+
 // When this scope is true, then strip generic arguments from types 
 // (In Java the runtime doesn't know the generic types so e.g. instanceof Set<T> 
 // must be just instanceof Set).
@@ -114,11 +119,41 @@ scope MkNonGeneric {
        return findType(name.Type);
     }
 
+    private Dictionary<string,string> builtinTypeMap = null; 
+    private Dictionary<string,string> BuiltinTypeMap {
+       get {
+          if (builtinTypeMap == null) {
+             builtinTypeMap = new Dictionary<string,string>();
+             builtinTypeMap["bool"] = "System.Boolean";
+             builtinTypeMap["byte"] = Cfg.UnsignedNumbersToSigned ? "System.SByte" : "System.Byte";
+             builtinTypeMap["char"] = "System.Char";
+             builtinTypeMap["decimal"] = "System.Decimal";
+             builtinTypeMap["double"] = "System.Double";
+             builtinTypeMap["float"] = "System.Single";
+             builtinTypeMap["int"] = "System.Int32";
+             builtinTypeMap["long"] = "System.Int64";
+             builtinTypeMap["object"] = "System.Object";
+             builtinTypeMap["sbyte"] = "System.Byte";
+             builtinTypeMap["short"] = "System.Int16";
+             builtinTypeMap["string"] = "system.String";
+             builtinTypeMap["uint"] = Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32";
+             builtinTypeMap["ulong"] = Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; 
+             builtinTypeMap["ushort"] = Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16";
+             builtinTypeMap["void"] = "System.Void";
+          }
+          return builtinTypeMap;
+       }
+    }
+
     protected TypeRepTemplate findType(string name) {
         if ($NSContext.Count > 0 && $NSContext::globalTypeVariables != null && $NSContext::globalTypeVariables.Contains(name)) {
             return new TypeVarRepTemplate(name);
         }
-        return AppEnv.Search($NSContext.Count > 0 ? $NSContext::globalNamespaces : null, name, new UnknownRepTemplate(name));
+        string fullName = name;
+        if (BuiltinTypeMap.ContainsKey(name)) {
+           fullName = BuiltinTypeMap[name];
+        }
+        return AppEnv.Search($NSContext.Count > 0 ? $NSContext::globalNamespaces : null, fullName, new UnknownRepTemplate(fullName));
     }
 
     protected TypeRepTemplate findType(string name, ICollection<TypeRepTemplate> args) {
@@ -826,7 +861,7 @@ scope MkNonGeneric {
 
         adaptor.AddChild(method, retTypeRoot);
 
-        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "GetInvocationList"));
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, rewriteMethodName("GetInvocationList")));
 
         adaptor.AddChild(method, (CommonTree)adaptor.Create(OPEN_BRACE, tok, "{"));
 
@@ -922,7 +957,7 @@ scope MkNonGeneric {
         adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, returnType.Java));
         adaptor.AddChild(method, retTypeRoot);
 
-        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Invoke"));
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, rewriteMethodName("Invoke")));
         if (delg.Invoke.Params.Count > 0) {
            adaptor.AddChild(method, mkParams(delg, delg.Invoke.Params, true, tok));
         }
@@ -986,7 +1021,7 @@ scope MkNonGeneric {
         adaptor.AddChild(retTypeRoot, (CommonTree)adaptor.Create(IDENTIFIER, tok, returnType.Java));
         adaptor.AddChild(method, retTypeRoot);
 
-        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, "Invoke"));
+        adaptor.AddChild(method, (CommonTree)adaptor.Create(IDENTIFIER, tok, rewriteMethodName("Invoke")));
         adaptor.AddChild(method, dupTree(argsTree));
         adaptor.AddChild(method, dupTree(bodyTree));
         adaptor.AddChild(method, (CommonTree)adaptor.Create(EXCEPTION, tok, "Exception"));
@@ -998,6 +1033,19 @@ scope MkNonGeneric {
         return root;
     }
 
+        // new <delegate_type>() { public void Invoke(<formal args>) throw exception <body> }
+        protected CommonTree rewriteMethodGroupName(CommonTree methodGroupNameId) {
+           CommonTree ret = null;
+           if (adaptor.GetType(methodGroupNameId) == IDENTIFIER) {
+              ret = (CommonTree)adaptor.Nil;
+              ret = (CommonTree)adaptor.BecomeRoot((CommonTree)adaptor.Create(IDENTIFIER, adaptor.GetToken(methodGroupNameId), rewriteMethodName(adaptor.GetToken(methodGroupNameId).Text)), ret);
+           }
+           else {
+             ret = dupTree(methodGroupNameId);
+           }
+           return ret;
+        }
+
         // Used from parseString() to set up dynamic scopes
         public override void InitParser()
         {
@@ -1006,6 +1054,7 @@ scope MkNonGeneric {
            PrimitiveRep_stack.Push(new PrimitiveRep_scope());
            MkNonGeneric_stack.Push(new MkNonGeneric_scope());
            SymTab_stack.Push(new SymTab_scope());
+           ForceUnsharedType_stack.Push(new ForceUnsharedType_scope());
            // Set up dynamic scopes
 
            $PrimitiveRep::primitiveTypeAsObject = false;
@@ -1023,11 +1072,12 @@ scope MkNonGeneric {
 
            $SymTab::symtab = new Dictionary<string,TypeRepTemplate>();
 
+           $ForceUnsharedType::fresh = false;
         }
 }
 
 public compilation_unit
-scope NSContext, PrimitiveRep, MkNonGeneric;
+scope NSContext, PrimitiveRep, MkNonGeneric, ForceUnsharedType;
 @init {
 
     $PrimitiveRep::primitiveTypeAsObject = false;
@@ -1043,6 +1093,8 @@ scope NSContext, PrimitiveRep, MkNonGeneric;
     $NSContext::baseClass = ObjectType;
     $NSContext::interfaceList = new List<InterfaceRepTemplate>();
     $NSContext::blackListedMethods = new List<string>();
+
+    $ForceUnsharedType::fresh = false;
 
 }:
 	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
@@ -1138,13 +1190,8 @@ scope SymTab;
          }
 
          // (Optionally) rewrite the method name
-         if ($identifier.thetext != "Main") {
-            if (!$NSContext::blackListedMethods.Contains($identifier.thetext)) {
-               if (Cfg.TranslatorMakeJavaNamingConventions) {
-                  // Leave Main() as it is because we wrap it with a special main method
-                  $identifier.tree.Token.Text = toJavaConvention(CSharpEntity.METHOD, $identifier.thetext);
-               }
-            }
+         if (!$NSContext::blackListedMethods.Contains($identifier.thetext)) {
+            $identifier.tree.Token.Text = rewriteMethodName($identifier.thetext);
          }
       }
         -> ^(METHOD attributes? modifiers? { dupTree(methodTemplate != null && methodTemplate.Return.ForceBoxed && $type.boxedTree != null ? $type.boxedTree : $type.tree) } 
@@ -1355,7 +1402,10 @@ scope {
 	| 'this'                                                         { $dotNetType = SymTabLookup("this"); }         
 	| SUPER                                                          { $dotNetType = SymTabLookup("super"); }         
     | (^(d1='.' e1=expression[ObjectType] {expType = $e1.dotNetType; implicitThis = false; e1Tree = dupTree($e1.tree); /* keving: yuk, shouldn't be necessary but $e1.tree was also capturing i=identifier */} i=identifier dgal=generic_argument_list?)
-        |(i=identifier dgal=generic_argument_list?))  magicInputPeId[$d1.tree,$i.tree,$dgal.tree]
+        |(i=identifier dgal=generic_argument_list?))  
+        magicIdentifier[true, rewriteMethodName($i.thetext), $i.tree != null ? $i.tree.Token : null] 
+        magicInputPeId[$d1.tree,$i.tree,$dgal.tree] 
+        magicMethodGroup[$d1.tree, $e1.tree, $magicIdentifier.tree, $dgal.tree, $i.tree != null ? $i.tree.Token : null]
         { 
             // TODO: generic_argument_list is ignored ....
 
@@ -1426,7 +1476,7 @@ scope {
                   // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
                   // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
                   DelegateRepTemplate delType = $typeCtxt as DelegateRepTemplate;
-                  ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $magicInputPeId.tree, delType, $i.tree.Token);
+                  ret = mkDelegateObject((CommonTree)$typeCtxt.Tree, $magicMethodGroup.tree, delType, $i.tree.Token);
                   $dotNetType = $typeCtxt;
                   found = true;
                }
@@ -1461,7 +1511,7 @@ scope {
                // use an anonymous inner class to generate a delegate object (object wih an Invoke with appropriate arguments)
                // new <delegate_name>() { public void Invoke(<formal args>) throw exception { [return] arg[0](<args>); } }
                DelegateRepTemplate delType = $type.dotNetType as DelegateRepTemplate;
-               ret = mkDelegateObject($type.tree, (CommonTree)adaptor.GetChild($argument_list.tree, 0), delType, $n.token);
+               ret = mkDelegateObject($type.tree, rewriteMethodGroupName((CommonTree)adaptor.GetChild($argument_list.tree, 0)), delType, $n.token);
                $dotNetType = $type.dotNetType;
             }
          }
@@ -1836,12 +1886,16 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
    CommonTree pTree = null;
 }
 @after {
-   if ($dotNetType.Tree == null) {
-      $dotNetType.Tree = $type.tree;
-   }
    if ($boxedTree == null) {
       $boxedTree = $type.tree;
    }
+   if ($ForceUnsharedType::fresh) {
+      $dotNetType = $dotNetType.Instantiate(null); 
+   }
+   if ($dotNetType.Tree == null) {
+      $dotNetType.Tree = $type.tree;
+   }
+
 }
 :
     ^(t=TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; } 
@@ -2816,9 +2870,11 @@ formal_parameter[ParamRepTemplate pInfo, ParamArrayRepTemplate paInfo] returns [
 
 fixed_parameter[ParamRepTemplate pInfo] returns [TypeRepTemplate paramType, CommonTree boxedTypeTree]
 scope PrimitiveRep;
+scope ForceUnsharedType;
 @init {
     $PrimitiveRep::primitiveTypeAsObject = $pInfo != null ? $pInfo.Type.ForceBoxed : false;
     bool isRefOut = false;
+    bool oldFresh = false;
 }:
       (parameter_modifier 
          { isRefOut = $parameter_modifier.isRefOut; 
@@ -2827,7 +2883,10 @@ scope PrimitiveRep;
               AddToImports("CS2JNet.JavaSupport.language.RefSupport");
            } 
          })?   
+      // make a copy of the type parameter so that we can set iswrapped below
+      { oldFresh = $ForceUnsharedType::fresh; $ForceUnsharedType::fresh = isRefOut;}
       type   { $boxedTypeTree = $type.boxedTree; } 
+      { $ForceUnsharedType::fresh = oldFresh; }
       identifier  { $paramType = $type.dotNetType; $type.dotNetType.IsWrapped = isRefOut; $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  
       default_argument? 
       magicRef[isRefOut, $type.tree != null ? $type.tree.Token : null, $type.tree]
@@ -2872,11 +2931,8 @@ scope SymTab;
       ->   ^(METHOD[$e.token, "METHOD"] attributes? modifiers? magicEventCollectionType identifier EXCEPTION[$i.tree.Token, "Exception"])
     | ^(METHOD attributes? modifiers? type identifier type_parameter_constraints_clauses? type_parameter_list? formal_parameter_list[null,null]? exception*)
       {
-            if ($identifier.thetext != "Main" && Cfg.TranslatorMakeJavaNamingConventions) {
-               // Leave Main() as it is because we are going to wrap it with a special main method
-               $identifier.tree.Token.Text = toJavaConvention(CSharpEntity.METHOD, $identifier.thetext);
-            }
-       }
+         $identifier.tree.Token.Text = rewriteMethodName($identifier.thetext);
+      }
 		;
 
 ///////////////////////////////////////////////////////
@@ -3325,28 +3381,27 @@ yield_statement:
 
 predefined_type returns [TypeRepTemplate dotNetType]
 @init {
-    string ns = "";
+    bool unBoxed = true;
 }
 @after {
-    $dotNetType = new ClassRepTemplate((ClassRepTemplate)AppEnv.Search(ns, new UnknownRepTemplate(ns)));
-    $dotNetType.IsUnboxedType = true;
-    string newText = null;
+    $dotNetType = findType($predefined_type.text);
+    $dotNetType.IsUnboxedType = unBoxed;
 }:
-	  'bool'    { ns = "System.Boolean"; }
-    | 'byte'    { ns = Cfg.UnsignedNumbersToSigned ? "System.SByte" : "System.Byte"; }
-    | 'char'    { ns = "System.Char"; }
-    | 'decimal' { ns = "System.Decimal"; }
-    | 'double'  { ns = "System.Double"; }
-    | 'float'   { ns = "System.Single"; }
-    | 'int'     { ns = "System.Int32"; }
-    | 'long'    { ns = "System.Int64"; }
-    | 'object'  { ns = "System.Object"; }
-    | 'sbyte'   { ns = "System.Byte"; }
-	| 'short'   { ns = "System.Int16"; }
-    | 'string'  { ns = "System.String"; }
-    | 'uint'    { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32"; }
-    | 'ulong'   { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; }
-    | 'ushort'  { ns =  Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16"; }
+	  'bool'    
+    | 'byte'    
+    | 'char'    
+    | 'decimal' 
+    | 'double'  
+    | 'float'   
+    | 'int'     
+    | 'long'    
+    | 'object'  
+    | 'sbyte'   
+	| 'short'   
+    | 'string'  { unBoxed = false; }
+    | 'uint'    
+    | 'ulong'   
+    | 'ushort'  
     ;
 
 // Don't trust identifier.text in tree grammars: Doesn't work for our magic additions because the text function goes back to the 
@@ -3691,4 +3746,14 @@ magicTypeFromTemplate[bool isOn, IToken tok, TypeRepTemplate dotNetType]:
 magicExtends[bool isOn, IToken tok, CommonTree type]:
  -> { $isOn }? ^(EXTENDS[tok, "extends"] { dupTree($type) })
  ->
+   ;
+
+magicIdentifier[bool isOn, string text, IToken tok]:
+ -> { $isOn }? ^(IDENTIFIER[tok, text])
+ ->
+   ;
+
+magicMethodGroup[CommonTree d1Tree, CommonTree e1Tree, CommonTree idTree, CommonTree galTree, IToken tok]:
+ -> { $d1Tree == null }? {dupTree(idTree)}  {dupTree(galTree)}
+ -> ^(DOT[tok, "."] {dupTree(e1Tree)}  {dupTree(idTree)}  {dupTree(galTree)})
    ;
