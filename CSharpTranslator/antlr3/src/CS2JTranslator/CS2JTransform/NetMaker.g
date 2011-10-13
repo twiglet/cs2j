@@ -972,7 +972,7 @@ scope MkNonGeneric {
         if (delg.Invoke.Params.Count > 0) {
            adaptor.AddChild(call, mkParams(delg, delg.Invoke.Params, false, tok));
         }
-        if (returnType.IsA(VoidType, AppEnv)) {
+        if (!returnType.IsA(VoidType, AppEnv)) {
            adaptor.AddChild(ret, call);
            adaptor.AddChild(method, ret);
         }
