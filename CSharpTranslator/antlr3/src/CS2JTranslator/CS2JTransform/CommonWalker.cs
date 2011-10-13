@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Xsl;
@@ -130,6 +131,54 @@ namespace Twiglet.CS2J.Translator.Transform
         public virtual void InitParser()
         {
         }
+
+
+        // Routines to substitute in code fragments 
+        private class MethodMapper
+        {
+      
+          CommonWalker walker = null;
+
+          public MethodMapper(CommonWalker inWalker) {
+            walker = inWalker;
+          }       
+
+          public string RewriteMethod(Match m)
+          {
+            if (walker.Cfg.TranslatorMakeJavaNamingConventions)
+            {
+              return walker.toJavaConvention(CSharpEntity.METHOD, m.Groups[1].Value);
+            }
+            return m.Groups[1].Value;
+          }
+        }
+
+
+       // Takes a list of type variables to substitute into fragments and returns a string containing the 
+       // required methods
+       // TypeVars in fragments have names T, T1, T2, T3, etc.
+       public string rewriteCodeFragment(string code, IList<string> tyArgs)
+       {
+          string ret = code;
+          MethodMapper mapper = new MethodMapper(this);
+
+          if (tyArgs != null)
+          {
+             int idx = 0;
+             foreach (string t in tyArgs)
+             {
+                string toReplace = "${T" + (idx == 0 ? "" : Convert.ToString(idx)) + "}";
+                ret = ret.Replace(toReplace,tyArgs[idx]);
+                idx++;
+             }
+          }
+          // replace @m{<method name>} with (possibly transformed) <method name>
+          ret = Regex.Replace(ret, "(?:@m\\{(\\w+)\\})", new MatchEvaluator(mapper.RewriteMethod));
+
+          return ret;
+       }
+
+
 
         // Routines to parse strings to ANTLR Trees on the fly, used to generate fragments needed by the transformation
        public CommonTree parseString(string startRule, string inStr)
@@ -357,6 +406,33 @@ xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"">
           }
           return ret;
        }
+
+       // Rewrite method names and import locations for LCC variant
+       protected string rewriteMethodName(string orig) {
+         if (String.IsNullOrEmpty(orig)) 
+           return orig;
+         if (Cfg.TranslatorMakeJavaNamingConventions) {
+             string replacement = toJavaConvention(CSharpEntity.METHOD, orig);
+             if (replacement == "main" || replacement == "notify" || replacement == "notifyAll" || replacement == "wait") {
+               return orig;
+             }
+             return replacement; 
+           }
+         return orig;
+       }
+
+       protected string rewriteImportLocation(string orig) {
+         if (String.IsNullOrEmpty(orig)) 
+           return orig;
+         if (Cfg.TranslatorMakeJavaNamingConventions) {
+             int dotLoc = orig.LastIndexOf('.');
+             if (dotLoc >= 0) {
+               return orig.Substring(0,dotLoc) + ".LCC." + orig.Substring(dotLoc+1);
+             }
+         }
+         return orig;
+       }
+
     }
     
    public enum CSharpEntity
