@@ -541,7 +541,7 @@ scope TypeContext {
        }
        return ret.ToString();
     }
-    
+
     // Merges part into combined
 //     protected void mergePartialTypes(ClassDescriptor combined, ClassDescriptor part) {
 // 
@@ -2060,8 +2060,8 @@ using_statement[bool isStatementListCtxt]
 // see http://msdn.microsoft.com/en-us/library/yh598w02.aspx for translation
 	u='using'   '('    resource_acquisition   c=')'    embedded_statement[/* isStatementListCtxt */ false]
      { 
-        disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames, Cfg.TranslatorMakeJavaNamingConventions ? "dispose" : "Dispose");
-        AddToImports(String.Format("CS2JNet.System{0}Disposable", Cfg.TranslatorMakeJavaNamingConventions ? ".LCC." : ".")); 
+        disposers = addDisposeVars($c.token, $resource_acquisition.resourceNames, rewriteMethodName("Dispose"));
+        AddToImports(rewriteImportLocation("CS2JNet.System.Disposable")); 
      } 
      f=magicFinally[$c.token, disposers]
      magicTry[$u.token, state.backtracking == 0 ? embeddedStatementToBlock($u.token, $embedded_statement.tree) : null, null, $f.tree] 
@@ -2385,7 +2385,7 @@ magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, Comm
 -> {retIsVoid}?
    ^(METHOD[tok, "METHOD"] PUBLIC[tok, "public"] { dupTree($return_type) } IDENTIFIER[tok,"Invoke"] { dupTree($formal_parameter_list) }
       OPEN_BRACE[tok, "{"] 
-           ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IList"] LTHAN[tok, "<"] { dupTree($type) } GT[tok, ">"]) IDENTIFIER[tok, "copy"] COMMA[tok, ","] IDENTIFIER[tok, "members"] ASSIGN[tok, "="]  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] THIS[tok,"this"] IDENTIFIER[tok,"GetInvocationList"])) SEMI[tok, ";"]
+           ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IList"] LTHAN[tok, "<"] { dupTree($type) } GT[tok, ">"]) IDENTIFIER[tok, "copy"] COMMA[tok, ","] IDENTIFIER[tok, "members"] ASSIGN[tok, "="]  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] THIS[tok,"this"] IDENTIFIER[tok,rewriteMethodName("GetInvocationList")])) SEMI[tok, ";"]
            ^(SYNCHRONIZED[tok, "synchronized"] IDENTIFIER[tok, "members"] OPEN_BRACE[tok, "{"]
                 IDENTIFIER[tok, "copy"] ASSIGN[tok, "="] ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "LinkedList"] LTHAN[tok, "<"] { dupTree($type) } GT[tok, ">"]) ^(ARGS[tok, "ARGS"] IDENTIFIER[tok, "members"])) SEMI[tok, ";"]
                 CLOSE_BRACE[tok, "}"]
@@ -2394,7 +2394,7 @@ magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, Comm
             { $type } IDENTIFIER[tok, "d"] IDENTIFIER[tok, "copy"]
                SEP[tok, "SEP"]
                 OPEN_BRACE[tok, "{"]
-                  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"d"] IDENTIFIER[tok,"Invoke"]) { $argument_list }) SEMI[tok, ";"]
+                  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"d"] IDENTIFIER[tok,rewriteMethodName("Invoke")]) { $argument_list }) SEMI[tok, ";"]
                 CLOSE_BRACE[tok, "}"]
             ) 
       CLOSE_BRACE[tok, "}"]
@@ -2402,7 +2402,7 @@ magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, Comm
     )
 -> ^(METHOD[tok, "METHOD"] PUBLIC[tok, "public"] { dupTree($return_type) } IDENTIFIER[tok,"Invoke"] { dupTree($formal_parameter_list) }
       OPEN_BRACE[tok, "{"] 
-           ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IList"] LTHAN[tok, "<"] { dupTree($type) } GT[tok, ">"]) IDENTIFIER[tok, "copy"] COMMA[tok, ","] IDENTIFIER[tok, "members"] ASSIGN[tok, "="]  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] THIS[tok,"this"] IDENTIFIER[tok,"GetInvocationList"])) SEMI[tok, ";"]
+           ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "IList"] LTHAN[tok, "<"] { dupTree($type) } GT[tok, ">"]) IDENTIFIER[tok, "copy"] COMMA[tok, ","] IDENTIFIER[tok, "members"] ASSIGN[tok, "="]  ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] THIS[tok,"this"] IDENTIFIER[tok,rewriteMethodName("GetInvocationList")])) SEMI[tok, ";"]
            ^(SYNCHRONIZED[tok, "synchronized"] IDENTIFIER[tok, "members"] OPEN_BRACE[tok, "{"]
                 IDENTIFIER[tok, "copy"] ASSIGN[tok, "="] ^(NEW[tok, "new"] ^(TYPE[tok, "TYPE"] IDENTIFIER[tok, "LinkedList"] LTHAN[tok, "<"] { dupTree($type) } GT[tok, ">"]) ^(ARGS[tok, "ARGS"] IDENTIFIER[tok, "members"])) SEMI[tok, ";"]
                 CLOSE_BRACE[tok, "}"]
@@ -2412,11 +2412,11 @@ magicMultiInvokerMethod[IToken tok, CommonTree return_type, bool retIsVoid, Comm
             { $type } IDENTIFIER[tok, "d"]  IDENTIFIER[tok, "copy"]
                SEP[tok, "SEP"]
                 OPEN_BRACE[tok, "{"]
-                  ^(IF[tok, "if"] ^(NOT_EQUAL[tok, "!="] IDENTIFIER[tok,"prev"] NULL[tok, "null"]) SEP ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,"Invoke"]) { $argument_list }) SEMI[tok, ";"])
+                  ^(IF[tok, "if"] ^(NOT_EQUAL[tok, "!="] IDENTIFIER[tok,"prev"] NULL[tok, "null"]) SEP ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,rewriteMethodName("Invoke")]) { $argument_list }) SEMI[tok, ";"])
                   IDENTIFIER[tok, "prev"] ASSIGN[tok, "="] IDENTIFIER[tok, "d"] SEMI[tok,";"]
                 CLOSE_BRACE[tok, "}"]
             ) 
-         ^(RETURN[tok, "return"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,"Invoke"]) { $argument_list }))
+         ^(RETURN[tok, "return"] ^(APPLY[tok, "APPLY"] ^(DOT[tok,"."] IDENTIFIER[tok,"prev"] IDENTIFIER[tok,rewriteMethodName("Invoke")]) { $argument_list }))
       CLOSE_BRACE[tok, "}"]
       magicThrowsException?
     )
