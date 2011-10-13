@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 using Antlr.Runtime.Tree;
 using Antlr.Runtime;
@@ -23,26 +22,6 @@ namespace Twiglet.CS2J.Translator.Transform
         { }
 
 
-      private class MethodMapper
-      {
-      
-         CommonWalker walker = null;
-
-         public MethodMapper(CommonWalker inWalker) {
-           walker = inWalker;
-         }
-
-         public string RewriteMethod(Match m)
-         {
-            if (walker.Cfg.TranslatorMakeJavaNamingConventions)
-            {
-               return walker.toJavaConvention(CSharpEntity.METHOD, m.Groups[1].Value);
-            }
-            return m.Groups[1].Value;
-         }
-      }
-
-
        ////////////////////
        ///
        ///   Methods to convert Interfaces to Java equivalents
@@ -56,23 +35,11 @@ namespace Twiglet.CS2J.Translator.Transform
        public string getMethods(string iface, IList<string> tyArgs)
        {
           string ret = "";
-          MethodMapper mapper = new MethodMapper(this);
 
           if (InterfaceMap.ContainsKey(iface))
           {
              string methods = InterfaceMap[iface];
-             if (tyArgs != null)
-             {
-                int idx = 0;
-                foreach (string t in tyArgs)
-                {
-                   string toReplace = "${T" + (idx == 0 ? "" : Convert.ToString(idx)) + "}";
-                   methods = methods.Replace(toReplace,tyArgs[idx]);
-                   idx++;
-                }
-             }
-             // replace @m{<method name>} with (possibly transformed) <method name>
-             methods = Regex.Replace(methods, "(?:@m\\{(\\w+)\\})", new MatchEvaluator(mapper.RewriteMethod));
+             methods = rewriteCodeFragment(methods, tyArgs);
              ret += methods;
           }
 

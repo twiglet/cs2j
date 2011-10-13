@@ -38,7 +38,7 @@ namespace Twiglet.CS2J.Translator.Transform
 
        public string MultiDelegateMethods(string Del, string DelClass, string TyArgs)
        {
-          return multiDelegateMethodsStr.Replace("${Del}", Del).Replace("${DelClass}", DelClass).Replace("${TyArgs}", TyArgs);
+          return rewriteCodeFragment(multiDelegateMethodsStr.Replace("${Del}", Del).Replace("${DelClass}", DelClass).Replace("${TyArgs}", TyArgs), new List<string>());
        }
 
        private string multiDelegateMethodsStr = @"
@@ -48,15 +48,15 @@ namespace Twiglet.CS2J.Translator.Transform
             if (a == null) return b;
             if (b == null) return a;
     	    ${DelClass} ret = new ${DelClass}();
-    	    ret._invocationList = a.GetInvocationList();
-    	    ret._invocationList.addAll(b.GetInvocationList());
+    	    ret._invocationList = a.@m{GetInvocationList}();
+    	    ret._invocationList.addAll(b.@m{GetInvocationList}());
     	    return ret;
     	}
     	
         public static ${Del} Remove ${TyArgs} (${Del} a, ${Del} b) throws Exception {
             if (a == null || b == null) return a;
-	    System.Collections.Generic.IList<${Del}> aInvList = a.GetInvocationList();
-	    System.Collections.Generic.IList<${Del}> newInvList = ListSupport.removeFinalStretch(aInvList, b.GetInvocationList());
+	    System.Collections.Generic.IList<${Del}> aInvList = a.@m{GetInvocationList}();
+	    System.Collections.Generic.IList<${Del}> newInvList = ListSupport.removeFinalStretch(aInvList, b.@m{GetInvocationList}());
 	    if (aInvList == newInvList) {
 	        return a;
 	    }
