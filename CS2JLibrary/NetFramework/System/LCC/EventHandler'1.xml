@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Delegate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.LCC.EventHandler</Import>
+  </Imports>
+  <Java>EventHandler*[${TEventArgs}]*</Java>
+  <Name>System.EventHandler</Name>
+  <TypeParams>
+    <Name>TEventArgs</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.LCC.__MultiEventHandler</Import>
+      </Imports>
+      <Java>__MultiEventHandler.combine(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Combine</Name>
+      <TypeParams>
+        <Name>TEventArgs</Name>
+      </TypeParams>
+      <Return>System.EventHandler*[TEventArgs]*</Return>
+    </Method>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.LCC.__MultiEventHandler</Import>
+      </Imports>
+      <Java>__MultiEventHandler.remove(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <TypeParams>
+        <Name>TEventArgs</Name>
+      </TypeParams>
+      <Return>System.EventHandler*[TEventArgs]*</Return>
+    </Method>
+  </Methods>
+  <Invoke>
+    <Java>${this:16}.invoke(${sender}, ${e})</Java>
+    <Params>
+      <Param>
+        <Type>System.Object</Type>
+        <Name>sender</Name>
+      </Param>
+      <Param>
+        <Type>TEventArgs</Type>
+        <Name>e</Name>
+      </Param>
+    </Params>
+    <Name>Invoke</Name>
+    <TypeParams />
+    <Return>System.Void</Return>
+  </Invoke>
+
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>yz+yOlqpwafASqBPdP2mB/lVgZk=</DigestValue></Reference></SignedInfo><SignatureValue>Nv+agoqBJd5WaI7/+c3HuvQ/dt5/5j3fHCKxNm4v8TZITAC8J+AbF8DN3l3ZZC1+zmhBzRTyrMMD7EWi7zumiRrhC2r/+rUpYbfOeiHANORPmwqP5NvSBeUbWvEp3VRBtQZHYNTDNG1gbOApoTGZi0z3dSv1ySftgALkYlxmbrc=</SignatureValue></Signature></Delegate>
