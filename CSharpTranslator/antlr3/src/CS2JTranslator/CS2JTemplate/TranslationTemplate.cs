@@ -58,7 +58,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public static string SubstituteInType(String type, Dictionary<string,TypeRepTemplate> argMap)
       {
-         if (String.IsNullOrEmpty(type))
+         if (String.IsNullOrEmpty(type) || argMap == null)
             return type;
 
          TypeVarMapper mapper = new TypeVarMapper(argMap);
@@ -2139,6 +2139,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          Variant = copyFrom.Variant;
          BoxedJava = copyFrom.BoxedJava;
          HasBoxedRep = copyFrom.HasBoxedRep;
+         Tree = copyFrom.Tree;
       }
 
       protected TypeRepTemplate(string tName, string[] tParams, string[] usePath, AliasRepTemplate[] aliases, string[] imports, string javaTemplate)
@@ -2214,10 +2215,12 @@ namespace Twiglet.CS2J.Translator.TypeRep
                Inherits[i] = TemplateUtilities.SubstituteInType(Inherits[i],args);
             }
          }
-         InstantiatedTypes = new TypeRepTemplate[args.Count];
-         for (int i = 0; i < TypeParams.Length; i++)
-         {
-             InstantiatedTypes[i] = args[TypeParams[i]];
+         InstantiatedTypes = new TypeRepTemplate[InstantiatedTypes.Length];
+         if (args != null) {
+            for (int i = 0; i < TypeParams.Length; i++)
+            {
+                 InstantiatedTypes[i] = args[TypeParams[i]];
+            }
          }
          BoxedJava = TemplateUtilities.SubstituteInType(BoxedJava,args);
          base.Apply(args);
@@ -2874,7 +2877,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
       {
          EnumRepTemplate copy = new EnumRepTemplate(this);
-         copy.Apply(mkTypeMap(args));
+         if (args != null && args.Count != 0) {
+           copy.Apply(mkTypeMap(args));
+         }
          return copy;
       }
       #region Equality
@@ -2955,6 +2960,19 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
       }
  
+      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+        
+        if ("Invoke" == name && matchParamsToArgs(Invoke.Params, Invoke.ParamArray, args, AppEnv))
+        {     
+           ResolveResult res = new ResolveResult();
+           res.Result = Invoke;
+           res.ResultType = BuildType(Invoke.Return, AppEnv);
+           return res;
+         }
+         return base.Resolve(name, args, AppEnv);
+      }
+
       public override void Apply(Dictionary<string,TypeRepTemplate> args)
       {
          Invoke.Apply(args);
@@ -2963,7 +2981,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
       {
          DelegateRepTemplate copy = new DelegateRepTemplate(this);
-         copy.Apply(mkTypeMap(args));
+         if (args != null && args.Count != 0) {
+           copy.Apply(mkTypeMap(args));
+         }
          return copy;
       }
 
@@ -3333,7 +3353,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
       {
          InterfaceRepTemplate copy = new InterfaceRepTemplate(this);
-         copy.Apply(mkTypeMap(args));
+         if (args != null && args.Count != 0) {
+           copy.Apply(mkTypeMap(args));
+         }
          return copy;
       }
 
@@ -3645,7 +3667,9 @@ namespace Twiglet.CS2J.Translator.TypeRep
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
       {
          ClassRepTemplate copy = new ClassRepTemplate(this);
-         copy.Apply(copy.mkTypeMap(args));
+         if (args != null && args.Count != 0) {
+           copy.Apply(mkTypeMap(args));
+         }
          return copy;
       }
 
