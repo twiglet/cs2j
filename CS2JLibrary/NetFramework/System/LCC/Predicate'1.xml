@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Delegate variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.LCC.Predicate</Import>
+  </Imports>
+  <Java>Predicate*[${T}]*</Java>
+  <Name>System.Predicate</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.LCC.__MultiPredicate</Import>
+      </Imports>
+      <Java>__MultiPredicate.combine(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Predicate*[T]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Predicate*[T]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Combine</Name>
+      <TypeParams>
+        <Name>T</Name>
+      </TypeParams>
+      <Return>System.Predicate*[T]*</Return>
+    </Method>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.LCC.__MultiPredicate</Import>
+      </Imports>
+      <Java>__MultiPredicate.remove(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Predicate*[T]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Predicate*[T]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <TypeParams>
+        <Name>T</Name>
+      </TypeParams>
+      <Return>System.Predicate*[T]*</Return>
+    </Method>
+  </Methods>
+  <Invoke>
+    <Java>${this:16}.invoke(${a})</Java>
+    <Params>
+      <Param>
+        <Type>T</Type>
+        <Name>a</Name>
+      </Param>
+    </Params>
+    <Name>Invoke</Name>
+    <TypeParams />
+    <Return>System.Boolean</Return>
+  </Invoke>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>yz+yOlqpwafASqBPdP2mB/lVgZk=</DigestValue></Reference></SignedInfo><SignatureValue>Nv+agoqBJd5WaI7/+c3HuvQ/dt5/5j3fHCKxNm4v8TZITAC8J+AbF8DN3l3ZZC1+zmhBzRTyrMMD7EWi7zumiRrhC2r/+rUpYbfOeiHANORPmwqP5NvSBeUbWvEp3VRBtQZHYNTDNG1gbOApoTGZi0z3dSv1ySftgALkYlxmbrc=</SignatureValue></Signature></Delegate>
