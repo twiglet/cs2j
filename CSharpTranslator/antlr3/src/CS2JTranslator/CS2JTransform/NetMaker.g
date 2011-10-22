@@ -125,6 +125,7 @@ scope MkNonGeneric {
           if (builtinTypeMap == null) {
              builtinTypeMap = new Dictionary<string,string>();
              builtinTypeMap["bool"] = "System.Boolean";
+             builtinTypeMap["boolean"] = "System.Boolean";
              builtinTypeMap["byte"] = Cfg.UnsignedNumbersToSigned ? "System.SByte" : "System.Byte";
              builtinTypeMap["char"] = "System.Char";
              builtinTypeMap["decimal"] = "System.Decimal";
@@ -133,9 +134,11 @@ scope MkNonGeneric {
              builtinTypeMap["int"] = "System.Int32";
              builtinTypeMap["long"] = "System.Int64";
              builtinTypeMap["object"] = "System.Object";
+             builtinTypeMap["Object"] = "System.Object";
              builtinTypeMap["sbyte"] = "System.Byte";
              builtinTypeMap["short"] = "System.Int16";
-             builtinTypeMap["string"] = "system.String";
+             builtinTypeMap["string"] = "System.String";
+             builtinTypeMap["String"] = "System.String";
              builtinTypeMap["uint"] = Cfg.UnsignedNumbersToSigned ? "System.Int32" : "System.UInt32";
              builtinTypeMap["ulong"] = Cfg.UnsignedNumbersToSigned ? "System.Int64" : "System.UInt64"; 
              builtinTypeMap["ushort"] = Cfg.UnsignedNumbersToSigned ? "System.Int16" : "System.UInt16";
