@@ -202,7 +202,7 @@
   <target name="clean" depends="" description="Clean build directory">
     <delete failonerror="false" dir="${build.dir}" />
     <delete failonerror="false" dir="${cs2j.parser.dir}" includes="cs*.cs *.tokens"/>
-    <delete failonerror="false" dir="${cs2j.transform.dir}"  includes="*.cs *.tokens" excludes="CommonWalker.cs"/>
+    <delete failonerror="false" dir="${cs2j.transform.dir}"  includes="*.cs *.tokens" excludes="CommonWalker.cs NetFragments.cs SyntaxFragments.cs"/>
     <exec osfamily="windows" executable="${win.msbuild.exe}">
       <arg value = "${cs2j.sln}"/>
       <arg value = "/verbosity:quiet"/>
