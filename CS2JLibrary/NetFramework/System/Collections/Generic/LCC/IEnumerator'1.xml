@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -29,15 +29,15 @@
   <Methods>
     <Method>
       <Java>${this:16}.moveNext()</Java>
-      <Params/>
+      <Params />
       <Name>MoveNext</Name>
       <Return>System.Boolean</Return>
     </Method>
     <Method>
       <Java>${this:16}.reset()</Java>
-      <Params/>
+      <Params />
       <Name>Reset</Name>
       <Return>System.Void</Return>
     </Method>
   </Methods>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>Z9FptX0U42LEe5NyR07kbqmjngA=</DigestValue></Reference></SignedInfo><SignatureValue>AMNZC0531V5Q+gQld+kJ3wysXE0U2xV2g0dMdYeCAdgwPdcJ7LlZLgfDUDVJHv7XvlfwuXIIlAxXkrzojSVtfQIc7S/uku8p3hLiY5WUAriqkwK+AgUA+WrtWdng0Sda89V7HOODNZCbBNoPKQLRNKoWJc17EWxw+dyqymRLjAQ=</SignatureValue></Signature></Interface>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>plmmdxVt0wMX48qvtwzeuaEsn1A=</DigestValue></Reference></SignedInfo><SignatureValue>Rv0c7A8YCjmafwYGUKfwpEmCFvWq9B2X69b+WN1rl7iJD82Whkp7ycXpyXwPXFYQ6VBqrm2p4fdYZLU5EYcN3LxJL1o4OlyEW4fRFAfQoVIkA0Oy48MwnfkgTdIKs/hNBSF9ESxnCp8DDwrkfO7I6vznJhAdkpDCqrwCTWQ0/kg=</SignatureValue></Signature></Interface>

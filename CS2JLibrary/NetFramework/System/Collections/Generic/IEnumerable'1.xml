@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -24,9 +24,9 @@
   <Methods>
     <Method>
       <Java>${this:16}.GetEnumerator()</Java>
-      <Params/>
+      <Params />
       <Name>GetEnumerator</Name>
       <Return>System.Collections.Generic.IEnumerator*[E]*</Return>
     </Method>
   </Methods>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>FzD0ISaWZKb/GDgZSI4werJrHHs=</DigestValue></Reference></SignedInfo><SignatureValue>NeU9k5KOXySVLGMadMEZfh5bsC928iltYWSnpm/5N0sN3NSyfZYUPZ3mL8DG8bZPzJbTIla2fkkZH0FbsDbtU1AeTYpFg9C8NSGDeYqR1mNEaCqYUZQmmP5MP9TtyT9dZOItpb4TXSWjKdkahUaw6CbFRn38Az9Wfh+8DdHIzjg=</SignatureValue></Signature></Interface>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>wLoyJFYOWU/g9aF2YOaGrd/r0tk=</DigestValue></Reference></SignedInfo><SignatureValue>Pn1IelTHcivEyVgXDzK995cTFBf60c88FlFehGdqld48kAjf1/Lw9GE9uLuog2EkAZDwZdiVri8TCuVxcQuqK3usLA2f9HXi6QGBpqgqEpCy9liqwVREXKEjx2XgDnhN1OsICXXxpIA80oCdA2GTvs0UV1fT6XzZMqoarfRWo3M=</SignatureValue></Signature></Interface>

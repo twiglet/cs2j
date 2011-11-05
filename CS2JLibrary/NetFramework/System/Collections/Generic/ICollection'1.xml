@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -16,7 +16,7 @@
     <Name>T</Name>
   </TypeParams>
   <Inherits>
-    <Type>>System.Collections.Generic.IEnumerable*[T]*</Type>
+    <Type>&gt;System.Collections.Generic.IEnumerable*[T]*</Type>
   </Inherits>
   <Iterable>
     <ElementType>T</ElementType>
@@ -38,4 +38,4 @@
       <Return>System.Int32</Return>
     </Method>
   </Methods>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>E8HIpKiRknOratBbxt4a71EId0E=</DigestValue></Reference></SignedInfo><SignatureValue>bqvpolcous2/NZYPel/paViJS5fRwPaIvj75jVeZg70SnvhIFVNstqctcVLe2mw52NihU5aIVD3Pl1E5ZCeZbXs15yeg9B2CG//EbCpSXGO/a9iLa0aZhv4O63vLJAqBqT1tqKj+Z8FXIJxbwo4rtwnNHH7rqUAMsg3GfojAmS8=</SignatureValue></Signature></Interface>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>3A2ryYn5HIN2/ICMFxG9LjS640c=</DigestValue></Reference></SignedInfo><SignatureValue>B52dANJCaLIRSa1AryliKOjKJbm7+6AyyyTCJ6RiRR76na6gNVJ4uDLlM6y/De8Ud6OwVCokZrmycRKWHhGvxufYv4HPKMDciPBlQbw3CnTt1AxLWkKLgXdcjYnBF7WR9Hemk7PgbE/hFfCavgMIq9E+42QrdXT3cKxFWBHfZ2Y=</SignatureValue></Signature></Interface>
