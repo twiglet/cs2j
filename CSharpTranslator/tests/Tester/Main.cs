@@ -15,9 +15,10 @@ namespace Tester
 			//Tester.Delegates.EventHandler.Sample.EHMain();
 			
 			// Tester.Misc.RenameTest.RNMain("hello world");
-			Tester.Misc.Sorter.Example.SorterMain();
-			Tester.Misc.RegexTest.RegexMain();
-			
+			//Tester.Misc.Sorter.Example.SorterMain();
+			//Tester.Misc.RegexTest.RegexMain();
+            Twiglet.Sample.Delegate.DelegateSampler.DelegateSamplerMain();
+            Console.WriteLine("Finished");
 		}
 	}
 }
