@@ -2888,12 +2888,12 @@ scope ForceUnsharedType;
          })?   
       // make a copy of the type parameter so that we can set iswrapped below
       { oldFresh = $ForceUnsharedType::fresh; $ForceUnsharedType::fresh = isRefOut;}
-      type   { $boxedTypeTree = $type.boxedTree; } 
+      type   
       { $ForceUnsharedType::fresh = oldFresh; }
       identifier  { $paramType = $type.dotNetType; $type.dotNetType.IsWrapped = isRefOut; $SymTab::symtab[$identifier.thetext] = $type.dotNetType; }  
       default_argument? 
       magicRef[isRefOut, $type.tree != null ? $type.tree.Token : null, $type.tree]
-
+        { $boxedTypeTree = isRefOut ? dupTree($magicRef.tree) : $type.boxedTree; } 
    -> {isRefOut}? magicRef identifier default_argument?
    -> parameter_modifier? type identifier default_argument?
    ;
