@@ -1143,8 +1143,13 @@ namespace Twiglet.CS2J.Translator.TypeRep
    {
       public InvokeRepTemplate()
       {
-         
       }
+
+      public InvokeRepTemplate(TypeRepTemplate parent, MethodRepTemplate copyFrom) 
+        : base(parent, copyFrom)
+      {
+      }
+
       public InvokeRepTemplate (string retType, string methodName, string[] tParams, List<ParamRepTemplate> pars) : base(retType, methodName, tParams, pars)
       {
       }
@@ -2956,7 +2961,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       {
          if (copyFrom.Invoke != null)
          {
-            Invoke = copyFrom.Invoke;
+            Invoke = new InvokeRepTemplate(this, copyFrom.Invoke);
          }
       }
  
