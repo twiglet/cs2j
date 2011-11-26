@@ -2530,7 +2530,7 @@ orderby_clause:
 ordering_list:
 	ordering   (','   ordering)* ;
 ordering:
-	expression[ObjectType]    ordering_direction
+	expression[ObjectType]    ordering_direction?
 	;
 ordering_direction:
 	'ascending'

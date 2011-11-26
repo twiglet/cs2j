@@ -688,7 +688,7 @@ public orderby_clause:
 public ordering_list:
 	ordering   (','   ordering)* ;
 public ordering:
-	expression    ordering_direction
+	expression    ordering_direction?
 	;
 public ordering_direction:
 	'ascending'

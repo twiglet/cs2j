@@ -1138,7 +1138,7 @@ orderby_clause:
 ordering_list:
 	ordering   (','   ordering)* ;
 ordering:
-	expression    ordering_direction
+	expression    ordering_direction?
 	;
 ordering_direction:
 	'ascending'
