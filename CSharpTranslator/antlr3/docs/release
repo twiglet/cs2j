@@ -17,6 +17,13 @@ git bash:
 
 copy archives from "C:\Documents and Settings\developer\build" to ""C:\Documents and Settings\developer\My Documents" and unpack.
 
+***********
+* If it says that it can't continue because there are uncommitted changes but giff index doesn't show anything it is because
+* git diff-index thinks there are changes.
+* run git commit on its own (it will say nothing to commit) then git diff-index should be happy again
+**********       *
+
+
 DOS prompt:
 
 cd "C:\Documents and Settings\developer\My Documents\cs2j-2011.1.2\cs2j-2011.1.2"
