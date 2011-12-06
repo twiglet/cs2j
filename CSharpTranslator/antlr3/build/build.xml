@@ -46,7 +46,7 @@
 
   <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
-  <target name="trialfromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,buildcs2j,signtxfiles,mkcs2jlibprojsrc,obfuscate,mkarchive,mkmailarchive"/>
+  <target name="trialfromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,buildcs2j,obfuscate,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
   
   <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="clean,init,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
@@ -69,7 +69,7 @@
     <zip destfile="${release.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
   </target>
 
-  <target name="obfuscate" description="runs obfuscator on cs2j executable if windows" depends="mkreleasefiles,setplatform,do-obfuscate">
+  <target name="obfuscate" description="runs obfuscator on cs2j executable if windows" depends="buildcs2j,setplatform,do-obfuscate">
   </target>
 
   <target name="do-obfuscate" description="runs obfuscator on cs2j executable" if="windows.platform">
