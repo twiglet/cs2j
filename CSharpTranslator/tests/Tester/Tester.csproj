@@ -61,6 +61,7 @@
     <Compile Include="Misc\newmodifier.cs" />
     <Compile Include="Misc\Sorter.cs" />
     <Compile Include="Misc\Regex\RegexTest.cs" />
+    <Compile Include="WebEvents\EventSampler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

@@ -18,6 +18,7 @@ namespace Tester
 			//Tester.Misc.Sorter.Example.SorterMain();
 			//Tester.Misc.RegexTest.RegexMain();
             Twiglet.Sample.Delegate.DelegateSampler.DelegateSamplerMain();
+            Twiglet.Sample.Event.EventSampler.EventSamplerMain(args);
             Console.WriteLine("Finished");
 		}
 	}
