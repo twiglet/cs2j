@@ -142,6 +142,15 @@
     </git>
   </target>
 
+  <target name="refreshdocs" description="Refreshes the user guides for Google Docs (need to install googlecl)">
+    <antcall target="getuserguide">
+      <param name="google.docs.title" value="CS2JTrialUsersGuide"/>
+    </antcall>
+    <antcall target="getuserguide">
+      <param name="google.docs.title" value="CS2JUsersGuide"/>
+    </antcall>
+  </target>
+
   <target name="getuserguide" description="Downloads the user guide for Google Docs (need to install googlecl)">
      <exec executable="google" failonerror="false">
        <arg value = "docs"/>
