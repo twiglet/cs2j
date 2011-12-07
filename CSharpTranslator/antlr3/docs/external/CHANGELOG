@@ -1,4 +1,9 @@
-2011-09-13
+2011-12-07  2011.3.1
+
+	* primitive types are now correctly boxed when they appear as
+	Generic Type arguments.
+
+	* defaults for parameters can be provided by an ini file (option -config).
 
 	* revamped option names (sorry!). See user guide.
 	    added:
@@ -31,6 +36,8 @@
                         -translator-make-java-naming-conventions	 -->  -make-java-naming-conventions
 
                         -experimental-enums-numericconsts  -->  -experimental-enums-to-numeric-consts
+
+	* the usual bug fixes and improvements to translation templates.
 
 2011-09-07  2011.2.4
 
