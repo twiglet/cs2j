@@ -549,7 +549,7 @@ scope MkNonGeneric {
 
         foreach (string t in ScruTypeStrs)
         {
-            if (sType.IsA(AppEnv.Search(t), AppEnv))
+            if (sType.IsA(findType(t), AppEnv))
             {
                 ret = false;
                 break;
@@ -1726,7 +1726,7 @@ initializer_value:
 ///////////////////////////////////////////////////////
 
 typeof_expression returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]: 
-	^('typeof'  (unbound_type_name | type { $typeofType = $type.dotNetType; } | 'void' { $typeofType = AppEnv.Search("System.Void"); }) ) { $dotNetType = AppEnv.Search("System.Type"); };
+	^('typeof'  (unbound_type_name | type { $typeofType = $type.dotNetType; } | 'void' { $typeofType = findType("System.Void"); }) ) { $dotNetType = findType("System.Type"); };
 // unbound type examples
 //foo<bar<X<>>>
 //bar::foo<>
@@ -2641,7 +2641,7 @@ scope NSContext,SymTab;
 			}
          }
          class_body magicAnnotation[$modifiers.tree, $identifier.tree, null, $c.token])
-    -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(AppEnv.Search("System.Attribute", new UnknownRepTemplate("System.Attribute")), AppEnv)}? magicAnnotation
+    -> {$class_implements.hasExtends && $class_implements.extendDotNetType.IsA(findType("System.Attribute"), AppEnv)}? magicAnnotation
     -> ^($c 'partial'? PAYLOAD? attributes? modifiers? identifier type_parameter_constraints_clauses? type_parameter_list? class_implements? class_body);
 
 type_parameter_list returns [List<string> tyParams]
@@ -3097,7 +3097,7 @@ scope {
     ^(s='switch' se=expression[ObjectType] sv=magicScrutineeVar[$s.token]
                 { 
                     if ($expression.dotNetType != null) {
-                        $switch_statement::isEnum = $expression.dotNetType.IsA(AppEnv.Search("System.Enum"), AppEnv); 
+                        $switch_statement::isEnum = $expression.dotNetType.IsA(findType("System.Enum"), AppEnv); 
                         $switch_statement::convertToIfThenElse = typeIsInvalidForScrutinee($expression.dotNetType);
                         $switch_statement::scrutVar = $sv.thetext;
                     }
@@ -3427,7 +3427,7 @@ literal returns [TypeRepTemplate dotNetType]
     bool isNull = false;
 }
 @after {
-    TypeRepTemplate retTy = AppEnv.Search(ns);
+    TypeRepTemplate retTy = findType(ns);
     if (isNull) {
         retTy = new ClassRepTemplate((ClassRepTemplate)retTy);
         retTy.IsExplicitNull = true;

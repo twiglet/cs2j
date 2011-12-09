@@ -60,7 +60,7 @@ namespace Twiglet.CS2J.Translator
             Console.Out.WriteLine("Usage: " + Path.GetFileNameWithoutExtension(System.Environment.GetCommandLineArgs()[0]));
             Console.Out.WriteLine(" [-help]                                                                     (this usage message)");
             Console.Out.WriteLine(" [-v]                                                                        (be [somewhat more] verbose, repeat for more verbosity)");
-            Console.Out.WriteLine(" [-config <iniFile>]                                                        (read settings from <iniFile>, overriden from command line");
+            Console.Out.WriteLine(" [-config <iniFile>]                                                         (read settings from <iniFile>, overriden from command line");
             Console.Out.WriteLine(" [-D <macroVariable>]                                                        (define C# preprocessor <macroVariable>, option can be repeated)");
             Console.Out.WriteLine(" [-show-tokens]                                                              (the lexer prints the tokenized input to the console)");
             Console.Out.WriteLine(" [-show-csharp] [-show-javasyntax] [-show-java]                              (show parse tree at various stages of the translation)");
@@ -93,6 +93,9 @@ namespace Twiglet.CS2J.Translator
                for (int i = 0; i < argDirs.Length; i++)
                {
                   string dir = Path.GetFullPath(argDirs[i]).TrimEnd(Path.DirectorySeparatorChar);
+                  if (!(File.Exists(dir) || Directory.Exists(dir))) {
+                     Console.Out.WriteLine("WARNING: Cannot read " + dir);
+                  }
                   strs.Add(dir);
                }
             }

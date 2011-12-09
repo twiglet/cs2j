@@ -2495,7 +2495,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
             // Take care of arrays ....
             while (typeStr.StartsWith("[]"))
             {
-               TypeRepTemplate arrayType = AppEnv.Search("System.Array'1");
+               TypeRepTemplate arrayType = AppEnv.Search("System.Array'1", new UnknownRepTemplate("System.Array'1"));
                typeRep = arrayType.Instantiate(new TypeRepTemplate[] { typeRep });
                typeStr = typeStr.Substring(2).TrimStart();
             }
@@ -3842,7 +3842,15 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
       public UnknownRepTemplate (string typeName) : base(typeName)
       {
-         Inherits = new String[] { "System.Object" };
+         // If we are creating an UnknownRepTemplate for System.Object then don't
+         // inherit from ourselves, else we get stack overflow when resolving.
+         // This should only happen in the case that we don't have a valid
+         // net-templates-dir with a definition for System.Object.
+         if (typeName != "System.Object") {
+            Inherits = new String[] { "System.Object" };
+         } else {
+            Inherits = new String[] { };
+         }
       }
 
       public UnknownRepTemplate (TypeRepRef typeName) : this(typeName.Type)
