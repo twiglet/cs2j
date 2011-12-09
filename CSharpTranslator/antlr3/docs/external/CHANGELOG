@@ -1,3 +1,13 @@
+2011-12-09  2011.3.3
+
+	* refine obfuscation so that we can graft in code in the trial version again.
+
+2011-12-09  2011.3.2
+
+	* check directories / files passed on the command line can be read.
+
+	* do not crash if we haven't been passed NetFramework translations.
+
 2011-12-07  2011.3.1
 
 	* primitive types are now correctly boxed when they appear as
