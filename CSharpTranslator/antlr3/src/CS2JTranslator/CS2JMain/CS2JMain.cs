@@ -1,4 +1,4 @@
-\/*
+/*
    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
 */
 
