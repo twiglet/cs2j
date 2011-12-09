@@ -1,6 +1,6 @@
-//   Copyright 2011 Kevin Glynn (http://www.twigletsoftware.com)
+//   Copyright (c) 2011 Kevin Glynn (http://www.twigletsoftware.com)
 //
-// The MIT License (MIT)
+// The MIT License (Expat)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 // and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -28,7 +28,6 @@ namespace Twiglet.Sample.Delegate
     /// </summary>
 	public class DelegateSampler
 	{
-        public delegate void xProcessor<T>(ref T value);
         //
         /// <summary>
         /// LogWriters take a string and record it.
@@ -37,10 +36,10 @@ namespace Twiglet.Sample.Delegate
 		public delegate void LogWriter(string logMessage);
 
         /// <summary>
-        /// A chain of delegates can't pass values to each other, (the value
-        /// returned from the final delegate is returned to the caller, but the
-        /// values from intermediate delegates are just dropped on the floor).
-        /// However the delegates can communictae if we use ref parameters.
+        /// A chain of delegates can't pass values to each other, (only the value
+        /// returned from the final delegate is returned to the caller, the
+        /// return values from intermediate delegates are just dropped on the floor).
+        /// However the delegates can communicate if we use ref parameters.
         /// </summary>
         /// <param name="value">the variable that we are processing</param>
         public delegate void Processor<T>(ref T value);

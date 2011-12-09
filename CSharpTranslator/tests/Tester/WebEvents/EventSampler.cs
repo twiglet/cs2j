@@ -1,6 +1,6 @@
-//   Copyright 2011 Kevin Glynn (http://www.twigletsoftware.com)
+//   Copyright (c) 2011 Kevin Glynn (http://www.twigletsoftware.com)
 //
-// The MIT License (MIT)
+// The MIT License (Expat)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 // and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -24,15 +24,24 @@ namespace Twiglet.Sample.Event
 {
 
     /// <summary>
-    /// Sample class to show off CS2J's translations for events 
+    /// Sample class to show off CS2J's translations for events.
+	/// 
+	/// A StorePublisher object stores a list of thingummys.  Thingummys
+	/// can be added to the store and the store can be cleared. (For brevity
+	/// we omit methods to retrieve thingummys from the store!).
+	/// 
+	/// The StorePublisher has two events, one fires when items are added, the
+	/// other fires when the store is cleared. Callers to Add and Clear pass
+	/// a name, and this name is sent to the event subscribers.
+	/// 
     /// </summary>
-	public class StorePublisher
+	public class StorePublisher<T>
 	{
-        private List<string> store = null;
+        private List<T> store = null;
 
         // The events raised by this Store Publisher
         public event EventHandler<ClearEventArgs> RaiseClearedEvent;
-        public event EventHandler<StoreEventArgs> RaiseStoredEvent;
+        public event EventHandler<StoreEventArgs<T>> RaiseStoredEvent;
 
         // raise the Clear event
         protected virtual void OnRaiseClearedEvent(ClearEventArgs e)
@@ -45,7 +54,7 @@ namespace Twiglet.Sample.Event
         }
 
         // raise the Store event
-        protected virtual void OnRaiseStoredEvent(StoreEventArgs e)
+        protected virtual void OnRaiseStoredEvent(StoreEventArgs<T> e)
         {
             if (RaiseStoredEvent != null)
             {
@@ -56,18 +65,18 @@ namespace Twiglet.Sample.Event
 
         public void Clear(string requestor)
         {
-            store = new List<string>();
+            store = new List<T>();
             OnRaiseClearedEvent(new ClearEventArgs(requestor));
         }
 
-        public void Add(string requestor, string data)
+        public void Add(string requestor, T data)
         {
             if (store == null)
             {
-                Clear("Add, needed to service " + requestor);
+                Clear("Add");
             }
             store.Add(data);
-            OnRaiseStoredEvent(new StoreEventArgs(requestor, data));
+            OnRaiseStoredEvent(new StoreEventArgs<T>(requestor, data));
         }
 	}
 
@@ -84,11 +93,11 @@ namespace Twiglet.Sample.Event
     /// <summary>
     /// EventArgs derived class to pass info about a request to add data to store
     /// </summary>
-    public class StoreEventArgs : EventArgs
+    public class StoreEventArgs<T> : EventArgs
     {
-        public StoreEventArgs(string req, string data) { this.Requestor = req; this.Data = data; }
+        public StoreEventArgs(string req, T data) { this.Requestor = req; this.Data = data; }
         public string Requestor { get; set; }
-        public string Data { get; set; }
+        public T Data { get; set; }
     }
 
     /// <summary>
@@ -106,51 +115,69 @@ namespace Twiglet.Sample.Event
         public SubscriptionType SubnType { get; set; } 
     }
 
-    public class StoreSubscriber
+    public class StoreSubscriber<T>
     {
+		/// <summary>
+		/// Name identifies this subscriber in the trace.
+		/// </summary>
+		/// <value>
+		/// The name.
+		/// </value>
         public string Name { get; set; }
-
+		
         public StoreSubscriber(string n)
         {
             Name = n;
         }
-
-        public void SubscribeToStore(StorePublisher store) {
+		
+		/// <summary>
+		/// We subscribe to both StorePublisher events.
+		/// </summary>
+		/// <param name='store'>
+		/// Store.
+		/// </param>
+        public void SubscribeToStore(StorePublisher<T> store) {
             store.RaiseClearedEvent += new EventHandler<ClearEventArgs>(OnClearEvent);
-            store.RaiseStoredEvent += new EventHandler<StoreEventArgs>(OnStoreEvent);
+            store.RaiseStoredEvent += new EventHandler<StoreEventArgs<T>>(OnStoreEvent);
         }
 
         private void OnClearEvent(object sender, ClearEventArgs e)
         {
             Console.WriteLine(Name + ": " + e.Requestor + " cleared the Store");
         }
-        private void OnStoreEvent(object sender, StoreEventArgs e)
+        private void OnStoreEvent(object sender, StoreEventArgs<T> e)
         {
-            Console.WriteLine(Name + ": " + e.Requestor + " added " + e.Data + " to the Store");
+            Console.WriteLine(Name + ": " + e.Requestor + " added " + e.Data.ToString() + " to the Store");
         }
     }
 
     public static class EventSampler
     {
-        public static string MYID = "MAIN";
+        public static string MYID = "StoreUser";
 
         public static void EventSamplerMain(string[] args)
         {
+			
+			// Create StorePublisher instance
+            StorePublisher<string> s = new StorePublisher<string>();
 
-            StorePublisher s = new StorePublisher();
-            s.Add(MYID, "Store Ham");
-
-            // Add two subscribers
-            StoreSubscriber sub1 = new StoreSubscriber("Subscriber A");
-            sub1.SubscribeToStore(s);
-
+			// Add first subscriber
+            new StoreSubscriber<string>("Subscriber A").SubscribeToStore(s);
+			
+			// Generates events for initial clear and the add
+			s.Add(MYID, "Store Ham");
+			
+			// Generates an add event
             s.Add(MYID, "Store Eggs");
-
-            StoreSubscriber sub2 = new StoreSubscriber("Subscriber B");
-            sub2.SubscribeToStore(s);
+			
+			// Add second subscriber
+            new StoreSubscriber<string>("Subscriber B").SubscribeToStore(s);
+			
+			// Both subscribers are notified of add
             s.Add(MYID, "Store Milk");
-
-            s.Add("Main", "Hello World");
+			
+			// Both subscribers are notified of clear
+            s.Clear(MYID);
         }
 
     }
