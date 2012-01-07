@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import CS2JNet.JavaSupport.util.LocaleSupport;
 
@@ -82,8 +83,13 @@ public class DateTimeSupport {
 	
 	public static Date parse(String s) throws ParseException
 	{
+		return parse(s, false);
+	}
+	
+	public static Date parse(String s, boolean utc) throws ParseException
+	{
 		String val = trimMilliSecondsToThreeDigits(s);
-		return parse(val, DATE_FORMATS, Locale.getDefault());
+		return parse(val, DATE_FORMATS, Locale.getDefault(), utc);
 	}
 	
 	protected static String trimMilliSecondsToThreeDigits(String dateString){
@@ -115,12 +121,21 @@ public class DateTimeSupport {
     }
 
     public static Date parse(String s, String[] formats, Locale loc) throws ParseException
-	{
+    {
+    	return parse(s, formats, loc, false);
+    }
+    
+    public static Date parse(String s, String[] formats, Locale loc, boolean utc) throws ParseException
+    {
 		for (String f : formats)
 		{
 			try
 			{
-				Date d = (new SimpleDateFormat(f)).parse(s);
+				SimpleDateFormat sdf = new SimpleDateFormat(f);                              
+				if(utc){
+					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+				}
+				Date d = sdf.parse(s);
 				// System.out.println("Date: "+ d.toString());
 				return d;
 			}

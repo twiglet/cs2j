@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -17,7 +17,23 @@
   <Inherits>
     <Type>System.Object</Type>
   </Inherits>
-  <Methods />
+  <Methods>
+    <Method>
+      <Return>System.Void</Return>
+      <Name>AddHeader</Name>
+      <Params>
+        <Param>
+           <Type>System.String</Type>
+           <Name>name</Name>
+        </Param>
+        <Param>
+           <Type>System.String</Type>
+           <Name>value</Name>
+        </Param>
+      </Params>
+      <Java>${this:16}.setHeader(${name},${value})</Java>
+    </Method>
+  </Methods>
   <Properties />
   <Events />
   <Indexers />

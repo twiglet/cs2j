@@ -109,7 +109,7 @@ public class DirectorySupport {
 		String[] allFilePaths = new String[allFiles.length];
 		
 		for (int i = 0; i < allFilePaths.length; i++) {
-			allFilePaths[i] = allFiles[i].getCanonicalPath();
+			allFilePaths[i] = allFiles[i].getAbsolutePath();
 		}
 		
 		return allFilePaths;
@@ -131,7 +131,7 @@ public class DirectorySupport {
 			File[] matchDirs = new File(path).listFiles(DirectorySupport.dirFilter(patternComponents[0]));
 			for (File d : matchDirs)
 			{
-				allMatches.addAll(Arrays.asList(getFiles(d.getCanonicalPath(),patternComponents[1])));
+				allMatches.addAll(Arrays.asList(getFiles(d.getAbsolutePath(),patternComponents[1])));
 			}
 			
 		}
@@ -142,7 +142,7 @@ public class DirectorySupport {
 			
 			for (int i = 0; i < allFiles.length; i++)
 			{
-				allMatches.add(i,((File)allFiles[i]).getCanonicalPath());
+				allMatches.add(i,((File)allFiles[i]).getAbsolutePath());
 			}
 		}
 		
@@ -159,7 +159,7 @@ public class DirectorySupport {
 		String[] allDirPaths = new String[allDirs.length];
 		
 		for (int i = 0; i < allDirPaths.length; i++) {
-			allDirPaths[i] = allDirs[i].getCanonicalPath();
+			allDirPaths[i] = allDirs[i].getAbsolutePath();
 		}
 		
 		return allDirPaths;

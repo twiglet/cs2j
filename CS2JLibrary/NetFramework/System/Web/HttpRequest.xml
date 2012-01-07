@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -18,7 +18,13 @@
     <Type>System.Object</Type>
   </Inherits>
   <Methods />
-  <Properties />
+  <Properties>
+    <Property>
+       <Type>System.String</Type>
+       <Name>HttpMethod</Name>
+       <Get>${this:16}.getMethod()</Get>
+    </Property>
+  </Properties>
   <Events />
   <Indexers />
   <Constructors />

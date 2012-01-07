@@ -259,8 +259,8 @@ public class XmlNode implements Iterable {
 	{
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		Node dummyD = builder.parse(new InputSource(new StringReader("<DUMMY>" + value + "</DUMMY>")));
-		Node importableNode = getNode().getOwnerDocument().importNode(dummyD.getFirstChild(), true);
+		Document dummyDoc = builder.parse(new InputSource(new StringReader("<DUMMY>" + value + "</DUMMY>")));
+		Node importableNode = getNode().getOwnerDocument().importNode(dummyDoc.getDocumentElement(), true);
 		Node myNode = getNode();
 		
 		// First we remove all existing children
@@ -273,7 +273,7 @@ public class XmlNode implements Iterable {
 		}
 		
 		// Now we insert the new children
-		child = importableNode.getLastChild();
+		child = importableNode.getFirstChild();
 		while (child != null)
 		{
 			Node tmp = child;

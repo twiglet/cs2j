@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -244,6 +244,12 @@
     </Method>
   </Methods>
   <Properties>
+    <Property>
+      <Java>Calendar.getInstance().getTime()</Java>
+      <Type>System.DateTime</Type>
+      <Name>MinDate</Name>
+      <Get>new Date(Long.MIN_VALUE)</Get>
+    </Property>
     <Property>
       <Imports>
         <Import>java.util.Calendar</Import>
