@@ -262,6 +262,15 @@
     </Property>
     <Property>
       <Imports>
+        <Import>java.util.Calendar</Import>
+        <Import>java.util.TimeZone</Import>
+      </Imports>
+      <Type>System.DateTime</Type>
+      <Name>UtcNow</Name>
+      <Get>Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTime()</Get>
+    </Property>
+    <Property>
+      <Imports>
         <Import>java.util.Date</Import>
       </Imports>
       <Java>new Date()</Java>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -113,6 +113,24 @@
         </Param>
       </Params>
       <Name>EndsWith</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>StringSupport.equals(${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Name>arg1</Name>
+          <Type>System.String</Type>
+        </Param>
+        <Param>
+          <Name>arg2</Name>
+          <Type>System.String</Type>
+        </Param>
+      </Params>     
+      <Name>Equals</Name>
       <Return>System.Boolean</Return>
     </Method>
     <Method>

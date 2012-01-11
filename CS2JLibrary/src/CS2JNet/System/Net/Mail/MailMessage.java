@@ -15,6 +15,7 @@ public class MailMessage
     private MailAddressCollection _bcc;
     private MailAddressCollection _cc;
     private MailAddressCollection _to;
+    private boolean _html;
     private String _body;
     private InternetAddress _from;
     private String _subject;
@@ -32,6 +33,16 @@ public class MailMessage
     public MailAddressCollection getTo() throws Exception
     {
         return _to;
+    }
+
+    public boolean isHtml() 
+    {
+    	return _html;
+    }
+    
+    public void setHtml(boolean value)
+    {
+    	this._html = value;
     }
 
     public String getBody() throws Exception
