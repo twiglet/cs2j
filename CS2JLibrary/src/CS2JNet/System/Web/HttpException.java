@@ -1,4 +1,4 @@
-package RusticiSoftware.System.Web;
+package CS2JNet.System.Web;
 
 public class HttpException extends Exception {
 	private int httpCode = -1;

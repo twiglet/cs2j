@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.mail.internet.AddressException;
+
 /**
  * @author keving
  *
@@ -38,7 +40,7 @@ public class MailAddressCollection implements Collection<MailAddress> {
 		return addresses.add(arg0);
 	}
 
-	public boolean add(String arg0) {
+	public boolean add(String arg0) throws AddressException {
 		return addresses.add(new MailAddress(arg0));
 	}
 

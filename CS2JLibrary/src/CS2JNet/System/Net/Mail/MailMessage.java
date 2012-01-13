@@ -17,7 +17,7 @@ public class MailMessage
     private MailAddressCollection _to;
     private boolean _html;
     private String _body;
-    private InternetAddress _from;
+    private MailAddress _from;
     private String _subject;
 
     public MailAddressCollection getBcc() throws Exception
@@ -55,12 +55,12 @@ public class MailMessage
         _body = value;
     }
 
-    public InternetAddress getFrom() throws Exception
+    public MailAddress getFrom() throws Exception
     {
         return _from;
     }
 
-    public void setFrom(InternetAddress value) throws Exception
+    public void setFrom(MailAddress value) throws Exception
     {
         _from = value;
     }

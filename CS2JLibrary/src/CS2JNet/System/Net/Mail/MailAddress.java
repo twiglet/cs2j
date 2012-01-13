@@ -20,6 +20,9 @@
 
 package CS2JNet.System.Net.Mail;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 /**
  * @author keving
  *
@@ -28,27 +31,27 @@ public class MailAddress {
 
 	private String address, displayName, host, user;
 
-	private void parseAddress(String add) {
+	private void parseAddress(String add) throws AddressException {
 		// TODO: parse address into fields
-		address = add;
+		InternetAddress parsedMailaddress = new InternetAddress(add, false);
+		address = parsedMailaddress.getAddress();
+		displayName = parsedMailaddress.getPersonal();
 	}
 	
-	public MailAddress(String inAddress) {
+	public MailAddress(String inAddress) throws AddressException {
 		parseAddress(inAddress);
 	}
 	
-	public MailAddress(String inAddress, String inDisplayName) {
+	public MailAddress(String inAddress, String inDisplayName) throws AddressException {
 		parseAddress(inAddress);
 		if (inDisplayName != null && inDisplayName.length() > 0)
-			inAddress = inDisplayName;
+			displayName = inDisplayName;
 	}
 	
-	// TODO:
-	//public MailAddress(String inAddress, Encoding enc) {
-	//	parseAddress(inAddress);
-	//	if (inDisplayName != null && inDisplayName.length() > 0)
-	//		inAddress = inDisplayName;
-	//}
+	public MailAddress(InternetAddress inInternetAddress) throws AddressException {
+		address = inInternetAddress.getAddress();
+		displayName = inInternetAddress.getPersonal();
+	}
 	
 	
 	/**
@@ -106,5 +109,6 @@ public class MailAddress {
 	public String getAddress() {
 		return address;
 	}
+
 	
 }
