@@ -59,7 +59,6 @@ public class IteratorSupport<T> implements Iterator<T>{
 		}
 	}
 
-	@Override
 	/***
 	 * hasNext() can be called multiple times and should keep returning the same answer
 	 * until next() has been called.
@@ -68,7 +67,6 @@ public class IteratorSupport<T> implements Iterator<T>{
 		return hasNext; 
 	}
 
-	@Override
 	public T next() {
 		if (!hasNext) {
 			throw new NoSuchElementException();
@@ -84,7 +82,6 @@ public class IteratorSupport<T> implements Iterator<T>{
 		return ret;
 	}
 
-	@Override
 	public void remove() {
 		throw new UnsupportedOperationException("CS2J: IteratorSupport.remove()");
 		

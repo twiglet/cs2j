@@ -44,7 +44,6 @@ public class Disposable implements IDisposable {
 	/* (non-Javadoc)
 	 * @see CS2JNet.System.IDisposable#Dispose()
 	 */
-	@Override
 	public void dispose() throws Exception {
 		if (dispVal != null)
 			dispVal.dispose();

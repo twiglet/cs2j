@@ -31,7 +31,6 @@ public class EventCollection<T> implements IEventCollection<T> {
 	/* (non-Javadoc)
 	 * @see CS2JNet.JavaSupport.language.IEventCollection#Invoke(java.lang.Object, CS2JNet.JavaSupport.language.EventArgs)
 	 */
-	@Override
 	public void Invoke(Object cause, EventArgs e) throws CS2JRunTimeException {
 	    if (listeners != null) {
 	    	// do something here

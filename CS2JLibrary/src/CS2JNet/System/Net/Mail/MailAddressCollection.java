@@ -34,8 +34,7 @@ import javax.mail.internet.AddressException;
 public class MailAddressCollection implements Collection<MailAddress> {
 
 	List<MailAddress> addresses = new ArrayList<MailAddress>();
-	
-	@Override
+
 	public boolean add(MailAddress arg0) {
 		return addresses.add(arg0);
 	}
@@ -44,63 +43,51 @@ public class MailAddressCollection implements Collection<MailAddress> {
 		return addresses.add(new MailAddress(arg0));
 	}
 
-	@Override
 	public boolean addAll(Collection<? extends MailAddress> arg0) {
 		return addresses.addAll(arg0);
 	}
 
-	@Override
 	public void clear() {
 		addresses.clear();
 		
 	}
 
-	@Override
 	public boolean contains(Object arg0) {
 		return addresses.contains(arg0);
 	}
 
-	@Override
 	public boolean containsAll(Collection<?> arg0) {
 		return addresses.containsAll(arg0);
 	}
 
-	@Override
 	public boolean isEmpty() {
 		return addresses.isEmpty();
 	}
 
-	@Override
 	public Iterator<MailAddress> iterator() {
 		return addresses.iterator();
 	}
 
-	@Override
 	public boolean remove(Object arg0) {
 		return addresses.remove(arg0);
 	}
 
-	@Override
 	public boolean removeAll(Collection<?> arg0) {
 		return addresses.removeAll(arg0);
 	}
 
-	@Override
 	public boolean retainAll(Collection<?> arg0) {
 		return addresses.retainAll(arg0);
 	}
 
-	@Override
 	public int size() {
 		return addresses.size();
 	}
 
-	@Override
 	public Object[] toArray() {
 		return addresses.toArray();
 	}
 
-	@Override
 	public <T> T[] toArray(T[] arg0) {
 		return (T[]) addresses.toArray();
 	}

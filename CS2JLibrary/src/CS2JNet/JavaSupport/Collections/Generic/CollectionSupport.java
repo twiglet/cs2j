@@ -54,111 +54,93 @@ public class CollectionSupport<T> implements ICollection<T> {
 	}
 
 
-	@Override
 	public boolean add(T arg0) {
 		return myCollection.add(arg0);
 	}
 
 
-	@Override
 	public boolean addAll(Collection<? extends T> arg0) {
 		return myCollection.addAll(arg0);
 	}
 
 
-	@Override
 	public void clear() {
 		myCollection.clear();
 	}
 
 
-	@Override
 	public boolean contains(Object arg0) {
 		return myCollection.contains(arg0);
 	}
 
 
-	@Override
 	public boolean containsAll(Collection<?> arg0) {
 		return myCollection.containsAll(arg0);
 	}
 
 
-	@Override
 	public boolean isEmpty() {
 		return myCollection.isEmpty();
 	}
 
 
-	@Override
 	public boolean remove(Object arg0) {
 		return myCollection.remove(arg0);
 	}
 
 
-	@Override
 	public boolean removeAll(Collection<?> arg0) {
 		return myCollection.removeAll(arg0);
 	}
 
 
-	@Override
 	public boolean retainAll(Collection<?> arg0) {
 		return myCollection.retainAll(arg0);
 	}
 
 
-	@Override
 	public int size() {
 		return myCollection.size();
 	}
 
 
-	@Override
 	public Object[] toArray() {
 		return myCollection.toArray();
 	}
 
 
-	@Override
 	public <S> S[] toArray(S[] arg0) {
 		return myCollection.toArray(arg0);
 	}
 
 
-	@Override
 	public boolean Contains(T x) throws Exception {
 		return myCollection.contains(x);
 	}
 
 
-	@Override
 	public void Add(T x) throws Exception {
 		myCollection.add(x);
 		
 	}
 
 
-	@Override
 	public boolean Remove(T x) throws Exception {
 		return myCollection.remove(x);
 	}
 
 
-	@Override
 	public void Clear() throws Exception {
 		myCollection.clear();
 		
 	}
 
 
-	@Override
 	public IEnumerator<T> GetEnumerator() throws Exception {
 		return new EnumeratorSupport<T>(myCollection.iterator());
 	}
 
 
-	@Override
 	public void CopyTo(T[] arr, int i) throws Exception {
 		if (arr == null) {
 			throw new NullArgumentException("arr");
