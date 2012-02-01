@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -122,7 +122,7 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Java>${this:16}.toArray(new ${T}[${this}.size()])</Java>
+      <Java>((${T}[]) ${this:16}.toArray())</Java>
       <Params>
       </Params>
       <Name>ToArray</Name>
