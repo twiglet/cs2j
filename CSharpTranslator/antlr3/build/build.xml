@@ -44,17 +44,26 @@
 
   <target name="settrial">
     <property name="cs2j.user.guide" value="${google.docs.trial.title}"/>
+    <property name="release.tagname.prefix" value="trial"/>
   </target>
 
   <target name="setrelease">
     <property name="cs2j.user.guide" value="${google.docs.title}"/>
+    <property name="release.tagname.prefix" value=""/>
   </target>
+
+  <target name="completeprops">
+    <property name="release.tagname" value="${release.tagname.prefix}${timestamp.format}${release.tagname.suffix}"/>
+    <property name="release.zip" value="${build.dir}/cs2j-${release.tagname}.zip"/>
+    <property name="release.mailsafe.zip" value="${build.dir}/cs2j-${release.tagname}-mailsafe.zip"/>
+  </target>
+
 
   <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,signtxfiles,tagme,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
-  <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,setrelease,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
+  <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,setrelease,completeprops,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
-  <target name="trialfromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,settrial,buildcs2j,obfuscate,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
+  <target name="trialfromhere" description="make a trial archive off the current branch" depends="clean,init,checkclean,settrial,completeprops,buildcs2j,obfuscate,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
   
   <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="clean,init,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
