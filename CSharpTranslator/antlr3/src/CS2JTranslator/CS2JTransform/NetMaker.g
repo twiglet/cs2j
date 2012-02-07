@@ -3133,8 +3133,7 @@ embedded_statement[bool isStatementListCtxt]
 	| ^('try' block catch_clauses? finally_clause?)
 	| checked_statement
 	| unchecked_statement
-	| synchronized_statement          		    // Java: synchronized(obj) {}
-	| lock_statement
+	| synchronized_statement          		    
     | yield_statement
     | ^('unsafe'   block)
 	| fixed_statement
@@ -3434,10 +3433,7 @@ unchecked_statement:
 	^(UNCHECKED block) ;
 
 synchronized_statement: 
-	^(SYNCHRONIZED expression[ObjectType] '{' statement_list '}') ;
-
-lock_statement:
-	'lock'   '('  expression[ObjectType]   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
+	^(SYNCHRONIZED expression[ObjectType] embedded_statement[/* isStatementListCtxt */ false]) ;
 
 yield_statement:
     ^(YIELD_RETURN expression[ObjectType])

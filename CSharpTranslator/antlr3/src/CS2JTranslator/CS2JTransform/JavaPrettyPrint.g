@@ -1580,7 +1580,6 @@ embedded_statement returns [bool isSemi, bool isIf, bool indent]
 	| checked_statement -> { $checked_statement.st }
 	| unchecked_statement -> { $unchecked_statement.st }
     | synchronized_statement -> { $synchronized_statement.st }
-	| lock_statement -> { $lock_statement.st }
 	| yield_statement -> { $yield_statement.st } 
     | ^('unsafe'  { preComments = CollectedComments; }   block { someText = %op(); %{someText}.op="unsafe"; %{someText}.post = $block.st; })
       -> unsupported(comments = { preComments }, reason = {"unsafe blocks are not supported"}, text = { someText } )
@@ -1681,7 +1680,7 @@ finally_clause:
 	^('finally'   block) -> fin(block = {$block.st}, blockindent = { $block.isSemi });
 
 synchronized_statement: 
-	^(SYNCHRONIZED expression '{' s+=statement* '}') -> synchstat(exp={ $expression.st }, stats = { $s });
+	^(SYNCHRONIZED expression embedded_statement) -> synchstat(exp={ $expression.st }, stat = { $embedded_statement.st }, indent = { $embedded_statement.indent });
 
 checked_statement
 @init {
@@ -1703,16 +1702,6 @@ unchecked_statement
           %{someText}.block = $block.st;
           %{someText}.indent = $block.isSemi; } ->  unsupported(reason = {"checked statements are not supported"}, text = { someText } )
 ;
-lock_statement
-@init {
-    StringTemplate someText = null;
-}:
-	'lock'   '('  expression   ')'   embedded_statement 
-        { someText = %lock(); 
-          %{someText}.exp = $expression.st; 
-          %{someText}.block = $embedded_statement.st;
-          %{someText}.indent = $embedded_statement.indent; } ->  unsupported(reason = {"lock() statements are not supported"}, text = { someText } )
-        ;
 yield_statement
 @init {
     StringTemplate someText = null;

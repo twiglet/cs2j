@@ -2050,8 +2050,13 @@ checked_statement:
 	'checked'   block ;
 unchecked_statement:
 	'unchecked'   block -> ^(UNCHECKED block);
-lock_statement:
-	'lock'   '('  expression   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
+lock_statement
+@init {
+    CommonTree statAsBlock = null;
+}:
+	l='lock'   '('  expression   p=')'   embedded_statement[/* isStatementListCtxt */ false] 
+          { statAsBlock = dupTree(embeddedStatementToBlock($p.token, $embedded_statement.tree)); } 
+     -> ^(SYNCHRONIZED[$l.token, "synchronized"] expression { statAsBlock });
 // TODO: Can we avoid surrounding this with braces if not needed?
 using_statement[bool isStatementListCtxt]
 @init {

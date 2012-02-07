@@ -239,18 +239,10 @@ default_template() ::= <<
 default: 
 >>
 
-lock(comments,exp,block, indent) ::= <<
-<comments; separator=""\n"">
-lock(<exp>)
-<block(statements = block, indent = indent)>
->>
-
-synchstat(comments,exp,stats) ::= <<
+synchstat(comments,exp,stat) ::= <<
 <comments; separator=""\n"">
 synchronized (<exp>)
-{
-    <stats>
-}
+<block(statements = stat, indent = indent)>
 >>
 
 yield(comments,exp) ::= <<
