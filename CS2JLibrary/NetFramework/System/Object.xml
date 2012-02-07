@@ -27,6 +27,15 @@
       <Name>Equals</Name>
       <Return>System.Boolean</Return>
     </Method>
+	<!-- added for Array.clone support, but since in java this is on Object, should be at System.Object level in
+	      translation for those .net objects which have Clone().-->
+    <Method>
+      <Imports />
+      <Java>${this:16}.clone(${obj})</Java>
+      <Params />
+      <Name>Clone</Name>
+      <Return>System.Object</Return>
+    </Method>
     <Method>
       <Imports />
       <Java>${this:16}.toString()</Java>
@@ -59,6 +68,24 @@
       <Params />
       <Name>GetHashCode</Name>
       <Return>System.Int</Return>
+    </Method>
+    <Method>
+      <Imports>
+		<Import>CS2JNet.System.ObjectSupport</Import>
+	  </Imports>
+      <Java>ObjectSupport.Equals(${obj1}, ${obj2})</Java>
+	<Params>
+	    <Param>
+          <Type>System.Object</Type>
+          <Name>obj1</Name>
+        </Param>
+	    <Param>
+          <Type>System.Object</Type>
+          <Name>obj2</Name>
+        </Param>
+	  </Params>
+		<Name>Equals</Name>
+      <Return>System.Boolean</Return>
     </Method>
   </Methods>
   <Properties />

@@ -1132,6 +1132,14 @@ scope MkNonGeneric {
 
            $ForceUnsharedType::fresh = false;
         }
+
+        protected void AddNSToSearchPath(List<string> search, string ns) {
+            int idx = 0;
+            while (ns.IndexOf('.', idx) > 0) {
+                idx = ns.IndexOf('.', idx)+1;
+                search.Add(ns.Substring(0,idx-1));
+            }
+        }
 }
 
 public compilation_unit
@@ -1155,7 +1163,7 @@ scope NSContext, PrimitiveRep, MkNonGeneric, ForceUnsharedType;
     $ForceUnsharedType::fresh = false;
 
 }:
-	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; } dec=type_declaration  )
+	^(pkg=PACKAGE ns=PAYLOAD { $NSContext::currentNS = $ns.text; AddNSToSearchPath($NSContext::globalNamespaces, $ns.text);} dec=type_declaration  )
     -> ^($pkg $ns  { mkImports() } $dec);
 
 type_declaration:
@@ -3125,8 +3133,7 @@ embedded_statement[bool isStatementListCtxt]
 	| ^('try' block catch_clauses? finally_clause?)
 	| checked_statement
 	| unchecked_statement
-	| synchronized_statement          		    // Java: synchronized(obj) {}
-	| lock_statement
+	| synchronized_statement          		    
     | yield_statement
     | ^('unsafe'   block)
 	| fixed_statement
@@ -3426,10 +3433,7 @@ unchecked_statement:
 	^(UNCHECKED block) ;
 
 synchronized_statement: 
-	^(SYNCHRONIZED expression[ObjectType] '{' statement_list '}') ;
-
-lock_statement:
-	'lock'   '('  expression[ObjectType]   ')'   embedded_statement[/* isStatementListCtxt */ false] ;
+	^(SYNCHRONIZED expression[ObjectType] embedded_statement[/* isStatementListCtxt */ false]) ;
 
 yield_statement:
     ^(YIELD_RETURN expression[ObjectType])

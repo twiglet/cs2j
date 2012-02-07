@@ -118,8 +118,10 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>${this:16}.reverse()</Java>
+      <Imports>
+        <Import>java.util.Collections</Import>
+      </Imports>
+      <Java>Collections.reverse(${this:16})</Java>
       <Params>
       </Params>
       <Name>Reverse</Name>
@@ -171,7 +173,7 @@
       </Params>
       <Type>System.Object</Type>
       <Get>${this:16}.get(${i})</Get>
-      <Set>${this:16}.add(${i}, ${value})</Set>
+      <Set>${this:16}.set(${i}, ${value})</Set>
     </Indexer>
   </Indexers>
   <Constructors>
