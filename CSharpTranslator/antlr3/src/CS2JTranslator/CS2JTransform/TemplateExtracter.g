@@ -174,7 +174,7 @@ scope NSContext {
              methodRenames = new Dictionary<string,string>();
              methodRenames["ToString"] = "toString"; 
              methodRenames["Equals"] = "equals"; 
-             methodRenames["GetHashCode"] = "getHashCode"; 
+             methodRenames["GetHashCode"] = "hashCode"; 
              methodRenames["Clone"] = "clone"; 
           }
           return methodRenames;
