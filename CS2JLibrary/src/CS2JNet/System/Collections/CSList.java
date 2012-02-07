@@ -24,17 +24,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import CS2JNet.JavaSupport.Collections.Generic.EnumeratorSupport;
 import CS2JNet.System.ArgumentException;
 import CS2JNet.System.ArgumentNullException;
 import CS2JNet.System.ArgumentOutOfRangeException;
+import CS2JNet.System.NotImplementedException;
 
 /**
  * @author keving
  *
  */
-public class CSList<T> implements ICollection<T>, IEnumerable<T>, Collection<T> {
+public class CSList<T> implements ICollection<T>, IEnumerable<T>, Collection<T>, List<T> {
 	
 	private List<T> myList = null;
 
@@ -144,6 +146,46 @@ public class CSList<T> implements ICollection<T>, IEnumerable<T>, Collection<T> 
 		for (int idx = 0; idx < arr.length; idx++){
 			arr[idx+i] = myList.get(idx);
 		}
+	}
+	
+	public void add(int arg0, T arg1)  {
+		myList.add(arg0,arg1);
+	}
+
+	public boolean addAll(int arg0, Collection<? extends T> arg1) {
+		return myList.addAll(arg0, arg1);
+	}
+
+	public T get(int arg0) {
+		return myList.get(arg0);
+	}
+
+	public int indexOf(Object arg0) {
+		return myList.indexOf(arg0);
+	}
+
+	public int lastIndexOf(Object arg0) {
+		return myList.lastIndexOf(arg0);
+	}
+
+	public ListIterator<T> listIterator() {
+		return myList.listIterator();
+	}
+
+	public ListIterator<T> listIterator(int arg0) {
+		return myList.listIterator(arg0);
+	}
+
+	public T remove(int arg0) {
+		return myList.remove(arg0);
+	}
+
+	public T set(int arg0, T arg1) {
+		return myList.set(arg0, arg1);
+	}
+
+	public List<T> subList(int arg0, int arg1) {
+		return myList.subList(arg0, arg1);
 	}
 
 }
