@@ -33,7 +33,7 @@ import CS2JNet.JavaSupport.util.LocaleSupport;
 public class DateTimeSupport {
 	
 	public static String ToString(Date d, String format, Locale loc) {
-		
+
 		SimpleDateFormat formatter = null;
 		if (format.equals("s")) {
 			//TODO: Is this really a db-friendly sortable format?
@@ -43,14 +43,22 @@ public class DateTimeSupport {
 			formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'Z'", loc);
 		} else if (format.equals("yyyy-MM-ddTHH:mm:ss.ffZ")) {
 			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS'Z'", loc);
-		} else {
-			formatter = new SimpleDateFormat(format, loc);
+		} else if (format.equals("yyyy-MM-ddTHH:mm:ss.fffZ")) {
+			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", loc);
+                } else if (format.equals("ddd',' dd MMM yyyy HH':'mm':'ss'.'fff GMT")) {
+                        formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss.SSS 'GMT'");
+                } else {
+                        formatter = new SimpleDateFormat(format, loc);
+                }
+                
+                if (formatter.toPattern().contains("'Z'") || formatter.toPattern().contains("'GMT'")){
+			formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 		}
-		
+
 		if (d instanceof DateTZ) {
 			formatter.setTimeZone(((DateTZ)d).getTimeZone());
 		}
-		
+
 		return formatter.format(d);
 	}
 	
@@ -75,10 +83,14 @@ public class DateTimeSupport {
 	private static final String[] DATE_FORMATS = new String[] {
 			"E MMM d HH:mm:ss Z yyyy", 
 			"MM/dd/yyyy HH:mm:ss a", 
-			"yyyy-MM-dd HH:mm:ss'Z'", 
+			"yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+			"yyyy-MM-dd'T'HH:mm:ssZ",
+			"yyyy-MM-dd'T'HH:mm:ss'Z'",
 			"yyyy-MM-dd'T'HH:mm:ss'.'SSSZ",
 			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
 			"yyyy-MM-dd'T'HH:mm:ss", 
+			"yyyy-MM-dd HH:mm:ss'Z'", 
 			"yyyy-MM-dd"};
 	
 	public static Date parse(String s) throws ParseException
@@ -98,7 +110,7 @@ public class DateTimeSupport {
 			int milliStart = val.lastIndexOf(".");
 			if(milliStart != -1){
 				milliStart = milliStart + 1;
-				int milliEnd = val.lastIndexOf("Z");
+				int milliEnd = Math.max(val.lastIndexOf("+"), val.lastIndexOf("Z"));
 				milliEnd = (milliEnd == -1) ? val.length() : milliEnd;
 				if((milliEnd - milliStart) > 3){
 					String newMillis = val.substring(milliStart).substring(0, 3);
@@ -132,7 +144,7 @@ public class DateTimeSupport {
 			try
 			{
 				SimpleDateFormat sdf = new SimpleDateFormat(f);                              
-				if(utc){
+				if(utc || f.contains("Z")){
 					sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 				}
 				Date d = sdf.parse(s);

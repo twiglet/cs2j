@@ -99,5 +99,12 @@
       <Name>Values</Name>
       <Get>${this:16}.values()</Get>
     </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+    </Property>
   </Properties>
 <Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>BBHaGzWIzkVajkMtIotxcu6p5VY=</DigestValue></Reference></SignedInfo><SignatureValue>WOOzmkxA0yBm1tFVetTcQxQc7SztNyQygCPbn5vaHLtHI/MoQMuTuytu5BrGb4UJ7KG68galgfmWUlUD99Txs44X+XdHA7wY0XcAUwXHV+/uti6FicyhHw7mDr9Bj4+Rjq4RIA2I0gS5P25V9nMEIEQCD3/jjc+wc4Lt5AHw/b4=</SignatureValue></Signature></Interface>

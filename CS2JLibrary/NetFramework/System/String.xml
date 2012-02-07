@@ -40,10 +40,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports>
-        <Import>CS2JNet.System.StringSupport</Import>
-      </Imports>
-      <Java>StringSupport.Compare(${arg1}, ${this})</Java>
+      <Java>${this:16}.compareTo(${arg1})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -68,7 +65,7 @@
           <Name>arg2</Name>
         </Param>
         <Param>
-          <Type>System.Bool</Type>
+          <Type>System.Boolean</Type>
           <Name>isCaseSensitive</Name>
         </Param>
       </Params>

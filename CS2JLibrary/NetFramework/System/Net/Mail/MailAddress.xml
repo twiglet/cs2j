@@ -9,9 +9,9 @@
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>javax.mail.internet.InternetAddress</Import>
+    <Import>CS2JNet.System.Net.Mail.MailAddress</Import>
   </Imports>
-  <Java>InternetAddress</Java>
+  <Java>MailAddress</Java>
   <Name>System.Net.Mail.MailAddress</Name>
   <Uses />
   <Inherits>
@@ -24,9 +24,9 @@
   <Constructors>
     <Constructor>
       <Imports>
-        <Import>javax.mail.internet.InternetAddress</Import>
+        <Import>CS2JNet.System.Net.Mail.MailAddress</Import>
       </Imports>
-      <Java>new InternetAddress(${address})</Java>
+      <Java>new MailAddress(${address})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

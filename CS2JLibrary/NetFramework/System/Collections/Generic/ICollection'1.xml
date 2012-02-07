@@ -23,6 +23,13 @@
     <Java>${expr}</Java>
   </Iterable>
   <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+    </Property>
   </Properties>
   <Methods>
     <Method>
