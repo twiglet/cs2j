@@ -20,6 +20,8 @@
 
 package CS2JNet.System.Net.Mail;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -53,6 +55,9 @@ public class MailAddress {
 		displayName = inInternetAddress.getPersonal();
 	}
 	
+	public InternetAddress toInternetAddress() throws UnsupportedEncodingException {
+		return new InternetAddress(address, displayName);
+	}
 	
 	/**
 	 * @param displayName the displayName to set

@@ -1,7 +1,5 @@
 package CS2JNet.System.Net.Mail;
 
-import java.util.ArrayList;
-import javax.mail.internet.InternetAddress;
 
 public class MailMessage 
 {
