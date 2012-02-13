@@ -8,7 +8,9 @@
 
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports>
+     <Import>CS2JNet.System.ArgumentException</Import>
+  </Imports>
   <Java>ArgumentException</Java>
   <Name>System.ArgumentException</Name>
   <Uses />
