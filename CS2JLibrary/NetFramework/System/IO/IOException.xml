@@ -8,8 +8,10 @@
 
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
-  <Java>Throwable</Java>
+  <Imports>
+    <Import>java.io.IOException</Import>
+  </Imports>
+  <Java>IOException</Java>
   <Name>System.IO.IOException</Name>
   <Uses />
   <Inherits>
@@ -21,13 +23,17 @@
   <Indexers />
   <Constructors>
     <Constructor>
-      <Imports />
-      <Java>new Throwable()</Java>
+      <Imports>
+        <Import>java.io.IOException</Import>
+      </Imports>
+      <Java>new IOException()</Java>
       <Params />
     </Constructor>
     <Constructor>
-      <Imports />
-      <Java>new Throwable(${message})</Java>
+      <Imports>
+        <Import>java.io.IOException</Import>
+      </Imports>
+      <Java>new IOException(${message})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -36,7 +42,9 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports />
+      <Imports>
+        <Import>java.io.IOException</Import>
+      </Imports>
       <Java>new IOException(${info},${ctxt})</Java>
       <Params>
         <Param>
@@ -50,8 +58,10 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports />
-      <Java>new Throwable(${message}, ${inner})</Java>
+      <Imports>
+        <Import>java.io.IOException</Import>
+      </Imports>
+      <Java>new IOException(${message}, ${inner})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
