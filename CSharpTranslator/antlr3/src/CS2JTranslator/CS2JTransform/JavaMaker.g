@@ -2278,6 +2278,8 @@ magicSmotherExceptionsThrow[CommonTree body, string exception]:
  -> OPEN_BRACE["{"]
        ^(TRY["try"] 
             { dupTree(body) }
+         ^(CATCH["catch"] ^(TYPE[body.Token, "TYPE"] IDENTIFIER[body.Token, "RuntimeException"]) { dupTree($v.tree) } 
+           OPEN_BRACE["{"] ^(THROW["throw"] { dupTree($v.tree) }) CLOSE_BRACE["}"])
          ^(CATCH["catch"] magicThrowableType { dupTree($v.tree) } 
            OPEN_BRACE["{"] ^(THROW["throw"] ^(NEW["new"] ^(TYPE["TYPE"] IDENTIFIER[exception]) ^(ARGS["ARGS"] { dupTree($v.tree) }))) CLOSE_BRACE["}"]))
     CLOSE_BRACE["}"]
