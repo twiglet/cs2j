@@ -41,12 +41,48 @@ scope TypeContext {
 {
     using System;
     using System.Text;
+    using System.Xml;
     using System.Globalization;
     using System.Text.RegularExpressions;
 }
 
 @members
 {
+
+
+    private XmlTextWriter enumXmlWriter = null;			
+    public XmlTextWriter EnumXmlWriter {
+        get { return enumXmlWriter; }
+        set { enumXmlWriter = value; }
+    }
+
+    private void WriteStartEnum(String name)
+    {
+		if (enumXmlWriter != null)
+		{
+			enumXmlWriter.WriteStartElement("enum");
+			enumXmlWriter.WriteAttributeString("id", name);
+		}
+    }
+    
+    private void WriteEndEnum()
+    {
+		if (enumXmlWriter != null)
+		{
+			enumXmlWriter.WriteEndElement();
+		}
+    }
+    
+    private void WriteEnumMember(String name, int value)
+    {
+		if (enumXmlWriter != null)
+		{
+			enumXmlWriter.WriteStartElement("member");
+			enumXmlWriter.WriteAttributeString("id", name);
+			enumXmlWriter.WriteAttributeString("value", value.ToString());
+			enumXmlWriter.WriteEndElement();
+		}
+    }
 
     // Since a CS file may comtain multiple top level types (and so generate multiple Java
     // files) we build a map from type name to AST for each top level type
@@ -1513,9 +1549,9 @@ scope TypeContext;
 }
 :
     { Cfg.EnumsAsNumericConsts }? =>  
-           e1='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } magicBoxedType[true,$e1.token,"System.Int32"] { constType = $magicBoxedType.tree; } (enum_base {constType = $enum_base.tree; } )?   enum_body_asnumber[constType]   ';'?
+           e1='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; WriteStartEnum($name); } magicBoxedType[true,$e1.token,"System.Int32"] { constType = $magicBoxedType.tree; } (enum_base {constType = $enum_base.tree; } )?   enum_body_asnumber[constType]   ';'? { WriteEndEnum(); }
             -> ^(CLASS[$e1.token, "class"] { dupTree($atts) } { mangledMods } identifier enum_body_asnumber)
-   | e2='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; } enum_base?   enum_body   ';'? 
+   | e2='enum'   identifier  { $name = $identifier.thetext; $TypeContext::typeName = $identifier.thetext; WriteStartEnum($name); } enum_base?   enum_body   ';'? { WriteEndEnum(); }
             -> ^(ENUM[$e2.token, "ENUM"] { dupTree($atts) } { mangledMods } identifier enum_base? enum_body);
 
 enum_base:
@@ -1534,6 +1570,7 @@ enum_member_declarations
        for (int i = 0; i < next; i++) {
           if (members.ContainsKey(i)) {
              adaptor.AddChild($enum_member_declarations.tree, members[i]);
+             WriteEnumMember(members[i].Text, i);
           }
           else {
              adaptor.AddChild($enum_member_declarations.tree, adaptor.Create(IDENTIFIER, $e.start.Token, "__dummyEnum__" + dummyCounter++));

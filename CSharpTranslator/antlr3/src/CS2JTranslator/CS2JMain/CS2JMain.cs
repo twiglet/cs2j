@@ -33,7 +33,7 @@ namespace Twiglet.CS2J.Translator
 {
     class CS2J
     {
-       private const string VERSION = "2011.3.3rs";
+       private const string VERSION = "2012.1.1rs";
        private static DirectoryHT<TypeRepTemplate> AppEnv { get; set; }
        private static CS2JSettings cfg = new CS2JSettings();
        private static StringTemplateGroup templates = null;
@@ -46,6 +46,8 @@ namespace Twiglet.CS2J.Translator
        private static String[] newLines = new String[] { "\n", Environment.NewLine };
        private static int numLines = (10 * 10) + 50 - 30;
 		
+       private static XmlTextWriter enumXmlWriter = null;			
+
        public delegate void FileProcessor(string fName);
 
        private static Dictionary<string, ClassDescriptorSerialized> partialTypes = new Dictionary<string, ClassDescriptorSerialized>();
@@ -168,7 +170,7 @@ namespace Twiglet.CS2J.Translator
 
                 // Output enum list, parsed translation files
                 cfg.OptDumpEnums.SetIfDefault(general.GetBoolean("dump-enums", cfg.DumpEnums));
-                cfg.OptEnumDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("out-enum-dir", cfg.EnumDir)));
+                cfg.OptEnumDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("out-enums-file", cfg.EnumDir)));
 
                 cfg.OptDumpXmls.SetIfDefault(general.GetBoolean("dump-xmls", cfg.DumpXmls));
                 cfg.OptXmlDir.SetIfDefault(Path.Combine(Directory.GetCurrentDirectory(), general.Get("out-xml-dir", cfg.XmlDir)));
@@ -220,7 +222,6 @@ namespace Twiglet.CS2J.Translator
         public static void CS2JMain(string[] args)
         {
             long startTime = DateTime.Now.Ticks;
-            XmlTextWriter enumXmlWriter = null;			
             bool doHelp = false;
 
             // Use a try/catch block for parser exceptions
@@ -247,7 +248,7 @@ namespace Twiglet.CS2J.Translator
                         .Add ("show-tokens:", v => cfg.DisplayTokens = parseBoolOption(v))
                         .Add ("D=", def => cfg.OptMacroDefines.Add(mkStrings(def))) 							
                         .Add ("dump-enums:", v => cfg.DumpEnums = parseBoolOption(v))
-                        .Add ("out-enum-dir=", dir => cfg.EnumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
+                        .Add ("out-enums-file=", dir => cfg.EnumDir = Path.Combine(Directory.GetCurrentDirectory(), dir))							
                         .Add ("dump-xmls:", v => cfg.DumpXmls = parseBoolOption(v))
                         .Add ("out-xml-dir=", dir => cfg.XmlDir = Path.Combine(Directory.GetCurrentDirectory(), dir))
                         .Add ("out-java-dir=", dir => cfg.OutDir = dir)
@@ -273,7 +274,6 @@ namespace Twiglet.CS2J.Translator
                         .Add ("internal-isjavaish:", v => cfg.InternalIsJavaish = parseBoolOption(v))
                         ;
 					
-                    //TODO: fix enum dump
                     // Final argument is translation target
                     foreach (string s in p.Parse (args))
                     {
@@ -353,6 +353,7 @@ namespace Twiglet.CS2J.Translator
                         doFile(r, ".cs", addAppSigTranslation, cfg.ExAppRoot); // parse it
                     if (cfg.DumpEnums) {
                         enumXmlWriter = new XmlTextWriter(cfg.EnumDir, System.Text.Encoding.UTF8);
+                        enumXmlWriter.WriteStartElement("enums");
                     }
                     if (cfg.DumpXmls)
                     {
@@ -651,6 +652,8 @@ namespace Twiglet.CS2J.Translator
                 javaMaker.CUKeys = new List<string>();
                 javaMaker.IsJavaish = cfg.InternalIsJavaish;
 	    
+		javaMaker.EnumXmlWriter = enumXmlWriter;
+
                 if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Translating {0} to Java", fullName);
                 
                 javaMaker.compilation_unit();
