@@ -49,8 +49,10 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>Enum.valueOf((Class*[? extends Enum]*)${enumType:15}, ${value})</Java>
+      <Imports>
+        <Import>CS2JNet.System.EnumSupport</Import>
+      </Imports>
+      <Java>EnumSupport.Parse((Class*[? extends Enum]*)${enumType:15}, ${value})</Java>
       <Params>
         <Param>
           <Type>System.Type</Type>
@@ -59,6 +61,28 @@
         <Param>
           <Type>System.String</Type>
           <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.EnumSupport</Import>
+      </Imports>
+      <Java>EnumSupport.Parse((Class*[? extends Enum]*)${enumType:15}, ${value}, ${ignoreCase})</Java>
+      <Params>
+        <Param>
+          <Type>System.Type</Type>
+          <Name>enumType</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>ignoreCase</Name>
         </Param>
       </Params>
       <Name>Parse</Name>

@@ -41,4 +41,22 @@ public class EnumSupport {
 		}
 		
 	}
+	
+	public static Object Parse(Class<? extends Enum> enumClass, String name) throws IllegalArgumentException {
+		return Parse(enumClass, name, false);
+	}
+	
+	public static Object Parse(Class<? extends Enum> enumClass, String name, boolean ignoreCase) throws IllegalArgumentException {
+		if(!ignoreCase){
+			return Enum.valueOf(enumClass, name);
+		}
+		
+		Enum[] vals = enumClass.getEnumConstants();
+		for(Enum val : vals){
+			if(val.toString().equalsIgnoreCase(name)){
+				return val;
+			}
+		}
+		throw new IllegalArgumentException(name + " is not a valid " + enumClass.getName());
+	}
 }
