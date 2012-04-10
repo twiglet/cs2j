@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -179,8 +179,10 @@
       <Return>System.Single</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>(Math.round(${d}*Math.pow(10,${decimals})) / Math.pow(10,${decimals}))</Java>
+      <Imports>
+	<Import>CS2JNet.System.MathSupport</Import>
+      </Imports>
+      <Java>MathSupport.round(${d},${decimals})</Java>
       <Params>
         <Param>
           <Type>System.Decimal</Type>
@@ -195,8 +197,10 @@
       <Return>System.Decimal</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>(Math.round(${d}*Math.pow(10,${decimals})) / Math.pow(10,${decimals}))</Java>
+      <Imports>
+	<Import>CS2JNet.System.MathSupport</Import>
+      </Imports>
+      <Java>MathSupport.round(${d},${decimals})</Java>
       <Params>
         <Param>
           <Type>System.Double</Type>

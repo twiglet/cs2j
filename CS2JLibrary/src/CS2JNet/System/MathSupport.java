@@ -67,7 +67,11 @@ public class MathSupport {
 	
 	public static void main(String args[]) {
 		double f = 10.123456789d;
-		System.out.println(f + "turns into" + round(f,3));
+		System.out.println(f + " turns into " + round(f,3));
+		double g = 1.0d;
+		System.out.println(g + " turns into " + round(g,4));
+		double h = 0.7d;
+		System.out.println(h + " turns into " + round(h,4));
 	}
 
 }
