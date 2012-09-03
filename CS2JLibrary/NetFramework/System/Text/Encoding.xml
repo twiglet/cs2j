@@ -46,6 +46,18 @@
       <Name>GetString</Name>
       <Return>System.String</Return>
     </Method>
+    <Method>
+      <Imports />
+      <Java>new String(${buf}, ${this:16}.getString())</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buf</Name>
+        </Param>
+      </Params>
+      <Name>GetString</Name>
+      <Return>System.String</Return>
+    </Method>
   </Methods>
   <Properties>
     <Property>

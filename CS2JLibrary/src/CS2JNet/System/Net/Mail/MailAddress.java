@@ -56,7 +56,7 @@ public class MailAddress {
 	}
 	
 	public InternetAddress toInternetAddress() throws UnsupportedEncodingException {
-		return new InternetAddress(address, displayName);
+		return new InternetAddress(address, displayName, "utf-8");
 	}
 	
 	/**

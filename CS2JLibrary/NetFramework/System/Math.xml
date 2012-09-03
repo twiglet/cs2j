@@ -144,6 +144,22 @@
     </Method>
     <Method>
       <Imports />
+      <Java>Math.pow(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Pow</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
       <Java>Math.round(${d})</Java>
       <Params>
         <Param>

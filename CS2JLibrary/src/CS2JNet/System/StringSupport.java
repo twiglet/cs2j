@@ -129,6 +129,9 @@ public class StringSupport {
 	
 	public static String Trim(String in, char[] filters, boolean trimStart, boolean trimEnd)
 	{
+		if(in == null){
+			return null;
+		}
 		// Locate first non-trimmable index
 		int firstIdx = 0;
 		if (trimStart) {

@@ -61,6 +61,10 @@ public class CSList<T> implements ICollection<T>, IEnumerable<T>, Collection<T>,
 		}
 	}
 	
+	public CSList(Collection<T> c){
+		myList = new ArrayList<T>(c);
+	}
+	
 
 	public Iterator<T> iterator() {
 		return myList.iterator();
