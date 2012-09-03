@@ -55,5 +55,82 @@ namespace Tester.RefOut
 			new RefOutTest ().Init (args);
 		}
 	}
+
+	class TC {
+
+            public TC() {}
+
+            public bool TCtest1(out string modifiedUrlString, string urlString){
+	        modifiedUrlString = urlString.ToUpper();
+		return false;
+	    }
+
+            public bool TCtest2(out string user, out string passwd, string urlString){
+	        user = urlString.ToUpper();
+	        passwd = urlString.ToLower();
+		return true;
+	    }
+
+
+            public void TCtest(string urlString)
+            {
+    
+                string modifiedUrlString=null;
+                string engineAuthUser=null;
+                string engineAuthPassword=null;
+    
+                if (TCtest1(out modifiedUrlString, urlString))
+                {
+                    System.Console.WriteLine(modifiedUrlString);
+                }
+                else if (TCtest2(out engineAuthUser, out engineAuthPassword, urlString))
+                {
+                    if (!String.IsNullOrEmpty(engineAuthUser) && !String.IsNullOrEmpty(engineAuthPassword))
+                    {
+                        System.Console.WriteLine(engineAuthUser + engineAuthPassword);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("Null or Null");
+                    }
+                }
+                else
+                {
+    	        System.Console.WriteLine("They really didn't like us");
+                }
+    	    }
+
+            public void TCtest_workaround(string urlString)
+            {
+    
+                string modifiedUrlString=null;
+                string engineAuthUser=null;
+                string engineAuthPassword=null;
+    
+		bool optTCTest1 = TCtest1(out modifiedUrlString, urlString);
+                if (optTCTest1)
+                {
+                    System.Console.WriteLine(modifiedUrlString);
+                }
+                else {
+		    bool optTCTest2 = TCtest2(out engineAuthUser, out engineAuthPassword, urlString);
+		    if (optTCTest2)
+                    {
+			if (!String.IsNullOrEmpty(engineAuthUser) && !String.IsNullOrEmpty(engineAuthPassword))
+                    	{
+				System.Console.WriteLine(engineAuthUser + engineAuthPassword);
+                    	}
+                    	else
+                    	{
+				System.Console.WriteLine("Null or Null");
+                    	}
+		    }
+                    else
+                    {
+    	                System.Console.WriteLine("They really didn't like us");
+                    }
+               }
+    	    }
+        }
 }
 
