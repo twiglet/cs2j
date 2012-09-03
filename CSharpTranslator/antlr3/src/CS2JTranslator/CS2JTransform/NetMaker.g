@@ -1869,8 +1869,23 @@ type_or_generic[String prefix] returns [TypeRepTemplate dotNetType, List<CommonT
 //	(identifier   generic_argument_list) => t=identifier  ga=generic_argument_list 
 	t=identifier  (ga=generic_argument_list {$hasTyArgs = true;})? 
       { 
-         $dotNetType = findType(prefix+$t.thetext, $ga.argTypes); 
+         $dotNetType = findType(prefix+$t.thetext, $ga.argTypes);
          if (!$dotNetType.IsUnknownType) {
+             // In the case that type is fully qualified, and matches the name in $dotNetType then emit a fully
+             // qualified type and don't add imports. this allows a class to refer to multiple classes with identical names
+             // as long as you fully qualify one of them.
+             if ($dotNetType.Imports.Length == 1 && $dotNetType.Imports[0] == prefix+$t.thetext) {
+                 $dotNetType.Java = $dotNetType.Java.Replace($t.thetext,  prefix+$t.thetext);
+                 $dotNetType.Imports = new String[0];
+                 // Ditto for each constructor
+                 if ($dotNetType is ClassRepTemplate) {
+                     foreach (ConstructorRepTemplate c in ((ClassRepTemplate)$dotNetType).Constructors)
+                         {
+                             c.Java = c.Java.Replace($t.thetext, prefix + $t.thetext); 
+                             c.Imports = new String[0];
+                         }
+                 }
+             }
             if (!$MkNonGeneric::scrubGenericArgs && $hasTyArgs && $dotNetType.TypeParams.Length == $ga.argTrees.Count) {
                int i = 0;
                foreach (CommonTree ty in $ga.argTrees) {
