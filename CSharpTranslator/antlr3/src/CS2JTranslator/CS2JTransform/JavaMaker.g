@@ -758,7 +758,7 @@ modifiers returns [List<string> modList]
 	 (modifier { if ($modifier.tree != null) $modList.Add( $modifier.tree.Text); })+ ;
 modifier: 
 	'new' -> /* No new in Java*/ | 'public' | 'protected' | 'private' | i='internal' ->  PUBLIC[$i.token, "public"] /* translate to public .... */| 'unsafe' ->  | 'abstract' | s='sealed' -> FINAL[$s.token, "final"] | 'static'
-	| 'readonly' -> /* no equivalent in C# (this is like a const that can be initialized separately in the constructor) */ | 'volatile' | e='extern'  { Warning($e.line, "[UNSUPPORTED] 'extern' modifier"); }  | 'virtual' -> | 'override' -> /* not in Java, maybe convert to override annotation */;
+	| r='readonly' -> FINAL[$r.token, "final"] | 'volatile' | e='extern'  { Warning($e.line, "[UNSUPPORTED] 'extern' modifier"); }  | 'virtual' -> | 'override' -> /* not in Java, maybe convert to override annotation */;
 
 class_member_declaration
 @init {
