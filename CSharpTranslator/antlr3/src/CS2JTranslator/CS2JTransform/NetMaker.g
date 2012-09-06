@@ -1139,6 +1139,7 @@ scope MkNonGeneric {
                 idx = ns.IndexOf('.', idx)+1;
                 search.Add(ns.Substring(0,idx-1));
             }
+            search.Add(ns);
         }
 }
 
