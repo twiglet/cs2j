@@ -1531,6 +1531,21 @@ scope {
                 // Not a variable, not a property read, is it a type name?
                 TypeRepTemplate staticType = findType(textSoFar);
                 if (!staticType.IsUnknownType) {
+                    // In the case that type is fully qualified, and matches the name in $dotNetType then emit a fully
+                    // qualified type and don't add imports. this allows a class to refer to multiple classes with identical names
+                    // as long as you fully qualify one of them.
+                    if (staticType.Imports.Length == 1 && staticType.Imports[0] == textSoFar) {
+                        staticType.Java = staticType.Java.Replace($i.thetext,  textSoFar);
+                        staticType.Imports = new String[0];
+                        // Ditto for each constructor
+                        if (staticType is ClassRepTemplate) {
+                            foreach (ConstructorRepTemplate c in ((ClassRepTemplate)staticType).Constructors)
+                                {
+                                    c.Java = c.Java.Replace($i.thetext, textSoFar); 
+                                    c.Imports = new String[0];
+                                }
+                        }
+                    }
                     ret = mkJavaWrapper(staticType.Java, new Dictionary<string,CommonTree>(), $i.tree.Token);
                     AddToImports(staticType.Imports);
                     $dotNetType = staticType;
