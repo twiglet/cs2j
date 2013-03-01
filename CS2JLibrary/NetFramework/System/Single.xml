@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -28,7 +28,16 @@
       <Return>System.String</Return>
     </Method>
   </Methods>
-  <Properties />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this}</Java>
+      <Type>System.Single</Type>
+      <Name>Value</Name>
+      <Get>${this}</Get>
+      <Set>${this:16}.setValue(${value})</Set>
+    </Property>
+  </Properties>
   <Events />
   <Indexers />
   <Constructors />

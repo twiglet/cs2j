@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     This file is
@@ -63,6 +63,14 @@
       <Name>MaxValue</Name>
       <Get>Long.MAX_VALUE</Get>
       <Set>${this:16}.setMaxValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}</Java>
+      <Type>System.Int64</Type>
+      <Name>Value</Name>
+      <Get>${this}</Get>
+      <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
   <Events />
