@@ -1982,6 +1982,7 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
 @ init {
    bool hasRank = false;
    bool isPredefined = false;
+   bool isNullable = false;
    CommonTree pTree = null;
 }
 @after {
@@ -2000,7 +2001,7 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
     ^(t=TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = VoidType; } )  
-        (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* '?'?) 
+        (rank_specifiers[$dotNetType] { isPredefined = false; $dotNetType = $rank_specifiers.dotNetType; $argTrees = null; hasRank = true; })? '*'* ('?' { isNullable = true; })?) 
         magicBoxedType[$dotNetType != null && $dotNetType.HasBoxedRep, $t.token, $dotNetType == null ? "" : $dotNetType.BoxedJava]
        { 
          if (isPredefined) {
@@ -2009,8 +2010,11 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
          if ($magicBoxedType.tree != null) {
             $boxedTree = $magicBoxedType.tree;
          }
+         if (isNullable) {
+             Warning(t.Line, "[UNSUPPORTED] We convert Nullable types to Boxed types. Operators on null values will throw exceptions rather than preserving NULL.");
+         }
        }
-    -> { $PrimitiveRep::primitiveTypeAsObject && !hasRank && $dotNetType.HasBoxedRep && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'* '?'?)
+    -> { (isNullable || $PrimitiveRep::primitiveTypeAsObject) && !hasRank && $dotNetType.HasBoxedRep && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'*)
     -> ^(TYPE[$t.token, "TYPE"] predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
 
