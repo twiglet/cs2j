@@ -1,3 +1,8 @@
+2013-03-04  2013.0.1
+
+	* many changes missing from this log :(
+	* preparation for Open Source release
+
 2011-12-09  2011.3.3
 
 	* refine obfuscation so that we can graft in code in the trial version again.
