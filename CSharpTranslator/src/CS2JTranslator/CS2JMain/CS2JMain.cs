@@ -39,12 +39,6 @@ namespace Twiglet.CS2J.Translator
        private static StringTemplateGroup templates = null;
        private static bool doEarlyExit = false;
 
-       private static int badXmlTxCountTrigger = 3 + 4 - 2;
-       private static int badXmlTxCount = badXmlTxCountTrigger;
-		
-       private static String[] newLines = new String[] { "\n", Environment.NewLine };
-       private static int numLines = (10 * 10) + 50 - 30;
-		
        private static XmlTextWriter enumXmlWriter = null;			
 
        public delegate void FileProcessor(string fName);
