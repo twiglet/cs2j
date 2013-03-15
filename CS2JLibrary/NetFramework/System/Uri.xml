@@ -18,7 +18,14 @@
     <Type>System.Object</Type>
   </Inherits>
   <Methods />
-  <Properties />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.isAbsolute()</Java>
+      <Type>System.Boolean</Type>
+      <Name>IsAbsoluteUri</Name>
+    </Property>
+  </Properties>
   <Events />
   <Indexers />
   <Constructors>
