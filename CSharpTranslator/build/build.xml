@@ -42,11 +42,6 @@
     </condition>
   </target>
 
-  <target name="settrial">
-    <property name="cs2j.user.guide" value="${google.docs.trial.title}"/>
-    <property name="release.tagname.prefix" value="trial"/>
-  </target>
-
   <target name="setrelease">
     <property name="cs2j.user.guide" value="${google.docs.title}"/>
     <property name="release.tagname.prefix" value=""/>
@@ -59,13 +54,11 @@
   </target>
 
 
-  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,signtxfiles,tagme,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
+  <target name="release" description="make a release archive" depends="clean,init,switch,checkclean,buildcs2j,tagme,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
-  <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,setrelease,completeprops,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
+  <target name="releasefromhere" description="make a release archive off the current branch" depends="clean,init,checkclean,setrelease,completeprops,buildcs2j,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
-  <target name="trialfromhere" description="make a trial archive off the current branch" depends="clean,init,checkclean,settrial,completeprops,buildcs2j,obfuscate,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
-  
-  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="clean,init,buildcs2j,signtxfiles,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
+  <target name="dummyrelease" description="make a release archive (doesn't change git repository)" depends="clean,init,buildcs2j,mkcs2jlibprojsrc,mkarchive,mkmailarchive"/>
 
   <target name="dist" description="Distribute final zip to final resting place">
     <copy todir="${release.dir}" file="${release.zip}"/>
@@ -84,19 +77,6 @@
 
   <target name="mkarchive" description="builds a zip file containing the release" depends="mkreleasefiles">
     <zip destfile="${release.zip}" basedir="${build.dir}/archive/" includes="cs2j-${release.tagname}/**/*"/>
-  </target>
-
-  <target name="obfuscate" description="runs obfuscator on cs2j executable if windows" depends="buildcs2j,setplatform,do-obfuscate">
-  </target>
-
-  <target name="do-obfuscate" description="runs obfuscator on cs2j executable" if="windows.platform">
-    <exec osfamily="windows" executable="${obfuscator.exe}" failonerror="true">
-      <arg value= "-o"/>
-      <arg value= "${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}/obcs2j.exe"/>
-      <arg value= "${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}/cs2j.exe"/>
-    </exec>
-    <move file="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}/obcs2j.exe" 
-          tofile="${cs2j.src.dir}/CS2JTranslator/${exe.sub.dir}/cs2j.exe" />
   </target>
 
   <target name="mkreleasefiles" description="creates a set of release files">
@@ -177,19 +157,6 @@
        <arg value = "get"/>
        <arg value = "${google.docs.title}.doc"/>
      </exec>
-  </target>
-  <target name="signtxfiles" description="Add / Update the signatures on the translation files in NetFrameworks">
-    <exec osfamily="windows" executable="${tx.signer.exe}">
-      <arg value = "-keyfile"/>
-      <arg value = "${tx.signer.keyfile}"/>
-      <arg value = "${tx.files.root}"/>
-    </exec>
-    <exec osfamily="mac" executable="mono">
-      <arg value = "${tx.signer.exe}"/>
-      <arg value = "-keyfile"/>
-      <arg value = "${tx.signer.keyfile}"/>
-      <arg value = "${tx.files.root}"/>
-    </exec>
   </target>
 
   <target name="buildcs2j" depends="buildgrammars" description="builds all C# source in the solution">
