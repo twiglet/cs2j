@@ -52,7 +52,6 @@
     <Compile Include="CS2JMain\CS2JMain.cs" />
     <Compile Include="CS2JMain\CS2JSettings.cs" />
     <Compile Include="CS2JMain\Main.cs" />
-    <Compile Include="CS2JMain\Obfuscate.cs" />
     <Compile Include="CS2JMain\Templates.cs" />
     <Compile Include="CS2JTemplate\TranslationTemplate.cs" />
     <Compile Include="CS2JTransform\CommonWalker.cs" />
@@ -63,7 +62,6 @@
     <Compile Include="CS2JUtil\Constants.cs" />
     <Compile Include="CS2JUtil\DirectoryHT.cs" />
     <Compile Include="CS2JUtil\Set.cs" />
-    <Compile Include="CS2JMain\RSAPubKey.cs" />
     <Compile Include="CS2JTransform\NetFragments.cs" />
     <Compile Include="CS2JTransform\SyntaxFragments.cs" />
   </ItemGroup>

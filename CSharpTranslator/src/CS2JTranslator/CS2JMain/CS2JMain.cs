@@ -39,7 +39,6 @@ namespace Twiglet.CS2J.Translator
        private static StringTemplateGroup templates = null;
        private static bool doEarlyExit = false;
 
-       private static RSACryptoServiceProvider RsaKey = null;
        private static int badXmlTxCountTrigger = 3 + 4 - 2;
        private static int badXmlTxCount = badXmlTxCountTrigger;
 		
@@ -313,18 +312,6 @@ namespace Twiglet.CS2J.Translator
                        AppEnv.Alts.Add(alt);                       
                     }
 
-                    // Initialise RSA signing key so that we can verify signatures
-                    RsaKey = new RSACryptoServiceProvider();
-                    string rsaPubXml = RSAPubKey.PubKey;
-// Comment out code to read pub key from a file. To easy to re-sign xml files and import your own key!
-//                    if (!String.IsNullOrEmpty(cfg.KeyFile))
-//                    {
-//                       XmlReader reader =  XmlReader.Create(cfg.KeyFile);
-//                       reader.MoveToContent();
-//                       rsaPubXml = reader.ReadOuterXml();
-//                    }
-                    RsaKey.FromXmlString(rsaPubXml);
-
                     // Load .Net templates
                     // Do we have schemas for the templates?
                     if (cfg.NetSchemaDir.Count == 0)
@@ -545,33 +532,6 @@ namespace Twiglet.CS2J.Translator
 			// Suck in translation file
             Stream txStream = new FileStream(fullName, FileMode.Open, FileAccess.Read);
 
-             if (numLines < numLines - 1)
-             {
-                // TRIAL ONLY
-                // Create a new XML document.
-                XmlDocument xmlDoc = new XmlDocument();
-
-                // Load an XML file into the XmlDocument object.
-                xmlDoc.PreserveWhitespace = true;
-                xmlDoc.Load(txStream);
-
-                // Verify the signature of the signed XML.
-                if (!VerifyXml(xmlDoc, RsaKey))
-                {
-                   Console.Out.WriteLine("WARNING: Bad / Missing signature found for " + fullName);
-                   badXmlTxCount--;
-                   if (badXmlTxCount <= 0)
-                   {
-                      Console.Out.WriteLine("\n  This is a trial version of CS2J. It is to be used for evaluation purposes only.");
-                      Console.Out.WriteLine("  The .Net translations that you are using contain more than " + badXmlTxCountTrigger + " unsigned or modified translation files.");
-                      Console.Out.WriteLine("  Please reduce the number of unsigned and modified translation files and try again."); 
-                      Console.Out.WriteLine("\n  Contact Twiglet Software at info@twigletsoftware.com (http://www.twigletsoftware.com) for licensing details."); 
-                      Environment.Exit(1);
-                   }
-                }
-
-                txStream.Seek(0, SeekOrigin.Begin);
-             }
             try {
                 TypeRepTemplate t = TypeRepTemplate.newInstance(txStream);
                 // Fullname has form: <path>/<key>.xml
@@ -615,18 +575,6 @@ namespace Twiglet.CS2J.Translator
             cfg.DebugLevel = saveDebugLevel;
         }
 		
-       private static string limit(string inp) {
-          if (numLines > numLines - 1)
-             return inp;
-          // TRIAL ONLY
-          String[] lines = inp.Split(newLines, numLines+1, StringSplitOptions.None);
-          if (lines.Length <= numLines) {
-             return inp;
-          }
-          lines[numLines] = Regex.Replace(lines[numLines], "\\w", "x");
-          return String.Join(Environment.NewLine, lines);
-       }
-
         // Here's where we do the real work...		
         public static void translateFile(string fullName)
         {
@@ -754,7 +702,7 @@ namespace Twiglet.CS2J.Translator
                     {
                        if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", javaFName);
                        StreamWriter javaW = new StreamWriter(javaFName);
-                       javaW.Write(limit(outputMaker.compilation_unit().ToString()));
+                       javaW.Write(outputMaker.compilation_unit().ToString());
                        javaW.Close();
                     }
                     else
@@ -784,7 +732,7 @@ namespace Twiglet.CS2J.Translator
 
           if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", serTy.FileName);
           StreamWriter javaW = new StreamWriter(serTy.FileName);
-          javaW.Write(limit(pkgST.ToString()));
+          javaW.Write(pkgST.ToString());
           javaW.Close();
        }
     }

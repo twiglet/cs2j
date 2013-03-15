@@ -9,10 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antlr3.Runtime", "Antlr.Run
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JTemplateGenerator", "CS2JTemplateGenerator\CS2JTemplateGenerator.csproj", "{B72D065B-862A-469B-87F1-2E521AC7CA08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JTemplateSigner", "CS2JTemplateSigner\CS2JTemplateSigner.csproj", "{DF234BD4-A292-4C92-AC8E-F97D3E821079}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CS2JKeyGenerator", "CS2JKeyGenerator\CS2JKeyGenerator.csproj", "{F294E768-56C3-438A-A3E5-8FA39825262E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nini", "Nini\Nini.csproj", "{CB5C2235-43B2-4B37-B866-D5D33F0E68B0}"
 EndProject
 Global
