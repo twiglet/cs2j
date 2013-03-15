@@ -27,4 +27,4 @@
       <Name>mk</Name>
     </Method>
   </Methods>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>+qhh/tw0LCtOBN7KkCVmLUWnZUU=</DigestValue></Reference></SignedInfo><SignatureValue>PIPZ6Tk7jst1NC5hDM/8hhmchjZ2ohbzkJkgm2owrs0CB1B+iAFwS1lJKXYJRL1dhmjgTktZYf879q9kIjDd40av82HdxkPrnkU4MxOxk9FD60aU4ryP560RyqBS+eZLTiOVwI5oLmkE1Zv9AOWxUaZ/OnmY+6TJnRgorygqqew=</SignatureValue></Signature></Class>
+</Class>

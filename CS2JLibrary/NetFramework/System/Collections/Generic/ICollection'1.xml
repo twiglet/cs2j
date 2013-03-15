@@ -45,4 +45,4 @@
       <Return>System.Int32</Return>
     </Method>
   </Methods>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>xg1B8jfoTV1ueNVykc2cQIu0unw=</DigestValue></Reference></SignedInfo><SignatureValue>EvK33gNJAYpJkNULRFgk2X07d9CLOhVDH3/3r0fK2JN1Ryx3P7nr2JYXDJrPX9PBXlv87h0PJzUkWI+3AfhUAhCemIOXg4eCgIOR19UQbRKj/DAZOuHB6vAh+VTmLsksk7Gn1gBI26M52kUG07+e9T6uMzoUXzkhyRjYPdsqYV4=</SignatureValue></Signature></Interface>
+</Interface>

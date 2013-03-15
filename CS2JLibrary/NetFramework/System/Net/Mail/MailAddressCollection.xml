@@ -47,4 +47,4 @@
   <Casts />
   <UnaryOps />
   <BinaryOps />
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>CTLssTmhjueUtg322kC8oRE8x8Y=</DigestValue></Reference></SignedInfo><SignatureValue>d3bx+T+hj4uqsg9FeTaWyZ5uH8bfXM4eJTpRnCx/lOywtzznnwSNKWdc7gGgIUvWN4jtam0pd/G7CwabXy/J+7XzxOD7U014UbG74LANTEV/o5GqlVkzjC2E6CzC8SAQO0ckn59HdrsU51SMqWPTypi1OkKpaH/ZtfZ0dvL5qZc=</SignatureValue></Signature></Class>
+</Class>

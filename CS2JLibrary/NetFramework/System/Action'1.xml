@@ -76,4 +76,4 @@
     <Return>System.Boolean</Return>
   </Invoke>
 
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>403Fnw310ZyoLReq83TWswqCBTg=</DigestValue></Reference></SignedInfo><SignatureValue>MKhlQT3UojGOqO34vN/ECs1wbe+hEwyWzrbocqMTAPf+QuloaVm5iCXeXcdRWdbpKSANEkeV907MOFKIdYMGks9ZtNwWI6yEM15xi8/HyuHUXOtC6qfsc/+uurY/qSuAZJPWMVMI6V3GDWHj5jduW4zc2R2ghrqSvFZz7ACVF7E=</SignatureValue></Signature></Delegate>
+</Delegate>

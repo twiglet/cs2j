@@ -75,4 +75,4 @@
     <TypeParams />
     <Return>System.Boolean</Return>
   </Invoke>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>T0UpNw/Yq/ryg661GrynJ5FKE7s=</DigestValue></Reference></SignedInfo><SignatureValue>e7BuFShw3gl4wP5mqDWrr8TpB2eXUH6V4qdKx/SdMooAL1wBG/0N00o23C9vI4PnirpaORO+yPKCZB1BXUK8XAELKfdKtL8DLMq1mw9zDnyWTIFSUcG46N5JbTHK2lVtY8m2c5d91J0sM8mYKGxUEjjo+dA1Kbk2p/BvIBs0n5A=</SignatureValue></Signature></Delegate>
+</Delegate>

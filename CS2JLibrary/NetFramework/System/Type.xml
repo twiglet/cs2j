@@ -152,4 +152,4 @@
   <Casts />
   <UnaryOps />
   <BinaryOps />
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>H2jvjaCN+d0FY+qe4fXPHmxjgao=</DigestValue></Reference></SignedInfo><SignatureValue>EiLNaz95X8fTntHt0gzpVoXAwIdgts/o4ziKf46KcRbd6HTIxtKpPLH5EyHEHkEgyoMUQlDQf7bXxhfON3B8cscM0wl6xDgysTFpeeugYFu+HgKAQnVzCOrIzxZACT5b6yU8Zyjdxc0HSbQ3FtfjB+ZozTU4LTu1EJB34/XIYPw=</SignatureValue></Signature></Class>
+</Class>

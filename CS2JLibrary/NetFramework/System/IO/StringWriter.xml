@@ -39,4 +39,4 @@
   <Casts />
   <UnaryOps />
   <BinaryOps />
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>eZ5XfRFQS57NI3ywcx0Yl6wLnf4=</DigestValue></Reference></SignedInfo><SignatureValue>eN4ab8eG2r8sJNn/5lUWcMomeRA+SJirGSGBjvlNmpI9/xMNhXhSVyV1R+qMZ/ONp5y4qr8qMlqCN+TSfFpWFD9OHRXebDp6taqwYe4K3q0XCI4fJPmuU5vWuXGnN4Y/ilEpTNUem1OWH/EhNy8dzeD/4qHQP4lPbxfbm2xrVWc=</SignatureValue></Signature></Class>
+</Class>

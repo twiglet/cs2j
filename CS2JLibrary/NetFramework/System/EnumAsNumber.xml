@@ -95,4 +95,4 @@
   </Casts>
   <UnaryOps />
   <BinaryOps />
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>4k0U7tevFUQGN33Tfaobpi/xr64=</DigestValue></Reference></SignedInfo><SignatureValue>DPkWTs8CFtDAbj2n+7s8QOnQyELUqZGzUoo/MPJ/VJozmcYviAip5P2q1FIzeZiNgLmvihJlz2MM+frdFAXuoUYvTqhbOq5jgPSsCkZymbvNyVR260JixNfSEIxunzyREvMPS0N0Lvmi7znH2IXxfUgXJpOw1El5qzfng49LTp8=</SignatureValue></Signature></Class>
+</Class>

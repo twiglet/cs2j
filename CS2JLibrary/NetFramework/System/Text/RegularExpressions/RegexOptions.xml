@@ -60,4 +60,4 @@
       <Name>CultureInvariant</Name>
     </Member>
   </Members>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>ZPVk2wLwNfdW123TkaIYUYHjsdg=</DigestValue></Reference></SignedInfo><SignatureValue>IbjXMk9It86gSZ+MkXzrdQ7JtnwqnI6vKeUJHIq5ey6RygXiD7/Qe7qX8JH26KVhja/PJzo9FjY0+O7QtAq5M2J7b0p+wFu0Lt+80DKfcnkjsu/RHvvKLbeYSzExRCs0inDBj00Y8h1cGKuW4e1oFeTlT4GqWcIx0vSSma2ba3U=</SignatureValue></Signature></Enum>
+</Enum>

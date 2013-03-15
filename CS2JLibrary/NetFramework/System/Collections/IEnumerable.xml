@@ -24,4 +24,4 @@
   <Properties />
   <Events />
   <Indexers />
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>BeblmQgYiXx8npI3AdBp2fKtlic=</DigestValue></Reference></SignedInfo><SignatureValue>W0+RXpuesVjW646h9NjqSADvTjId7OmWP+5IkLcVol4gsaVQmEoB8WJxMCzzxJ/mQrL2UafZk0GYEurGVe9HwI4EXsLy/i1AALD9SEMjncdL7DkI/aVrtmM0qCo+5yQsAtRkXzVbCPyx2gThthpiBE4MVd3AyuRw+OoLXL5xHR0=</SignatureValue></Signature></Interface>
+</Interface>
