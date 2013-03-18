@@ -1,14 +1,4 @@
-CS2J is the most advanced C# to Java conversion tool available today.
- 
-- CS2J produces good looking, maintainable Java software from your C#
-  source code.
-- It uses a powerful, extensible template system to translate .NET
-  Framework and 3rd party library calls.
-- It is a command-line tool which can be easily incorporated into your
-  existing development workflow.
-- And it is completely Open Source!
-
-The CS2J source distribution has two components:
+CS2J has two components:
 
 - CSharpTranslator:
      This builds the cs2j.exe executable.  This executable runs
@@ -23,7 +13,7 @@ The CS2J source distribution has two components:
 
 - CS2JLibrary: 
 
-     This contains the XML translation files that direct cs2j to
+     This contains the XML translation files that direct CS2J to
      translate .Net framework calls into appropriate Java code, and
      the CS2JLibrary Java support library that translated applications
      include.
