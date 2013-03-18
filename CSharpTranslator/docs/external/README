@@ -1,18 +1,8 @@
-                          CS2J Trial Version
-                          ==== ===== =======
+                                 CS2J
+                                 ==== 
 
-This archive contains a trial version of CS2J, a converter that
-translates C# applications into Java applications. It may be used for
-evaluation purposes only.
-
-It has two usage restrictions compared to the full product:
-
-- Java classes are truncated at 150 lines.
-- The XML translation files (under NetFrameworks) are signed.  You can
-  make modifications, or add new translation files, and these will be
-  used by CS2J as long as there are 5 or less translation files
-  without valid signatures. If you hit this limit, then just restore
-  some of the original translation files and try again.
+This archive contains a full version of CS2J, a converter that
+translates C# applications into Java applications.
 
 In this directory you will find:
 
@@ -29,14 +19,8 @@ In this directory you will find:
 We hope you have fun evaluating CS2J.  If you have any questions or
 comments about CS2J just drop us an email.  
 
-If you want to translate your software from C# to Java then please
-contact us for information about our translation services, or about
-licensing CS2J for your own use.
-
 email:   info@twigletsoftware.com
 website: http://www.twigletsoftware.com
 
-
-
 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-Twiglet Software, 2011 
+Twiglet Software, 2013 
