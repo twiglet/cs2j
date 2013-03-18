@@ -8,6 +8,12 @@ CS2J is the most advanced C# to Java conversion tool available today.
   existing development workflow.
 - And it is completely Open Source!
 
+CS2J was initially developed by Rustici Software to translate their
+SCORM Engine web application (http://www.scorm.com), it was later 
+developed and marketed by Twiglet Software as a general purpose
+C# to Java application translator.  We are now pleased to be able
+to make the source code freely available.
+
 The CS2J source distribution has two components:
 
 - CSharpTranslator:
