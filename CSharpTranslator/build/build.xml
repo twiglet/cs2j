@@ -1,4 +1,4 @@
-<project name="CS2JDist" default="release" basedir=".">
+<project name="CS2JDist" default="releasefromhere" basedir=".">
 
   <description>
     This build file builds a cs2j distribution archive
@@ -14,7 +14,7 @@
   <property file="build.properties"/>
 
   <!-- load the ant-antlr task -->
-  <taskdef resource="org/apache/tools/ant/antlr/antlib.xml" classpath="${builder.ant.lib}/ant-antlr3.jar;${project.dir}/jar/antlr-3.3.jar" />
+  <taskdef resource="org/apache/tools/ant/antlr/antlib.xml" classpath="${project.dir}/jar/ant-antlr3.jar;${project.dir}/jar/antlr-3.3.jar" />
   
   <!-- git macros, stolen / based on http://tlrobinson.net/blog/2008/11/13/ant-tasks-for-git/ -->
   <macrodef name = "git">
