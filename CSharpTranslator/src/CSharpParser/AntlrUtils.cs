@@ -1,4 +1,20 @@
-﻿using System;
+﻿/*
+   Copyright 2009-2012 Andrew Bradnan (http://antlrcsharp.codeplex.com/)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the MIT/X Window System License
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+You should have received a copy of the MIT/X Window System License
+along with this program.  If not, see 
+
+   <http://www.opensource.org/licenses/mit-license>
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
