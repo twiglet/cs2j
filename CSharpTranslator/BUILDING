@@ -1,0 +1,12 @@
+CS2J can be built on Windows (requires .Net framework 4 to be
+installed) or on any system that supports Mono
+(http://www.mono-project.com/Main_Page).
+
+The solution file in src/ should load in Visual Studio 2010 or
+MonoDevelop, or you can build from the command line by running
+'mkit.bat' (Windows) or mkit (mono).  This will build a cs2j.exe
+executable in src\CS2JTranslator\bin\Debug\cs2j.exe.
+
+Documentation for cs2j.exe is in docs\external\CS2JUsersGuide.pdf.
+
+Contact kevin.glynn@twigletsoftware.com for further help.
