@@ -1,1 +1,0 @@
-mono CS2JTemplateSigner/bin/Debug/CS2JTemplateSigner.exe -keyfile ../resources/cs2jsign_priv.xml ~/gitrepos/cs2j/CS2JLibrary/NetFramework

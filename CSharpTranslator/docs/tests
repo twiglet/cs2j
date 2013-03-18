@@ -1,2 +1,0 @@
-time mono src/CS2JTranslator/bin/Debug/cs2j.exe --translator-timestamp-files=false -translator-keep-parens=false -netdir=/Users/keving/gitrepos/cs2j/CS2JLibrary/NetFramework/ -dumpxmls -xmldir=/Users/keving/tmp/xml/tfsDeployer -odir=USers/keving/tmp/java/tfsDeployer/src -exappdir=/Users/keving/svnrepos/TfsDeployer/Tests.TfsDeployer -excsdir=/Users/keving/svnrepos/TfsDeployer/Tests.TfsDeployer -csdir=/Users/keving/svnrepos/TfsDeployer/TfsDeployer
-
