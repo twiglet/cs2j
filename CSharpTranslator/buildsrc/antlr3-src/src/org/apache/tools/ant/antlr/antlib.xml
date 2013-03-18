@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><antlib>  <taskdef    name="ant-antlr3"    classname="org.apache.tools.ant.antlr.ANTLR3"    /></antlib>
