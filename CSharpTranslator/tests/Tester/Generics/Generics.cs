@@ -1,3 +1,7 @@
+//
+// Example code taken from examples on http://www.codeguru.com/csharp/sample_chapter/article.php/c11673/C-Generics-Part-24-Constraints-Members-Operators.htm
+
+
 using System;
 
 namespace Tester.Generics
