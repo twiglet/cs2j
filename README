@@ -24,15 +24,15 @@ The CS2J source distribution has two components:
      This work is licensed under the MIT / X Window System License
      (http://opensource.org/licenses/mit-license.php). 
 
-     With this licensing then the produced Java code should be
-     completely unencumbered and you can do what you want with it.
+     With this license the produced Java code is completely unencumbered 
+     and you can do what you want with it.
 
 - CS2JLibrary: 
 
      This contains the XML translation files that direct cs2j to
      translate .Net framework calls into appropriate Java code, and
-     the CS2JLibrary Java support library that translated applications
-     include.
+     the CS2JLibrary Java support library that should be deployed with
+     translated applications.
 
      This work is licensed under the Apache License, Version 2.0
      (http://www.apache.org/licenses/LICENSE-2.0).
