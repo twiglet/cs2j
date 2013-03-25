@@ -1,6 +1,7 @@
 CS2J can be built on Windows (requires .Net framework 4 to be
-installed) or on any system that supports Mono
-(http://www.mono-project.com/Main_Page).
+installed), or on any system that supports Mono
+(http://www.mono-project.com/Main_Page) and Ant
+(http://ant.apache.org/).
 
 The solution file in src/ should load in Visual Studio 2010 or
 MonoDevelop, or you can build from the command line by running
