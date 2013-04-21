@@ -9,8 +9,11 @@
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports />
-  <Java>Comparable</Java>
+  <Java>Comparable*[${T}]*</Java>
   <Name>System.IComparable</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
   <Uses />
   <Inherits> <Type>System.Object</Type> </Inherits>
   <Methods>
@@ -19,7 +22,7 @@
       <Java>${this:16}.compareTo(${arg})</Java>
       <Params>
         <Param>
-          <Type>System.Object</Type>
+          <Type>*[T]*</Type>
           <Name>arg</Name>
         </Param>
       </Params>
