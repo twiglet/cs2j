@@ -709,7 +709,7 @@ namespace Twiglet.CS2J.Translator
                     {
                        if (cfg.DebugLevel >= 1) Console.Out.WriteLine("Writing out {0}", javaFName);
                        StreamWriter javaW = new StreamWriter(javaFName);
-                       javaW.Write(outputMaker.compilation_unit().ToString());
+                       javaW.Write(outputMaker.compilation_unit().ToString().Replace("//CS2J:Java code:", ""));
                        javaW.Close();
                     }
                     else
