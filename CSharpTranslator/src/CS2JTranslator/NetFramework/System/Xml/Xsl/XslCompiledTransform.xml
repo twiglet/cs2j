@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.Xsl.XslTransform</Import>
+  </Imports>
+  <Java>XslTransform</Java>
+  <Name>System.Xml.Xsl.XslCompiledTransform</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.load(${xmlReader}, ${ignore}, ${ignore2})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlTextReader</Type>
+          <Name>xmlReader</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>ignore</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>ignore2</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.transform(${xmlDocument}, ${ignore}, ${stringWriter})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlDocument</Type>
+          <Name>xmlDocument</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>ignore</Name>
+        </Param>
+        <Param>
+          <Type>System.IO.StringWriter</Type>
+          <Name>stringWriter</Name>
+        </Param>
+      </Params>
+      <Name>Transform</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

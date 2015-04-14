@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>NONE</Java>
+  <Name>System.Configuration.ConfigurationManager</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Configuration.ConfigurationManager</Import>
+      </Imports>
+      <Java>ConfigurationManager.getAppSettings()</Java>
+      <Type>System.Collections.Specialized.NameValueCollection</Type>
+      <Name>AppSettings</Name>
+      <Get>ConfigurationManager.getAppSettings()</Get>
+      <Set>${this:16}.setAppSettings(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

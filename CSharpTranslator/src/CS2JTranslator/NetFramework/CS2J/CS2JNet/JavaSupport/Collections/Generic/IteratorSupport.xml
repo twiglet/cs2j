@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.JavaSupport.Collections.Generic.IteratorSupport</Import>
+  </Imports>
+  <Java>IteratorSupport</Java>
+  <Name>CS2J.CS2JNet.JavaSupport.Collections.Generic.IteratorSupport</Name>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.IteratorSupport</Import>
+      </Imports>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>enum</Name>
+        </Param>
+      </Params>
+      <Java>IteratorSupport.mk(${enum})</Java>
+      <Name>mk</Name>
+    </Method>
+  </Methods>
+</Class>

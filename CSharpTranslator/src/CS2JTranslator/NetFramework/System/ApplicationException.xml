@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>RuntimeException</Java>
+  <Name>System.ApplicationException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Exception</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new RuntimeException()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new RuntimeException(${message})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new ApplicationException(${info},${ctxt})</Java>
+      <Params>
+        <Param>
+          <Type>System.SerializationInfo</Type>
+          <Name>info</Name>
+        </Param>
+        <Param>
+          <Type>System.StreamingContext</Type>
+          <Name>ctxt</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new RuntimeException(${message}, ${inner})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+        <Param>
+          <Type>System.Exception</Type>
+          <Name>inner</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

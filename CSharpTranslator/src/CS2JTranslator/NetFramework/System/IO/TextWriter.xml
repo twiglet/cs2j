@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.io.PrintStream</Import>
+  </Imports>
+  <Java>PrintStream</Java>
+  <Name>System.IO.TextWriter</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.close()</Java>
+      <Params />
+      <Name>Close</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.println(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.print(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt})${,*]1})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+      </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>arg</Name>
+      </ParamArray>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>System.out.println()</Java>
+      <Params />
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>System.out.println(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>System.out.printf(StringSupport.CSFmtStrToJFmtStr(${fmt}) + "\n"${,*]1})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>fmt</Name>
+        </Param>
+      </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>arg</Name>
+      </ParamArray>
+      <Name>WriteLine</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

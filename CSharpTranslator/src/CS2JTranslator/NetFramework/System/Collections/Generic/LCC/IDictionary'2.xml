@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Map</Import>
+  </Imports>
+  <Java>Map*[${K},${V}]*</Java>
+  <Name>System.Collections.Generic.IDictionary</Name>
+  <TypeParams>
+    <Name>K</Name>
+    <Name>V</Name>
+  </TypeParams>
+  <Iterable>
+    <ElementType>System.Collections.Generic.KeyValuePair*[K,V]*</ElementType>
+    <Java>${expr}.entrySet()</Java>
+  </Iterable>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>K</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>V</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.clear()</Java>
+      <Params />
+      <Name>Clear</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>K</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>ContainsKey</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.remove(${key})</Java>
+      <Params>
+        <Param>
+          <Type>K</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <!-- in java actually returns the value removed -->
+      <Return>System.Boolean</Return>
+    </Method>
+  </Methods>
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>K</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Type>V</Type>
+      <Get>${this:16}.get(${key})</Get>
+      <Set>${this:16}.put(${key}, ${value})</Set>
+    </Indexer>
+  </Indexers>
+  <Properties>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.LCC.CollectionSupport</Import>
+      </Imports>
+      <Type>System.Collections.Generic.ICollection*[K]*</Type>
+      <Name>Keys</Name>
+      <Get>CollectionSupport.mk(${this:16}.keySet())</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>System.Collections.Generic.ICollection*[V]*</Type>
+      <Name>Values</Name>
+      <Get>${this:16}.values()</Get>
+    </Property>
+  </Properties>
+</Interface>

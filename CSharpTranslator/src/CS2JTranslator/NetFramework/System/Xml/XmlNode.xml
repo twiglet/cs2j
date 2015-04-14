@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.XmlNode</Import>
+  </Imports>
+  <Java>XmlNode</Java>
+  <Name>System.Xml.XmlNode</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.appendChild(${child})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>child</Name>
+        </Param>
+      </Params>
+      <Name>AppendChild</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.insertBefore(${newChild}, ${refChild})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>newChild</Name>
+        </Param>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>refChild</Name>
+        </Param>
+      </Params>
+      <Name>InsertBefore</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.removeChild(${child})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNode</Type>
+          <Name>child</Name>
+        </Param>
+      </Params>
+      <Name>RemoveChild</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.removeAll()</Java>
+      <Params />
+      <Name>RemoveAll</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.selectNodes(${xpath})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>xpath</Name>
+        </Param>
+      </Params>
+      <Name>SelectNodes</Name>
+      <Return>System.Xml.XmlNodeList</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.selectSingleNode(${xpath})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>xpath</Name>
+        </Param>
+      </Params>
+      <Name>SelectSingleNode</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getAttributes()</Java>
+      <Type>System.Xml.XmlAttributeCollection</Type>
+      <Name>Attributes</Name>
+      <Get>${this:16}.getAttributes()</Get>
+      <Set>${this:16}.setAttributes(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getChildNodes()</Java>
+      <Type>System.Xml.XmlNodeList</Type>
+      <Name>ChildNodes</Name>
+      <Get>${this:16}.getChildNodes()</Get>
+      <Set>${this:16}.setChildNodes(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getFirstChild()</Java>
+      <Type>System.Xml.XmlNode</Type>
+      <Name>FirstChild</Name>
+      <Get>${this:16}.getFirstChild()</Get>
+      <Set>${this:16}.setFirstChild(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>System.String</Type>
+      <Name>InnerText</Name>
+      <Get>${this:16}.getInnerText()</Get>
+      <Set>${this:16}.setInnerText(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>System.String</Type>
+      <Name>InnerXml</Name>
+      <Get>${this:16}.getInnerXml()</Get>
+      <Set>${this:16}.setInnerXml(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getLocalName()</Java>
+      <Type>System.String</Type>
+      <Name>LocalName</Name>
+      <Get>${this:16}.getLocalName()</Get>
+      <Set>${this:16}.setLocalName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getName()</Java>
+      <Type>System.String</Type>
+      <Name>Name</Name>
+      <Get>${this:16}.getName()</Get>
+      <Set>${this:16}.setName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getNamespaceURI()</Java>
+      <Type>System.String</Type>
+      <Name>NamespaceURI</Name>
+      <Get>${this:16}.getNamespaceURI()</Get>
+      <Set>${this:16}.setNamespaceURI(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getNextSibling()</Java>
+      <Type>System.Xml.XmlNode</Type>
+      <Name>NextSibling</Name>
+      <Get>${this:16}.getNextSibling()</Get>
+      <Set>${this:16}.setNextSibling(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getOuterXml()</Java>
+      <Type>System.String</Type>
+      <Name>OuterXml</Name>
+      <Get>${this:16}.getOuterXml()</Get>
+      <Set>${this:16}.setOuterXml(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getOwnerDocument()</Java>
+      <Type>System.Xml.XmlDocument</Type>
+      <Name>OwnerDocument</Name>
+      <Get>${this:16}.getOwnerDocument()</Get>
+      <Set>${this:16}.setOwnerDocument(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getParentNode()</Java>
+      <Type>System.Xml.XmlNode</Type>
+      <Name>ParentNode</Name>
+      <Get>${this:16}.getParentNode()</Get>
+      <Set>${this:16}.setParentNode(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getNodeType()</Java>
+      <Type>System.Xml.XmlNodeType</Type>
+      <Name>NodeType</Name>
+      <Get>${this:16}.getNodeType()</Get>
+      <Set>${this:16}.setNodeType(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new XmlNode()</Java>
+      <Params />
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

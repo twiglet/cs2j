@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>Math</Java>
+  <Name>System.Math</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>Math.abs(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>Abs</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.floor(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Decimal</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>Floor</Name>
+      <Return>System.Decimal</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.floor(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>Floor</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.floor(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>Floor</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.min(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Min</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.min(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Min</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.max(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Max</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.max(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Max</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.max(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Number</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Max</Name>
+      <Return>System.Number</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.pow(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Pow</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.round(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Decimal</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>Round</Name>
+      <Return>System.Decimal</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.round(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>Round</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Math.round(${s})</Java>
+      <Params>
+        <Param>
+          <Type>System.Single</Type>
+          <Name>s</Name>
+        </Param>
+      </Params>
+      <Name>Round</Name>
+      <Return>System.Single</Return>
+    </Method>
+    <Method>
+      <Imports>
+	<Import>CS2JNet.System.MathSupport</Import>
+      </Imports>
+      <Java>MathSupport.round(${d},${decimals})</Java>
+      <Params>
+        <Param>
+          <Type>System.Decimal</Type>
+          <Name>d</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>decimals</Name>
+        </Param>
+      </Params>
+      <Name>Round</Name>
+      <Return>System.Decimal</Return>
+    </Method>
+    <Method>
+      <Imports>
+	<Import>CS2JNet.System.MathSupport</Import>
+      </Imports>
+      <Java>MathSupport.round(${d},${decimals})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>d</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>decimals</Name>
+        </Param>
+      </Params>
+      <Name>Round</Name>
+      <Return>System.Double</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

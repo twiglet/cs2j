@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>short</Java>
+  <Name>System.Xml.XmlNodeType</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>org.w3c.dom.Node.ELEMENT_NODE</Java>
+      <Type>short</Type>
+      <Name>Element</Name>
+      <Get>org.w3c.dom.Node.ELEMENT_NODE</Get>
+      <Set>${this:16}.setElement(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>org.w3c.dom.Node.ATTRIBUTE_NODE</Java>
+      <Type>short</Type>
+      <Name>Attribute</Name>
+      <Get>org.w3c.dom.Node.ATTRIBUTE_NODE</Get>
+      <Set>${this:16}.setAttribute(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>org.w3c.dom.Node.TEXT_NODE</Java>
+      <Type>short</Type>
+      <Name>Text</Name>
+      <Get>org.w3c.dom.Node.TEXT_NODE</Get>
+      <Set>${this:16}.setText(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

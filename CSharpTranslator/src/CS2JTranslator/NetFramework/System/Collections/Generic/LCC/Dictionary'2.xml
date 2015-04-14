@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.HashMap</Import>
+  </Imports>
+  <Java>HashMap*[${K},${V}]*</Java>
+  <Name>System.Collections.Generic.Dictionary</Name>
+  <TypeParams>
+    <Name>K</Name>
+    <Name>V</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+    <Type>System.Collections.Generic.IDictionary*[K,V]*</Type>
+<!--    <Type>IList<T>, ICollection<T>, 
+	IEnumerable<T>, IList, ICollection, IEnumerable</Type> -->
+  </Inherits>
+  <Iterable>
+    <ElementType>KeyValuePair*[K,V]*</ElementType>
+    <Java>${expr}.entrySet()</Java>
+  </Iterable>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>K</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>V</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.clear()</Java>
+      <Params />
+      <Name>Clear</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>K</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>ContainsKey</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.containsValue(${value})</Java>
+      <Params>
+        <Param>
+          <Type>V</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ContainsValue</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.remove(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <!-- in java actually returns the value removed -->
+      <Return>System.Boolean</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Collections.Generic.LCC.CollectionSupport</Import>
+      </Imports>
+      <Type>System.Collections.Generic.KeyCollection*[K]*</Type>
+      <Name>Keys</Name>
+      <Get>CollectionSupport.mk(${this:16}.keySet())</Get>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Type>V</Type>
+      <Get>${this:16}.get(${key})</Get>
+      <Set>${this:16}.put(${key}, ${value})</Set>
+    </Indexer>
+  </Indexers>
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new HashMap*[${K},${V}]*()</Java>
+      <Params />
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

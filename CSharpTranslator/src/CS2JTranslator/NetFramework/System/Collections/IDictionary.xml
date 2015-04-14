@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Map</Import>
+  </Imports>
+  <Java>Map</Java>
+  <Name>System.Collections.IDictionary</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.put(${key}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>Contains</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.containsKey(${key})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Name>ContainsKey</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.remove(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.keySet()</Java>
+      <Type>System.Collections.ICollection</Type>
+      <Name>Keys</Name>
+      <Get>${this:16}.keySet()</Get>
+      <Set>${this:16}.setKeys(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.values()</Java>
+      <Type>System.Collections.ICollection</Type>
+      <Name>Values</Name>
+      <Get>${this:16}.values()</Get>
+      <Set>${this:16}.setValues(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+      <Type>System.Object</Type>
+      <Get>${this:16}.get(${key})</Get>
+      <Set>${this:16}.put(${key}, ${value})</Set>
+    </Indexer>
+  </Indexers>
+</Interface>

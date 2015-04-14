@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.io.File</Import>
+  </Imports>
+  <Java>File</Java>
+  <Name>System.IO.Directory</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${path})).exists()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Exists</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${path})).mkdirs()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>CreateDirectory</Name>
+      <Return>System.IO.DirectoryInfo</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.DirectorySupport</Import>
+      </Imports>
+      <Java>DirectorySupport.delete(${path}, false)</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Delete</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.DirectorySupport</Import>
+      </Imports>
+      <Java>DirectorySupport.delete(${path}, ${recursive})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>recursive</Name>
+        </Param>
+      </Params>
+      <Name>Delete</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${sourceFileName})).renameTo(new File(${destFileName}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>destFileName</Name>
+        </Param>
+      </Params>
+      <Name>Move</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${path})).list()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetFileSystemEntries</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.DirectorySupport</Import>
+      </Imports>
+      <Java>DirectorySupport.getFiles(${path}, ${searchpattern})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>searchpattern</Name>
+        </Param>
+      </Params>
+      <Name>GetFiles</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.DirectorySupport</Import>
+      </Imports>
+      <Java>DirectorySupport.getDirectories(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetDirectories</Name>
+      <Return>System.String[]</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.DirectorySupport</Import>
+      </Imports>
+      <Java>DirectorySupport.getFiles(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>GetFiles</Name>
+      <Return>System.String[]</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

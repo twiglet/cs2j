@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.io.File</Import>
+  </Imports>
+  <Java>File</Java>
+  <Name>System.IO.File</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>java.io.PrintWriter</Import>
+        <Import>java.io.OutputStreamWriter</Import>
+        <Import>java.io.FileOutputStream</Import>
+        <Import>java.nio.charset.Charset</Import>
+      </Imports>
+      <Java>new PrintWriter(new OutputStreamWriter(new FileOutputStream(${path}), Charset.forName("UTF-8")))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>CreateText</Name>
+      <Return>System.IO.StreamWriter</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.FileOutputStream</Import>
+        <Import>java.io.BufferedOutputStream</Import>
+      </Imports>
+      <Java>new BufferedOutputStream(new FileOutputStream(${path}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Create</Name>
+      <Return>System.IO.StreamWriter</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.FileInputStream</Import>
+      </Imports>
+      <Java>new FileInputStream(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>OpenRead</Name>
+      <Return>System.IO.Stream</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${path})).delete()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Delete</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${path})).exists()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+      <Name>Exists</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.FileSupport</Import>
+      </Imports>
+      <Java>FileSupport.copyFile(${sourceFileName}, ${destFileName}, true)</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>destFileName</Name>
+        </Param>
+      </Params>
+      <Name>Copy</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IO.FileSupport</Import>
+      </Imports>
+      <Java>FileSupport.copyFile(${sourceFileName}, ${destFileName}, ${overwrite})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>destFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>overwrite</Name>
+        </Param>
+      </Params>
+      <Name>Copy</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.io.File</Import>
+      </Imports>
+      <Java>(new File(${sourceFileName})).renameTo(new File(${destFileName}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>destFileName</Name>
+        </Param>
+      </Params>
+      <Name>Move</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>/* Cannot set file attributes from Java - File.SetAttributes(${sourceFileName}, ${attributes}) */</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>attributes</Name>
+        </Param>
+      </Params>
+      <Name>SetAttributes</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>/* Cannot get file attributes from Java - File.GetAttributes(${sourceFileName}) */ 0</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>sourceFileName</Name>
+        </Param>
+      </Params>
+      <Name>GetAttributes</Name>
+      <Return>System.Enum</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

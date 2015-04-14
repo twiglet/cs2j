@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.zip.ZipEntry</Import>
+  </Imports>
+  <Java>ZipEntry</Java>
+  <Name>ICSharpCode.SharpZipLib.Zip.ZipEntry</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Runtime.InteropServices.ICloneable</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getName()</Java>
+      <Type>System.String</Type>
+      <Name>Name</Name>
+      <Get>${this:16}.getName()</Get>
+      <Set>${this:16}.setName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.isDirectory()</Java>
+      <Type>System.Boolean</Type>
+      <Name>IsDirectory</Name>
+      <Get>${this:16}.isDirectory()</Get>
+      <Set>${this:16}.setIsDirectory(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

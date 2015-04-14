@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Struct xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Map.Entry</Import>
+  </Imports>
+  <Java>Entry*[${K},${V}]*</Java>
+  <Name>System.Collections.Generic.KeyValuePair</Name>
+  <TypeParams>
+    <Name>K</Name>
+    <Name>V</Name>
+  </TypeParams>
+  <Properties>
+    <Property>
+      <Imports />
+      <Type>K</Type>
+      <Name>Key</Name>
+      <Get>${this:16}.getKey()</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Type>V</Type>
+      <Name>Value</Name>
+      <Get>${this:16}.getValue()</Get>
+    </Property>
+  </Properties>
+</Struct>

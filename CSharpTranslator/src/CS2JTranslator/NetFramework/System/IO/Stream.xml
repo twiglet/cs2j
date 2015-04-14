@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.io.InputStream</Import>
+  </Imports>
+  <Java>InputStream</Java>
+  <Name>System.IO.Stream</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IO.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.close()</Java>
+      <Params />
+      <Name>Close</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.read(${buffer},${offset},${count})</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>offset</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>count</Name>
+        </Param>
+      </Params>
+      <Name>Read</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.write(${buffer},${offset},${count})</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>buffer</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>offset</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>count</Name>
+        </Param>
+      </Params>
+      <Name>Write</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.Unsupported</Import>
+      </Imports>
+      <Java>Unsupported.throwUnsupported("${this:16}.Position")</Java>
+      <Type>System.Int64</Type>
+      <Name>Position</Name>
+      <Get>Unsupported.throwUnsupported("${this:16}.Position")</Get>
+      <Set>Unsupported.throwUnsupported("${this:16}.Position = ${value}")</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>java.io.FileInputStream</Import>
+      </Imports>
+      <Java>new FileInputStream(${path})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>path</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

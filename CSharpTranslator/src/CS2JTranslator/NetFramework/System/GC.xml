@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports></Imports>
+  <Name>System.GC</Name>
+  <Uses />
+  <Methods>
+    <Method>
+      <Java>System.gc()</Java>
+      <Params>
+      </Params>
+      <Name>Collect</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Warning>GCSupport.SuppressFinalize has no effect. It is not possible to suppress finalize() in Java</Warning>
+      <Imports>
+        <Import>CS2JNet.System.GCSupport</Import>
+      </Imports>
+      <Java>GCSupport.SuppressFinalize(${arg}) /* CS2J: this call does nothing */</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>SuppressFinalize</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

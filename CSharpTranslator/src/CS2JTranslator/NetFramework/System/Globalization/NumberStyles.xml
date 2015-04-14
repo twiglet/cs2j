@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>int</Java>
+  <Name>System.Globalization.NumberStyles</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
+      </Imports>
+      <Java>NumberStyles.getInteger()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>Integer</Name>
+      <Get>NumberStyles.getInteger()</Get>
+      <Set>${this:16}.setInteger(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
+      </Imports>
+      <Java>NumberStyles.getHexNumber()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>HexNumber</Name>
+      <Get>NumberStyles.getHexNumber()</Get>
+      <Set>${this:16}.setHexNumber(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
+      </Imports>
+      <Java>NumberStyles.getAny()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>Any</Name>
+      <Get>NumberStyles.getAny()</Get>
+      <Set>${this:16}.setAny(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

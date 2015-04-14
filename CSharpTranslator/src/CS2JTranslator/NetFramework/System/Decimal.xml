@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class has_boxed_rep="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>double</Java>
+  <BoxedJava>Double</BoxedJava>
+  <Name>System.Decimal</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Double.valueOf(${dStr})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Double</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>Double.MIN_VALUE</Java>
+      <Type>System.Decimal</Type>
+      <Name>MinValue</Name>
+      <Get>Double.MIN_VALUE</Get>
+      <Set>${this:16}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Double.MAX_VALUE</Java>
+      <Type>System.Decimal</Type>
+      <Name>MaxValue</Name>
+      <Get>Double.MAX_VALUE</Get>
+      <Set>${this:16}.setMaxValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>-1.0</Java>
+      <Type>System.Decimal</Type>
+      <Name>MinusOne</Name>
+      <Get>-1.0</Get>
+      <Set>${this:16}.setMinusOne(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>0.0</Java>
+      <Type>System.Decimal</Type>
+      <Name>Zero</Name>
+      <Get>0.0</Get>
+      <Set>${this:16}.setZero(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>1.0</Java>
+      <Type>System.Decimal</Type>
+      <Name>One</Name>
+      <Get>1.0</Get>
+      <Set>${this:16}.setOne(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+<!--
+    <Cast>
+      <Imports />
+      <Java>((Number)${expr}).doubleValue()</Java>
+      <From>System.Object</From>
+      <To>System.Decimal</To>
+    </Cast>
+-->
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+</Class>
