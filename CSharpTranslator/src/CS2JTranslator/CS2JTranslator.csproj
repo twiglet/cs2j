@@ -255,6 +255,7 @@
     <Content Include="NetFramework\System\Web\Services\Protocols\SoapHttpClientProtocol.xml" />
     <Content Include="NetFramework\System\Web\Services\Protocols\SoapMessage.xml" />
     <Content Include="NetFramework\System\Windows\Forms\Application.xml" />
+    <Content Include="NetFramework\System\ArgumentNullException.xml" />
     <Content Include="NetFramework\System\Xml\Schema\XmlSchema.xml" />
     <Content Include="NetFramework\System\Xml\Schema\XmlSchemaObject.xml" />
     <Content Include="NetFramework\System\Xml\Serialization\IXmlSerializable.xml" />
@@ -276,6 +277,7 @@
     <Content Include="NetFramework\System\Xml\XmlTextReader.xml" />
     <Content Include="NetFramework\System\Xml\XmlWriter.xml" />
     <Content Include="NetFramework\System\Xml\Xsl\XslCompiledTransform.xml" />
+    <Content Include="NetFramework\System\ArgumentOutOfRangeException.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
