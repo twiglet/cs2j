@@ -1,12 +1,14 @@
+# CS2J : C# to Java conversion tool
+
 CS2J is the most advanced C# to Java conversion tool available today.
  
-- CS2J produces good looking, maintainable Java software from your C#
+* CS2J produces good looking, maintainable Java software from your C#
   source code.
-- It uses a powerful, extensible template system to translate .NET
+* It uses a powerful, extensible template system to translate .NET
   Framework and 3rd party library calls.
-- It is a command-line tool which can be easily incorporated into your
+* It is a command-line tool which can be easily incorporated into your
   existing development workflow.
-- And it is completely Open Source!
+* And it is completely Open Source!
 
 CS2J was initially developed by Rustici Software to translate their
 SCORM Engine web application (http://www.scorm.com), it was later 
@@ -16,7 +18,7 @@ to make the source code freely available.
 
 The CS2J source distribution has two components:
 
-- CSharpTranslator:
+* CSharpTranslator:
      This builds the cs2j.exe executable.  This executable runs
      directly under Windows and under Mono on other platforms
      (http://www.mono-project.com/Main_Page).
@@ -27,7 +29,7 @@ The CS2J source distribution has two components:
      With this license the produced Java code is completely unencumbered 
      and you can do what you want with it.
 
-- CS2JLibrary: 
+* CS2JLibrary: 
 
      This contains the XML translation files that direct cs2j to
      translate .Net framework calls into appropriate Java code, and
