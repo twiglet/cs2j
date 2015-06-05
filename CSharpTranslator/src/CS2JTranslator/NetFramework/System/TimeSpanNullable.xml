@@ -1,0 +1,37 @@
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0" has_boxed_rep="true">
+  <Imports/>
+  <Java></Java>
+  <Name>System.TimeSpan?</Name>
+  <Uses/>
+  <Casts/>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods/>
+  <Properties>
+    <Property>
+      <Imports/>
+      <Java>${this:16}</Java>
+      <Warning></Warning>
+      <Type>System.TimeSpan</Type>
+      <Name>Value</Name>
+      <Get>${this:16}</Get>
+      <Set></Set>
+    </Property>
+    <Property>
+      <Imports/>
+      <Java>$({this:16} != null)</Java>
+      <Warning></Warning>
+      <Type>System.Boolean</Type>
+      <Name>HasValue</Name>
+      <Get>(${this:16} != null)</Get>
+    </Property>
+  </Properties>
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <BoxedJava></BoxedJava>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
+</Class>

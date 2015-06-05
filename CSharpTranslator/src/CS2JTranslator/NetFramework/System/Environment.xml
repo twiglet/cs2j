@@ -1,28 +1,20 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports/>
   <Java>Environment</Java>
   <Name>System.Environment</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Object</Type>
   </Inherits>
-  <Methods />
+  <Methods/>
   <Properties>
     <Property>
-      <Imports />
-      <Java>System.getProperty("line.separator")</Java>
+      <Imports/>
+      <Java>System.getProperty(&quot;line.separator&quot;)</Java>
       <Type>System.String</Type>
       <Name>NewLine</Name>
-      <Get>System.getProperty("line.separator")</Get>
+      <Get>System.getProperty(&quot;line.separator&quot;)</Get>
       <Set>${this:16}.setNewLine(${value})</Set>
     </Property>
     <Property>
@@ -35,12 +27,20 @@
       <Get>InetAddress.getLocalHost().getHostName()</Get>
       <Set>${this:16}.setMachineName(${value})</Set>
     </Property>
+    <Property>
+      <Imports/>
+      <Java>((int) System.nanoTime() / 100)</Java>
+      <Warning></Warning>
+      <Type>System.Int32</Type>
+      <Name>TickCount</Name>
+      <Get>((int) System.nanoTime() / 100)</Get>
+      <Set></Set>
+    </Property>
   </Properties>
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

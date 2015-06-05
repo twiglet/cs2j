@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java />
+  <Name>System.DayOfWeek</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Java>Calendar.MONDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Monday</Name>
+      <Get>Calendar.MONDAY</Get>
+    </Property>
+    <Property>
+      <Java>Calendar.THUESDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Tuesday</Name>
+      <Get>Calendar.TUESDAY</Get>
+    </Property>
+    <Property>
+      <Java>Calendar.WEDNESDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Wednesday</Name>
+      <Get>Calendar.WEDNESDAY</Get>
+    </Property>
+    <Property>
+      <Java>Calendar.THURSDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Thursday</Name>
+      <Get>Calendar.THURSDAY</Get>
+    </Property>
+    <Property>
+      <Java>Calendar.FRIDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Friday</Name>
+      <Get>Calendar.FRIDAY</Get>
+    </Property>
+    <Property>
+      <Java>Calendar.SATURDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Saturday</Name>
+      <Get>Calendar.SATURDAY</Get>
+    </Property>
+    <Property>
+      <Java>Calendar.SUNDAY</Java>
+      <Type>System.DayOfWeek</Type>
+      <Name>Sunday</Name>
+      <Get>Calendar.SUNDAY</Get>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

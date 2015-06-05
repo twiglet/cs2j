@@ -1,26 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports/>
   <Java>String</Java>
   <Name>System.String</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Object</Type>
   </Inherits>
-  <Iterable>
-    <ElementType>System.Char</ElementType>
-    <Java>${expr}.toCharArray()</Java>
-  </Iterable>
   <Methods>
-    <!-- see http://msdn.microsoft.com/en-us/library/dd465121.aspx for string comparison details -->
     <Method>
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
@@ -37,6 +24,42 @@
         </Param>
       </Params>
       <Name>Compare</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>StringSupport.equals(${this:16}, ${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+        <Param>
+          <Type>System.StringComparison</Type>
+          <Name>comparison</Name>
+        </Param>
+      </Params>
+      <Name>Equals</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>StringSupport.Compare(${arg1}, ${arg2})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg1</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg2</Name>
+        </Param>
+      </Params>
+      <Name>CompareOrdinal</Name>
       <Return>System.Int32</Return>
     </Method>
     <Method>
@@ -73,7 +96,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${arg1}.toString().concat(${arg2}.toString())</Java>
       <Params>
         <Param>
@@ -89,7 +112,7 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.contains(${arg})</Java>
       <Params>
         <Param>
@@ -101,7 +124,7 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.endsWith(${arg})</Java>
       <Params>
         <Param>
@@ -119,14 +142,14 @@
       <Java>StringSupport.equals(${arg1}, ${arg2})</Java>
       <Params>
         <Param>
-          <Name>arg1</Name>
           <Type>System.String</Type>
+          <Name>arg1</Name>
         </Param>
         <Param>
-          <Name>arg2</Name>
           <Type>System.String</Type>
+          <Name>arg2</Name>
         </Param>
-      </Params>     
+      </Params>
       <Name>Equals</Name>
       <Return>System.Boolean</Return>
     </Method>
@@ -152,52 +175,22 @@
       <Imports>
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
-      <Java>String.format(StringSupport.CSFmtStrToJFmtStr(${fmt}),${arg1},${arg2})</Java>
+      <Java>String.format(StringSupport.CSFmtStrToJFmtStr(${fmt})${,*]1})</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
           <Name>fmt</Name>
         </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg1</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg2</Name>
-        </Param>
       </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>arg</Name>
+      </ParamArray>
       <Name>Format</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports>
-        <Import>CS2JNet.System.StringSupport</Import>
-      </Imports>
-      <Java>String.format(StringSupport.CSFmtStrToJFmtStr(${fmt}),${arg1},${arg2},${arg3})</Java>
-      <Params>
-        <Param>
-          <Type>System.String</Type>
-          <Name>fmt</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg1</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg2</Name>
-        </Param>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>arg3</Name>
-        </Param>
-      </Params>
-      <Name>Format</Name>
-      <Return>System.String</Return>
-    </Method>
-    <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.indexOf(${arg})</Java>
       <Params>
         <Param>
@@ -209,7 +202,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.indexOf(${arg}, ${start})</Java>
       <Params>
         <Param>
@@ -225,7 +218,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.indexOf(${arg})</Java>
       <Params>
         <Param>
@@ -237,7 +230,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.indexOf(${arg}, ${start})</Java>
       <Params>
         <Param>
@@ -299,7 +292,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.lastIndexOf(${arg})</Java>
       <Params>
         <Param>
@@ -311,7 +304,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.lastIndexOf(${arg},${start})</Java>
       <Params>
         <Param>
@@ -327,7 +320,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.lastIndexOf(${arg})</Java>
       <Params>
         <Param>
@@ -339,7 +332,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.lastIndexOf(${arg},${start})</Java>
       <Params>
         <Param>
@@ -419,7 +412,7 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.replace(${old}, ${new})</Java>
       <Params>
         <Param>
@@ -435,7 +428,7 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.replace(${old}, ${new})</Java>
       <Params>
         <Param>
@@ -551,7 +544,7 @@
       <Return>System.String[]</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.startsWith(${arg})</Java>
       <Params>
         <Param>
@@ -563,7 +556,7 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.substring(${start})</Java>
       <Params>
         <Param>
@@ -575,7 +568,7 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.substring(${start}, (${start}) + (${length}))</Java>
       <Params>
         <Param>
@@ -591,14 +584,14 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.toCharArray()</Java>
-      <Params />
+      <Params/>
       <Name>ToCharArray</Name>
       <Return>System.Char[]</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.substring(${start}, ${end}).toCharArray()</Java>
       <Params>
         <Param>
@@ -614,30 +607,30 @@
       <Return>System.Char[]</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.toLowerCase()</Java>
-      <Params />
+      <Params/>
       <Name>ToLower</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.toUpperCase()</Java>
-      <Params />
+      <Params/>
       <Name>ToUpper</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.toLowerCase()</Java>
-      <Params />
+      <Params/>
       <Name>ToLowerInvariant</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.toUpperCase()</Java>
-      <Params />
+      <Params/>
       <Name>ToUpperInvariant</Name>
       <Return>System.String</Return>
     </Method>
@@ -646,7 +639,7 @@
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.Trim(${this})</Java>
-      <Params />
+      <Params/>
       <Name>Trim</Name>
       <Return>System.String</Return>
     </Method>
@@ -701,7 +694,7 @@
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimStart(${this}, null)</Java>
-      <Params />
+      <Params/>
       <Name>TrimStart</Name>
       <Return>System.String</Return>
     </Method>
@@ -756,7 +749,7 @@
         <Import>CS2JNet.System.StringSupport</Import>
       </Imports>
       <Java>StringSupport.TrimEnd(${this}, null)</Java>
-      <Params />
+      <Params/>
       <Name>TrimEnd</Name>
       <Return>System.String</Return>
     </Method>
@@ -806,10 +799,66 @@
       <Name>TrimEnd</Name>
       <Return>System.String</Return>
     </Method>
+    <Method>
+      <Imports/>
+      <Java>${this:16}.indexOf(${str}) /* PLEASE CHECK THE TRANSLATION : ${comparisonType} */</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+        <Param>
+          <Type>System.StringComparison</Type>
+          <Name>comparisonType</Name>
+        </Param>
+      </Params>
+      <Name>IndexOf</Name>
+      <TypeParams/>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>org.apache.commons.lang.StringUtils</Import>
+      </Imports>
+      <Java>StringUtils.startsWithIgnoreCase(${this:16},${str})</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+        <Param>
+          <Type>System.StringComparison</Type>
+          <Name>comparisonType</Name>
+        </Param>
+      </Params>
+      <Name>StartsWith</Name>
+      <TypeParams/>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports/>
+      <Java>StringUtils.equalsIgnoreCase(${this},${str})</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+        <Param>
+          <Type>System.StringComparison</Type>
+          <Name>comparisonType</Name>
+        </Param>
+      </Params>
+      <Name>Equals</Name>
+      <TypeParams/>
+      <Return>System.Boolean</Return>
+    </Method>
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.length()</Java>
       <Type>System.Int32</Type>
       <Name>Length</Name>
@@ -817,28 +866,14 @@
       <Set>${this:16}.setLength(${value})</Set>
     </Property>
     <Property>
-      <Imports />
-      <Java>""</Java>
+      <Imports/>
+      <Java>&quot;&quot;</Java>
       <Type>System.String</Type>
       <Name>Empty</Name>
-      <Get>""</Get>
+      <Get>&quot;&quot;</Get>
       <Set>${this:16}.setEmpty(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers>
-    <Indexer>
-      <Imports />
-      <Params>
-        <Param>
-          <Type>System.Int32</Type>
-          <Name>i</Name>
-        </Param>
-      </Params>
-      <Type>System.Char</Type>
-      <Get>${this:16}.charAt(${i})</Get>
-    </Indexer>
-  </Indexers>
   <Constructors>
     <Constructor>
       <Imports>
@@ -857,7 +892,7 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports />
+      <Imports/>
       <Java>new String(${str})</Java>
       <Params>
         <Param>
@@ -867,8 +902,25 @@
       </Params>
     </Constructor>
   </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Events/>
+  <Indexers>
+    <Indexer>
+      <Imports/>
+      <Type>System.Char</Type>
+      <Get>${this:16}.charAt(${i})</Get>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+    </Indexer>
+  </Indexers>
+  <Iterable>
+    <Java>${expr}.toCharArray()</Java>
+    <ElementType>System.Char</ElementType>
+  </Iterable>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>
