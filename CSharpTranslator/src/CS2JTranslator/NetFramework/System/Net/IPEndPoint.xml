@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Net.IPEndPoint</Import>
+  </Imports>
+  <Java>IPEndPoint</Java>
+  <Name>System.Net.IPEndPoint</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Net.EndPoint</Type>
+  </Inherits>
+  <Methods>
+  </Methods>
+  <Properties>
+    <Property>
+      <Type>System.Net.IPAddress</Type>
+      <Name>Address</Name>
+      <Get>${this:16}.getIPAddress()</Get>
+      <Set>${this:16}.setIPAddress(${value})</Set>
+    </Property>
+    <Property>
+      <Type>System.Int32</Type>
+      <Name>Port</Name>
+      <Get>${this:16}.getPort()</Get>
+      <Set>${this:16}.setPort(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+  	<Constructor>
+  	  <Params>
+  	    <Param>
+  	      <Type>System.Net.IPAddress</Type>
+  	      <Name>address</Name>
+  	    </Param>
+  	    <Param>
+  	      <Type>System.Int32</Type>
+  	      <Name>port</Name>
+  	    </Param>
+  	  </Params>
+  	  <Imports>
+  	    <Import>CS2JNet.System.Net.IPEndPoint</Import>
+  	  </Imports>
+  	  <Java>new IPEndPoint(${address}, ${port})</Java>
+  	</Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

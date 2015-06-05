@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.XmlElement</Import>
+  </Imports>
+  <Java>XmlElement</Java>
+  <Name>System.Xml.XmlElement</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Xml.XmlLinkedNode</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.getAttribute(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>GetAttribute</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.getElementsByTagName(${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>GetElementsByTagName</Name>
+      <Return>System.Xml.XmlNodeList</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.hasAttribute(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>HasAttribute</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.removeAttribute(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>RemoveAttribute</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.setAttribute(${name}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>SetAttribute</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.setAttributeNS(${namespaceURI}, ${localName}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>namespaceURI</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>SetAttribute</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.setAttributeNode(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlAttribute</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>SetAttributeNode</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Type>System.Boolean</Type>
+      <Name>HasAttributes</Name>
+      <Get>${this:16}.hasAttributes()</Get>
+      <Set>${this:16}.setHasAttributes(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

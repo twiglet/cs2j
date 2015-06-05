@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.regex.Pattern</Import>
+  </Imports>
+  <Java>Pattern</Java>
+  <Name>System.Text.RegularExpressions.Regex</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Text.RegularExpressions.Match</Import>
+      </Imports>
+      <Java>Match.mk(${this}, ${input})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>input</Name>
+        </Param>
+      </Params>
+      <Name>Match</Name>
+      <Return>System.Text.RegularExpressions.Match</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Text.RegularExpressions.Match</Import>
+      </Imports>
+      <Java>Match.mk(${this}, ${input}, ${startat})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>input</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>startat</Name>
+        </Param>
+      </Params>
+      <Name>Match</Name>
+      <Return>System.Text.RegularExpressions.Match</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Text.RegularExpressions.Match</Import>
+      </Imports>
+      <Java>Match.mkMatches(${this}, ${input})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>input</Name>
+        </Param>
+      </Params>
+      <Name>Matches</Name>
+      <Return>System.Collections.Generic.Collection*[Match]*</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.matcher(${input}).matches()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>input</Name>
+        </Param>
+      </Params>
+      <Name>IsMatch</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.util.regex.Pattern</Import>
+      </Imports>
+      <Java>Pattern.compile(${pattern}).matcher(${input}).matches()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>input</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>pattern</Name>
+        </Param>
+      </Params>
+      <Name>IsMatch</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.util.regex.Pattern</Import>
+      </Imports>
+      <Java>Pattern.compile(${pattern}).matcher(${input}).replaceAll(${replacement})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>input</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>pattern</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>replacement</Name>
+        </Param>
+      </Params>
+      <Name>Replace</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>java.util.regex.Pattern</Import>
+      </Imports>
+      <Java>new Pattern()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>java.util.regex.Pattern</Import>
+      </Imports>
+      <Java>Pattern.compile(${pattern})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>pattern</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>java.util.regex.Pattern</Import>
+      </Imports>
+      <Java>Pattern.compile(${pattern}, ${options})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>pattern</Name>
+        </Param>
+        <Param>
+          <Type>System.Text.RegularExpressions.RegexOptions</Type>
+          <Name>options</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

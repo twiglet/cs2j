@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.zip.ZipInputStream</Import>
+  </Imports>
+  <Java>ZipInputStream</Java>
+  <Name>ICSharpCode.SharpZipLib.Zip.ZipInputStream</Name>
+  <Uses />
+  <Inherits>
+    <Type>ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream</Type>
+    <Type>System.IO.Stream</Type>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.getNextEntry()</Java>
+      <Params />
+      <Name>GetNextEntry</Name>
+      <Return>ICSharpCode.SharpZipLib.Zip.ZipEntry</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>java.io.InputStream</Import>
+      </Imports>
+      <Java>new ZipInputStream(${baseInputStream})</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.Stream</Type>
+          <Name>baseInputStream</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

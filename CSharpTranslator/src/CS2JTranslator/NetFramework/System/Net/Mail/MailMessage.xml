@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Net.Mail.MailMessage</Import>
+  </Imports>
+  <Java>MailMessage</Java>
+  <Name>System.Net.Mail.MailMessage</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods />
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getBody()</Java>
+      <Type>System.String</Type>
+      <Name>Body</Name>
+      <Get>${this:16}.getBody()</Get>
+      <Set>${this:16}.setBody(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getSubject()</Java>
+      <Type>System.String</Type>
+      <Name>Subject</Name>
+      <Get>${this:16}.getSubject()</Get>
+      <Set>${this:16}.setSubject(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getFrom()</Java>
+      <Type>System.Net.Mail.MailAddress</Type>
+      <Name>From</Name>
+      <Get>${this:16}.getFrom()</Get>
+      <Set>${this:16}.setFrom(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>javax.mail.internet.MimeMessage</Import>
+        <Import>javax.mail.internet.MimeMessage.RecipientType</Import>
+      </Imports>
+      <Java>${this:16}.getTo()</Java>
+      <Type>System.Net.Mail.MailAddressCollection</Type>
+      <Name>To</Name>
+      <Get>${this:16}.getTo()</Get>
+      <Set>${this:16}.setTo(${value})</Set>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>javax.mail.internet.MimeMessage</Import>
+        <Import>javax.mail.internet.MimeMessage.RecipientType</Import>
+      </Imports>
+      <Java>${this:16}.getCC()</Java>
+      <Type>System.Net.Mail.MailAddressCollection</Type>
+      <Name>CC</Name>
+      <Get>${this:16}.getCC()</Get>
+      <Set>${this:16}.setCC(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

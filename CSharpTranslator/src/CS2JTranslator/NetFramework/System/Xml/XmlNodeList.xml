@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.XmlNodeList</Import>
+  </Imports>
+  <Java>XmlNodeList</Java>
+  <Name>System.Xml.XmlNodeList</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+    <Type>System.Collections.IList</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.get(${idx})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>idx</Name>
+        </Param>
+      </Params>
+      <Name>Item</Name>
+      <Return>System.Xml.XmlNode</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>idx</Name>
+        </Param>
+      </Params>
+      <Type>System.Xml.XmlNode</Type>
+      <Get>${this:16}.get(${idx})</Get>
+    </Indexer>
+  </Indexers>
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

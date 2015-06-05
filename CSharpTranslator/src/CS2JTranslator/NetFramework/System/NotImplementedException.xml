@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.NotImplementedException</Import>
+  </Imports>
+  <Java>NotImplementedException</Java>
+  <Name>System.NotImplementedException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.SystemException</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.NotImplementedException</Import>
+      </Imports>
+      <Java>new NotImplementedException()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.NotImplementedException</Import>
+      </Imports>
+      <Java>new NotImplementedException(${message})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.NotImplementedException</Import>
+      </Imports>
+      <Java>new NotImplementedException(${message}, ${inner})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+        <Param>
+          <Type>System.Exception</Type>
+          <Name>inner</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

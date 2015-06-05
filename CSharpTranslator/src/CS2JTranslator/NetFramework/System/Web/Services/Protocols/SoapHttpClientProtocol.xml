@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Web.Services.Protocols.SoapHttpClientProtocol</Import>
+  </Imports>
+  <Java>SoapHttpClientProtocol</Java>
+  <Name>System.Web.Services.Protocols.SoapHttpClientProtocol</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.invoke(${methodName}, ${parameters})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>methodName</Name>
+        </Param>
+        <Param>
+          <Type>System.Object[]</Type>
+          <Name>parameters</Name>
+        </Param>
+      </Params>
+      <Name>Invoke</Name>
+      <Return>System.Object[]</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getUrl()</Java>
+      <Type>System.String</Type>
+      <Name>Url</Name>
+      <Get>${this:16}.getUrl()</Get>
+      <Set>${this:16}.setUrl(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getCookieContainer()</Java>
+      <Type>System.String</Type>
+      <Name>CookieContainer</Name>
+      <Get>${this:16}.getCookieContainer()</Get>
+      <Set>${this:16}.setCookieContainer(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

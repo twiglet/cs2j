@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>SecureRandom</Java>
+  <Name>System.Security.Cryptography.RNGCryptoServiceProvider</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.nextBytes(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Byte[]</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>GetBytes</Name>
+      <Return></Return>
+    </Method>
+</Methods>
+	<Constructors>
+    <Constructor>
+      <Imports>
+		<Import>java.security.SecureRandom</Import>
+	  </Imports>
+      <Java>new java.security.SecureRandom()</Java>
+      <Params />
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

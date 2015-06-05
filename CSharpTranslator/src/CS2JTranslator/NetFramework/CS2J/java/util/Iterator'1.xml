@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Iterator</Import>
+  </Imports>
+  <Java>Iterator*[${E}]*</Java>
+  <Name>CS2J.java.util.Iterator</Name>
+  <TypeParams>
+    <Name>E</Name>
+  </TypeParams>
+</Interface>

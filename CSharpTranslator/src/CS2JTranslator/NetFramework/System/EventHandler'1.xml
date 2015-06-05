@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Delegate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.EventHandler</Import>
+  </Imports>
+  <Java>EventHandler*[${TEventArgs}]*</Java>
+  <Name>System.EventHandler</Name>
+  <TypeParams>
+    <Name>TEventArgs</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.__MultiEventHandler</Import>
+      </Imports>
+      <Java>__MultiEventHandler.Combine(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Combine</Name>
+      <TypeParams>
+        <Name>TEventArgs</Name>
+      </TypeParams>
+      <Return>System.EventHandler*[TEventArgs]*</Return>
+    </Method>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.__MultiEventHandler</Import>
+      </Imports>
+      <Java>__MultiEventHandler.Remove(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.EventHandler*[TEventArgs]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <TypeParams>
+        <Name>TEventArgs</Name>
+      </TypeParams>
+      <Return>System.EventHandler*[TEventArgs]*</Return>
+    </Method>
+  </Methods>
+  <Invoke>
+    <Java>${this:16}.Invoke(${sender}, ${e})</Java>
+    <Params>
+      <Param>
+        <Type>System.Object</Type>
+        <Name>sender</Name>
+      </Param>
+      <Param>
+        <Type>TEventArgs</Type>
+        <Name>e</Name>
+      </Param>
+    </Params>
+    <Name>Invoke</Name>
+    <TypeParams />
+    <Return>void</Return>
+  </Invoke>
+
+</Delegate>

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Collections.LCC.IEnumerator</Import>
+  </Imports>
+  <Java>IEnumerator</Java>
+  <Name>System.Collections.IEnumerator</Name>
+  <Methods>
+    <Method>
+      <Java>${this:16}.moveNext()</Java>
+      <Params />
+      <Name>MoveNext</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Type>System.Object</Type>
+      <Name>Current</Name>
+      <Get>${this:16}.getCurrent()</Get>
+    </Property>
+  </Properties>
+</Interface>

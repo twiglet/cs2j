@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.lang.reflect.Field</Import>
+  </Imports>
+  <Java>Field</Java>
+  <Name>System.Reflection.FieldInfo</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.reflect.FieldSupport</Import>
+      </Imports>
+      <Java>FieldSupport.getAnnotations(${this}, ${attributeType}, ${inherits})</Java>
+      <Params>
+        <Param>
+          <Type>System.Type</Type>
+          <Name>attributeType</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>inherits</Name>
+        </Param>
+      </Params>
+      <Name>GetCustomAttributes</Name>
+      <Return>System.Object[]</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.get(${obj})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>obj</Name>
+        </Param>
+      </Params>
+      <Name>GetValue</Name>
+      <Return>System.Object</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.set(${obj}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>obj</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>SetValue</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getName()</Java>
+      <Type>System.String</Type>
+      <Name>Name</Name>
+      <Get>${this:16}.getName()</Get>
+      <Set>${this:16}.setName(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getType()</Java>
+      <Type>System.Type</Type>
+      <Name>FieldType</Name>
+      <Get>${this:16}.getType()</Get>
+      <Set>${this:16}.setFieldType(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

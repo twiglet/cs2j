@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.XmlAttributeCollection</Import>
+  </Imports>
+  <Java>XmlAttributeCollection</Java>
+  <Name>System.Xml.XmlAttributeCollection</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type> 
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.add(${att})</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlAttribute</Type>
+          <Name>att</Name>
+        </Param>
+      </Params>
+      <Name>Append</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+      <Set>${this:16}.setCount(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+    <Indexer>
+      <Imports />
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>idx</Name>
+        </Param>
+      </Params>
+      <Type>System.Xml.XmlAttribute</Type>
+      <Get>${this:16}.get(${idx})</Get>
+    </Indexer>
+  </Indexers>
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

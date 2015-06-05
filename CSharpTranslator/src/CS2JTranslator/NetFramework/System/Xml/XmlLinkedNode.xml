@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>org.w3c.dom.Node</Import>
+  </Imports>
+  <Java>Node</Java>
+  <Name>System.Xml.XmlLinkedNode</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Xml.XmlNode</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.Load(${p})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>p</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Xml.XmlDocument</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Character.isDigit(${ch})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>ch</Name>
+        </Param>
+      </Params>
+      <Name>IsDigit</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

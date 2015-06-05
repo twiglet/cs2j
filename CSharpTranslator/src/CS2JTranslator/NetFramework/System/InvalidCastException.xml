@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.InvalidCastException</Import>
+  </Imports>
+  <Java>InvalidCastException</Java>
+  <Name>System.InvalidCastException</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.SystemException</Type>
+  </Inherits>
+  <Methods />
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.InvalidCastException</Import>
+      </Imports>
+      <Java>new InvalidCastException()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports>
+        <Import>CS2JNet.System.InvalidCastException</Import>
+      </Imports>
+      <Java>new InvalidCastException(${message})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>message</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

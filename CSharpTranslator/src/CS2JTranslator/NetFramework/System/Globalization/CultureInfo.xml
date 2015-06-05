@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Locale</Import>
+  </Imports>
+  <Java>Locale</Java>
+  <Name>System.Globalization.CultureInfo</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.ICloneable</Type>
+    <Type>System.IFormatProvider</Type>
+  </Inherits>
+  <Methods>
+  </Methods>
+  <Properties>
+    <Property>
+      <Java>Locale.getDefault()</Java>
+      <Type>System.Globalization.CultureInfo</Type>
+      <Name>CurrentCulture</Name>
+      <Get>Locale.getDefault()</Get>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.JavaSupport.util.LocaleSupport</Import>
+      </Imports>
+      <Java>LocaleSupport.INVARIANT</Java>
+      <Type>System.Globalization.CultureInfo</Type>
+      <Name>InvariantCulture</Name>
+      <Get>LocaleSupport.INVARIANT</Get>
+      <Set>${this:16}.setInvariantCulture(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

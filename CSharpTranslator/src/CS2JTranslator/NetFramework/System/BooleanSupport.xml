@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java />
+  <Name>System.Boolean?</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+    <Type>System.Nullable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>Boolean.valueOf(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>"False"</Java>
+      <Type>System.String</Type>
+      <Name>FalseString</Name>
+      <Get>"False"</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>"True"</Java>
+      <Type>System.String</Type>
+      <Name>TrueString</Name>
+      <Get>"True"</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>(${this:16}!=null)</Java>
+      <Type>System.Boolean</Type>
+      <Name>HasValue</Name>
+      <Get>(${this:16}!=null)</Get>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}</Java>
+      <Type>System.Boolean</Type>
+      <Name>Value</Name>
+      <Get>${this:16}</Get>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

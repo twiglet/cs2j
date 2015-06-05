@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.LinkedList</Import>
+  </Imports>
+  <Java>LinkedList*[${E}]*</Java>
+  <Name>System.Collections.Generic.Queue</Name>
+  <TypeParams>
+    <Name>E</Name>
+  </TypeParams>
+  <Inherits />
+  <Constructors>
+    <Constructor>
+      <Params />
+      <Java>new LinkedList*[${E}]*()</Java>
+    </Constructor>
+  </Constructors>
+  <Methods>
+    <Method>
+      <Params>
+        <Param>
+          <Type>E</Type>
+          <Name>item</Name>
+        </Param>
+      </Params>
+      <Name>Enqueue</Name>
+      <Returns>System.Void</Returns>
+      <Java>${this:16}.add(${item})</Java>
+    </Method>
+    <Method>
+      <Params>
+      </Params>
+      <Name>Dequeue</Name>
+      <Returns>E</Returns>
+      <Java>${this:16}.removeLast(${item})</Java>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Type>System.Int</Type>
+      <Name>Count</Name>
+      <Get>${this}.size()</Get>
+    </Property>
+  </Properties>
+</Interface>

@@ -1,0 +1,23 @@
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Collection</Import>
+  </Imports>
+  <Java>Collection*[${E}]*</Java>
+  <Name>System.Collections.Generic.IEnumerable</Name>
+  <TypeParams>
+    <Name>E</Name>
+  </TypeParams>
+  <Methods>
+    <Method>
+      <Java>${this:16}.getEnumerator()</Java>
+      <Params/>
+      <Name>GetEnumerator</Name>
+      <Return>System.Collections.Generic.IEnumerator*[E]*</Return>
+    </Method>
+  </Methods>
+  <Properties/>
+  <Iterable>
+    <Java>${expr}</Java>
+    <ElementType>E</ElementType>
+  </Iterable>
+</Interface>

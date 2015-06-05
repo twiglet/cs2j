@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>StringBuilder</Java>
+  <Name>System.Text.StringBuilder</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.append(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Append</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.StringSupport</Import>
+      </Imports>
+      <Java>${this:16}.append(String.format(StringSupport.CSFmtStrToJFmtStr(${format})${,*]1}))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>format</Name>
+        </Param>
+      </Params>
+      <ParamArray>
+        <Type>System.Object[]</Type>
+        <Name>args</Name>
+      </ParamArray>
+      <Name>AppendFormat</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.append((${arg}) + System.getProperty("line.separator"))</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>AppendLine</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Text.StringBuilderSupport</Import>
+      </Imports>
+      <Java>StringBuilderSupport.ensureCapacity(${this}, ${arg})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>EnsureCapacity</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.insert(${idx}, ${obj})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>idx</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>obj</Name>
+        </Param>
+      </Params>
+      <Name>Insert</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.replace(${old}, ${new})</Java>
+      <Params>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>old</Name>
+        </Param>
+        <Param>
+          <Type>System.Char</Type>
+          <Name>new</Name>
+        </Param>
+      </Params>
+      <Name>Replace</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.delete(${startIndex}, (${startIndex})+(${length}))</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>startIndex</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <Return>System.Text.StringBuilder</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.substring(${startIndex}, (${startIndex})+(${length}))</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>startIndex</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>length</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Text.StringBuilderSupport</Import>
+      </Imports>
+      <Java>${this:16}.length()</Java>
+      <Type>System.Int32</Type>
+      <Name>Length</Name>
+      <Get>${this:16}.length()</Get>
+      <Set>StringBuilderSupport.setLength(${this}, ${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this:16}.capacity()</Java>
+      <Type>System.Int32</Type>
+      <Name>Capacity</Name>
+      <Get>${this:16}.capacity()</Get>
+      <Set>${this:16}.ensureCapacity(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers>
+    <Indexer>
+      <Imports/>
+      <Type>System.Char</Type>
+      <Get>${this:16}.charAt(${pos})</Get>
+      <Set>${this:16}.setCharAt(${pos}, ${value})</Set>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>pos</Name>
+        </Param>
+      </Params>
+    </Indexer>
+  </Indexers>
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new StringBuilder()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new StringBuilder(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

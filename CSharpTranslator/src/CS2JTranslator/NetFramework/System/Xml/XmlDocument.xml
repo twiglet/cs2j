@@ -1,0 +1,281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.XmlDocument</Import>
+  </Imports>
+  <Java>XmlDocument</Java>
+  <Name>System.Xml.XmlDocument</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Xml.XmlNode</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.load(${p})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>p</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.load(${txtReader})</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.TextReader</Type>
+          <Name>txtReader</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.load(${stream})</Java>
+      <Params>
+        <Param>
+          <Type>System.IO.Stream</Type>
+          <Name>stream</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.loadXml(${xml})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>xml</Name>
+        </Param>
+      </Params>
+      <Name>LoadXml</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.getElementsByTagName(${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>GetElementsByTagName</Name>
+      <Return>System.Xml.XmlNodeList</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createCDataSection(${data})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>data</Name>
+        </Param>
+      </Params>
+      <Name>CreateCDataSection</Name>
+      <Return>System.Xml.XmlCDataSection</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createComment(${data})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>data</Name>
+        </Param>
+      </Params>
+      <Name>CreateComment</Name>
+      <Return>System.Xml.XmlComment</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createAttribute(${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>CreateAttribute</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createAttribute(${qualifiedName},${namespaceURI})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>qualifiedName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>namespaceURI</Name>
+        </Param>
+      </Params>
+      <Name>CreateAttribute</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createAttribute(${prefix},${localName},${namespaceURI})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>prefix</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>namespaceURI</Name>
+        </Param>
+      </Params>
+      <Name>CreateAttribute</Name>
+      <Return>System.Xml.XmlAttribute</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createElement(${name})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+      </Params>
+      <Name>CreateElement</Name>
+      <Return>System.Xml.XmlElement</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createElement(${qualifiedName}, ${namespaceURI})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>qualifiedName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>namespaceURI</Name>
+        </Param>
+      </Params>
+      <Name>CreateElement</Name>
+      <Return>System.Xml.XmlElement</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createElement(${prefix}, ${localName}, ${namespaceURI})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>prefix</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>namespaceURI</Name>
+        </Param>
+      </Params>
+      <Name>CreateElement</Name>
+      <Return>System.Xml.XmlElement</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Xml.XmlDeclaration</Import>
+      </Imports>
+      <Java>new XmlDeclaration(${version},${encoding},${standalone})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>version</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>encoding</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>standalone</Name>
+        </Param>
+      </Params>
+      <Name>CreateXmlDeclaration</Name>
+      <Return>System.Xml.XmlDeclaration</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.createText(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>CreateTextNode</Name>
+      <Return>System.Xml.XmlText</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.save(${p})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>p</Name>
+        </Param>
+      </Params>
+      <Name>Save</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.getDocumentElement()</Java>
+      <Type>System.Xml.XmlElement</Type>
+      <Name>DocumentElement</Name>
+      <Get>${this:16}.getDocumentElement()</Get>
+      <Set>${this:16}.setDocumentElement(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Imports />
+      <Java>new XmlDocument()</Java>
+      <Params />
+    </Constructor>
+    <Constructor>
+      <Imports />
+      <Java>new XmlDocument()</Java>
+      <Params>
+        <Param>
+          <Type>System.Xml.XmlNameTable</Type>
+          <Name>nt</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

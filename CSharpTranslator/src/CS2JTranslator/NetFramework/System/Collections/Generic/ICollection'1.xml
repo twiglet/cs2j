@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Collections.ICollection</Import>
+  </Imports>
+  <Java>ICollection*[${T}]*</Java>
+  <Name>System.Collections.Generic.ICollection</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Inherits>
+    <Type>&gt;System.Collections.Generic.IEnumerable*[T]*</Type>
+  </Inherits>
+  <Iterable>
+    <ElementType>T</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>${this:16}.size()</Java>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+    </Property>
+  </Properties>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.add(${arg})</Java>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>arg</Name>
+        </Param>
+      </Params>
+      <Name>Add</Name>
+      <Return>System.Int32</Return>
+    </Method>
+  </Methods>
+</Interface>

@@ -1,0 +1,246 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class has_boxed_rep="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>double</Java>
+  <BoxedJava>Double</BoxedJava>
+  <Name>System.Double</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>((Double)${this:16}).hashCode()</Java>
+      <Params/>
+      <Name>GetHashCode</Name>
+      <Return>System.Int</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Double.isNaN(${d})</Java>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>d</Name>
+        </Param>
+      </Params>
+      <Name>IsNaN</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Double.valueOf(${dStr})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.tryParse(${dStr}, ${result})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>result</Name>
+        </Param>
+      </Params>
+      <Name>TryParse</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.tryParse(${dStr}, ${style}, ${provider}, ${result})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.Globalization.NumberStyles</Type>
+          <Name>style</Name>
+        </Param>
+       <Param>
+          <Type>System.IFormatProvider</Type>
+          <Name>provider</Name>
+        </Param>
+       <Param>
+          <Type>System.Double</Type>
+          <Name>result</Name>
+        </Param>
+      </Params>
+      <Name>TryParse</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>java.text.NumberFormat</Import>
+      </Imports>
+      <Java>NumberFormat.getInstance(${provider}).parse(${dStr}).doubleValue()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.IFormatProvider</Type>
+          <Name>provider</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.parse(${dStr}, ${style}, ${provider})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.Globalization.NumberStyles</Type>
+          <Name>style</Name>
+        </Param>
+        <Param>
+          <Type>System.IFormatProvider</Type>
+          <Name>provider</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.ToString(${this}, ${format})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>format</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DoubleSupport</Import>
+      </Imports>
+      <Java>DoubleSupport.ToString(${this}, ${provider})</Java>
+      <Params>
+        <Param>
+          <Type>System.Globalization.CultureInfo</Type>
+          <Name>provider</Name>
+        </Param>
+      </Params>
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>Double.MIN_VALUE</Java>
+      <Type>System.Double</Type>
+      <Name>MinValue</Name>
+      <Get>Double.MIN_VALUE</Get>
+      <Set>${this:16}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Double.MAX_VALUE</Java>
+      <Type>System.Double</Type>
+      <Name>MaxValue</Name>
+      <Get>Double.MAX_VALUE</Get>
+      <Set>${this:16}.setMaxValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Double.NaN</Java>
+      <Type>System.Double</Type>
+      <Name>NaN</Name>
+      <Get>Double.NaN</Get>
+      <Set>${this:16}.setNaN(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Double.NEGATIVE_INFINITY</Java>
+      <Type>System.Double</Type>
+      <Name>NegativeInfinity</Name>
+      <Get>Double.NEGATIVE_INFINITY</Get>
+      <Set>${this:16}.setNegativeInfinity(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>Double.POSITIVE_INFINITY</Java>
+      <Type>System.Double</Type>
+      <Name>PositiveInfinity</Name>
+      <Get>Double.POSITIVE_INFINITY</Get>
+      <Set>${this:16}.setPositiveInfinity(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}</Java>
+      <Type>System.Double</Type>
+      <Name>Value</Name>
+      <Get>${this}</Get>
+      <Set>${this:16}.setValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+    <Cast>
+      <Imports />
+      <Java>((int)(${expr}))</Java>
+      <From>System.Double</From>
+      <To>System.Int32</To>
+    </Cast>
+<!--
+    <Cast>
+      <Imports />
+      <Java>((Number)${expr}).doubleValue()</Java>
+      <From>System.Object</From>
+      <To>System.Double</To>
+    </Cast>
+-->
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+</Class>
