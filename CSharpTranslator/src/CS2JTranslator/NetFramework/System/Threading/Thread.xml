@@ -42,6 +42,15 @@
       <Get>${this:16}.currentThread()</Get>
     </Property>
     <Property>
+      <Imports>
+        <Import>java.util.Locale</Import>
+      </Imports>
+      <Java>Locale.getDefault()</Java>
+      <Type>System.Globalization.CultureInfo</Type>
+      <Name>CurrentUICulture</Name>
+      <Get>Locale.getDefault()</Get>
+    </Property>
+    <Property>
       <Imports />
       <Java>${this:16}.isAlive()</Java>
       <Type>System.Boolean</Type>

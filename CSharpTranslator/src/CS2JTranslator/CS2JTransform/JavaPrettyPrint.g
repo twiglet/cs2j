@@ -746,6 +746,7 @@ argument_value  returns [int precedence]
     StringTemplate someText = null;
     $precedence = int.MaxValue;
 }: 
+	/* TRYING TO DO IT DIFFERENT *
 	expression { $precedence = $expression.precedence; } -> { $expression.st }
 	| ref_variable_reference 
 	| 'out'   variable_reference 
@@ -755,6 +756,14 @@ argument_value  returns [int precedence]
           %{someText}.space = " ";
         } ->  unsupported(reason = {"out arguments are not yet supported"}, text = { someText } )
      ;
+     // */
+     
+     /* */
+     expression { $precedence = $expression.precedence; } -> { $expression.st }
+	| ref_variable_reference 
+	| 'out'   expression { $precedence = $expression.precedence; } -> { $expression.st }
+	;
+	// */
 ref_variable_reference:
 	'ref' 
 		(('('   type   ')') =>   '('   type   ')'   (ref_variable_reference | variable_reference)   // SomeFunc(ref (int) ref foo)
@@ -974,6 +983,7 @@ public type_argument:
    | '?'  -> string(payload={"?"})
    | type -> { $type.st }
 ;
+
 type
 @init {
     StringTemplate nm = null;

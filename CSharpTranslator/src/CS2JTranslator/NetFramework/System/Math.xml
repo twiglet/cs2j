@@ -1,21 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports/>
   <Java>Math</Java>
   <Name>System.Math</Name>
-  <Uses />
-  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Uses/>
+  <Casts/>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.abs(${d})</Java>
       <Params>
         <Param>
@@ -27,7 +21,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.floor(${d})</Java>
       <Params>
         <Param>
@@ -39,7 +33,7 @@
       <Return>System.Decimal</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.floor(${d})</Java>
       <Params>
         <Param>
@@ -51,7 +45,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.floor(${d})</Java>
       <Params>
         <Param>
@@ -63,7 +57,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.min(${a},${b})</Java>
       <Params>
         <Param>
@@ -79,7 +73,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.min(${a},${b})</Java>
       <Params>
         <Param>
@@ -95,7 +89,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.max(${a},${b})</Java>
       <Params>
         <Param>
@@ -111,7 +105,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.max(${a},${b})</Java>
       <Params>
         <Param>
@@ -127,7 +121,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.max(${a},${b})</Java>
       <Params>
         <Param>
@@ -143,7 +137,7 @@
       <Return>System.Number</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.pow(${a},${b})</Java>
       <Params>
         <Param>
@@ -159,7 +153,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.round(${d})</Java>
       <Params>
         <Param>
@@ -171,7 +165,7 @@
       <Return>System.Decimal</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.round(${d})</Java>
       <Params>
         <Param>
@@ -183,7 +177,7 @@
       <Return>System.Double</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Math.round(${s})</Java>
       <Params>
         <Param>
@@ -196,7 +190,7 @@
     </Method>
     <Method>
       <Imports>
-	<Import>CS2JNet.System.MathSupport</Import>
+        <Import>CS2JNet.System.MathSupport</Import>
       </Imports>
       <Java>MathSupport.round(${d},${decimals})</Java>
       <Params>
@@ -214,7 +208,7 @@
     </Method>
     <Method>
       <Imports>
-	<Import>CS2JNet.System.MathSupport</Import>
+        <Import>CS2JNet.System.MathSupport</Import>
       </Imports>
       <Java>MathSupport.round(${d},${decimals})</Java>
       <Params>
@@ -230,13 +224,26 @@
       <Name>Round</Name>
       <Return>System.Double</Return>
     </Method>
+    <Method>
+      <Imports/>
+      <Java>Math.ceil(${value})</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.Double</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>Ceiling</Name>
+      <TypeParams/>
+      <Return>System.Double</Return>
+    </Method>
   </Methods>
-  <Properties />
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Properties/>
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

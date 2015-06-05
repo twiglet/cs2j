@@ -1,35 +1,45 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
-<Class has_boxed_rep="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0" has_boxed_rep="true">
+  <Imports/>
   <Java>int</Java>
-  <BoxedJava>Integer</BoxedJava>
   <Name>System.Int32</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Number</Type>
     <Type>System.IComparable</Type>
     <Type>System.IFormattable</Type>
     <Type>System.IConvertible</Type>
-    <Type>System.Int64</Type> <!-- implicit cast-->
-    <Type>System.Double</Type> <!-- implicit cast-->
-    <Type>System.Single</Type> <!-- implicit cast-->
-    <Type>System.Decimal</Type> <!-- implicit cast-->
+    <Type>System.Int64</Type>
+    <Type>System.Double</Type>
+    <Type>System.Single</Type>
+    <Type>System.Decimal</Type>
   </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>String.valueOf(${this})</Java>
-      <Params />
+      <Params/>
       <Name>ToString</Name>
       <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.IntegerSupport</Import>
+        <Import>CS2JNet.JavaSupport.language.RefSupport</Import>
+      </Imports>
+      <Java>(Integer)(${result} = Integer.parseInt(${dStr}))!=null</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>result</Name>
+        </Param>
+      </Params>
+      <Name>TryParse</Name>
+      <Return>System.Boolean</Return>
     </Method>
     <Method>
       <Imports>
@@ -46,7 +56,7 @@
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Integer.valueOf(${str})</Java>
       <Params>
         <Param>
@@ -75,10 +85,28 @@
       <Name>Parse</Name>
       <Return>System.Int32</Return>
     </Method>
+    <Method>
+      <Imports>
+        <Import>java.text.NumberFormat</Import>
+      </Imports>
+      <Java>NumberFormat.getInstance(${provider}).parse(${dStr}).intValue()</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>dStr</Name>
+        </Param>
+        <Param>
+          <Type>System.IFormatProvider</Type>
+          <Name>provider</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.Int32</Return>
+    </Method>
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>Integer.MIN_VALUE</Java>
       <Type>System.Int32</Type>
       <Name>MinValue</Name>
@@ -86,7 +114,7 @@
       <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>Integer.MAX_VALUE</Java>
       <Type>System.Int32</Type>
       <Name>MaxValue</Name>
@@ -94,28 +122,19 @@
       <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
     <Property>
-      <Imports />
-      <Java>${this}</Java>
+      <Imports/>
+      <Java>${this:16}</Java>
       <Type>System.Int32</Type>
       <Name>Value</Name>
-      <Get>${this}</Get>
+      <Get>${this:16}</Get>
       <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts>
-<!--
-    <Cast>
-      <Imports />
-      <Java>((Number)${expr}).intValue()</Java>
-      <From>System.Object</From>
-      <To>System.Int32</To>
-    </Cast>
--->
-  </Casts>
-  <UnaryOps />
-  <BinaryOps />
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <BoxedJava>Integer</BoxedJava>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class has_boxed_rep="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java>long</Java>
+  <BoxedJava>Long</BoxedJava>
+  <Name>System.UInt64</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Number</Type>
+    <Type>System.IComparable</Type>
+    <Type>System.IFormattable</Type>
+    <Type>System.IConvertible</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>String.valueOf(${this})</Java>
+      <Params />
+      <Name>ToString</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>Long.valueOf(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>Parse</Name>
+      <Return>System.UInt64</Return>
+    </Method>
+  </Methods>
+  <Properties>
+    <Property>
+      <Imports />
+      <Java>0</Java>
+      <Type>System.UInt64</Type>
+      <Name>MinValue</Name>
+      <Get>0</Get>
+      <Set>${this:16}.setMinValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>18446744073709551615L /* UInt64.MaxValue */</Java>
+      <Type>System.UInt64</Type>
+      <Name>MaxValue</Name>
+      <Get>18446744073709551615L /* UInt64.MaxValue */</Get>
+      <Set>${this:16}.setMaxValue(${value})</Set>
+    </Property>
+    <Property>
+      <Imports />
+      <Java>${this}</Java>
+      <Type>System.UInt64</Type>
+      <Name>Value</Name>
+      <Get>${this}</Get>
+      <Set>${this:16}.setValue(${value})</Set>
+    </Property>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts>
+    <Cast>
+      <Imports />
+      <Java>((Long) ${expr})</Java>
+      <From>System.Object</From>
+      <To>System.UInt32</To>
+    </Cast>
+  </Casts>
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,18 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
-<Class has_boxed_rep="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
-  <Java>byte</Java>
-  <BoxedJava>Byte</BoxedJava>
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0" has_boxed_rep="true">
+  <Imports/>
+  <Java>short</Java>
   <Name>System.Byte</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Number</Type>
     <Type>System.IComparable</Type>
@@ -21,14 +12,14 @@
   </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>String.valueOf(${this})</Java>
-      <Params />
+      <Params/>
       <Name>ToString</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Byte.valueOf(${str})</Java>
       <Params>
         <Param>
@@ -42,7 +33,7 @@
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>Byte.MIN_VALUE</Java>
       <Type>System.Byte</Type>
       <Name>MinValue</Name>
@@ -50,7 +41,7 @@
       <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>Byte.MAX_VALUE</Java>
       <Type>System.Byte</Type>
       <Name>MaxValue</Name>
@@ -58,7 +49,7 @@
       <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this}</Java>
       <Type>System.Byte</Type>
       <Name>Value</Name>
@@ -66,20 +57,11 @@
       <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts>
-<!--
-    <Cast>
-      <Imports />
-      <Java>((Number)${expr}).byteValue()</Java>
-      <From>System.Object</From>
-      <To>System.Byte</To>
-    </Cast>
--->
-  </Casts>
-  <UnaryOps />
-  <BinaryOps />
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <BoxedJava>Short</BoxedJava>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

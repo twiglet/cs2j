@@ -1,0 +1,34 @@
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports/>
+  <Java>StringComparison</Java>
+  <Name>System.StringComparison</Name>
+  <Uses/>
+  <Casts/>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods/>
+  <Properties>
+    <Property>
+      <Java>StringComparison.OrdinalIgnoreCase</Java>
+      <Type>System.StringComparison</Type>
+      <Name>OrdinalIgnoreCase</Name>
+      <Get>StringComparison.OrdinalIgnoreCase</Get>
+    </Property>
+    <Property>
+      <Imports/>
+      <Java>StringComparison.Ordinal</Java>
+      <Warning></Warning>
+      <Type>System.StringComparison</Type>
+      <Name>Ordinal</Name>
+      <Get>StringComparison.Ordinal</Get>
+      <Set></Set>
+    </Property>
+  </Properties>
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
+</Class>

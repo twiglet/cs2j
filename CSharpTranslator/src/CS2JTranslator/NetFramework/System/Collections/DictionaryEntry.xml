@@ -1,24 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
     <Import>java.util.Map</Import>
   </Imports>
   <Java>Map.Entry</Java>
   <Name>System.Collections.DictionaryEntry</Name>
-  <Uses />
-  <Inherits> <Type>System.Object</Type> </Inherits>
-  <Methods />
+  <Uses/>
+  <Casts/>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods/>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.getKey()</Java>
       <Type>System.Object</Type>
       <Name>Key</Name>
@@ -26,7 +20,7 @@
       <Set>${this:16}.setKey(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.getValue()</Java>
       <Type>System.Object</Type>
       <Name>Value</Name>
@@ -34,11 +28,28 @@
       <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>java.util.AbstractMap</Import>
+      </Imports>
+      <Java>new AbstractMap.SimpleEntry*[${K},${V}]*(${key}, ${value})</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

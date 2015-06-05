@@ -1,34 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
-<Class variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
     <Import>CS2JNet.System.Collections.LCC.CSList</Import>
   </Imports>
   <Java>CSList*[${T}]*</Java>
-  <Name>System.Collections.Generic.List</Name>
+  <Name>System.Collections.Generic.Listfeqz</Name>
   <TypeParams>
     <Name>T</Name>
   </TypeParams>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
+    <Type>System.Object</Type>
     <Type>IList*[T]*</Type>
-    <Type>ICollection*[T]*</Type> 
-    <Type>IEnumerable*[T]*</Type> 
+    <Type>ICollection*[T]*</Type>
+    <Type>IEnumerable*[T]*</Type>
   </Inherits>
-  <Iterable>
-    <ElementType>T</ElementType>
-    <Java>${expr}</Java>
-  </Iterable>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.add(${arg})</Java>
       <Params>
         <Param>
@@ -40,10 +29,10 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Java>${this:16}.addRange(${arg})</Java>
+      <Java>${this:16}.addAll(${arg})</Java>
       <Params>
         <Param>
-          <Type>T[]</Type>
+          <Type>System.Object[]</Type>
           <Name>arg</Name>
         </Param>
       </Params>
@@ -51,11 +40,11 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>${this:16}.addRange(${arg})</Java>
+      <Imports/>
+      <Java>${this:16}.addAll(${arg})</Java>
       <Params>
         <Param>
-          <Type>System.Collections.Generic.IEnumerable*[T]*</Type>
+          <Type>System.Object</Type>
           <Name>arg</Name>
         </Param>
       </Params>
@@ -63,18 +52,18 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.clear()</Java>
-      <Params />
+      <Params/>
       <Name>Clear</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.contains(${key})</Java>
       <Params>
         <Param>
-          <Type>T</Type>
+          <Type>System.Object</Type>
           <Name>key</Name>
         </Param>
       </Params>
@@ -82,7 +71,7 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.add(${index}, ${value})</Java>
       <Params>
         <Param>
@@ -98,7 +87,7 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.remove(${value})</Java>
       <Params>
         <Param>
@@ -110,7 +99,7 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.remove((int)${value})</Java>
       <Params>
         <Param>
@@ -123,8 +112,7 @@
     </Method>
     <Method>
       <Java>((${T}[]) ${this:16}.toArray())</Java>
-      <Params>
-      </Params>
+      <Params/>
       <Name>ToArray</Name>
       <Return>T[]</Return>
     </Method>
@@ -133,14 +121,14 @@
         <Import>java.util.Collections</Import>
       </Imports>
       <Java>Collections.sort(${this})</Java>
-      <Params />
+      <Params/>
       <Name>Sort</Name>
       <Return>System.Void</Return>
     </Method>
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
@@ -148,29 +136,14 @@
       <Set>${this:16}.setCount(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers>
-    <Indexer>
-      <Imports />
-      <Params>
-        <Param>
-          <Type>System.Int32</Type>
-          <Name>i</Name>
-        </Param>
-      </Params>
-      <Type>T</Type>
-      <Get>${this:16}.get(${i})</Get>
-      <Set>${this:16}.add(${i}, ${value})</Set>
-    </Indexer>
-  </Indexers>
   <Constructors>
     <Constructor>
-      <Imports />
+      <Imports/>
       <Java>new CSList*[${T}]*()</Java>
-      <Params />
+      <Params/>
     </Constructor>
     <Constructor>
-      <Imports />
+      <Imports/>
       <Java>new CSList*[${T}]*(${length})</Java>
       <Params>
         <Param>
@@ -198,8 +171,26 @@
       </Params>
     </Constructor>
   </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Events/>
+  <Indexers>
+    <Indexer>
+      <Imports/>
+      <Type>T</Type>
+      <Get>${this:16}.get(${i})</Get>
+      <Set>${this:16}.add(${i}, ${value})</Set>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>i</Name>
+        </Param>
+      </Params>
+    </Indexer>
+  </Indexers>
+  <Iterable>
+    <Java>${expr}</Java>
+    <ElementType>T</ElementType>
+  </Iterable>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

@@ -18,8 +18,15 @@
     <Type>System.ICloneable</Type>
     <Type>System.IFormatProvider</Type>
   </Inherits>
-  <Methods />
+  <Methods>
+  </Methods>
   <Properties>
+    <Property>
+      <Java>Locale.getDefault()</Java>
+      <Type>System.Globalization.CultureInfo</Type>
+      <Name>CurrentCulture</Name>
+      <Get>Locale.getDefault()</Get>
+    </Property>
     <Property>
       <Imports>
         <Import>CS2JNet.JavaSupport.util.LocaleSupport</Import>

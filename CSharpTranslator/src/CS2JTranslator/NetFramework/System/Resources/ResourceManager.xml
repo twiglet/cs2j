@@ -1,23 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
     <Import>CS2JNet.System.Resources.ResourceManager</Import>
   </Imports>
   <Java>ResourceManager</Java>
   <Name>System.Resources.ResourceManager</Name>
-  <Uses />
-  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Uses/>
+  <Casts/>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.getString(${name})</Java>
       <Params>
         <Param>
@@ -28,16 +22,30 @@
       <Name>GetString</Name>
       <Return>System.String</Return>
     </Method>
+    <Method>
+      <Imports/>
+      <Java>${this:16}.getString(${name},${culture})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.Globalization.CultureInfo</Type>
+          <Name>culture</Name>
+        </Param>
+      </Params>
+      <Name>GetString</Name>
+      <Return>System.String</Return>
+    </Method>
   </Methods>
-  <Properties />
-  <Events />
-  <Indexers />
+  <Properties/>
   <Constructors>
     <Constructor>
       <Imports>
         <Import>CS2JNet.System.Resources.ResourceManager</Import>
       </Imports>
-      <Java>new ResourceManager(${baseName}, ${assembly)) /* ignored parameters */ </Java>
+      <Java>new ResourceManager(${baseName}, ${assembly}) /* ignored parameters */ </Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -50,8 +58,9 @@
       </Params>
     </Constructor>
   </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

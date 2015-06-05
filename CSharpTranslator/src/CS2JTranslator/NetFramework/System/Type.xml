@@ -1,17 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports/>
   <Java>Class</Java>
   <Name>System.Type</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Object</Type>
   </Inherits>
@@ -21,7 +13,7 @@
         <Import>CS2JNet.System.TypeSupport</Import>
       </Imports>
       <Java>TypeSupport.GetFields(${this})</Java>
-      <Params />
+      <Params/>
       <Name>GetFields</Name>
       <Return>System.Reflection.FieldInfo[]</Return>
     </Method>
@@ -116,20 +108,20 @@
       <Return>System.TypeCode</Return>
     </Method>
     <Method>
-      <Return>System.Boolean</Return>
-      <Name>IsAssignableFrom</Name>
+      <Java>${this:16}.isAssignableFrom(${arg1})</Java>
       <Params>
         <Param>
-          <Name>arg1</Name>
           <Type>System.Type</Type>
+          <Name>arg1</Name>
         </Param>
       </Params>
-      <Java>${this:16}.isAssignableFrom(${arg1})</Java>
+      <Name>IsAssignableFrom</Name>
+      <Return>System.Boolean</Return>
     </Method>
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.isEnum()</Java>
       <Type>System.Boolean</Type>
       <Name>IsEnum</Name>
@@ -137,19 +129,27 @@
       <Set>${this:16}.setIsEnum(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.getName()</Java>
       <Type>System.String</Type>
       <Name>Name</Name>
       <Get>${this:16}.getName()</Get>
       <Set>${this:16}.setName(${value})</Set>
     </Property>
+    <Property>
+      <Imports/>
+      <Java>${this:16}.isArray()</Java>
+      <Warning></Warning>
+      <Type>System.Boolean</Type>
+      <Name>IsArray</Name>
+      <Get>${this:16}.isArray()</Get>
+      <Set></Set>
+    </Property>
   </Properties>
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

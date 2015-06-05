@@ -1,13 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
-<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+﻿<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
     <Import>java.util.HashMap</Import>
   </Imports>
@@ -17,27 +8,22 @@
     <Name>K</Name>
     <Name>V</Name>
   </TypeParams>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Collections.Generic.IDictionary*[K,V]*</Type>
-<!--    <Type>IList<T>, ICollection<T>, 
-	IEnumerable<T>, IList, ICollection, IEnumerable</Type> -->
   </Inherits>
-  <Iterable>
-    <ElementType>KeyValuePair*[K,V]*</ElementType>
-    <Java>${expr}.entrySet()</Java>
-  </Iterable>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.put(${key}, ${value})</Java>
       <Params>
         <Param>
-          <Type>K</Type>
+          <Type>System.Object</Type>
           <Name>key</Name>
         </Param>
         <Param>
-          <Type>V</Type>
+          <Type>System.Object</Type>
           <Name>value</Name>
         </Param>
       </Params>
@@ -45,18 +31,18 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.clear()</Java>
-      <Params />
+      <Params/>
       <Name>Clear</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.containsKey(${key})</Java>
       <Params>
         <Param>
-          <Type>K</Type>
+          <Type>System.Object</Type>
           <Name>key</Name>
         </Param>
       </Params>
@@ -64,11 +50,11 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.containsValue(${value})</Java>
       <Params>
         <Param>
-          <Type>V</Type>
+          <Type>System.Object</Type>
           <Name>value</Name>
         </Param>
       </Params>
@@ -76,7 +62,7 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.remove(${key})</Java>
       <Params>
         <Param>
@@ -85,13 +71,29 @@
         </Param>
       </Params>
       <Name>Remove</Name>
-      <!-- in java actually returns the value removed -->
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports/>
+      <Java>((${out} = ${this:16}.get(${key}))!=null)</Java>
+      <Warning>LOOOOL</Warning>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>out</Name>
+        </Param>
+      </Params>
+      <Name>TryGetValue</Name>
       <Return>System.Boolean</Return>
     </Method>
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
@@ -106,30 +108,33 @@
       <Get>CollectionSupport.mk(${this:16}.keySet())</Get>
     </Property>
   </Properties>
-  <Events />
+  <Constructors>
+    <Constructor>
+      <Imports/>
+      <Java>new HashMap*[${K},${V}]*()</Java>
+      <Params/>
+    </Constructor>
+  </Constructors>
+  <Events/>
   <Indexers>
     <Indexer>
-      <Imports />
+      <Imports/>
+      <Type>V</Type>
+      <Get>${this:16}.get(${key})</Get>
+      <Set>${this:16}.put(${key}, ${value})</Set>
       <Params>
         <Param>
           <Type>System.Object</Type>
           <Name>key</Name>
         </Param>
       </Params>
-      <Type>V</Type>
-      <Get>${this:16}.get(${key})</Get>
-      <Set>${this:16}.put(${key}, ${value})</Set>
     </Indexer>
   </Indexers>
-  <Constructors>
-    <Constructor>
-      <Imports />
-      <Java>new HashMap*[${K},${V}]*()</Java>
-      <Params />
-    </Constructor>
-  </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Iterable>
+    <Java>${expr}.entrySet()</Java>
+    <ElementType>KeyValuePair*[K,V]*</ElementType>
+  </Iterable>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

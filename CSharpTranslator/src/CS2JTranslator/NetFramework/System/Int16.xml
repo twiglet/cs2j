@@ -1,18 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
-<Class has_boxed_rep="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0" has_boxed_rep="true">
+  <Imports/>
   <Java>short</Java>
-  <BoxedJava>Short</BoxedJava>
   <Name>System.Int16</Name>
-  <Uses />
+  <Uses/>
+  <Casts>
+    <Cast>
+      <Imports/>
+      <Java>((Short) ${expr})</Java>
+      <From>System.Object</From>
+      <To>System.Int16</To>
+    </Cast>
+  </Casts>
   <Inherits>
     <Type>System.Number</Type>
     <Type>System.IComparable</Type>
@@ -21,14 +19,14 @@
   </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>String.valueOf(${this})</Java>
-      <Params />
+      <Params/>
       <Name>ToString</Name>
       <Return>System.String</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>Short.valueOf(${str})</Java>
       <Params>
         <Param>
@@ -42,7 +40,7 @@
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>Short.MIN_VALUE</Java>
       <Type>System.Int16</Type>
       <Name>MinValue</Name>
@@ -50,7 +48,7 @@
       <Set>${this:16}.setMinValue(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>Short.MAX_VALUE</Java>
       <Type>System.Int16</Type>
       <Name>MaxValue</Name>
@@ -58,7 +56,7 @@
       <Set>${this:16}.setMaxValue(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this}</Java>
       <Type>System.Int16</Type>
       <Name>Value</Name>
@@ -66,18 +64,11 @@
       <Set>${this:16}.setValue(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers />
-  <Constructors />
-  <Fields />
-  <Casts>
-    <Cast>
-      <Imports />
-      <Java>((Short) ${expr})</Java>
-      <From>System.Object</From>
-      <To>System.Int16</To>
-    </Cast>
-  </Casts>
-  <UnaryOps />
-  <BinaryOps />
+  <Constructors/>
+  <Events/>
+  <Indexers/>
+  <BoxedJava>Short</BoxedJava>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

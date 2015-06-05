@@ -8,9 +8,9 @@
 -->
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>CS2JNet.System.Collections.IEnumerable</Import>
+    <Import>java.util.Collection</Import>
   </Imports>
-  <Java>IEnumerable*[${E}]*</Java>
+  <Java>Collection*[${E}]*</Java>
   <Name>System.Collections.Generic.IEnumerable</Name>
   <TypeParams>
     <Name>E</Name>

@@ -1,17 +1,26 @@
-<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0" has_boxed_rep="true">
-  <Imports/>
-  <Java>boolean</Java>
-  <Name>System.Boolean</Name>
-  <Uses/>
-  <Casts/>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports />
+  <Java />
+  <Name>System.Boolean?</Name>
+  <Uses />
   <Inherits>
     <Type>System.IComparable</Type>
     <Type>System.IFormattable</Type>
     <Type>System.IConvertible</Type>
+    <Type>System.Nullable</Type>
   </Inherits>
   <Methods>
     <Method>
-      <Imports/>
+      <Imports />
       <Java>Boolean.valueOf(${str})</Java>
       <Params>
         <Param>
@@ -23,50 +32,48 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports/>
+      <Imports />
       <Java>String.valueOf(${this})</Java>
-      <Params/>
+      <Params />
       <Name>ToString</Name>
       <Return>System.String</Return>
     </Method>
   </Methods>
   <Properties>
     <Property>
-      <Imports/>
-      <Java>&quot;False&quot;</Java>
+      <Imports />
+      <Java>"False"</Java>
       <Type>System.String</Type>
       <Name>FalseString</Name>
-      <Get>&quot;False&quot;</Get>
-      <Set>${this:16}.setFalseString(${value})</Set>
+      <Get>"False"</Get>
     </Property>
     <Property>
-      <Imports/>
-      <Java>&quot;True&quot;</Java>
+      <Imports />
+      <Java>"True"</Java>
       <Type>System.String</Type>
       <Name>TrueString</Name>
-      <Get>&quot;True&quot;</Get>
-      <Set>${this:16}.setTrueString(${value})</Set>
+      <Get>"True"</Get>
     </Property>
     <Property>
-      <Imports/>
-      <Java>${this:16} != null</Java>
+      <Imports />
+      <Java>(${this:16}!=null)</Java>
       <Type>System.Boolean</Type>
       <Name>HasValue</Name>
-      <Get>${this:16} != null</Get>
+      <Get>(${this:16}!=null)</Get>
     </Property>
     <Property>
-      <Imports/>
-      <Java>${this:16}.booleanValue()</Java>
+      <Imports />
+      <Java>${this:16}</Java>
       <Type>System.Boolean</Type>
       <Name>Value</Name>
-      <Get>${this:16}.booleanValue()</Get>
+      <Get>${this:16}</Get>
     </Property>
   </Properties>
-  <Constructors/>
-  <Events/>
-  <Indexers/>
-  <BoxedJava>Boolean</BoxedJava>
-  <Fields/>
-  <UnaryOps/>
-  <BinaryOps/>
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
 </Class>

@@ -22,6 +22,13 @@
   <Methods>
     <Method>
       <Imports />
+      <Java>((Double)${this:16}).hashCode()</Java>
+      <Params/>
+      <Name>GetHashCode</Name>
+      <Return>System.Int</Return>
+    </Method>
+    <Method>
+      <Imports />
       <Java>Double.isNaN(${d})</Java>
       <Params>
         <Param>
