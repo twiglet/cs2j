@@ -29,6 +29,15 @@
       <Imports>
         <Import>CS2JNet.System.Globalization.NumberStyles</Import>
       </Imports>
+      <Java>NumberStyles.getFloat()</Java>
+      <Type>System.Globalization.NumberStyles</Type>
+      <Name>Float</Name>
+      <Get>NumberStyles.getFloat()</Get>
+    </Property>
+    <Property>
+      <Imports>
+        <Import>CS2JNet.System.Globalization.NumberStyles</Import>
+      </Imports>
       <Java>NumberStyles.getHexNumber()</Java>
       <Type>System.Globalization.NumberStyles</Type>
       <Name>HexNumber</Name>

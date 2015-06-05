@@ -158,7 +158,20 @@
     </Property>
   </Properties>
   <Events />
-  <Indexers />
+  <Indexers>
+    <Indexer>
+      <Imports/>
+      <Type>System.Char</Type>
+      <Get>${this:16}.charAt(${pos})</Get>
+      <Set>${this:16}.setCharAt(${pos}, ${value})</Set>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>pos</Name>
+        </Param>
+      </Params>
+    </Indexer>
+  </Indexers>
   <Constructors>
     <Constructor>
       <Imports />

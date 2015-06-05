@@ -8,7 +8,9 @@
 
 -->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports>
+    <Import>java.nio.file.Path</Import>
+  </Imports>
   <Java>Path</Java>
   <Name>System.IO.Path</Name>
   <Uses />
@@ -81,7 +83,7 @@
       <Imports>
         <Import>java.io.File</Import>
       </Imports>
-      <Java>(new File(${path1}, ${path2})).toString()</Java>
+      <Java>${path1}+${path2}</Java>
       <Params>
         <Param>
           <Type>System.String</Type>

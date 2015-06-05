@@ -1,19 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
     <Import>java.util.TreeMap</Import>
   </Imports>
-  <Java>TreeMap</Java>
-  <Name>System.Collections.SortedList</Name>
-  <Uses />
+  <Java>TreeMap*[${K},${V}]*</Java>
+  <Name>System.Collections.Generic.SortedList</Name>
+  <TypeParams>
+    <Name>K</Name>
+    <Name>V</Name>
+  </TypeParams>
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.IDictionary</Type>
     <Type>System.ICollection</Type>
@@ -22,7 +18,7 @@
   </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.put(${key}, ${value})</Java>
       <Params>
         <Param>
@@ -38,7 +34,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.containsKey(${key})</Java>
       <Params>
         <Param>
@@ -50,7 +46,7 @@
       <Return>System.Boolean</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.containsKey(${key})</Java>
       <Params>
         <Param>
@@ -64,7 +60,7 @@
   </Methods>
   <Properties>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.size()</Java>
       <Type>System.Int32</Type>
       <Name>Count</Name>
@@ -72,7 +68,7 @@
       <Set>${this:16}.setCount(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.keySet()</Java>
       <Type>System.ICollection</Type>
       <Name>Keys</Name>
@@ -80,7 +76,7 @@
       <Set>${this:16}.setKeys(${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.values()</Java>
       <Type>System.Collections.ICollection</Type>
       <Name>Values</Name>
@@ -88,34 +84,19 @@
       <Set>${this:16}.setValues(${value})</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers>
-    <Indexer>
-      <Imports />
-      <Params>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>key</Name>
-        </Param>
-      </Params>
-      <Type>System.Object</Type>
-      <Get>${this:16}.get(${key})</Get>
-      <Set>${this:16}.put(${key}, ${value})</Set>
-    </Indexer>
-  </Indexers>
   <Constructors>
     <Constructor>
       <Imports>
         <Import>java.util.TreeMap</Import>
       </Imports>
-      <Java>new TreeMap()</Java>
-      <Params />
+      <Java>new TreeMap*[${K},${V}]*()</Java>
+      <Params/>
     </Constructor>
     <Constructor>
       <Imports>
         <Import>java.util.TreeMap</Import>
       </Imports>
-      <Java>new TreeMap()</Java>
+      <Java>new TreeMap*[${K},${V}]*()</Java>
       <Params>
         <Param>
           <Type>System.Int32</Type>
@@ -127,7 +108,7 @@
       <Imports>
         <Import>java.util.TreeMap</Import>
       </Imports>
-      <Java>new TreeMap(${collection})</Java>
+      <Java>new TreeMap*[${K},${V}]*(${collection})</Java>
       <Params>
         <Param>
           <Type>System.IDictionary</Type>
@@ -136,8 +117,26 @@
       </Params>
     </Constructor>
   </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Events/>
+  <Indexers>
+    <Indexer>
+      <Imports/>
+      <Type>System.Object</Type>
+      <Get>${this:16}.get(${key})</Get>
+      <Set>${this:16}.put(${key}, ${value})</Set>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>key</Name>
+        </Param>
+      </Params>
+    </Indexer>
+  </Indexers>
+  <Iterable>
+    <Java>${expr}.entrySet()</Java>
+    <ElementType>System.Collections.Generic.KeyValuePair*[K,V]*</ElementType>
+  </Iterable>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>
