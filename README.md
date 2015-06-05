@@ -38,20 +38,30 @@ The CS2J source distribution has two components:
      translate **.Net framework** calls into appropriate **Java** code, and
      the *CS2JLibrary Java support library* that should be deployed with
      translated applications.
+     
+     ***Notice that the XML folder is now in CSharpTranslator directory, and part
+     of the Visual Studio project.***
 
      This work is licensed under the Apache License, Version 2.0
      (http://www.apache.org/licenses/LICENSE-2.0).
+     
 
 ### How it works
 
 The way CS2J translate your C# application can be sliced in 4 parts :
 
-* The creation of an **environment** based on *XML translation files* and *your C# application*. This environment allows CS2J to make **links** between your classes. 
+* The creation of an **environment** based on *XML translation files* and *your C# application*. This environment allows CS2J to make **links** between your classes, and the transformations to perform. 
 This work is done by **TemlateExtracter**.
 
 Then for each file.cs:
 
 * **JavaMaker** parses the file and creates a first *AST* (Abstract Syntax Tree)
-* **NetMaker** parses the first tree, *convert each .NET call into its Java equivalent* and create a second *AST*
-* **JavaPrettyPrint** parses the second tree and creates a *human readable code* which will be saved into *file.java*.
-     
+* **NetMaker** parses the first tree, *convert most of .NET call into its Java equivalent* and create a second *AST*
+* **JavaPrettyPrint** parses the second tree, finalizes the translation, and creates a *human readable code* which will be saved into *file.java*.
+
+### How to modify a translation / add your own
+
+As was said before, translations are, for the biggest part, done using XML.
+To modify / add some content, you should modify the XML, but it is awful to modify huge files, and worse to create your own. That's why Ijinus created an edition tool : [CS2JXmlEditor](https://github.com/MathieuBlond-Ijinus/CS2JXmlEditor).
+
+We recommend you to use this tool in order to respect the XML schema definition (which is at the moment not the case of all the XML).
