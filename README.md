@@ -39,7 +39,7 @@ The CS2J source distribution has two components:
      the *CS2JLibrary Java support library* that should be deployed with
      translated applications.
      
-     ***Notice that the XML folder is now in CSharpTranslator directory, and part
+     ***Note that the XML folder is now in CSharpTranslator directory, and part
      of the Visual Studio project.***
 
      This work is licensed under the Apache License, Version 2.0
