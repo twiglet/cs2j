@@ -68,6 +68,11 @@ public class NumberStyles {
 		return getAllowLeadingWhite() |  getAllowTrailingWhite() | getAllowLeadingSign();
 	}
 
+	public static int getFloat()
+	{
+		return getAllowLeadingWhite() |  getAllowTrailingWhite() | getAllowLeadingSign() | getAllowDecimalPoint();
+	}
+	
 	public static int getHexNumber()
 	{
 		return getAllowLeadingWhite() |  getAllowTrailingWhite() | getAllowHexSpecifier();
