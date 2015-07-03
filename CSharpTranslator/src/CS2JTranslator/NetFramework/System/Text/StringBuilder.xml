@@ -1,23 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
-  <Imports />
+  <Imports/>
   <Java>StringBuilder</Java>
   <Name>System.Text.StringBuilder</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.Object</Type>
   </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.append(${arg})</Java>
       <Params>
         <Param>
@@ -39,16 +31,16 @@
           <Name>format</Name>
         </Param>
       </Params>
+      <Name>AppendFormat</Name>
       <ParamArray>
         <Type>System.Object[]</Type>
         <Name>args</Name>
       </ParamArray>
-      <Name>AppendFormat</Name>
       <Return>System.Text.StringBuilder</Return>
     </Method>
     <Method>
-      <Imports />
-      <Java>${this:16}.append((${arg}) + System.getProperty("line.separator"))</Java>
+      <Imports/>
+      <Java>${this:16}.append((${arg}) + System.getProperty(&quot;line.separator&quot;))</Java>
       <Params>
         <Param>
           <Type>System.String</Type>
@@ -73,7 +65,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.insert(${idx}, ${obj})</Java>
       <Params>
         <Param>
@@ -89,7 +81,7 @@
       <Return>System.Text.StringBuilder</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.replace(${old}, ${new})</Java>
       <Params>
         <Param>
@@ -105,7 +97,7 @@
       <Return>System.Text.StringBuilder</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.delete(${startIndex}, (${startIndex})+(${length}))</Java>
       <Params>
         <Param>
@@ -121,7 +113,7 @@
       <Return>System.Text.StringBuilder</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.substring(${startIndex}, (${startIndex})+(${length}))</Java>
       <Params>
         <Param>
@@ -136,6 +128,28 @@
       <Name>ToString</Name>
       <Return>System.String</Return>
     </Method>
+    <Method>
+      <Imports/>
+      <Java>${this:16}.append(${str}, ${index1}, ${index2})</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index1</Name>
+        </Param>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>index2</Name>
+        </Param>
+      </Params>
+      <Name>Append</Name>
+      <TypeParams/>
+      <Return></Return>
+    </Method>
   </Methods>
   <Properties>
     <Property>
@@ -149,7 +163,7 @@
       <Set>StringBuilderSupport.setLength(${this}, ${value})</Set>
     </Property>
     <Property>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.capacity()</Java>
       <Type>System.Int32</Type>
       <Name>Capacity</Name>
@@ -157,7 +171,24 @@
       <Set>${this:16}.ensureCapacity(${value})</Set>
     </Property>
   </Properties>
-  <Events />
+  <Constructors>
+    <Constructor>
+      <Imports/>
+      <Java>new StringBuilder()</Java>
+      <Params/>
+    </Constructor>
+    <Constructor>
+      <Imports/>
+      <Java>new StringBuilder(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Events/>
   <Indexers>
     <Indexer>
       <Imports/>
@@ -172,25 +203,7 @@
       </Params>
     </Indexer>
   </Indexers>
-  <Constructors>
-    <Constructor>
-      <Imports />
-      <Java>new StringBuilder()</Java>
-      <Params />
-    </Constructor>
-    <Constructor>
-      <Imports />
-      <Java>new StringBuilder(${str})</Java>
-      <Params>
-        <Param>
-          <Type>System.String</Type>
-          <Name>str</Name>
-        </Param>
-      </Params>
-    </Constructor>
-  </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

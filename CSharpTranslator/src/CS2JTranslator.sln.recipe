@@ -1,0 +1,5 @@
+<recipe>
+  <selector selectorClass="csUnit.Core.CategorySelector">
+    <categorySelector />
+  </selector>
+</recipe>

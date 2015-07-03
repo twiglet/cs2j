@@ -21,6 +21,8 @@
 
 package CS2JNet.System.Resources;
 
+import java.util.Enumeration;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.MissingResourceException;
 
@@ -28,7 +30,7 @@ import CS2JNet.JavaSupport.util.LocaleSupport;
 
 public class ResourceManager {
 
-	private ResourceBundle bundle = null;
+	protected ResourceBundle bundle = null;
 
 	/**
 	 * Initializes the ResourceBundle with the given resource name.  This implementation
@@ -39,9 +41,20 @@ public class ResourceManager {
 	 * @param resourceName
 	 * @param assembly
 	 */
+	
+	public ResourceManager(){}
+	
+	public ResourceManager(ResourceBundle bundle){
+		this.bundle = bundle;
+	}
+	
 	public ResourceManager(String resourceName, Object assembly)
 	{
 		bundle = ResourceBundle.getBundle(resourceName, LocaleSupport.getCurrentLocale());
+	}
+	
+	public Enumeration<String> getKeys(){
+		return bundle.getKeys();
 	}
 	
 	// By returning null the caller will use the passed in string
@@ -49,6 +62,15 @@ public class ResourceManager {
 	{
 		try {
 			return bundle.getString(name);
+		} catch (MissingResourceException e) {
+			return null;
+		}
+	}
+	
+	public String getString(String name, Locale culture){
+		ResourceBundle tempBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), culture);
+		try {
+			return tempBundle.getString(name);
 		} catch (MissingResourceException e) {
 			return null;
 		}

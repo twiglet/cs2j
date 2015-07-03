@@ -35,7 +35,26 @@
       <Return>System.Boolean</Return>
     </Method>
   </Methods>
-  <Properties/>
+  <Properties>
+    <Property>
+      <Imports/>
+      <Java></Java>
+      <Warning></Warning>
+      <Type>System.Int32</Type>
+      <Name>Count</Name>
+      <Get>${this:16}.size()</Get>
+      <Set></Set>
+    </Property>
+    <Property>
+      <Imports/>
+      <Java></Java>
+      <Warning></Warning>
+      <Type>System.Collections.Generic.SortedDictionary*[${K},${V}]*.KeyCollection</Type>
+      <Name>Keys</Name>
+      <Get>${this:16}.keySet()</Get>
+      <Set></Set>
+    </Property>
+  </Properties>
   <Constructors>
     <Constructor>
       <Imports>

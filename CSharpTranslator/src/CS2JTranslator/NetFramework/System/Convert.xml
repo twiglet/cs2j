@@ -53,12 +53,40 @@
       <Java>${value}</Java>
       <Params>
         <Param>
-          <Type>System.Boolean</Type>
+          <Type>System.Object</Type>
           <Name>value</Name>
         </Param>
       </Params>
       <Name>ToBoolean</Name>
       <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.DateTimeSupport</Import>
+      </Imports>
+      <Java>DateTimeSupport.parse(${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>ToDateTime</Name>
+      <Return>System.Int64</Return>
+    </Method>
+    <Method>
+      <Imports/>
+      <Java>(Double) ${object}</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>object</Name>
+        </Param>
+      </Params>
+      <Name>ToDouble</Name>
+      <TypeParams/>
+      <Return>System.Double</Return>
     </Method>
     <Method>
       <Imports/>
@@ -86,6 +114,20 @@
     </Method>
     <Method>
       <Imports/>
+      <Java>(Integer) ${object}</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.Object</Type>
+          <Name>object</Name>
+        </Param>
+      </Params>
+      <Name>ToInt32</Name>
+      <TypeParams/>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports/>
       <Java>Long.valueOf(${value})</Java>
       <Params>
         <Param>
@@ -98,28 +140,14 @@
     </Method>
     <Method>
       <Imports/>
-      <Java>(long)Math.round(${value})</Java>
+      <Java>(Long)${value}</Java>
       <Params>
         <Param>
-          <Type>System.Number</Type>
+          <Type>System.Object</Type>
           <Name>value</Name>
         </Param>
       </Params>
       <Name>ToInt64</Name>
-      <Return>System.Int64</Return>
-    </Method>
-    <Method>
-      <Imports>
-        <Import>CS2JNet.System.DateTimeSupport</Import>
-      </Imports>
-      <Java>DateTimeSupport.parse(${value})</Java>
-      <Params>
-        <Param>
-          <Type>System.String</Type>
-          <Name>value</Name>
-        </Param>
-      </Params>
-      <Name>ToDateTime</Name>
       <Return>System.Int64</Return>
     </Method>
     <Method>
@@ -133,34 +161,6 @@
       </Params>
       <Name>ToString</Name>
       <Return>System.String</Return>
-    </Method>
-    <Method>
-      <Imports/>
-      <Java>(Double) ${object}</Java>
-      <Warning></Warning>
-      <Params>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>object</Name>
-        </Param>
-      </Params>
-      <Name>ToDouble</Name>
-      <TypeParams/>
-      <Return>System.Double</Return>
-    </Method>
-    <Method>
-      <Imports/>
-      <Java>(Integer) ${object}</Java>
-      <Warning></Warning>
-      <Params>
-        <Param>
-          <Type>System.Object</Type>
-          <Name>object</Name>
-        </Param>
-      </Params>
-      <Name>ToInt32</Name>
-      <TypeParams/>
-      <Return>System.Int32</Return>
     </Method>
   </Methods>
   <Properties>

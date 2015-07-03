@@ -1,32 +1,24 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-    <Import>java.io.InputStream</Import>
+    <Import>CS2JNet.System.IO.MemoryStream</Import>
   </Imports>
-  <Java>InputStream</Java>
+  <Java>MemoryStream</Java>
   <Name>System.IO.Stream</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.IO.IDisposable</Type>
   </Inherits>
   <Methods>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.close()</Java>
-      <Params />
+      <Params/>
       <Name>Close</Name>
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.read(${buffer},${offset},${count})</Java>
       <Params>
         <Param>
@@ -46,7 +38,7 @@
       <Return>System.Int32</Return>
     </Method>
     <Method>
-      <Imports />
+      <Imports/>
       <Java>${this:16}.write(${buffer},${offset},${count})</Java>
       <Params>
         <Param>
@@ -71,15 +63,13 @@
       <Imports>
         <Import>CS2JNet.JavaSupport.Unsupported</Import>
       </Imports>
-      <Java>Unsupported.throwUnsupported("${this:16}.Position")</Java>
+      <Java>Unsupported.throwUnsupported(&quot;${this:16}.Position&quot;)</Java>
       <Type>System.Int64</Type>
       <Name>Position</Name>
-      <Get>Unsupported.throwUnsupported("${this:16}.Position")</Get>
-      <Set>Unsupported.throwUnsupported("${this:16}.Position = ${value}")</Set>
+      <Get>Unsupported.throwUnsupported(&quot;${this:16}.Position&quot;)</Get>
+      <Set>Unsupported.throwUnsupported(&quot;${this:16}.Position = ${value}&quot;)</Set>
     </Property>
   </Properties>
-  <Events />
-  <Indexers />
   <Constructors>
     <Constructor>
       <Imports>
@@ -94,8 +84,9 @@
       </Params>
     </Constructor>
   </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>

@@ -104,12 +104,31 @@
       <Imports/>
       <Java>${this:16}.getMillis()</Java>
       <Warning></Warning>
-      <Type></Type>
+      <Type>System.Double</Type>
+      <Name>TotalMilliseconds</Name>
       <Get>${this:16}.getMillis()</Get>
       <Set>${this:16}.setMillis(${value})</Set>
     </Property>
   </Properties>
-  <Constructors/>
+  <Constructors>
+    <Constructor>
+      <Imports>
+        <Import>org.joda.time.Duration</Import>
+      </Imports>
+      <Java>new Duration(date1, date2)</Java>
+      <Warning></Warning>
+      <Params>
+        <Param>
+          <Type>System.DateTime</Type>
+          <Name>date1</Name>
+        </Param>
+        <Param>
+          <Type>System.DateTime</Type>
+          <Name>date2</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
   <Events/>
   <Indexers/>
   <BoxedJava>Duration</BoxedJava>

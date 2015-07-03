@@ -29,7 +29,7 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Java>${this:16}.addRange(${arg})</Java>
+      <Java>${this:16}.addAll(Arrays.asList(${arg}))</Java>
       <Params>
         <Param>
           <Type>System.Object[]</Type>
@@ -111,7 +111,7 @@
       <Return>System.Void</Return>
     </Method>
     <Method>
-      <Java>((${T}[]) ${this:16}.toArray(new T[0]))</Java>
+      <Java>((${T}[]) ${this:16}.toArray(new ${T}[0]))</Java>
       <Params/>
       <Name>ToArray</Name>
       <Return>T[]</Return>

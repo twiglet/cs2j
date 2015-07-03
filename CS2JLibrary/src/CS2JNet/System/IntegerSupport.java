@@ -23,7 +23,9 @@ package CS2JNet.System;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Locale;
 
+import CS2JNet.JavaSupport.language.RefSupport;
 import CS2JNet.JavaSupport.util.LocaleSupport;
 import CS2JNet.System.Globalization.*;
 
@@ -78,6 +80,34 @@ public class IntegerSupport {
 	    System.out.printf("D: %0$s\n", mkString(integral, "D6"));
 	    System.out.printf("D: %0$s\n", mkString(-integral, "D6"));
 	
+	}
+	
+	public static boolean tryParse(String s, int style, Locale loc, RefSupport<Integer> result)
+	{
+		String toParse = s;
+		
+		if ((style & NumberStyles.getAllowLeadingWhite()) > 0)
+			   toParse = StringSupport.TrimStart(toParse, null);
+
+		if ((style & NumberStyles.getAllowTrailingWhite()) > 0)
+			   toParse = StringSupport.TrimEnd(toParse, null);
+
+		if ((style & NumberStyles.getAllowLeadingSign()) == 0)
+			   if (toParse.charAt(0) == '+' || toParse.charAt(0) == '-')
+				   return false;
+
+		try {
+			result.setValue(NumberFormat.getInstance(loc == null ? LocaleSupport.INVARIANT : loc).parse(toParse).intValue());
+			return true;
+		} catch (ParseException e) {
+			return false;
+		}
+		
+	}
+	public static boolean tryParse(String s, RefSupport<Integer> result)
+	{
+		// TODO: what is default style?
+		return tryParse(s, NumberStyles.getAny(), null, result);
 	}
 
 }
