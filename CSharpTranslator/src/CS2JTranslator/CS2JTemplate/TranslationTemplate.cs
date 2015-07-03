@@ -16,7 +16,6 @@ along with this program.  If not, see
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -39,7 +38,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
    
    public class TemplateUtilities
    {
-            
+       public static readonly bool DO_IMPLICIT_CASTS=false;
       public static string Substitute(string c, Dictionary<string,TypeRepTemplate> argMap)
       {
          String ret = c;
@@ -1912,9 +1911,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
          
       }
 
+      protected string[] _uses;
       // Path to use when resolving types
       [XmlArrayItem("Use")]
-      public string[] Uses { get; set; }
+      public string[] Uses { get{return _uses;} set { _uses = value; updateUsesWithNamespace(); } }
 
       // Aliases for namespaces
       [XmlArrayItem("Alias")]
@@ -2168,7 +2168,37 @@ namespace Twiglet.CS2J.Translator.TypeRep
          Uses = usePath;
          Aliases = aliases;
       }
-		
+
+      public void updateUsesWithNamespace()
+      {
+          int ni = -1;
+          if (!String.IsNullOrEmpty(TypeName) && (ni = TypeName.LastIndexOf('.')) > 0)
+          {
+              List<String> namespaces = null;
+              String ns1 = TypeName.Substring(0, ni); 
+              while (true)
+              {
+                  if (namespaces == null)
+                  {
+                      if (_uses == null || Array.IndexOf(_uses,ns1)<0)
+                      {
+                          namespaces = new List<string>(_uses);
+                          namespaces.Add(ns1);
+                      }
+                  }
+                  else
+                  {
+                      if (!namespaces.Contains(ns1)) namespaces.Add(ns1);
+                  }
+                  
+                  ni = ns1.LastIndexOf('.');
+                  if (ni <= 0) break;
+                  ns1 = ns1.Substring(0, ni);
+              }
+              if (namespaces != null)
+                 _uses = namespaces.ToArray();
+          }
+      }
       public override string mkJava() {
          string ret = String.Empty;
          if (TypeName != null && TypeName != String.Empty) {
@@ -2244,8 +2274,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
          base.Apply(args);
       }
 
+      public ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+          ResolveResult res = Resolve(name, args, AppEnv, false);
+          if (TemplateUtilities.DO_IMPLICIT_CASTS &&  res == null) res = Resolve(name, args, AppEnv, true);
+          return res;
+      }
       // Resolve a method call (name and arg types)
-      public virtual ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public virtual ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
          if (Inherits != null)
          {
@@ -2254,7 +2290,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                TypeRepTemplate baseType = BuildType(b, AppEnv);
                if (baseType != null)
                {
-                  ResolveResult ret = baseType.Resolve(name,args,AppEnv);
+                  ResolveResult ret = baseType.Resolve(name,args,AppEnv,implicitCast);
                   if (ret != null)
                      return ret;
                }
@@ -2262,9 +2298,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
          }
          return null;
       }
-
+       public ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+          ResolveResult res = Resolve(name, forWrite, AppEnv, false);
+          if (TemplateUtilities.DO_IMPLICIT_CASTS && res == null) res = Resolve(name, forWrite, AppEnv, true);
+          return res;
+      }
       // Resolve a field or property access
-      public virtual ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
+      public virtual ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
          if (Inherits != null)
          {
@@ -2273,7 +2314,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                TypeRepTemplate baseType = BuildType(b, AppEnv);
                if (baseType != null)
                {
-                  ResolveResult ret = baseType.Resolve(name, forWrite, AppEnv);
+                  ResolveResult ret = baseType.Resolve(name, forWrite, AppEnv,implicitCast);
                   if (ret != null)
                      return ret;
                }
@@ -2282,8 +2323,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return null;
       }
 
+      public ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+          ResolveResult res = ResolveIndexer(args, AppEnv, false);
+          if (TemplateUtilities.DO_IMPLICIT_CASTS && res == null) res = ResolveIndexer(args, AppEnv, true);
+          return res;
+      }
       // Resolve a indexer call (arg types)
-      public virtual ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public virtual ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
          if (Inherits != null)
          {
@@ -2292,7 +2339,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                TypeRepTemplate baseType = BuildType(b, AppEnv);
                if (baseType != null)
                {
-                  ResolveResult ret = baseType.ResolveIndexer(args,AppEnv);
+                  ResolveResult ret = baseType.ResolveIndexer(args,AppEnv,implicitCast);
                   if (ret != null)
                      return ret;
                }
@@ -2320,7 +2367,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   {
                      // cast from us
                      TypeRepTemplate toTy = BuildType(c.To, AppEnv);
-                     if (toTy.IsA(castTo, AppEnv) && castTo.IsA(toTy, AppEnv))
+                     if ((toTy.IsA(castTo, AppEnv,false) && castTo.IsA(toTy, AppEnv,false)) || (toTy.IsA(castTo, AppEnv,true) && castTo.IsA(toTy, AppEnv,true)) )
                      {
                         ResolveResult res = new ResolveResult();
                         res.Result = c;
@@ -2366,7 +2413,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                   {
                      // cast to us
                      TypeRepTemplate fromTy = BuildType(c.From, AppEnv);
-                     if (castFrom.IsA(fromTy, AppEnv) && fromTy.IsA(castFrom, AppEnv))
+                     if ((castFrom.IsA(fromTy, AppEnv,false) && fromTy.IsA(castFrom, AppEnv,false)) || (castFrom.IsA(fromTy, AppEnv,true) && fromTy.IsA(castFrom, AppEnv,true)))
                      {
                         ResolveResult res = new ResolveResult();
                         res.Result = c;
@@ -2398,13 +2445,142 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return null;
       }
 
+      private List<string> primitiveTypes = null;
+      private List<string> PrimitiveTypes
+      {
+          get
+          {
+              if (primitiveTypes == null)
+              {
+                  primitiveTypes = new List<string>();
+                  primitiveTypes.Add("System.Boolean");
+                  primitiveTypes.Add("System.Byte");
+                  primitiveTypes.Add("System.Char");
+                  primitiveTypes.Add("System.Decimal");
+                  primitiveTypes.Add("System.Single");
+                  primitiveTypes.Add("System.Double");
+                  primitiveTypes.Add("System.Int32");
+                  primitiveTypes.Add("System.Int64");
+                  primitiveTypes.Add("System.SByte");
+                  primitiveTypes.Add("System.Int16");
+                  primitiveTypes.Add("System.String");
+                  primitiveTypes.Add("System.UInt32");
+                  primitiveTypes.Add("System.UInt64");
+                  primitiveTypes.Add("System.UInt16");
+                  primitiveTypes.Add("System.Void");
+
+                  primitiveTypes.Add("System.Enum");
+
+                  primitiveTypes.Add("long");
+                  primitiveTypes.Add("int");
+                  primitiveTypes.Add("short");
+                  primitiveTypes.Add("byte");
+
+                  primitiveTypes.Add("ulong");
+                  primitiveTypes.Add("uint");
+                  primitiveTypes.Add("ushort");
+                  primitiveTypes.Add("sbyte");
+
+                  primitiveTypes.Add("double");
+                  primitiveTypes.Add("float");
+              }
+              return primitiveTypes;
+          }
+      }
+
+      public bool IsObject(DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+          /*
+           * Test part
+           */
+          bool debug = true;
+          string type = this.TypeName.Split('?')[0];
+
+          bool found = PrimitiveTypes.Contains(type);
+          if (!found && Inherits!=null)
+          {
+            foreach (String ibase in Inherits)
+            {
+               TypeRepTemplate tbase = BuildType(ibase, AppEnv, new UnknownRepTemplate(ibase));
+               if (!tbase.IsObject(AppEnv))
+               {
+                   found = true;
+                   Console.WriteLine("FOUND : " + ibase + " in "+ type);
+               }
+            }
+         }
+          if (debug)
+          {
+              string[] typeSplit = type.Split('.');
+
+              List<string> weirdFinals = new List<string>();
+              weirdFinals.Add("APPLY");
+              weirdFinals.Add("INDEXER");
+
+              string inheritsString = "";
+              foreach (string inherit in this.Inherits)
+                  inheritsString += " | " + inherit;
+
+              if ((weirdFinals.Contains(typeSplit[typeSplit.Length - 1]) || typeSplit.Length == 1) && type.StartsWith("_"))
+              {
+                  Console.WriteLine("TYPE : " + type);
+                  Console.WriteLine(found ? "I've found " + type + " in the list !" : "Nope, sorry, not in the list : " + type + " but this is its inherits : " + inheritsString);
+              }
+          }
+
+          else
+          {
+              Console.WriteLine("TYPE : " + type);
+              Console.WriteLine(found ? "I've found " + type + " in the list !" : "Nope, sorry, not in the list : " + type);
+
+          }
+         return !found;
+      }
+      
+      Dictionary<String, String[]> implicitCasts = new Dictionary<string, string[]>()
+      {
+          {"System.SByte" , new String[] {"System.Int16","System.Int32","System.Int64","System.Float","System.Double","System.Decimal"}},
+          {"System.Byte" , new String[] {"System.Int16","System.UInt16","System.Int32","System.UInt32","System.Int64","System.UInt64","System.Float","System.Double","System.Decimal"}},
+          {"System.Int16" , new String[] {"System.Int32","System.Int64","System.Float","System.Double","System.Decimal"}},
+          {"System.UInt16" , new String[] {"System.Int32","System.UInt32","System.Int64","System.UInt64","System.Float","System.Double","System.Decimal"}},
+          {"System.Int32" , new String[] {"System.Int64","System.Float","System.Double","System.Decimal"}},
+          {"System.UInt32" , new String[] {"System.Int64","System.UInt64","System.Float","System.Double","System.Decimal"}},
+          {"System.Int64" , new String[] {"System.Float","System.Double","System.Decimal"}},
+          {"System.UInt64" , new String[] {"System.Float","System.Double","System.Decimal"}},
+          {"System.Char" , new String[] {"System.UInt16","System.Int32","System.UInt32","System.Int64","System.UInt64","System.Float","System.Double","System.Decimal"}},
+          {"System.Float" , new String[] {"System.Double","System.Decimal"}},
+      };
       // Returns true if other is a subclass, or implements our interface
-      public virtual bool IsA (TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv) {
+      public virtual bool IsA(TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+          return IsA(other, AppEnv, false);
+      }
+      public virtual bool IsA (TypeRepTemplate other, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast) {
          if (this.IsExplicitNull) 
          {
             return true;
          }
-         if (other.TypeName == this.TypeName)
+
+        /*
+         * We avoid the nullable types
+         */
+         string otherType = other.TypeName.Split('?')[0];
+         string thisType = this.TypeName.Split('?')[0];
+
+          /*
+           * We TEMPORARILY use this
+           * 
+           * We remove namespaces from types before to test the equality
+           * (to avoid foo.bar.Foobar != Foobar)
+           *
+
+         string[] tempOtherType = otherType.Split('.');
+         string[] tempThisType = thisType.Split('.');
+
+         otherType = tempOtherType[tempOtherType.Length - 1];
+         thisType = tempThisType[tempThisType.Length - 1];
+          */
+         if (otherType == thisType)
          {
             // See if generic arguments 'match'
             if (InstantiatedTypes != null && other.InstantiatedTypes != null && InstantiatedTypes.Length == other.InstantiatedTypes.Length)
@@ -2412,7 +2588,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                bool isA = true;
                for (int i = 0; i < InstantiatedTypes.Length; i++)
                {
-                  if (!InstantiatedTypes[i].IsA(other.InstantiatedTypes[i],AppEnv))
+                  if (!InstantiatedTypes[i].IsA(other.InstantiatedTypes[i],AppEnv,false))
                   {
                      isA = false;
                      break;
@@ -2432,12 +2608,18 @@ namespace Twiglet.CS2J.Translator.TypeRep
             foreach (String ibase in Inherits)
             {
                TypeRepTemplate tbase = BuildType(ibase, AppEnv, new UnknownRepTemplate(ibase));
-               if (tbase.IsA(other,AppEnv))
+               if (tbase.IsA(other,AppEnv,implicitCast))
                {
                   return true;
                }
             }
          }
+          //Implicit cast : Stripped down version, returns the first that matches
+         if (TemplateUtilities.DO_IMPLICIT_CASTS && implicitCast && this.Inherits != null && Array.IndexOf(this.Inherits, "System.Number") >= 0 && other.Inherits != null && Array.IndexOf(other.Inherits, "System.Number") >= 0)
+        {
+            String[] implicitCastTypes;
+            if (implicitCasts.TryGetValue(this.TypeName, out implicitCastTypes) && Array.IndexOf(implicitCastTypes, other.TypeName)>=0) return true;
+        }
          return false;
       }
 
@@ -2498,6 +2680,18 @@ namespace Twiglet.CS2J.Translator.TypeRep
                      throw new Exception("buildTypeList: Cannot parse " + types);
                   }
                }
+                /*
+                //Add Uses
+                List<String> namespaces = new List<string>(this.Uses);
+                String ns1=this.TypeName;
+                while (true)
+                {
+                    int ni = ns1.LastIndexOf('.');
+                    if (ni <= 0) break;
+                    ns1 = ns1.Substring(0,ni);
+                    if (!namespaces.Contains(ns1)) namespaces.Add(ns1);
+                }
+               typeRep = AppEnv.Search(namespaces.ToArray(), typeName + (tyArgs.Count > 0 ? "'" + tyArgs.Count.ToString() : ""), new UnknownRepTemplate(typeName));*/
                typeRep = AppEnv.Search(this.Uses, typeName + (tyArgs.Count > 0 ? "'" + tyArgs.Count.ToString() : ""), new UnknownRepTemplate(typeName));
                if (!typeRep.IsUnknownType && tyArgs.Count > 0)
                {
@@ -2875,7 +3069,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
          _members = ms;
       }
 
-      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
          if (Members != null)
          {
@@ -2890,7 +3084,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.Resolve(name, forWrite, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv,implicitCast);
       }
       public override TypeRepTemplate Instantiate(ICollection<TypeRepTemplate> args)
       {
@@ -2977,18 +3171,18 @@ namespace Twiglet.CS2J.Translator.TypeRep
             Invoke = new InvokeRepTemplate(this, copyFrom.Invoke);
          }
       }
- 
-      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+
+      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
-        
-        if ("Invoke" == name && matchParamsToArgs(Invoke.Params, Invoke.ParamArray, args, AppEnv))
+
+          if ("Invoke" == name && matchParamsToArgs(Invoke.Params, Invoke.ParamArray, args, AppEnv, implicitCast))
         {     
            ResolveResult res = new ResolveResult();
            res.Result = Invoke;
            res.ResultType = BuildType(Invoke.Return, AppEnv);
            return res;
          }
-         return base.Resolve(name, args, AppEnv);
+         return base.Resolve(name, args, AppEnv,implicitCast);
       }
 
       public override void Apply(Dictionary<string,TypeRepTemplate> args)
@@ -3198,7 +3392,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 //          return base.IsA(other,AppEnv);
 //       }
 // 
-      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
         
          if (Properties != null)
@@ -3214,14 +3408,14 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.Resolve(name, forWrite, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv, implicitCast);
       }
 
       /// <summary>
       /// Can we match Params + ParamArray against args   
       /// </summary>
       /// 
-      protected bool matchParamsToArgs(IList<ParamRepTemplate> param, ParamArrayRepTemplate paramArray, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      protected bool matchParamsToArgs(IList<ParamRepTemplate> param, ParamArrayRepTemplate paramArray, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
          int argsLength = args == null ? 0 : args.Count;
          int paramsLength = param == null ? 0 : param.Count;
@@ -3239,7 +3433,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                // Check fixed Parameters against args
                // check that for each argument in the caller its type 'IsA' the type of the formal parameter
                for (int idx = 0; idx < paramsLength; idx++) {
-                  if (args[idx] == null || !args[idx].IsA(BuildType(param[idx].Type, AppEnv, new UnknownRepTemplate(param[idx].Type.Type)),AppEnv))
+                   if (args[idx] == null || !args[idx].IsA(BuildType(param[idx].Type, AppEnv, new UnknownRepTemplate(param[idx].Type.Type)), AppEnv, implicitCast))
                   {
                      // An argument doesn't match
                      return false; 
@@ -3267,7 +3461,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
          if (argsLength == paramsLength + 1)
          {
-             if (args[argsLength - 1].IsA(paramsType, AppEnv))
+             if (args[argsLength - 1].IsA(paramsType, AppEnv, implicitCast))
              {
                  // Can pass an array as final argument
                  return true;
@@ -3281,21 +3475,20 @@ namespace Twiglet.CS2J.Translator.TypeRep
 
          for (int idx = paramsLength; idx < argsLength; idx++)
          {
-            if (args[idx] == null || !args[idx].IsA(paramsType,AppEnv))
+            if (args[idx] == null || !args[idx].IsA(paramsType,AppEnv,implicitCast))
                return false;
          }
          return true;
       }
 
-      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
-        
          if (Methods != null)
          {
             ResolveResult res = null;
             foreach (MethodRepTemplate m in Methods)
             {
-               if (m.Name == name && matchParamsToArgs(m.Params, m.ParamArray, args, AppEnv))
+               if (m.Name == name && matchParamsToArgs(m.Params, m.ParamArray, args, AppEnv, implicitCast))
                {
                   res = new ResolveResult();
                   res.Result = m;
@@ -3320,7 +3513,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                {
                   // Is p's type a delegate?
                   DelegateRepTemplate del = BuildType(p.Type, AppEnv, null) as DelegateRepTemplate;
-                  if (del != null && matchParamsToArgs(del.Invoke.Params, del.Invoke.ParamArray, args, AppEnv))
+                  if (del != null && matchParamsToArgs(del.Invoke.Params, del.Invoke.ParamArray, args, AppEnv,implicitCast))
                   {
                      ResolveResult delRes = new ResolveResult();
                      delRes.Result = del;
@@ -3334,17 +3527,17 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }            
          }
-         return base.Resolve(name, args, AppEnv);
+         return base.Resolve(name, args, AppEnv,implicitCast);
       }
 
-      public override ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult ResolveIndexer(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
         
          if (Indexers != null)
          {
             foreach (IndexerRepTemplate i in Indexers)
             {
-               if (matchParamsToArgs(i.Params, i.ParamArray, args, AppEnv))
+                if (matchParamsToArgs(i.Params, i.ParamArray, args, AppEnv, implicitCast))
                {
                   ResolveResult res = new ResolveResult();
                   res.Result = i;
@@ -3353,7 +3546,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.ResolveIndexer(args, AppEnv);
+         return base.ResolveIndexer(args, AppEnv,implicitCast);
       }
 
       public override ResolveResult ResolveIterable(DirectoryHT<TypeRepTemplate> AppEnv)
@@ -3615,7 +3808,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
       }
 
 
-      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
         
          // Look for a property which holds a delegate with the right type
@@ -3627,7 +3820,7 @@ namespace Twiglet.CS2J.Translator.TypeRep
                {
                   // Is f's type a delegate?
                   DelegateRepTemplate del = BuildType(f.Type, AppEnv, null) as DelegateRepTemplate;
-                  if (del != null && matchParamsToArgs(del.Invoke.Params, del.Invoke.ParamArray, args, AppEnv))
+                  if (del != null && matchParamsToArgs(del.Invoke.Params, del.Invoke.ParamArray, args, AppEnv, implicitCast))
                   {
                      ResolveResult delRes = new ResolveResult();
                      delRes.Result = del;
@@ -3641,10 +3834,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }            
          }
-         return base.Resolve(name, args, AppEnv);
+         return base.Resolve(name, args, AppEnv, implicitCast);
       }
 
-      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv,bool implicitCast)
       {
         
          if (Fields != null)
@@ -3660,17 +3853,23 @@ namespace Twiglet.CS2J.Translator.TypeRep
                }
             }
          }
-         return base.Resolve(name, forWrite, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv,implicitCast);
       }
 
       public ResolveResult Resolve(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv)
+      {
+          ResolveResult res = Resolve(args, AppEnv, false);
+          if (TemplateUtilities.DO_IMPLICIT_CASTS && res == null) res = Resolve(args, AppEnv, true);
+          return res;
+      }
+      public ResolveResult Resolve(IList<TypeRepTemplate> args, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
         
          if (Constructors != null)
          {
             foreach (ConstructorRepTemplate c in Constructors)
             {
-               if (matchParamsToArgs(c.Params, c.ParamArray, args, AppEnv))
+                if (matchParamsToArgs(c.Params, c.ParamArray, args, AppEnv, implicitCast))
                {
                   ResolveResult res = new ResolveResult();
                   res.Result = c;
@@ -3805,10 +4004,10 @@ namespace Twiglet.CS2J.Translator.TypeRep
          : base(tName, tParams, usePath, aliases, inherits, cs, ms, ps, fs, es, ixs, cts,	null, null)
       {
       }
-		
-      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv)
+
+      public override ResolveResult Resolve(String name, bool forWrite, DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast)
       {
-         return base.Resolve(name, forWrite, AppEnv);
+         return base.Resolve(name, forWrite, AppEnv,implicitCast);
       }
 
       #region Equality
@@ -3962,8 +4161,8 @@ namespace Twiglet.CS2J.Translator.TypeRep
          return copy;
       }
 		
-      public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv) {
-         return base.IsA(other, AppEnv);                         
+      public override bool IsA (TypeRepTemplate other,  DirectoryHT<TypeRepTemplate> AppEnv, bool implicitCast) {
+         return base.IsA(other, AppEnv,implicitCast);                         
       }
 
       #region Equality

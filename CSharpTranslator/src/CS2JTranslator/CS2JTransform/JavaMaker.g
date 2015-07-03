@@ -62,6 +62,14 @@ scope TypeContext {
 @members
 {
 
+	static string[] forbiddenInterfacesInput = {"IEquatable","IFormattable"};
+	List<string> forbiddenInterfaces = new List<string>(forbiddenInterfacesInput);
+	public bool isForbiddenType(string type){
+		type = Regex.Replace(type, "[ ()]", "");
+		return forbiddenInterfaces.Contains(type
+											.Split(new string[] {"TYPE"}, StringSplitOptions.RemoveEmptyEntries)[0]
+											.Split(new string[] {"<"}, StringSplitOptions.RemoveEmptyEntries)[0]);
+	}
 
     private XmlTextWriter enumXmlWriter = null;			
     public XmlTextWriter EnumXmlWriter {
@@ -1352,9 +1360,22 @@ type_parameter_list returns [List<string> names]
 type_parameter returns [string name]:
     identifier { $name = $identifier.thetext; } ;
 
-class_base:
+class_base
+@init{
+List<CommonTree> list_ts = new List<CommonTree>();
+}:
 	// just put all types in a single list.  In NetMaker we will extract the base class if necessary
-	':'   ts+=type (','   ts+=type)* -> ^(IMPLEMENTS $ts)*;
+	//ForbiddenType are types you don't want to see implemented or inherited
+	':'  t1+=type 
+		{ 
+			if (!isForbiddenType(((CommonTree)t1.Tree).ToStringTree())) 
+				list_ts.Add(((CommonTree)t1.Tree));
+		} 
+		(','  tn=type
+		{ 
+			if (!isForbiddenType(((CommonTree)tn.Tree).ToStringTree())) 
+				list_ts.Add(((CommonTree)tn.Tree));
+		})* {list_t1=list_ts;} -> ^(IMPLEMENTS $t1)*;
 	
 //interface_type_list:
 //	ts+=type (','   ts+=type)* -> $ts+;

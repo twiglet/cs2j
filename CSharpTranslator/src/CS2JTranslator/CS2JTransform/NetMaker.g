@@ -2483,8 +2483,6 @@ scope MkNonGeneric, PrimitiveRep;
                                            ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsA(DateType,AppEnv)));
                 objectArgs = !nullArg && (($gt1.dotNetType != null && !$gt1.dotNetType.IsExplicitNull && $gt1.dotNetType.IsObject(AppEnv)) || 
                                            ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsObject(AppEnv)));
-                if(objectArgs)
-                	Console.WriteLine("DEBUG 2476 : gt1 : "+$gt1.dotNetType.TypeName+" | gt2 : "+$gt2.dotNetType.TypeName);                
                 $dotNetType = BoolType; 
             })
             //opgt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $gt2.tree, $gt1.tree, $gt.token])
@@ -2596,7 +2594,6 @@ scope MkNonGeneric, PrimitiveRep;
          	stringArgs = !nullArg && (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(StringType,AppEnv)) || 
                                             ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(StringType,AppEnv)));
            	// We may be more precise (Date + TimeSpan || TimeSpan + Date) 
-           	// We HAVE TO DO IT (Else, Date+String is bugged)
             dateArgs = !nullArg && (
             						(($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(DateType,AppEnv)) && 
                                     ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(TimeSpanType,AppEnv)))
@@ -2604,9 +2601,12 @@ scope MkNonGeneric, PrimitiveRep;
                                     (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(TimeSpanType,AppEnv)) && 
                                     ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(DateType,AppEnv)))
                                     );
+                                    
+           	altDateArgs = !nullArg && (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(TimeSpanType,AppEnv)) && 
+                                    ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(TimeSpanType,AppEnv)));
+                                    
          	objectArgs = !dateArgs && !stringArgs && !nullArg && (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsObject(AppEnv)) || 
                                            ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsObject(AppEnv)));
-            Console.WriteLine("ARGS BOOLEAN >>>>>>>>>>> "+stringArgs+" : "+dateArgs+" : "+objectArgs);
 		 }
 		 /*
 		 //$dotNetType = $n9.dotNetType;
@@ -2617,13 +2617,15 @@ scope MkNonGeneric, PrimitiveRep;
          
          if(stringArgs)
          	$dotNetType = StringType;
-         else if(dateArgs)
+         else if(dateArgs | altDateArgs){
          	$dotNetType = DateType;
+         	AddToImports("org.joda.time.Duration");
+         }
          else
          	$dotNetType = $n9.dotNetType;
         })
         
-        -> { dateArgs }?
+        -> { dateArgs | altDateArgs}?
         	^(APPLY[$pl.token, "APPLY"] 
         		^(DOT[$pl.token,"."] 
         			{ dupTree($n9.tree) } 
@@ -2695,10 +2697,14 @@ scope MkNonGeneric, PrimitiveRep;
          
          if(stringArgs)
          	$dotNetType = StringType;
-         else if(dateArgs)
+         else if(dateArgs){
          	$dotNetType = TimeSpanType;
-		 else if(altDateArgs)
+         	AddToImports("org.joda.time.Duration");
+         }
+		 else if(altDateArgs){
 		 	$dotNetType = DateType;
+         	AddToImports("org.joda.time.DateTime");
+         }
          else
          	$dotNetType = $n10.dotNetType;
         })
