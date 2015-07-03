@@ -384,6 +384,15 @@
       <Get>${this:16}.getMillisOfSecond()</Get>
       <Set></Set>
     </Property>
+    <Property>
+      <Imports/>
+      <Java>${this:16}.getMillis()</Java>
+      <Warning></Warning>
+      <Type>System.Int64</Type>
+      <Name>Ticks</Name>
+      <Get>${this:16}.getMillis()</Get>
+      <Set></Set>
+    </Property>
   </Properties>
   <Constructors>
     <Constructor>

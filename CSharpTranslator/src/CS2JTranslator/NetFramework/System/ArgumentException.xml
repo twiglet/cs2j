@@ -1,31 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
-    This file is
-
-    Copyright 2007,2008,2009,2010 Rustici Software, LLC
-    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
-
--->
 <Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
   <Imports>
-     <Import>CS2JNet.System.ArgumentException</Import>
+    <Import>CS2JNet.System.ArgumentException</Import>
   </Imports>
   <Java>ArgumentException</Java>
   <Name>System.ArgumentException</Name>
-  <Uses />
+  <Uses/>
+  <Casts/>
   <Inherits>
     <Type>System.SystemException</Type>
   </Inherits>
-  <Methods />
-  <Properties />
-  <Events />
-  <Indexers />
+  <Methods/>
+  <Properties/>
   <Constructors>
     <Constructor>
-      <Imports />
+      <Imports/>
       <Java>new ArgumentException()</Java>
-      <Params />
+      <Params/>
     </Constructor>
     <Constructor>
       <Imports>
@@ -40,7 +30,7 @@
       </Params>
     </Constructor>
     <Constructor>
-      <Imports />
+      <Imports/>
       <Java>new ArgumentException(${info},${ctxt})</Java>
       <Params>
         <Param>
@@ -106,8 +96,9 @@
       </Params>
     </Constructor>
   </Constructors>
-  <Fields />
-  <Casts />
-  <UnaryOps />
-  <BinaryOps />
+  <Events/>
+  <Indexers/>
+  <Fields/>
+  <UnaryOps/>
+  <BinaryOps/>
 </Class>
