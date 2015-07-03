@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Comparator</Import>
+  </Imports>
+  <Java>Comparator*[${T}]*</Java>
+  <Name>System.Collections.Generic.IComparer</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Methods>
+    <Method>
+      <Params>
+        <Param>
+          <Type>T</Type>
+          <Name>x</Name>
+        </Param>
+        <Param>
+          <Type>T</Type>
+          <Name>y</Name>
+        </Param>
+      </Params>
+    <Java>compare(${x}, ${y})</Java>
+    <Name>Compare</Name>
+    </Method>
+  </Methods>
+  <Properties>
+  </Properties>
+</Interface>

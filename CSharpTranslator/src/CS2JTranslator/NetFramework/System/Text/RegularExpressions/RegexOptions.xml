@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Enum xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Text.RegularExpressions.RegexOptions</Import>
+  </Imports>
+  <Java>int</Java>
+  <Name>System.Text.RegularExpressions.RegexOptions</Name>
+  <Inherits>
+    <Type>System.Enum</Type>
+  </Inherits>
+  <Members>
+    <Member>
+      <Java>0 /* RegexOptions.None */</Java>
+      <Name>None</Name>
+    </Member>
+    <Member>
+      <Imports><Import>java.util.regex.Pattern</Import></Imports>
+      <Java>Pattern.CASE_INSENSITIVE </Java>
+      <Name>IgnoreCase</Name>
+    </Member>
+    <Member>
+      <Imports><Import>java.util.regex.Pattern</Import></Imports>
+      <Java>Pattern.MULTILINE</Java>
+      <Name>Multiline</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.ExplicitCapture</Java>
+      <Name>ExplicitCapture</Name>
+    </Member>
+    <Member>
+      <Java>0 /* RegexOptions.Compiled */</Java>
+      <Name>Compiled</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Singleline</Java>
+      <Name>Singleline</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IgnorePatternWhitespace</Java>
+      <Name>IgnorePatternWhitespace</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.RightToLeft</Java>
+      <Name>RightToLeft</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.ECMAScript</Java>
+      <Name>ECMAScript</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.CultureInvariant</Java>
+      <Name>CultureInvariant</Name>
+    </Member>
+  </Members>
+</Enum>

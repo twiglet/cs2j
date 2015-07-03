@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Reflection.Assembly</Import>
+  </Imports>
+  <Java>Assembly</Java>
+  <Name>System.Reflection.Assembly</Name>
+  <Uses />
+  <Inherits> <Type>System.Object</Type> </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Reflection.Assembly</Import>
+      </Imports>
+      <Java>new Assembly(${assemblyString})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>assemblyString</Name>
+        </Param>
+      </Params>
+      <Name>Load</Name>
+      <Return>System.Reflection.Assembly</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.getClass(${name}, ${throwOnError})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>name</Name>
+        </Param>
+        <Param>
+          <Type>System.Boolean</Type>
+          <Name>throwOnError</Name>
+        </Param>
+      </Params>
+      <Name>GetType</Name>
+      <Return>System.Type</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>null /* getExecutingAssembly() */</Java>
+      <Params />
+      <Name>GetExecutingAssembly</Name>
+      <Return>System.Assembly</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Interface variant="LCC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Collections.LCC.IEnumerator</Import>
+  </Imports>
+  <Java>IEnumerator*[${E}]*</Java>
+  <Name>System.Collections.Generic.IEnumerator</Name>
+  <TypeParams>
+    <Name>E</Name>
+  </TypeParams>
+  <Iterable>
+    <ElementType>E</ElementType>
+    <Java>${expr}</Java>
+  </Iterable>
+  <Properties>
+    <Property>
+      <Type>E</Type>
+      <Name>Current</Name>
+      <Get>${this:16}.getCurrent()</Get>
+    </Property>
+  </Properties>
+  <Methods>
+    <Method>
+      <Java>${this:16}.moveNext()</Java>
+      <Params />
+      <Name>MoveNext</Name>
+      <Return>System.Boolean</Return>
+    </Method>
+    <Method>
+      <Java>${this:16}.reset()</Java>
+      <Params />
+      <Name>Reset</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+</Interface>

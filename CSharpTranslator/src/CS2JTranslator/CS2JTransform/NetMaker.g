@@ -160,7 +160,7 @@ scope MkNonGeneric {
           return builtinTypeMap;
        }
     }
-
+    
     protected TypeRepTemplate findType(string name) {
         if ($NSContext.Count > 0 && $NSContext::globalTypeVariables != null && $NSContext::globalTypeVariables.Contains(name)) {
             return new TypeVarRepTemplate(name);
@@ -243,6 +243,16 @@ scope MkNonGeneric {
         get {
             if (dateType == null) {
                 dateType = (ClassRepTemplate)AppEnv.Search("System.DateTime", new UnknownRepTemplate("System.DateTime"));
+            }
+            return dateType;
+        }
+    }
+
+	private ClassRepTemplate timeSpanType = null;
+    protected ClassRepTemplate TimeSpanType {
+        get {
+            if (timeSpanType == null) {
+                timeSpanType = (ClassRepTemplate)AppEnv.Search("System.TimeSpan", new UnknownRepTemplate("System.TimeSpan"));
             }
             return dateType;
         }
@@ -1698,6 +1708,7 @@ argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
 @init {
    string refVar = null;
 }:
+	/* TRYING TO DO IT DIFFERENT *
 	expression[ObjectType] { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
 	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; $typeofType = $ref_variable_reference.typeofType; } 
 	| o='out'   variable_reference { refVar = "refVar___" + dummyRefVarCtr++; } 
@@ -1711,6 +1722,14 @@ argument_value returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
       } 
        -> IDENTIFIER[$o.token, refVar]
     ;
+    //*/
+    /* */
+    expression[ObjectType] { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; } 
+	| ref_variable_reference { $dotNetType = $ref_variable_reference.dotNetType; $typeofType = $ref_variable_reference.typeofType; } 
+	| o='out' expression[ObjectType] { $dotNetType = $expression.dotNetType; $typeofType = $expression.typeofType; }
+    ;
+    // */
+    
 ref_variable_reference returns [TypeRepTemplate dotNetType, TypeRepTemplate typeofType]
 @init {
    string refVar = null;
@@ -1992,7 +2011,7 @@ public javaish_type_argument returns [TypeRepTemplate dotNetType]:
 
 // keving: TODO: Look for type vars
 type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree boxedTree]
-@ init {
+@init {
    bool hasRank = false;
    bool isPredefined = false;
    bool isNullable = false;
@@ -2009,8 +2028,7 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
       $dotNetType.Tree = $type.tree;
    }
 
-}
-:
+}:
     ^(t=TYPE (p=predefined_type { isPredefined = true; $dotNetType = $predefined_type.dotNetType; pTree = $p.tree; } 
            | type_name { $dotNetType = $type_name.dotNetType; $argTrees = $type_name.argTrees; } 
            | 'void' { $dotNetType = VoidType; } )  
@@ -2028,6 +2046,7 @@ type returns [TypeRepTemplate dotNetType, List<CommonTree> argTrees, CommonTree 
          }
        }
     -> { (isNullable || $PrimitiveRep::primitiveTypeAsObject) && !hasRank && $dotNetType.HasBoxedRep && !String.IsNullOrEmpty($dotNetType.BoxedJava) }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.BoxedJava] '*'*)
+    //-> { (isNullable || $PrimitiveRep::primitiveTypeAsObject) && !hasRank }? ^(TYPE[$t.token, "TYPE"] IDENTIFIER[$t.token,$dotNetType.Java] '*'*)
     -> ^(TYPE[$t.token, "TYPE"] predefined_type? type_name? 'void'? rank_specifiers? '*'* '?'?)
 ;
 
@@ -2363,6 +2382,8 @@ scope MkNonGeneric, PrimitiveRep;
     bool nullArg = false;
     bool stringArgs = false;
     bool dateArgs = false;
+    bool altDateArgs = false; // Represents a DateTime followed by a TimeSpan. Ex: DateTime - TimeSpan
+	bool objectArgs = false;
     $thedottedtext = null;
     CommonTree ret = null;
 }
@@ -2393,17 +2414,29 @@ scope MkNonGeneric, PrimitiveRep;
                 dateArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("CS2JNet.System.DateTimeSupport");
+                    //this.AddToImports("CS2JNet.System.DateTimeSupport"); Changed to Joda Time 
+                    this.AddToImports("org.joda.time.DateTime");
+                }
+                
+                objectArgs = !nullArg && (($ne1.dotNetType != null && !$ne1.dotNetType.IsExplicitNull && $ne1.dotNetType.IsObject(AppEnv)) || 
+                                           ($ne2.dotNetType != null && !$ne2.dotNetType.IsExplicitNull && $ne2.dotNetType.IsObject(AppEnv)));
+                if (objectArgs) {
+                    this.AddToImports("CS2JNet.System.ObjectSupport");
                 }
                 $dotNetType = BoolType; 
             }
             opse=magicSupportOp[stringArgs, "StringSupport", "equals", $ne1.tree, $ne2.tree, $eq.token]
-            opde=magicSupportOp[dateArgs, "DateTimeSupport", "equals", $ne1.tree, $ne2.tree, $eq.token])
-         -> {stringArgs}? 
-               $opse
-         -> {dateArgs}? 
-               $opde
-         ->^($eq $ne1 $ne2)
+            //opde=magicSupportOp[dateArgs, "DateTime", "equals", $ne1.tree, $ne2.tree, $eq.token]
+            opoe=magicSupportOp[objectArgs, "ObjectSupport", "Equals", $ne1.tree, $ne2.tree, $eq.token])
+         	-> {stringArgs}? 
+         		$opse
+         	-> {dateArgs}? 
+               //$opde
+               // We use isEqual because we juste compare timestamp
+         		^(APPLY[$eq.token, "APPLY"] ^(DOT[$eq.token,"."] { dupTree($ne1.tree) } IDENTIFIER[$eq.token, "isEqual" ]) ^(ARGS[$eq.token, "ARGS"] { dupTree($ne2.tree) } ) )
+         	-> {objectArgs && !(stringArgs || dateArgs)}?
+				$opoe
+         	->^($eq $ne1 $ne2)
         | ^(neq='!=' neqo1=non_assignment_expression[ObjectType] neqo2=non_assignment_expression[ObjectType]    
             {
                 // if One arg is null then leave original operator
@@ -2417,19 +2450,30 @@ scope MkNonGeneric, PrimitiveRep;
                 dateArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsA(DateType,AppEnv)));
                 if (dateArgs) {
-                    this.AddToImports("CS2JNet.System.DateTimeSupport");
+                    //this.AddToImports("CS2JNet.System.DateTimeSupport"); Changed to Joda Time 
+                    this.AddToImports("org.joda.time.DateTime");
+                }
+                objectArgs = !nullArg && (($neqo1.dotNetType != null && !$neqo1.dotNetType.IsExplicitNull && $neqo1.dotNetType.IsObject(AppEnv)) || 
+                                           ($neqo2.dotNetType != null && !$neqo2.dotNetType.IsExplicitNull && $neqo2.dotNetType.IsObject(AppEnv)));
+                if (objectArgs) {
+                    this.AddToImports("CS2JNet.System.ObjectSupport");
                 }
                 $dotNetType = BoolType; 
             }
             opse1=magicSupportOp[stringArgs, "StringSupport", "equals", $neqo1.tree, $neqo2.tree, $neq.token]
             opsne=magicNegate[stringArgs, $opse1.tree, $neq.token]
-            opde1=magicSupportOp[dateArgs, "DateTimeSupport", "equals", $neqo1.tree, $neqo2.tree, $neq.token]
-            opdne=magicNegate[dateArgs, $opde1.tree, $neq.token])
-         -> {stringArgs}? 
+            opoe1=magicSupportOp[objectArgs, "ObjectSupport", "Equals", $neqo1.tree, $neqo2.tree, $neq.token]
+         	opone=magicNegate[objectArgs, $opoe1.tree, $neq.token])
+         	-> {stringArgs}? 
                $opsne
-         -> {dateArgs}? 
-               $opdne
-         ->^($neq $neqo1 $neqo2)
+               
+         	-> {dateArgs}? 
+               //$opdne
+               // We use isEqual because we juste compare timestamp
+               ^(MONONOT[neq.token, "!"] ^(APPLY[$neq.token, "APPLY"] ^(DOT[$neq.token,"."] { dupTree($neqo1.tree) } IDENTIFIER[$neq.token, "isEqual" ]) ^(ARGS[$neq.token, "ARGS"] { dupTree($neqo2.tree) } )))
+         	-> {objectArgs}?
+         		$opone
+         	->^($neq $neqo1 $neqo2)
         | ^(gt='>' gt1=non_assignment_expression[ObjectType] gt2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
@@ -2437,15 +2481,19 @@ scope MkNonGeneric, PrimitiveRep;
                 // need to exclude null because that has every type
                 dateArgs = !nullArg && (($gt1.dotNetType != null && !$gt1.dotNetType.IsExplicitNull && $gt1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsA(DateType,AppEnv)));
-                if (dateArgs) {
-                    this.AddToImports("CS2JNet.System.DateTimeSupport");
-                }
+                objectArgs = !nullArg && (($gt1.dotNetType != null && !$gt1.dotNetType.IsExplicitNull && $gt1.dotNetType.IsObject(AppEnv)) || 
+                                           ($gt2.dotNetType != null && !$gt2.dotNetType.IsExplicitNull && $gt2.dotNetType.IsObject(AppEnv)));
                 $dotNetType = BoolType; 
-            }
-            opgt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $gt2.tree, $gt1.tree, $gt.token])
-        -> {dateArgs}? 
-               $opgt
-         ->^($gt $gt1 $gt2)
+            })
+            //opgt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $gt2.tree, $gt1.tree, $gt.token])
+        	-> {dateArgs}? 
+            	//$opgt
+            	^($gt 
+              		^(APPLY[$gt.token, "APPLY"] ^(DOT[$gt.token,"."] { dupTree($gt1.tree) } IDENTIFIER[$gt.token, "compareTo" ]) ^(ARGS[$gt.token, "ARGS"] { dupTree($gt2.tree) } ) )
+               		IDENTIFIER[$gt.token, "0" ] )
+         	-> {objectArgs}?
+         		^(APPLY[$gt.token, "APPLY"] ^(DOT[$gt.token,"."] { dupTree($gt1.tree) } IDENTIFIER[$gt.token, "_greaterThan_" ]) ^(ARGS[$gt.token, "ARGS"] { dupTree($gt2.tree) } ))
+         	->^($gt $gt1 $gt2)
         | ^(lt='<' lt1=non_assignment_expression[ObjectType] lt2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
@@ -2453,15 +2501,22 @@ scope MkNonGeneric, PrimitiveRep;
                 // need to exclude null because that has every type
                 dateArgs = !nullArg && (($lt1.dotNetType != null && !$lt1.dotNetType.IsExplicitNull && $lt1.dotNetType.IsA(DateType,AppEnv)) || 
                                            ($lt2.dotNetType != null && !$lt2.dotNetType.IsExplicitNull && $lt2.dotNetType.IsA(DateType,AppEnv)));
-                if (dateArgs) {
-                    this.AddToImports("CS2JNet.System.DateTimeSupport");
-                }
+				objectArgs = !nullArg && (($lt1.dotNetType != null && !$lt1.dotNetType.IsExplicitNull && $lt1.dotNetType.IsObject(AppEnv)) || 
+                                           ($lt2.dotNetType != null && !$lt2.dotNetType.IsExplicitNull && $lt2.dotNetType.IsObject(AppEnv)));
+                                           
                 $dotNetType = BoolType; 
-            }
-            oplt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $lt1.tree, $lt2.tree, $lt.token])
-        -> {dateArgs}? 
-               $oplt
-         ->^($lt $lt1 $lt2)
+            })
+            //oplt=magicSupportOp[dateArgs, "DateTimeSupport", "lessthan", $lt1.tree, $lt2.tree, $lt.token])
+          
+        	-> {dateArgs}? 
+               	//$oplt
+               	^($lt 
+               		^(APPLY[$lt.token, "APPLY"] ^(DOT[$lt.token,"."] { dupTree($lt1.tree) } IDENTIFIER[$lt.token, "compareTo" ]) ^(ARGS[$lt.token, "ARGS"] { dupTree($lt2.tree) } ) )
+               		IDENTIFIER[$lt.token, "0" ] )
+         
+         	-> {objectArgs}?
+         		^(APPLY[$lt.token, "APPLY"] ^(DOT[$lt.token,"."] { dupTree($lt1.tree) } IDENTIFIER[$lt.token, "_lessThan_" ]) ^(ARGS[$lt.token, "ARGS"] { dupTree($lt2.tree) } ))
+         	->^($lt $lt1 $lt2)
         | ^(ge='>=' ge1=non_assignment_expression[ObjectType] ge2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
@@ -2469,15 +2524,18 @@ scope MkNonGeneric, PrimitiveRep;
                 // need to exclude null because that has every type
                 dateArgs = !nullArg && (($ge1.dotNetType != null && !$ge1.dotNetType.IsExplicitNull && $ge1.dotNetType.IsA(DateType,AppEnv)) || 
                                           ($ge2.dotNetType != null && !$ge2.dotNetType.IsExplicitNull && $ge2.dotNetType.IsA(DateType,AppEnv)));
-                if (dateArgs) {
-                    this.AddToImports("CS2JNet.System.DateTimeSupport");
-                }
+                objectArgs = !nullArg && (($ge1.dotNetType != null && !$ge1.dotNetType.IsExplicitNull && $ge1.dotNetType.IsObject(AppEnv)) || 
+                                           ($ge2.dotNetType != null && !$ge2.dotNetType.IsExplicitNull && $ge2.dotNetType.IsObject(AppEnv)));
                 $dotNetType = BoolType; 
-            }
-            opge=magicSupportOp[dateArgs, "DateTimeSupport", "lessthanorequal", $ge2.tree, $ge1.tree, $ge.token])
-        -> {dateArgs}? 
-               $opge
-         ->^($ge $ge1 $ge2)
+            })
+            //opge=magicSupportOp[dateArgs, "DateTimeSupport", "lessthanorequal", $ge2.tree, $ge1.tree, $ge.token])
+            
+        	-> {dateArgs}? 
+               	//$opge
+               	^($ge 
+               		^(APPLY[$ge.token, "APPLY"] ^(DOT[$ge.token,"."] { dupTree($ge1.tree) } IDENTIFIER[$ge.token, "compareTo" ]) ^(ARGS[$ge.token, "ARGS"] { dupTree($ge2.tree) } ) )
+               		IDENTIFIER[$ge.token, "0" ] )      
+           	->^($ge $ge1 $ge2)
         | ^(le='<=' le1=non_assignment_expression[ObjectType] le2=non_assignment_expression[ObjectType]
             {
                 // if One arg is null then leave original operator
@@ -2485,21 +2543,29 @@ scope MkNonGeneric, PrimitiveRep;
                 // need to exclude null because that has every type
                 dateArgs = !nullArg && (($le1.dotNetType != null && !$le1.dotNetType.IsExplicitNull && $le1.dotNetType.IsA(DateType,AppEnv)) || 
                                             ($le2.dotNetType != null && !$le2.dotNetType.IsExplicitNull && $le2.dotNetType.IsA(DateType,AppEnv)));
-                if (dateArgs) {
-                    this.AddToImports("CS2JNet.System.DateTimeSupport");
-                }
+                objectArgs = !nullArg && (($le1.dotNetType != null && !$le1.dotNetType.IsExplicitNull && $le1.dotNetType.IsObject(AppEnv)) || 
+                                           ($le2.dotNetType != null && !$le2.dotNetType.IsExplicitNull && $le2.dotNetType.IsObject(AppEnv)));
+                
                 $dotNetType = BoolType; 
-            }
-            ople=magicSupportOp[dateArgs, "DateTimeSupport", "lessthanorequal", $le1.tree, $le2.tree, $le.token])
-        -> {dateArgs}? 
-               $ople
-         ->^($le $le1 $le2)
+            })
+            //ople=magicSupportOp[dateArgs, "DateTimeSupport", "lessthanorequal", $le1.tree, $le2.tree, $le.token])
+            
+        	-> {dateArgs}? 
+               //$ople
+               ^($le 
+               		^(APPLY[$le.token, "APPLY"] ^(DOT[$le.token,"."] { dupTree($le1.tree) } IDENTIFIER[$le.token, "compareTo" ]) ^(ARGS[$le.token, "ARGS"] { dupTree($le2.tree) } ) )
+               		IDENTIFIER[$le.token, "0" ] )
+         	->^($le $le1 $le2)
         | ^(INSTANCEOF non_assignment_expression[ObjectType] { $MkNonGeneric::scrubGenericArgs = true;  $PrimitiveRep::primitiveTypeAsObject = true; } non_nullable_type)           {$dotNetType = BoolType; }
         | ^('<<' n7=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n7.dotNetType; }
         | ^(RIGHT_SHIFT n8=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n8.dotNetType; }
 // TODO: need to munge these numeric types
-        | ^(pl='+' n9=non_assignment_expression[ObjectType] n92=non_assignment_expression[ObjectType])       
+        | ^(pl='+' n9=non_assignment_expression[ObjectType] n92=non_assignment_expression[ObjectType]       
         {
+        nullArg = false;
+        stringArgs = false;
+        dateArgs = false;
+        objectArgs = false;
          // Are we adding two delegates?
          if ($n9.dotNetType != null && $n9.dotNetType is DelegateRepTemplate) {
             List<TypeRepTemplate> args = new List<TypeRepTemplate>();
@@ -2522,10 +2588,74 @@ scope MkNonGeneric, PrimitiveRep;
                WarningFailedResolve($pl.line, "Could not resolve method application of Combine against " + $n9.dotNetType.TypeName);
             }
          }
-         $dotNetType = $n9.dotNetType; 
-        }
-        | ^(ne='-' n10=non_assignment_expression[ObjectType] n102=non_assignment_expression[ObjectType])      {$dotNetType = $n10.dotNetType; }
+         else{
+         	nullArg = $n9.dotNetType != null && $n92.dotNetType != null && ($n9.dotNetType.IsExplicitNull || $n92.dotNetType.IsExplicitNull);
+           
+         	stringArgs = !nullArg && (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(StringType,AppEnv)) || 
+                                            ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(StringType,AppEnv)));
+           	// We may be more precise (Date + TimeSpan || TimeSpan + Date) 
+            dateArgs = !nullArg && (
+            						(($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(DateType,AppEnv)) && 
+                                    ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(TimeSpanType,AppEnv)))
+                                    ||
+                                    (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(TimeSpanType,AppEnv)) && 
+                                    ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(DateType,AppEnv)))
+                                    );
+                                    
+           	altDateArgs = !nullArg && (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsA(TimeSpanType,AppEnv)) && 
+                                    ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsA(TimeSpanType,AppEnv)));
+                                    
+         	objectArgs = !dateArgs && !stringArgs && !nullArg && (($n9.dotNetType != null && !$n9.dotNetType.IsExplicitNull && $n9.dotNetType.IsObject(AppEnv)) || 
+                                           ($n92.dotNetType != null && !$n92.dotNetType.IsExplicitNull && $n92.dotNetType.IsObject(AppEnv)));
+		 }
+		 /*
+		 //$dotNetType = $n9.dotNetType;
+		  * This is TOTALLY WRONG.
+		  	e.g String + Obj = String
+		  		Obj + String = ... Obj 
+		  */
+         
+         if(stringArgs)
+         	$dotNetType = StringType;
+         else if(dateArgs | altDateArgs){
+         	$dotNetType = DateType;
+         	AddToImports("org.joda.time.Duration");
+         }
+         else
+         	$dotNetType = $n9.dotNetType;
+        })
+        
+        -> { dateArgs | altDateArgs}?
+        	^(APPLY[$pl.token, "APPLY"] 
+        		^(DOT[$pl.token,"."] 
+        			{ dupTree($n9.tree) } 
+        			IDENTIFIER[$pl.token, "plus" ]
+        		) 
+        		^(ARGS[$pl.token, "ARGS"] 
+        			{ dupTree($n92.tree) } 
+        		)
+        	) 
+        
+        -> { objectArgs && !(stringArgs || dateArgs)}?
+           		^(APPLY[$pl.token, "APPLY"] 
+           			^(DOT[$pl.token,"."] 
+           				{ dupTree($n9.tree) } 
+           				IDENTIFIER[$pl.token, "_plus_" ]
+           			) 
+           			^(ARGS[$pl.token, "ARGS"] 
+           				{ dupTree($n92.tree) } 
+           			)
+           		)
+           		
+       	-> ^($pl $n9 $n92)
+       	
+        | ^(ne='-' n10=non_assignment_expression[ObjectType] n102=non_assignment_expression[ObjectType]
         {
+        
+         nullArg = false;
+         stringArgs = false;
+         dateArgs = false;
+         objectArgs = false;
          // Are we adding two delegates?
          if ($n10.dotNetType != null && $n10.dotNetType is DelegateRepTemplate) {
             List<TypeRepTemplate> args = new List<TypeRepTemplate>();
@@ -2549,8 +2679,71 @@ scope MkNonGeneric, PrimitiveRep;
                WarningFailedResolve($ne.line, "Could not resolve method application of Remove against " + $n10.dotNetType.TypeName);
             }
          }
-         $dotNetType = $n10.dotNetType; 
-        }
+         else{
+         	nullArg = $n10.dotNetType != null && $n102.dotNetType != null && ($n10.dotNetType.IsExplicitNull || $n102.dotNetType.IsExplicitNull);
+           
+         	stringArgs = !nullArg && (($n10.dotNetType != null && !$n10.dotNetType.IsExplicitNull && $n10.dotNetType.IsA(StringType,AppEnv)) || 
+                                            ($n102.dotNetType != null && !$n102.dotNetType.IsExplicitNull && $n102.dotNetType.IsA(StringType,AppEnv)));
+            // Date - Date = TimeSpan -> DateType && DateType
+            dateArgs = !nullArg && (($n10.dotNetType != null && !$n10.dotNetType.IsExplicitNull && $n10.dotNetType.IsA(DateType,AppEnv)) && 
+                                           ($n102.dotNetType != null && !$n102.dotNetType.IsExplicitNull && $n102.dotNetType.IsA(DateType,AppEnv)));
+            // Date - TimeSpan = Date -> DateType && TimeSpanType
+            altDateArgs = !nullArg && (($n10.dotNetType != null && !$n10.dotNetType.IsExplicitNull && $n10.dotNetType.IsA(DateType,AppEnv)) && 
+	                                      ($n102.dotNetType != null && !$n102.dotNetType.IsExplicitNull && $n102.dotNetType.IsA(TimeSpanType,AppEnv)));
+
+         	objectArgs = !nullArg && (($n10.dotNetType != null && !$n10.dotNetType.IsExplicitNull && $n10.dotNetType.IsObject(AppEnv)) || 
+                                           ($n102.dotNetType != null && !$n102.dotNetType.IsExplicitNull && $n102.dotNetType.IsObject(AppEnv)));
+		 }
+         
+         if(stringArgs)
+         	$dotNetType = StringType;
+         else if(dateArgs){
+         	$dotNetType = TimeSpanType;
+         	AddToImports("org.joda.time.Duration");
+         }
+		 else if(altDateArgs){
+		 	$dotNetType = DateType;
+         	AddToImports("org.joda.time.DateTime");
+         }
+         else
+         	$dotNetType = $n10.dotNetType;
+        })
+        -> { dateArgs }?
+        	//new Period(${this:16}, ${date2})
+        	^(NEW[$ne.token, "NEW"]
+        		^(TYPE[$ne.token, "TYPE"]
+        			IDENTIFIER[$ne.token, "Duration"]
+        		)
+        		^(ARGS[$ne.token, "ARGS"]
+        			// We invert the args, since n102 should be greater than n10
+        			{ dupTree($n102.tree) }
+        			{ dupTree($n10.tree) }
+        		)
+        	)
+        	
+        -> { altDateArgs }?
+        	^(APPLY[$ne.token, "APPLY"] 
+        		^(DOT[$ne.token,"."] 
+        			{ dupTree($n10.tree) } 
+        			IDENTIFIER[$ne.token, "minus" ]
+        		) 
+        		^(ARGS[$ne.token, "ARGS"] 
+        			{ dupTree($n102.tree) } 
+        		)
+        	)        
+        -> { objectArgs && !(stringArgs || dateArgs) }?
+           	^(APPLY[$ne.token, "APPLY"] 
+           		^(DOT[$ne.token,"."] 
+           			{ dupTree($n10.tree) } 
+           			IDENTIFIER[$ne.token, "_minus_" ]
+           		) 
+           		^(ARGS[$ne.token, "ARGS"] 
+           			{ dupTree($n102.tree) } 
+           		)
+           	)
+           		
+       	-> ^($ne $n10 $n102)
+        
         | ^('*' n11=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n11.dotNetType; }
         | ^('/' n12=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n12.dotNetType; }
         | ^('%' n13=non_assignment_expression[ObjectType] non_assignment_expression[ObjectType])      {$dotNetType = $n13.dotNetType; }

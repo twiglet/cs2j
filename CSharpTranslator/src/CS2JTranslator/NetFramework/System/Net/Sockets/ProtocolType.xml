@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Enum xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Net.Sockets.ProtocolType</Import>
+  </Imports>
+  <Java>ProtocolType</Java>
+  <Name>System.Net.Sockets.ProtocolType</Name>
+  <Inherits>
+    <Type>System.Enum</Type>
+  </Inherits>
+  <Members>
+    <Member>
+      <Java>${this:16}.IP</Java>
+      <Name>IP</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv6HopByHopOptions</Java>
+      <Name>IPv6HopByHopOptions</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Icmp</Java>
+      <Name>Icmp</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Igmp</Java>
+      <Name>Igmp</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Ggp</Java>
+      <Name>Ggp</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv4</Java>
+      <Name>IPv4</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Tcp</Java>
+      <Name>Tcp</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Pup</Java>
+      <Name>Pup</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Udp</Java>
+      <Name>Udp</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Idp</Java>
+      <Name>Idp</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv6</Java>
+      <Name>IPv6</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv6RoutingHeader</Java>
+      <Name>IPv6RoutingHeader</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv6FragmentHeader</Java>
+      <Name>IPv6FragmentHeader</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPSecEncapsulatingSecurityPayload</Java>
+      <Name>IPSecEncapsulatingSecurityPayload</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPSecAuthenticationHeader</Java>
+      <Name>IPSecAuthenticationHeader</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IcmpV6</Java>
+      <Name>IcmpV6</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv6NoNextHeader</Java>
+      <Name>IPv6NoNextHeader</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.IPv6DestinationOptions</Java>
+      <Name>IPv6DestinationOptions</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.ND</Java>
+      <Name>ND</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Raw</Java>
+      <Name>Raw</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Unspecified</Java>
+      <Name>Unspecified</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Ipx</Java>
+      <Name>Ipx</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Spx</Java>
+      <Name>Spx</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.SpxII</Java>
+      <Name>SpxII</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Unknown</Java>
+      <Name>Unknown</Name>
+    </Member>
+  </Members>
+</Enum>

@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.util.Random</Import>
+  </Imports>
+  <Java>Random</Java>
+  <Name>System.Random</Name>
+  <Uses />
+  <Inherits>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this}.nextDouble()</Java>
+      <Params />
+      <Name>NextDouble</Name>
+      <Return>System.Double</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.nextInt()</Java>
+      <Params />
+      <Name>Next</Name>
+      <Return>System.Int32</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this}.nextInt(${maxValue})</Java>
+      <Params>
+        <Param>
+          <Name>maxValue</Name>
+          <Type>System.Int32</Type>
+        </Param>
+      </Params>
+      <Name>Next</Name>
+      <Return>System.Int32</Return>
+    </Method>
+  </Methods>
+  <Properties>
+  </Properties>
+  <Events />
+  <Indexers />
+  <Constructors>
+    <Constructor>
+      <Java>new Random()</Java>
+      <Params>
+      </Params>
+    </Constructor>
+    <Constructor>
+      <Java>new Random(${seed})</Java>
+      <Params>
+        <Param>
+          <Type>System.Int32</Type>
+          <Name>seed</Name>
+        </Param>
+      </Params>
+    </Constructor>
+  </Constructors>
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Net.IPAddress</Import>
+  </Imports>
+  <Java>IPAddress</Java>
+  <Name>System.Net.IPAddress</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors>
+  	<Constructor>
+  	  <Params>
+  	    <Param>
+  	      <Type>System.Int64</Type>
+  	      <Name>newAddress</Name>
+  	    </Param>
+  	  </Params>
+  	  <Imports>
+  	    <Import>CS2JNet.System.Net.IPAddress</Import>
+  	  </Imports>
+  	  <Java>new IPAddress(${newAddress})</Java>
+  	</Constructor>
+  </Constructors>
+  <Fields>
+    <Field>
+  	  <Imports>
+  	    <Import>CS2JNet.System.Net.IPAddress</Import>
+  	  </Imports>
+      <Type>System.Net.IPAddress</Type>
+      <Name>Any</Name>
+      <Java>IPAddress.Any</Java>
+    </Field>
+  </Fields>
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

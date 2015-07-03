@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Delegate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Action</Import>
+  </Imports>
+  <Java>Action*[${T}]*</Java>
+  <Name>System.Action</Name>
+  <TypeParams>
+    <Name>T</Name>
+  </TypeParams>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.__MultiAction</Import>
+      </Imports>
+      <Java>__MultiAction.Combine(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Action*[T]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Action*[T]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Combine</Name>
+      <TypeParams>
+        <Name>T</Name>
+      </TypeParams>
+      <Return>System.Action*[T]*</Return>
+    </Method>
+    <Method static="true">
+      <Imports>
+        <Import>CS2JNet.System.__MultiAction</Import>
+      </Imports>
+      <Java>__MultiAction.Remove(${a},${b})</Java>
+      <Params>
+        <Param>
+          <Type>System.Action*[T]*</Type>
+          <Name>a</Name>
+        </Param>
+        <Param>
+          <Type>System.Action*[T]*</Type>
+          <Name>b</Name>
+        </Param>
+      </Params>
+      <Name>Remove</Name>
+      <TypeParams>
+        <Name>T</Name>
+      </TypeParams>
+      <Return>System.Action*[T]*</Return>
+    </Method>
+  </Methods>
+  <Invoke>
+    <Java>${this:16}.Invoke(${a})</Java>
+    <Params>
+      <Param>
+        <Type>T</Type>
+        <Name>a</Name>
+      </Param>
+    </Params>
+    <Name>Invoke</Name>
+    <TypeParams />
+    <Return>System.Boolean</Return>
+  </Invoke>
+
+</Delegate>

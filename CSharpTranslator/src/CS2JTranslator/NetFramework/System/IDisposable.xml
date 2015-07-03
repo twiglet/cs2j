@@ -1,0 +1,21 @@
+<Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports/>
+  <Java>AutoClosable</Java>
+  <Name>System.IDisposable</Name>
+  <Uses/>
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports/>
+      <Java>${this:16}.close()</Java>
+      <Params/>
+      <Name>Dispose</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties/>
+  <Events/>
+  <Indexers/>
+</Interface>

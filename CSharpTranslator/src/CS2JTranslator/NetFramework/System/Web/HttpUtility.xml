@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>java.net.URLEncoder</Import>
+  </Imports>
+  <Java>URLEncoder</Java>
+  <Name>System.Web.HttpUtility</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.Object</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Web.HttpUtilSupport</Import>
+      </Imports>
+      <Java>HttpUtilSupport.HtmlEncode(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>HtmlEncode</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Web.HttpUtilSupport</Import>
+      </Imports>
+      <Java>HttpUtilSupport.UrlEncode(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>UrlEncode</Name>
+      <Return>System.String</Return>
+    </Method>
+    <Method>
+      <Imports>
+        <Import>CS2JNet.System.Web.HttpUtilSupport</Import>
+      </Imports>
+      <Java>HttpUtilSupport.UrlDecode(${str})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>str</Name>
+        </Param>
+      </Params>
+      <Name>UrlDecode</Name>
+      <Return>System.String</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+  <BinaryOps />
+</Class>

@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Class xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Xml.XmlWriter</Import>
+  </Imports>
+  <Java>XmlWriter</Java>
+  <Name>System.Xml.XmlWriter</Name>
+  <Uses />
+  <Inherits>
+    <Type>System.IDisposable</Type>
+  </Inherits>
+  <Methods>
+    <Method>
+      <Imports />
+      <Java>${this:16}.writeStartElement(${localName})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+      </Params>
+      <Name>WriteStartElement</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.writeAttributeString(${localName}, ${value})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>localName</Name>
+        </Param>
+        <Param>
+          <Type>System.String</Type>
+          <Name>value</Name>
+        </Param>
+      </Params>
+      <Name>WriteAttributeString</Name>
+      <Return>System.Void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.writeString(${text})</Java>
+      <Params>
+        <Param>
+          <Type>System.String</Type>
+          <Name>text</Name>
+        </Param>
+      </Params>
+      <Name>WriteString</Name>
+      <Return>System.void</Return>
+    </Method>
+    <Method>
+      <Imports />
+      <Java>${this:16}.writeEndElement()</Java>
+      <Params />
+      <Name>WriteEndElement</Name>
+      <Return>System.Void</Return>
+    </Method>
+  </Methods>
+  <Properties />
+  <Events />
+  <Indexers />
+  <Constructors />
+  <Fields />
+  <Casts />
+  <UnaryOps />
+</Class>

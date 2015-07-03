@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:www.twigletsoftware.com:schemas:txtemplate:1:0" 
+xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <xs:element name="Class" nillable="true" type="Class" />
+  <xs:complexType name="Class">
+    <xs:complexContent mixed="false">
+      <xs:extension base="Interface">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Constructors" type="ArrayOfConstructorRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Fields" type="ArrayOfFieldRepTemplate1" />
+          <xs:element minOccurs="0" maxOccurs="1" name="UnaryOps" type="ArrayOfMethodRepTemplate1" />
+          <xs:element minOccurs="0" maxOccurs="1" name="BinaryOps" type="ArrayOfMethodRepTemplate2" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Interface">
+    <xs:complexContent mixed="false">
+      <xs:extension base="TypeRepTemplate">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Methods" type="ArrayOfMethodRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Properties" type="ArrayOfPropRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Events" type="ArrayOfFieldRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Indexers" type="ArrayOfIndexerRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Iterable" type="IterableRepTemplate" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="TypeRepTemplate" abstract="true">
+    <xs:complexContent mixed="false">
+      <xs:extension base="TranslationBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="TypeParams" type="ArrayOfString1" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Uses" type="ArrayOfString2" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Aliases" type="ArrayOfAliasRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Casts" type="ArrayOfCastRepTemplate" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Inherits" type="ArrayOfString3" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="TranslationBase" abstract="true">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Imports" type="ArrayOfString" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Java" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Warning" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfString">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Import" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="IterableRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="TranslationBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="ElementType" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="FieldRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="TranslationBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="PropRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="FieldRepTemplate">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Get" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Set" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute default="true" name="read" type="xs:boolean" />
+        <xs:attribute default="true" name="write" type="xs:boolean" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="IndexerRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="PropRepTemplate">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Params" type="ArrayOfParamRepTemplate" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfParamRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Param" nillable="true" type="ParamRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ParamRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+    </xs:sequence>
+    <xs:attribute default="false" name="byref" type="xs:boolean" />
+  </xs:complexType>
+  <xs:complexType name="ConstructorRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="TranslationBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Params" type="ArrayOfParamRepTemplate" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="MethodRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="ConstructorRepTemplate">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="TypeParams" type="ArrayOfString1" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Return" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute default="false" name="static" type="xs:boolean" />
+        <xs:attribute default="false" name="partial" type="xs:boolean" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfString1">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Name" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CastRepTemplate">
+    <xs:complexContent mixed="false">
+      <xs:extension base="TranslationBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="From" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="To" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfString2">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Use" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfAliasRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Alias" nillable="true" type="AliasRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AliasRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Alias" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Namespace" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfCastRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Cast" nillable="true" type="CastRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfString3">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Type" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfMethodRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Method" nillable="true" type="MethodRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfPropRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Property" nillable="true" type="PropRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfFieldRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Event" nillable="true" type="FieldRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfIndexerRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Indexer" nillable="true" type="IndexerRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfConstructorRepTemplate">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Constructor" nillable="true" type="ConstructorRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfFieldRepTemplate1">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Field" nillable="true" type="FieldRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfMethodRepTemplate1">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UnaryOp" nillable="true" type="MethodRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfMethodRepTemplate2">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="BinaryOp" nillable="true" type="MethodRepTemplate" />
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

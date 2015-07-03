@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    This file is
+
+    Copyright 2007,2008,2009,2010 Rustici Software, LLC
+    Copyright 2010,2011 Kevin Glynn (kevin.glynn@twigletsoftware.com)
+
+-->
+<Enum xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.twigletsoftware.com:schemas:txtemplate:1:0">
+  <Imports>
+    <Import>CS2JNet.System.Net.Sockets.SocketType</Import>
+  </Imports>
+  <Java>SocketType</Java>
+  <Name>System.Net.Sockets.SocketType</Name>
+  <Inherits>
+    <Type>System.Enum</Type>
+  </Inherits>
+  <Members>
+    <Member>
+      <Java>${this:16}.Stream</Java>
+      <Name>Stream</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Dgram</Java>
+      <Name>Dgram</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Raw</Java>
+      <Name>Raw</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Rdm</Java>
+      <Name>Rdm</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Seqpacket</Java>
+      <Name>Seqpacket</Name>
+    </Member>
+    <Member>
+      <Java>${this:16}.Unknown</Java>
+      <Name>Unknown</Name>
+    </Member>
+  </Members>
+</Enum>

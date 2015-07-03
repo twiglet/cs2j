@@ -1,3 +1,7 @@
+Update (15/04/2015) : Antlr3.2 is not compatible with Java 8. Please use Java 7 instead, or update Antlr3.2 to Antlr3.5.2.
+
+Mathieu Blond - Ijinus.
+
 CS2J can be built on Windows (requires .Net framework 4 to be
 installed), or on any system that supports Mono
 (http://www.mono-project.com/Main_Page) and Ant
