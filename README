@@ -33,6 +33,9 @@ The CS2J source distribution has two components:
      translate .Net framework calls into appropriate Java code, and
      the CS2JLibrary Java support library that should be deployed with
      translated applications.
+     
+# I hope you like this 
+# Thamk you
 
      This work is licensed under the Apache License, Version 2.0
      (http://www.apache.org/licenses/LICENSE-2.0).
